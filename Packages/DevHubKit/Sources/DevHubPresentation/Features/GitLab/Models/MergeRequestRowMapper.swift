@@ -15,7 +15,7 @@ enum MergeRequestRowMapper {
             iconTint: tint(request),
             iconHint: stateTitle(request),
             isNew: MergeRequestAgePolicy.isNew(request, seenAt: context.seenAt),
-            ticket: TicketMapper.model(for: [request.title, request.sourceBranch], template: context.ticketURLTemplate),
+            ticket: TicketMapper.model(for: [request.title, request.sourceBranch], ticket: context.ticket),
             linkText: RequestLinkText.mergeRequest(request),
             author: context.scope == .mine ? "" : request.author,
             authorTint: request.author == username ? .blue : nil,

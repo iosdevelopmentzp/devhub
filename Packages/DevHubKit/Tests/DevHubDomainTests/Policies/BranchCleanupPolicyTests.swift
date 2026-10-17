@@ -5,7 +5,7 @@ import Testing
     @Test func mergedAndGoneBranchesAreCandidates() {
         let branches = [branch("merged", merged: true), branch("gone", gone: true), branch("active")]
 
-        let names = BranchCleanupPolicy.candidates(branches: branches, currentBranch: nil, baseName: "dev").map(\.name)
+        let names = BranchCleanupPolicy.candidates(branches: branches, currentBranch: nil, baseName: "dev", protected: ["main", "master", "develop", "dev"]).map(\.name)
 
         #expect(names == ["merged", "gone"])
     }
@@ -21,9 +21,17 @@ import Testing
             branch("old", merged: true),
         ]
 
-        let names = BranchCleanupPolicy.candidates(branches: branches, currentBranch: "current", baseName: "develop").map(\.name)
+        let names = BranchCleanupPolicy.candidates(branches: branches, currentBranch: "current", baseName: "develop", protected: ["main", "master", "develop", "dev"]).map(\.name)
 
         #expect(names == ["old"])
+    }
+
+    @Test func aConfiguredListReplacesTheDefaultButKeepsTheBase() {
+        let branches = [branch("main", merged: true), branch("release", merged: true), branch("develop", merged: true)]
+
+        let names = BranchCleanupPolicy.candidates(branches: branches, currentBranch: nil, baseName: "develop", protected: ["release"]).map(\.name)
+
+        #expect(names == ["main"])
     }
 
     @Test func forceAppliesOnlyToGoneBranchesWhenAsked() {

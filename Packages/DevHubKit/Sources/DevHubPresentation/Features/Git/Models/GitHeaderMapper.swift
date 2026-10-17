@@ -4,7 +4,7 @@ import DevHubUI
 
 enum GitHeaderMapper {
 
-    static func model(for snapshot: GitSnapshot, baseName: String, ticketURLTemplate: String) -> GitHeaderModel {
+    static func model(for snapshot: GitSnapshot, baseName: String, ticket: TicketSettings) -> GitHeaderModel {
         let branch = snapshot.branch ?? ""
         return GitHeaderModel(
             branchTitle: snapshot.branch ?? "detached HEAD",
@@ -14,7 +14,7 @@ enum GitHeaderMapper {
             upstreamTag: snapshot.upstream.map { TagModel($0, systemImage: "icloud") },
             tags: syncTags(snapshot, baseName: baseName),
             stashTag: stashTag(snapshot),
-            ticket: snapshot.branch.flatMap { TicketMapper.model(for: [$0], template: ticketURLTemplate) },
+            ticket: snapshot.branch.flatMap { TicketMapper.model(for: [$0], ticket: ticket) },
             showsMergeRequestLine: snapshot.webURL != nil && snapshot.branch != nil,
             operationText: snapshot.operation.map { "\($0.capitalized) in progress. Resolve conflicts in the terminal or Xcode, then continue." },
             canContinueOperation: snapshot.operation == "rebase",

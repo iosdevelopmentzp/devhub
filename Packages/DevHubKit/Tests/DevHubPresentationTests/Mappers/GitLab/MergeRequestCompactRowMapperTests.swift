@@ -44,7 +44,7 @@ import Testing
     @Test func modelTakesTheRowFactsAndHidesTheAuthorInMine() {
         let request = MergeRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, author: "me", updatedAt: Date(timeIntervalSinceNow: -60))
         let row = MergeRequestRowModel.preview
-        let context = MergeRequestRowContext(username: "me", scope: .mine, seenAt: nil, now: .now, isMainCheckoutClean: true, ticketURLTemplate: "")
+        let context = MergeRequestRowContext(username: "me", scope: .mine, seenAt: nil, now: .now, isMainCheckoutClean: true, ticket: .standard)
 
         let model = MergeRequestCompactRowMapper.model(for: request, row: row, context: context)
 

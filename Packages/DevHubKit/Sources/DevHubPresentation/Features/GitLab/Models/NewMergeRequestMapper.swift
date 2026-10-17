@@ -3,19 +3,19 @@ import DevHubDomain
 
 enum NewMergeRequestMapper {
 
-    static func title(branch: String, lastSubject: String?) -> String {
-        guard let key = TicketPrefix.key(in: branch) else { return lastSubject ?? "" }
+    static func title(branch: String, lastSubject: String?, ticket: TicketSettings) -> String {
+        guard let key = TicketPrefix.key(in: branch, ticket: ticket) else { return lastSubject ?? "" }
         guard let lastSubject, lastSubject.isEmpty == false else { return "\(key): " }
         return lastSubject.hasPrefix(key) ? lastSubject : "\(key): \(lastSubject)"
     }
 
-    static func description(template: String?, branch: String, subjects: [String]) -> String {
+    static func description(template: String?, branch: String, subjects: [String], ticket: TicketSettings) -> String {
         if let template, template.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
             return template
         }
-        let ticket = TicketPrefix.key(in: branch).map { ["Ticket: \($0)"] } ?? []
+        let lines = TicketPrefix.key(in: branch, ticket: ticket).map { ["Ticket: \($0)"] } ?? []
         let changes = subjects.reversed().map { "- \($0)" }
-        return (ticket + (ticket.isEmpty || changes.isEmpty ? [] : [""]) + changes).joined(separator: "\n")
+        return (lines + (lines.isEmpty || changes.isEmpty ? [] : [""]) + changes).joined(separator: "\n")
     }
 
     static func model(for draft: NewMergeRequestDraft) -> NewMergeRequestFormModel {

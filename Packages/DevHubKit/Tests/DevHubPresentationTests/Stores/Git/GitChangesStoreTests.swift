@@ -96,6 +96,16 @@ import DevHubTestSupport
         #expect(store.message == "APP-12: ")
     }
 
+    @Test func theConfiguredFormatShapesThePrefix() async {
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(git: GitConfig(commitPrefix: CommitPrefixConfig(format: "[$1] "))), actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+        await loadBranch()
+
+        await load([])
+
+        #expect(store.message == "[APP-12] ")
+    }
+
     @Test func refreshKeepsATypedMessage() async {
         await loadBranch()
         store.message = "Typed"

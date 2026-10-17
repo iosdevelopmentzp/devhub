@@ -11,7 +11,7 @@ enum LocalBranchRowMapper {
         openMergeRequest: MergeRequestSummary?,
         baseName: String,
         changedFiles: Int,
-        ticketURLTemplate: String,
+        ticket: TicketSettings,
         isBuildRunning: Bool,
         isBusy: Bool,
         configActions: [ConfigActionItemModel]
@@ -28,7 +28,7 @@ enum LocalBranchRowMapper {
             usesAccentIcon: isCurrent,
             tags: checkoutTags(isCurrent: isCurrent, worktree: worktree) + trackingTags(branch, baseName: baseName),
             mergeRequest: BranchMergeRequestMapper.model(for: openMergeRequest),
-            ticket: TicketMapper.model(for: [branch.name], template: ticketURLTemplate),
+            ticket: TicketMapper.model(for: [branch.name], ticket: ticket),
             dateText: dateText(branch),
             subject: branch.subject,
             worktreePath: branch.worktreePath,

@@ -182,7 +182,7 @@ import Testing
             openMergeRequest: nil,
             baseName: "dev",
             changedFiles: 0,
-            ticketURLTemplate: "",
+            ticket: .standard,
             isBuildRunning: true,
             isBusy: true,
             configActions: []
@@ -196,7 +196,7 @@ import Testing
         var branch = GitBranchFixture.feature
         branch.name = "feature/ABC-2324-paid-call"
 
-        #expect(row(branch, current: nil, worktree: nil).ticket == TicketModel(key: "ABC-2324", url: nil, hint: "Copy ABC-2324. Set the ticket link in Settings to open it."))
+        #expect(row(branch, current: nil, worktree: nil).ticket == TicketModel(key: "ABC-2324", url: nil, hint: "Copy ABC-2324. Set git.ticketURL in .devhub/project.json or the ticket link in Settings to open it."))
         #expect(row(GitBranchFixture.feature, current: nil, worktree: nil).ticket == nil)
     }
 
@@ -214,7 +214,7 @@ import Testing
             openMergeRequest: openMergeRequest,
             baseName: "dev",
             changedFiles: changedFiles,
-            ticketURLTemplate: "",
+            ticket: .standard,
             isBuildRunning: false,
             isBusy: false,
             configActions: configActions

@@ -2,11 +2,12 @@ import DevHubDomain
 import DevHubUI
 import Foundation
 import Testing
+import DevHubTestSupport
 @testable import DevHubPresentation
 
 @Suite struct GitHeaderMapperTests {
     @Test func cleanTrackedBranch() {
-        let model = GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticketURLTemplate: "")
+        let model = GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticket: .standard)
 
         #expect(model.branchTitle == "feature/login")
         #expect(model.branchCopyValue == "feature/login")
@@ -29,7 +30,7 @@ import Testing
         snapshot.branch = nil
         snapshot.upstream = nil
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticketURLTemplate: "")
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
 
         #expect(model.branchTitle == "detached HEAD")
         #expect(model.branchCopyValue == "a1b2c3d")
@@ -44,7 +45,7 @@ import Testing
         var snapshot = GitSnapshotFixture.clean
         snapshot.webURL = nil
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticketURLTemplate: "")
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
 
         #expect(model.showsMergeRequestLine == false)
         #expect(model.webBranch == nil)
@@ -54,7 +55,7 @@ import Testing
         var snapshot = GitSnapshotFixture.clean
         snapshot.changedFiles = 3
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticketURLTemplate: "")
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
 
         #expect(model.statusTag == TagModel("3 changed", tint: .orange, systemImage: "pencil", hint: "3 files with changes that are not committed"))
     }
@@ -67,7 +68,7 @@ import Testing
         snapshot.aheadOfBase = 5
         snapshot.stashCount = 2
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticketURLTemplate: "")
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
 
         #expect(model.tags == [
             TagModel("↑2 to push", tint: .blue, hint: "2 local commits are not on origin/feature/login yet"),
@@ -82,15 +83,15 @@ import Testing
         var snapshot = GitSnapshotFixture.clean
         snapshot.branch = "feature/ABC-12-login"
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticketURLTemplate: "https://t.example.com/{key}")
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .linking("https://t.example.com/{key}"))
 
         #expect(model.ticket?.key == "ABC-12")
         #expect(model.ticket?.url == URL(string: "https://t.example.com/ABC-12"))
-        #expect(GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticketURLTemplate: "").ticket == nil)
+        #expect(GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticket: .standard).ticket == nil)
     }
 
     @Test func noStashNoStashTag() {
-        #expect(GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticketURLTemplate: "").stashTag == nil)
+        #expect(GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticket: .standard).stashTag == nil)
     }
 
     @Test func branchWithoutUpstreamIsNotPushed() {
@@ -98,7 +99,7 @@ import Testing
         snapshot.upstream = nil
         snapshot.ahead = 3
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticketURLTemplate: "")
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
 
         #expect(model.tags == [TagModel("not pushed", tint: .orange, systemImage: "icloud.slash", hint: "The branch has no remote branch yet. Push creates it.")])
         #expect(action(.push, in: model)?.hint == "Publish this branch. git push -u <remote> <branch>")
@@ -106,7 +107,7 @@ import Testing
     }
 
     @Test func actionListWithPrioritiesAndHints() {
-        let model = GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticketURLTemplate: "")
+        let model = GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticket: .standard)
 
         #expect(model.actions.map(\.id) == [.fetch, .pull, .push, .forcePush, .rebase, .updateBase])
         #expect(model.actions.map(\.title) == ["Fetch", "Pull", "Push", "Force Push…", "Rebase on dev…", "Update dev"])
@@ -128,7 +129,7 @@ import Testing
         snapshot.changedFiles = 1
         snapshot.stashCount = 3
 
-        let stash = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticketURLTemplate: "").actions.last
+        let stash = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard).actions.last
 
         #expect(stash == GitHeaderActionModel(
             id: .stash,
@@ -144,7 +145,7 @@ import Testing
         var snapshot = GitSnapshotFixture.clean
         snapshot.stashCount = 1
 
-        let pop = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticketURLTemplate: "").actions.last
+        let pop = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard).actions.last
 
         #expect(pop == GitHeaderActionModel(
             id: .popStash,
@@ -160,7 +161,7 @@ import Testing
         var snapshot = GitSnapshotFixture.clean
         snapshot.operation = "rebase"
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticketURLTemplate: "")
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
 
         #expect(model.operationText == "Rebase in progress. Resolve conflicts in the terminal or Xcode, then continue.")
         #expect(model.canContinueOperation)
@@ -171,7 +172,7 @@ import Testing
         var snapshot = GitSnapshotFixture.clean
         snapshot.operation = "merge"
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticketURLTemplate: "")
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
 
         #expect(model.operationText == "Merge in progress. Resolve conflicts in the terminal or Xcode, then continue.")
         #expect(model.canContinueOperation == false)

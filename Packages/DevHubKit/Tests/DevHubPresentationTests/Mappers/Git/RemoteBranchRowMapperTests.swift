@@ -11,7 +11,7 @@ import Testing
             remote: "origin",
             localBranchNames: ["dev"],
             openMergeRequest: nil,
-            ticketURLTemplate: "",
+            ticket: .standard,
             checkoutPath: { _ in nil },
             isBuildRunning: false,
             isBusy: false
@@ -39,7 +39,7 @@ import Testing
             remote: "origin",
             localBranchNames: ["feature/gifts"],
             openMergeRequest: nil,
-            ticketURLTemplate: "",
+            ticket: .standard,
             checkoutPath: { $0 == "feature/gifts" ? "/tmp/gifts" : nil },
             isBuildRunning: true,
             isBusy: true

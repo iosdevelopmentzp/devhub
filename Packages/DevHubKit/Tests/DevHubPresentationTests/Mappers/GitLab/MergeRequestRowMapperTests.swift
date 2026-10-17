@@ -2,6 +2,7 @@ import DevHubDomain
 import DevHubUI
 import Foundation
 import Testing
+import DevHubTestSupport
 @testable import DevHubPresentation
 
 @Suite struct MergeRequestRowMapperTests {
@@ -290,7 +291,7 @@ import Testing
     ) -> MergeRequestRowModel {
         MergeRequestRowMapper.model(
             for: request,
-            context: MergeRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticketURLTemplate: "https://jira.example.com/browse/{key}"),
+            context: MergeRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}")),
             local: local,
             isBusy: isBusy,
             isExpanded: isExpanded

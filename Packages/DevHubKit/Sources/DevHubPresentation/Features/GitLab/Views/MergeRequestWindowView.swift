@@ -20,7 +20,7 @@ struct MergeRequestWindowView: View {
                 MergeRequestRow(
                     model: MergeRequestRowMapper.model(
                         for: summary,
-                        context: MergeRequestRowContext(username: gitLab.username, scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticketURLTemplate: settings.values.ticketURLTemplate),
+                        context: MergeRequestRowContext(username: gitLab.username, scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate)),
                         local: MergeRequestLocalStateMapper.state(for: summary.sourceBranch, checkout: git, worktrees: worktrees),
                         isBusy: gitLab.isBusy(summary.id),
                         isExpanded: true

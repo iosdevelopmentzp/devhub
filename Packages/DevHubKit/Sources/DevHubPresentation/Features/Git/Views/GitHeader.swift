@@ -27,7 +27,7 @@ struct GitHeader: View {
             VStack(alignment: .leading, spacing: 10) {
                 topLine
                 if let snapshot = git.snapshot {
-                    let model = GitHeaderMapper.model(for: snapshot, baseName: git.baseName, ticketURLTemplate: settings.values.ticketURLTemplate)
+                    let model = GitHeaderMapper.model(for: snapshot, baseName: git.baseName, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate))
                     branchLine(model)
                     if model.showsMergeRequestLine {
                         mergeRequestLine

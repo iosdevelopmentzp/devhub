@@ -11,17 +11,17 @@ import Testing
         ("fix/crash", nil, ""),
     ] as [(String, String?, String)])
     func titleStartsWithTheTicket(branch: String, subject: String?, title: String) {
-        #expect(NewMergeRequestMapper.title(branch: branch, lastSubject: subject) == title)
+        #expect(NewMergeRequestMapper.title(branch: branch, lastSubject: subject, ticket: .standard) == title)
     }
 
     @Test func theTemplateWins() {
-        #expect(NewMergeRequestMapper.description(template: "## What\n", branch: "feature/ABC-9", subjects: ["a"]) == "## What\n")
+        #expect(NewMergeRequestMapper.description(template: "## What\n", branch: "feature/ABC-9", subjects: ["a"], ticket: .standard) == "## What\n")
     }
 
     @Test func withoutATemplateTheTicketAndTheCommitsOldestFirst() {
-        #expect(NewMergeRequestMapper.description(template: "  ", branch: "feature/ABC-9", subjects: ["second", "first"]) == "Ticket: ABC-9\n\n- first\n- second")
-        #expect(NewMergeRequestMapper.description(template: nil, branch: "fix/crash", subjects: ["only"]) == "- only")
-        #expect(NewMergeRequestMapper.description(template: nil, branch: "feature/ABC-9", subjects: []) == "Ticket: ABC-9")
+        #expect(NewMergeRequestMapper.description(template: "  ", branch: "feature/ABC-9", subjects: ["second", "first"], ticket: .standard) == "Ticket: ABC-9\n\n- first\n- second")
+        #expect(NewMergeRequestMapper.description(template: nil, branch: "fix/crash", subjects: ["only"], ticket: .standard) == "- only")
+        #expect(NewMergeRequestMapper.description(template: nil, branch: "feature/ABC-9", subjects: [], ticket: .standard) == "Ticket: ABC-9")
     }
 
     @Test func theButtonSaysWhenItPushes() {

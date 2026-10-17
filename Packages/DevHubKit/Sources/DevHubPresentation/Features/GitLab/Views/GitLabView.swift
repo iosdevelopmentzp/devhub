@@ -69,7 +69,7 @@ struct GitLabView: View {
     }
 
     private var context: MergeRequestRowContext {
-        MergeRequestRowContext(username: gitLab.username, scope: gitLab.scope, seenAt: gitLab.seenAt, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticketURLTemplate: settings.values.ticketURLTemplate)
+        MergeRequestRowContext(username: gitLab.username, scope: gitLab.scope, seenAt: gitLab.seenAt, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate))
     }
 
     private func localState(_ branch: String) -> MergeRequestLocalState {

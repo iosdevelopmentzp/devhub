@@ -77,7 +77,7 @@ final class GitChangesStore {
     }
 
     var suggestedPrefix: String? {
-        checkout.currentBranch.flatMap(TicketPrefix.prefix(forBranch:))
+        checkout.currentBranch.flatMap { TicketPrefix.prefix(forBranch: $0, ticket: checkout.gitSettings.ticket(fallbackURL: "")) }
     }
 
     // MARK: Reading

@@ -93,7 +93,7 @@ struct GitView: View {
                 openMergeRequest: openMergeRequests.request(forBranch: branch.name),
                 baseName: git.baseName,
                 changedFiles: git.snapshot?.changedFiles ?? 0,
-                ticketURLTemplate: settings.values.ticketURLTemplate,
+                ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate),
                 isBuildRunning: build.isRunning,
                 isBusy: git.isBusy,
                 configActions: branchActions
@@ -112,7 +112,7 @@ struct GitView: View {
     }
 
     private var cleanupCandidates: [GitBranch] {
-        BranchCleanupPolicy.candidates(branches: filteredLocals, currentBranch: git.currentBranch, baseName: git.baseName)
+        BranchCleanupPolicy.candidates(branches: filteredLocals, currentBranch: git.currentBranch, baseName: git.baseName, protected: git.gitSettings.protectedBranches)
     }
 
     private var remotes: [RemoteBranchRowModel] {
@@ -125,7 +125,7 @@ struct GitView: View {
                     remote: git.remote,
                     localBranchNames: localNames,
                     openMergeRequest: openMergeRequests.request(forBranch: branch.name),
-                    ticketURLTemplate: settings.values.ticketURLTemplate,
+                    ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate),
                     checkoutPath: git.checkoutPath(forBranch:),
                     isBuildRunning: build.isRunning,
                     isBusy: git.isBusy

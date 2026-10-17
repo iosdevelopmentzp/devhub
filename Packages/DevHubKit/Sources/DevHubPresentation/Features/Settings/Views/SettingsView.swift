@@ -76,7 +76,7 @@ struct SettingsView: View {
             } header: {
                 Text("Tickets")
             } footer: {
-                Text("A ticket key such as ABC-2324 in a branch name or a merge request title becomes a chip. With a link here, a click opens the ticket; {key} is replaced with the key. Without a link, a click copies the key.")
+                Text("A ticket key such as ABC-2324 in a branch name or a merge request title becomes a chip. With a link here, a click opens the ticket; {key} is replaced with the key. Without a link, a click copies the key. A project can set its own pattern and link with git.commitPrefix and git.ticketURL in .devhub/project.json.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

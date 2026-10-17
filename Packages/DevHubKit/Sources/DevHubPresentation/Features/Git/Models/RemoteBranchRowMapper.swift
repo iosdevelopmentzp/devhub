@@ -9,7 +9,7 @@ enum RemoteBranchRowMapper {
         remote: String,
         localBranchNames: Set<String>,
         openMergeRequest: MergeRequestSummary?,
-        ticketURLTemplate: String,
+        ticket: TicketSettings,
         checkoutPath: (String) -> String?,
         isBuildRunning: Bool,
         isBusy: Bool
@@ -22,7 +22,7 @@ enum RemoteBranchRowMapper {
             localName: localName,
             tags: hasLocal ? [TagModel("local", tint: .blue)] : [],
             mergeRequest: BranchMergeRequestMapper.model(for: openMergeRequest),
-            ticket: TicketMapper.model(for: [localName], template: ticketURLTemplate),
+            ticket: TicketMapper.model(for: [localName], ticket: ticket),
             dateText: branch.commitDate?.relativeDescription,
             author: branch.author,
             subject: branch.subject,

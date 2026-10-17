@@ -7,5 +7,5 @@ struct MergeRequestRowContext {
     var seenAt: Date?
     var now: Date
     var isMainCheckoutClean: Bool
-    var ticketURLTemplate: String
+    var ticket: TicketSettings
 }

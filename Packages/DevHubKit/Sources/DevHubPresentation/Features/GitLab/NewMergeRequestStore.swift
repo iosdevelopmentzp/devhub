@@ -48,7 +48,7 @@ final class NewMergeRequestStore {
             sourceBranch: branch,
             targets: targets,
             targetBranch: target,
-            title: NewMergeRequestMapper.title(branch: branch, lastSubject: nil),
+            title: NewMergeRequestMapper.title(branch: branch, lastSubject: nil, ticket: checkout.gitSettings.ticket(fallbackURL: "")),
             description: "",
             availableLabels: [],
             labels: [],
@@ -67,8 +67,8 @@ final class NewMergeRequestStore {
         async let labels = loadLabels()
         let (loadedSubjects, loadedTemplate, loadedLabels) = await (subjects ?? [], template, labels)
         guard draft?.sourceBranch == branch, draft?.origin == origin else { return }
-        draft?.title = NewMergeRequestMapper.title(branch: branch, lastSubject: loadedSubjects.first)
-        draft?.description = NewMergeRequestMapper.description(template: loadedTemplate, branch: branch, subjects: loadedSubjects)
+        draft?.title = NewMergeRequestMapper.title(branch: branch, lastSubject: loadedSubjects.first, ticket: checkout.gitSettings.ticket(fallbackURL: ""))
+        draft?.description = NewMergeRequestMapper.description(template: loadedTemplate, branch: branch, subjects: loadedSubjects, ticket: checkout.gitSettings.ticket(fallbackURL: ""))
         switch loadedLabels {
         case .success(let names):
             draft?.availableLabels = names

@@ -1,14 +1,13 @@
 import Foundation
 
 package enum BranchCleanupPolicy {
-    package static let protectedNames: Set<String> = ["dev", "main", "master"]
-
     package static func isFinished(_ branch: GitBranch) -> Bool {
         branch.isMerged || branch.isGone
     }
 
-    package static func candidates(branches: [GitBranch], currentBranch: String?, baseName: String) -> [GitBranch] {
-        branches.filter { branch in
+    package static func candidates(branches: [GitBranch], currentBranch: String?, baseName: String, protected: [String]) -> [GitBranch] {
+        let protectedNames = Set(protected)
+        return branches.filter { branch in
             isFinished(branch)
                 && branch.name != currentBranch
                 && branch.worktreePath == nil

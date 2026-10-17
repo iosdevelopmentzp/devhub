@@ -39,8 +39,10 @@ All fields optional. Missing values are detected (see "default").
 | `run.command` | path | — | `kind: command` only. May print `@devhub {"app": "<path>"}`; then DevHub installs and launches that app on the target simulator. Otherwise the script launches by itself. |
 | `git.remote` | string | `origin` | the remote that fetch, pull, push, the remote branch list, the web link and the base branch use |
 | `git.baseBranch` | string | `<remote>/HEAD`, else `<remote>/main` | base for merged, rebase, distance, new worktrees |
-| `git.commitPrefix.pattern` | regex | `^([A-Z][A-Z0-9]+-\d+)` | applied to the branch name; the same pattern without `^` finds the ticket key for the ticket chip |
+| `git.protectedBranches` | [string] | `["main", "master", "develop", "dev"]` | never offered by "Clean Up" in the merged branches section; the base branch is always protected |
+| `git.commitPrefix.pattern` | regex | `^([A-Z][A-Z0-9]+-\d+)` | applied to the branch name; the same pattern without `^` finds the ticket key for the ticket chip and a new merge request title; group 1 is the key; a pattern that does not compile finds nothing |
 | `git.commitPrefix.format` | string | `$1: ` | the commit box starts with this text when the pattern matches |
+| `git.ticketURL` | string | the "Ticket link" of Settings | `{key}` is replaced with the ticket key; the ticket chip opens it; without a link the chip copies the key |
 | `git.worktrees.folder` | path relative to the repo | sibling `<repo>-<branch>` | where new worktrees go; slashes in branch names become dashes |
 | `git.worktrees.include` | [path] | `[]` | files copied from the main checkout into a new worktree when they are missing there |
 | `git.worktrees.bootstrap` | path relative to the worktree | — | script run inside a new worktree when `bootstrapMarker` exists in the main checkout and not in the worktree; an executable file runs as is, another file runs with `zsh`; a worktree row offers it in its menu |
