@@ -22,7 +22,7 @@ struct PullRequestDetailsModel: Equatable {
         var description: AttributedString?
         var threadsTitle: String
         var canFixThreads: Bool
-        var threads: [PullRequestThreadRowModel]
+        var threads: [ReviewThreadRowModel]
         var filesTitle: String
         var canExpandAllFiles: Bool
         var canCollapseAllFiles: Bool

@@ -52,6 +52,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- `MergeDetail`, `PipelineStatus` and `PullRequestThread` are `MergeReadiness`, `CheckStatus` and `ReviewThread`. `PullRequestsStore` is split into the store, `PullRequestsStore+Filter`, `PullRequestListCache`, `PullRequestActionTexts` and `PullRequestsPreferenceKeys`.
 - `GhIntegrationTests` reads a GitHub test repository through `gh` when `DEVHUB_PLAYGROUND=owner/repo` is set.
 - ADR 003 describes the code host port and the GitHub mapping.
 - `ConfigStore` loads and watches the `.devhub/` layers of the selected project and posts `configChanged`. `ConfigActionsStore` runs config actions and scripts: prompt for inputs and confirm, remembered inputs, the context environment, the `@devhub` directives, refresh requests and failures in the activity log. New events `configChanged` and `refreshRequested`. Not on screen yet.

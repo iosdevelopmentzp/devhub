@@ -1,7 +1,7 @@
 import Foundation
 
 package struct PipelineInfo: Hashable, Sendable {
-    package let status: PipelineStatus
+    package let status: CheckStatus
     package let webURL: URL?
     package let updatedAt: Date?
     package let id: Int?
@@ -10,7 +10,7 @@ package struct PipelineInfo: Hashable, Sendable {
     package let failedJobCount: Int?
 
     package init(
-        status: PipelineStatus,
+        status: CheckStatus,
         webURL: URL?,
         updatedAt: Date?,
         id: Int? = nil,

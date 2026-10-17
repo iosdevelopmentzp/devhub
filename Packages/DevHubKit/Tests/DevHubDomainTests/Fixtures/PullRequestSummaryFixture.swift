@@ -11,7 +11,7 @@ enum PullRequestSummaryFixture {
         author: String = "sam",
         isDraft: Bool = false,
         hasConflicts: Bool = false,
-        detail: MergeDetail? = nil,
+        detail: MergeReadiness? = nil,
         comments: Int = 0,
         pipeline: PipelineInfo? = nil,
         approvedBy: [String] = [],

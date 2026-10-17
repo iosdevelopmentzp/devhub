@@ -94,7 +94,7 @@ import Testing
     }
 
     @Test func detailTagForOpenRequests() throws {
-        let table: [(MergeDetail, TagModel?)] = [
+        let table: [(MergeReadiness, TagModel?)] = [
             (.mergeable, TagModel("ready to merge", tint: .green, hint: "GitLab merge status: mergeable")),
             (.notApproved, TagModel("needs approval", tint: .orange, hint: "GitLab merge status: not_approved")),
             (.ciMustPass, TagModel("waiting for CI", tint: .blue, hint: "GitLab merge status: ci_must_pass")),
@@ -124,7 +124,7 @@ import Testing
     }
 
     @Test func pipelineTagPerStatus() throws {
-        let table: [(PipelineStatus, Tint, String)] = [
+        let table: [(CheckStatus, Tint, String)] = [
             (.success, .green, "checkmark.circle.fill"),
             (.failed, .red, "xmark.circle.fill"),
             (.running, .blue, "play.circle.fill"),

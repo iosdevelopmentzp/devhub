@@ -91,7 +91,7 @@ enum GhCheckParser {
         return Int(end.timeIntervalSince(start))
     }
 
-    private static func status(_ state: String, checks: [Context]) -> PipelineStatus {
+    private static func status(_ state: String, checks: [Context]) -> CheckStatus {
         switch state {
         case "SUCCESS": .success
         case "FAILURE", "ERROR": .failed

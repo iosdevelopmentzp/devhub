@@ -49,7 +49,7 @@ import Testing
     }
 
     @Test(arguments: [
-        ("mergeable", MergeDetail.mergeable),
+        ("mergeable", MergeReadiness.mergeable),
         ("not_approved", .notApproved),
         ("ci_must_pass", .ciMustPass),
         ("ci_still_running", .ciStillRunning),
@@ -58,7 +58,7 @@ import Testing
         ("draft_status", .draftStatus),
         ("blocked_status", .other("blocked_status")),
     ])
-    func mapsDetail(name: String, expected: MergeDetail) throws {
+    func mapsDetail(name: String, expected: MergeReadiness) throws {
         let request = try GlabPullRequestParser.mergeRequest(from: GlabFixture.mergeRequest(state: "opened", detail: name))
         #expect(request?.detailedStatus == expected)
     }
@@ -87,7 +87,7 @@ import Testing
     }
 
     @Test(arguments: [
-        ("success", PipelineStatus.success),
+        ("success", CheckStatus.success),
         ("failed", .failed),
         ("running", .running),
         ("pending", .pending),
@@ -100,7 +100,7 @@ import Testing
         ("manual", .manual),
         ("canceling", .other("canceling")),
     ])
-    func mapsPipelineStatus(name: String, expected: PipelineStatus) throws {
+    func mapsPipelineStatus(name: String, expected: CheckStatus) throws {
         let pipeline = try GlabPullRequestParser.pipeline(from: GlabFixture.pipeline(status: name))
         #expect(pipeline?.status == expected)
     }

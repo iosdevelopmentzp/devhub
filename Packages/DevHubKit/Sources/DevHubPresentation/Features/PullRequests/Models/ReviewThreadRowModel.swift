@@ -1,6 +1,6 @@
 import Foundation
 
-struct PullRequestThreadRowModel: Identifiable, Equatable {
+struct ReviewThreadRowModel: Identifiable, Equatable {
     let id: String
     var author: String
     var location: String?
@@ -15,7 +15,7 @@ struct PullRequestThreadRowModel: Identifiable, Equatable {
     var noteURL: URL?
     var isBusy: Bool
 
-    static let preview = PullRequestThreadRowModel(
+    static let preview = ReviewThreadRowModel(
         id: "1",
         author: "sam",
         location: "CallPresenter.swift:42",

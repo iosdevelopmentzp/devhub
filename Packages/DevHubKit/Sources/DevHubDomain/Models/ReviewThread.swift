@@ -1,6 +1,6 @@
 import Foundation
 
-package struct PullRequestThread: Identifiable, Hashable, Sendable {
+package struct ReviewThread: Identifiable, Hashable, Sendable {
     package let id: String
     package let noteID: Int?
     package let author: String

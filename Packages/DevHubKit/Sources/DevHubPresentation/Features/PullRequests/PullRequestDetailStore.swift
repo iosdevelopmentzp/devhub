@@ -11,9 +11,9 @@ final class PullRequestDetailStore {
     private(set) var expandedFiles: [PullRequestSummary.ID: Set<PullRequestFileDiff.ID>] = [:]
     private(set) var viewedFiles: [PullRequestSummary.ID: Set<PullRequestFileDiff.ID>] = [:]
     private(set) var focus: DiffFocus?
-    private(set) var busyThreads: Set<PullRequestThread.ID> = []
+    private(set) var busyThreads: Set<ReviewThread.ID> = []
     private(set) var showsThreadsInDiff = true
-    private(set) var openDiffThreads: Set<PullRequestThread.ID> = []
+    private(set) var openDiffThreads: Set<ReviewThread.ID> = []
 
     @ObservationIgnored private let repository: CodeHostRepository
     @ObservationIgnored private let remote: any CodeHostLookup
@@ -100,7 +100,7 @@ final class PullRequestDetailStore {
         showsThreadsInDiff.toggle()
     }
 
-    func toggleDiffThread(_ threadID: PullRequestThread.ID) {
+    func toggleDiffThread(_ threadID: ReviewThread.ID) {
         if openDiffThreads.remove(threadID) == nil {
             openDiffThreads.insert(threadID)
         }
@@ -121,7 +121,7 @@ final class PullRequestDetailStore {
         }
     }
 
-    func showInDiff(threadID: PullRequestThread.ID, of id: PullRequestSummary.ID) {
+    func showInDiff(threadID: ReviewThread.ID, of id: PullRequestSummary.ID) {
         guard let thread = details[id]?.threads.first(where: { $0.id == threadID }),
               let path = thread.filePath,
               let line = thread.line else { return }
@@ -166,13 +166,13 @@ final class PullRequestDetailStore {
         }
     }
 
-    func resolveThread(_ threadID: PullRequestThread.ID, of id: PullRequestSummary.ID) {
+    func resolveThread(_ threadID: ReviewThread.ID, of id: PullRequestSummary.ID) {
         run(threadID, of: id, "Resolved a thread of \(remote.words.reference(id))") { [repository] in
             try await repository.resolveThread(id: threadID, repository: $0)
         }
     }
 
-    func reply(_ body: String, to threadID: PullRequestThread.ID, of id: PullRequestSummary.ID) {
+    func reply(_ body: String, to threadID: ReviewThread.ID, of id: PullRequestSummary.ID) {
         let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
         guard text.isEmpty == false else { return }
         run(threadID, of: id, "Replied in a thread of \(remote.words.reference(id))") { [repository] in
@@ -180,7 +180,7 @@ final class PullRequestDetailStore {
         }
     }
 
-    private func run(_ threadID: PullRequestThread.ID, of id: PullRequestSummary.ID, _ title: String, _ work: @escaping @Sendable (CodeHost) async throws -> Void) {
+    private func run(_ threadID: ReviewThread.ID, of id: PullRequestSummary.ID, _ title: String, _ work: @escaping @Sendable (CodeHost) async throws -> Void) {
         guard busyThreads.contains(threadID) == false else { return }
         busyThreads.insert(threadID)
         Task { [weak self] in

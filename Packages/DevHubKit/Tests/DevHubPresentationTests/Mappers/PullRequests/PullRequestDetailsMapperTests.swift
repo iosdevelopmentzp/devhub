@@ -9,7 +9,7 @@ import DevHubTestSupport
     private let summary = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, pipeline: PipelineInfo(status: .running, webURL: URL(string: "https://gitlab.example.com/p/1"), updatedAt: nil))
     private let details = PullRequestDetails(
         description: "Adds **login**.",
-        threads: [PullRequestThread(id: "1", noteID: 9, author: "sam", body: "Move", filePath: "App/Login.swift", line: 12, isOnOldLine: false, replies: [PullRequestNote(author: "me", body: "a"), PullRequestNote(author: "sam", body: "b")])]
+        threads: [ReviewThread(id: "1", noteID: 9, author: "sam", body: "Move", filePath: "App/Login.swift", line: 12, isOnOldLine: false, replies: [PullRequestNote(author: "me", body: "a"), PullRequestNote(author: "sam", body: "b")])]
     )
     private let files = [
         PullRequestFileDiff(

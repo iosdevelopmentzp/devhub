@@ -73,7 +73,7 @@ enum GlabPullRequestParser {
         }
     }
 
-    static func detail(_ name: String) -> MergeDetail {
+    static func detail(_ name: String) -> MergeReadiness {
         switch name {
         case "mergeable": .mergeable
         case "not_approved": .notApproved
@@ -86,7 +86,7 @@ enum GlabPullRequestParser {
         }
     }
 
-    static func pipelineStatus(_ name: String) -> PipelineStatus {
+    static func pipelineStatus(_ name: String) -> CheckStatus {
         switch name {
         case "success": .success
         case "failed": .failed

@@ -12,13 +12,13 @@ import Testing
     }
 
     @Test(arguments: [
-        (PipelineStatus.running, "running", Tint.blue),
+        (CheckStatus.running, "running", Tint.blue),
         (.pending, "pending", .orange),
         (.created, "pending", .orange),
         (.failed, "pipeline failed", .red),
         (.canceled, "pipeline canceled", .secondary),
     ])
-    func everyPipelineStatusHasATag(status: PipelineStatus, text: String, tint: Tint) {
+    func everyPipelineStatusHasATag(status: CheckStatus, text: String, tint: Tint) {
         let tag = PullRequestTagMapper.compactPipelineTag(PipelineInfo(status: status, webURL: nil, updatedAt: nil), words: .gitLab)
 
         #expect(tag.text == text)

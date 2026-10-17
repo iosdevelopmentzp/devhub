@@ -6,14 +6,14 @@ struct PullRequestDetailActions {
     let toggleViewed: (_ fileID: PullRequestFileDiff.ID) -> Void
     let expandAllFiles: () -> Void
     let collapseAllFiles: () -> Void
-    let showInDiff: (_ threadID: PullRequestThread.ID) -> Void
-    let toggleDiffThread: (_ threadID: PullRequestThread.ID) -> Void
+    let showInDiff: (_ threadID: ReviewThread.ID) -> Void
+    let toggleDiffThread: (_ threadID: ReviewThread.ID) -> Void
     let toggleThreadsInDiff: () -> Void
     let openAllDiffThreads: () -> Void
     let foldAllDiffThreads: () -> Void
     let openFile: (_ path: String, _ line: Int?) -> Void
-    let resolveThread: (_ threadID: PullRequestThread.ID) -> Void
-    let reply: (_ threadID: PullRequestThread.ID, _ body: String) -> Void
+    let resolveThread: (_ threadID: ReviewThread.ID) -> Void
+    let reply: (_ threadID: ReviewThread.ID, _ body: String) -> Void
     let cancelPipeline: () -> Void
     let fixThreads: () -> Void
     let runConfigAction: (_ actionID: ConfigActionItemModel.ID) -> Void

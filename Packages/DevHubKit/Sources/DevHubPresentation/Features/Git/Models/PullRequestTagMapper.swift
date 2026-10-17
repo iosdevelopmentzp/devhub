@@ -13,7 +13,7 @@ enum PullRequestTagMapper {
         )
     }
 
-    static func detailTag(_ detail: MergeDetail, words: CodeHostWords) -> TagModel? {
+    static func detailTag(_ detail: MergeReadiness, words: CodeHostWords) -> TagModel? {
         guard let text = detailText(detail, words: words) else { return nil }
         return TagModel(text.title, tint: text.tint, hint: "\(words.hostTitle) merge status: \(detail.name)")
     }
@@ -86,7 +86,7 @@ enum PullRequestTagMapper {
         return "\(CountText.count(count, words.job)) failed"
     }
 
-    private static func pipelineTint(_ status: PipelineStatus) -> Tint {
+    private static func pipelineTint(_ status: CheckStatus) -> Tint {
         switch status {
         case .success: .green
         case .failed: .red
@@ -96,7 +96,7 @@ enum PullRequestTagMapper {
         }
     }
 
-    private static func pipelineIcon(_ status: PipelineStatus) -> String {
+    private static func pipelineIcon(_ status: CheckStatus) -> String {
         switch status {
         case .success: "checkmark.circle.fill"
         case .failed: "xmark.circle.fill"
@@ -106,7 +106,7 @@ enum PullRequestTagMapper {
         }
     }
 
-    private static func detailText(_ detail: MergeDetail, words: CodeHostWords) -> (title: String, tint: Tint)? {
+    private static func detailText(_ detail: MergeReadiness, words: CodeHostWords) -> (title: String, tint: Tint)? {
         switch detail {
         case .mergeable: ("ready to merge", .green)
         case .notApproved: ("needs approval", .orange)

@@ -1,11 +1,11 @@
 import SwiftUI
 import DevHubUI
 
-struct PullRequestThreadRow: View {
+struct ReviewThreadRow: View {
     @Environment(AppActions.self) private var appActions
     @Environment(\.codeHostWords) private var words
 
-    let model: PullRequestThreadRowModel
+    let model: ReviewThreadRowModel
     let onShowInDiff: () -> Void
     let onOpenFile: () -> Void
     let onResolve: () -> Void
@@ -121,7 +121,7 @@ struct PullRequestThreadRow: View {
 }
 
 #Preview {
-    PullRequestThreadRow(model: .preview, onShowInDiff: {}, onOpenFile: {}, onResolve: {}, onReply: { _ in })
+    ReviewThreadRow(model: .preview, onShowInDiff: {}, onOpenFile: {}, onResolve: {}, onReply: { _ in })
         .previewEnvironment()
         .padding()
 }

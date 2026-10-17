@@ -198,10 +198,10 @@ enum GlabGraphQLParser {
         guard let request = payload.project?.mergeRequest else { throw PullRequestError.command("GitLab did not find the merge request") }
         let threads = request.discussions.nodes
             .filter { $0.resolvable && $0.resolved == false }
-            .compactMap { discussion -> PullRequestThread? in
+            .compactMap { discussion -> ReviewThread? in
                 let notes = discussion.notes.nodes.filter { $0.system == false }
                 guard let first = notes.first else { return nil }
-                return PullRequestThread(
+                return ReviewThread(
                     id: discussion.id,
                     noteID: first.id.flatMap(noteID),
                     author: first.author?.username ?? "",

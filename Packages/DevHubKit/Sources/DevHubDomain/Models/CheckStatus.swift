@@ -1,6 +1,6 @@
 import Foundation
 
-package enum PipelineStatus: Hashable, Sendable {
+package enum CheckStatus: Hashable, Sendable {
     case success
     case failed
     case running

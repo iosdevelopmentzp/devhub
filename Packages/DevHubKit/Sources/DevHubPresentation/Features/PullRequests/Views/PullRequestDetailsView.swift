@@ -87,7 +87,7 @@ struct PullRequestDetailsView: View {
             }
             section(loaded.threadsTitle, fixThreads: loaded.canFixThreads) {
                 ForEach(loaded.threads) { thread in
-                    PullRequestThreadRow(
+                    ReviewThreadRow(
                         model: thread,
                         onShowInDiff: { actions.showInDiff(thread.id) },
                         onOpenFile: { actions.openFile(thread.filePath ?? "", thread.line) },

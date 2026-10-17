@@ -7,9 +7,9 @@ import Testing
 
     @Test func everyThreadBecomesABlockWithItsPlaceAuthorAndReplies() {
         let threads = [
-            PullRequestThread(id: "d1", noteID: 1, author: "lee", body: "Rename this.\nIt reads badly.", filePath: "App/Login.swift", line: 42, isOnOldLine: false, replies: [PullRequestNote(author: "alex", body: "To what?")]),
-            PullRequestThread(id: "d2", noteID: 2, author: "kim", body: "Why was this removed?", filePath: "App/Old.swift", line: 7, isOnOldLine: true, replies: []),
-            PullRequestThread(id: "d3", noteID: 3, author: "sam", body: "Add a test.", filePath: nil, line: nil, isOnOldLine: false, replies: []),
+            ReviewThread(id: "d1", noteID: 1, author: "lee", body: "Rename this.\nIt reads badly.", filePath: "App/Login.swift", line: 42, isOnOldLine: false, replies: [PullRequestNote(author: "alex", body: "To what?")]),
+            ReviewThread(id: "d2", noteID: 2, author: "kim", body: "Why was this removed?", filePath: "App/Old.swift", line: 7, isOnOldLine: true, replies: []),
+            ReviewThread(id: "d3", noteID: 3, author: "sam", body: "Add a test.", filePath: nil, line: nil, isOnOldLine: false, replies: []),
         ]
 
         let prompt = ReviewPromptBuilder.prompt(for: request, threads: threads)
@@ -25,7 +25,7 @@ import Testing
     }
 
     @Test func oneThreadIsSingular() {
-        let thread = PullRequestThread(id: "d1", noteID: 1, author: "lee", body: "Fix", filePath: "a.swift", line: nil, isOnOldLine: false, replies: [])
+        let thread = ReviewThread(id: "d1", noteID: 1, author: "lee", body: "Fix", filePath: "a.swift", line: nil, isOnOldLine: false, replies: [])
 
         let prompt = ReviewPromptBuilder.prompt(for: request, threads: [thread])
 

@@ -20,7 +20,7 @@ enum PullRequestDetailsMapper {
         let deletions = diffs.reduce(0) { $0 + $1.deletions }
         let viewedCount = diffs.filter { review.viewedFiles.contains($0.id) }.count
         let expandedCount = diffs.filter { review.expandedFiles.contains($0.id) }.count
-        let threadRows = details.threads.map { PullRequestThreadRowMapper.model(for: $0, diffs: diffs, webURL: summary.webURL, isBusy: review.busyThreads.contains($0.id)) }
+        let threadRows = details.threads.map { ReviewThreadRowMapper.model(for: $0, diffs: diffs, webURL: summary.webURL, isBusy: review.busyThreads.contains($0.id)) }
         return PullRequestDetailsModel(
             content: .loaded(
                 PullRequestDetailsModel.Loaded(

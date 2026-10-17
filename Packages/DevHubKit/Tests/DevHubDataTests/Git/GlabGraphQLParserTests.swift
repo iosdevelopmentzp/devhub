@@ -112,8 +112,8 @@ import Testing
 
         #expect(details.description == "Adds **login**.")
         #expect(details.threads == [
-            PullRequestThread(id: "d1", noteID: 11, author: "sam", body: "Move this", filePath: "App/Login.swift", line: 12, isOnOldLine: true, replies: [PullRequestNote(author: "me", body: "Done?")]),
-            PullRequestThread(id: "d4", noteID: 44, author: "kim", body: "Need a test", filePath: nil, line: nil, isOnOldLine: false, replies: []),
+            ReviewThread(id: "d1", noteID: 11, author: "sam", body: "Move this", filePath: "App/Login.swift", line: 12, isOnOldLine: true, replies: [PullRequestNote(author: "me", body: "Done?")]),
+            ReviewThread(id: "d4", noteID: 44, author: "kim", body: "Need a test", filePath: nil, line: nil, isOnOldLine: false, replies: []),
         ])
     }
 

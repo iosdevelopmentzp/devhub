@@ -4,7 +4,7 @@ import DevHubUI
 
 enum PullRequestFileRowMapper {
 
-    static func model(for file: PullRequestFileDiff, review: PullRequestReviewState, threads: [PullRequestThreadRowModel], words: CodeHostWords) -> PullRequestFileRowModel {
+    static func model(for file: PullRequestFileDiff, review: PullRequestReviewState, threads: [ReviewThreadRowModel], words: CodeHostWords) -> PullRequestFileRowModel {
         let folder = (file.path as NSString).deletingLastPathComponent
         let isExpanded = review.expandedFiles.contains(file.id)
         let fileThreads = threads.filter { $0.filePath == file.path }
@@ -27,7 +27,7 @@ enum PullRequestFileRowMapper {
         )
     }
 
-    static func diffThreads(_ threads: [PullRequestThreadRowModel], in file: PullRequestFileDiff, open: Set<PullRequestThread.ID>) -> [Int: [DiffThreadModel]] {
+    static func diffThreads(_ threads: [ReviewThreadRowModel], in file: PullRequestFileDiff, open: Set<ReviewThread.ID>) -> [Int: [DiffThreadModel]] {
         guard file.isTooLarge == false else { return [:] }
         let headerEnd = file.diff.lines.firstIndex { $0.hasPrefix("@@") } ?? 0
         var result: [Int: [DiffThreadModel]] = [:]

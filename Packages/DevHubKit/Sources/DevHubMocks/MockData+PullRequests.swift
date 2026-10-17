@@ -16,7 +16,7 @@ package extension MockData {
     static let pullRequestDetails = PullRequestDetails(
         description: "Adds **paid calls**.\n\n- Payment sheet before the call\n- Retry when the payment fails\n\nTicket: ABC-2324",
         threads: [
-            PullRequestThread(
+            ReviewThread(
                 id: "1",
                 noteID: 501,
                 author: "sam",
@@ -26,7 +26,7 @@ package extension MockData {
                 isOnOldLine: false,
                 replies: [PullRequestNote(author: "alex", body: "Done in the next commit."), PullRequestNote(author: "sam", body: "Thanks!")]
             ),
-            PullRequestThread(id: "2", noteID: 502, author: "kim", body: "Do we need a test for the retry?", filePath: nil, line: nil, isOnOldLine: false, replies: []),
+            ReviewThread(id: "2", noteID: 502, author: "kim", body: "Do we need a test for the retry?", filePath: nil, line: nil, isOnOldLine: false, replies: []),
         ]
     )
 
@@ -60,8 +60,8 @@ package extension MockData {
         target: String = "dev",
         isDraft: Bool = false,
         conflicts: Bool = false,
-        detail: MergeDetail?,
-        pipeline: PipelineStatus?,
+        detail: MergeReadiness?,
+        pipeline: CheckStatus?,
         approvedBy: [String] = [],
         labels: [String],
         comments: Int,

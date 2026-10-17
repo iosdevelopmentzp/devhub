@@ -88,7 +88,7 @@ import Testing
 
         #expect(details.description == "Adds the login notes.")
         #expect(details.threads == [
-            PullRequestThread(id: "PRRT_thread1", noteID: 4301, author: "alex", body: "Please rename this line.", filePath: "notes.txt", line: 2, isOnOldLine: false, replies: []),
+            ReviewThread(id: "PRRT_thread1", noteID: 4301, author: "alex", body: "Please rename this line.", filePath: "notes.txt", line: 2, isOnOldLine: false, replies: []),
         ])
         #expect(details.failedJobs.isEmpty)
         #expect(details.pipelineDuration == 5)

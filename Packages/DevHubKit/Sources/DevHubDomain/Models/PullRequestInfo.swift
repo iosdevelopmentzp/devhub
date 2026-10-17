@@ -8,7 +8,7 @@ package struct PullRequestInfo: Hashable, Sendable {
     package let webURL: URL?
     package let author: String
     package let hasConflicts: Bool
-    package let detailedStatus: MergeDetail?
+    package let detailedStatus: MergeReadiness?
     package let targetBranch: String
 
     package init(
@@ -19,7 +19,7 @@ package struct PullRequestInfo: Hashable, Sendable {
         webURL: URL?,
         author: String,
         hasConflicts: Bool,
-        detailedStatus: MergeDetail?,
+        detailedStatus: MergeReadiness?,
         targetBranch: String
     ) {
         self.iid = iid

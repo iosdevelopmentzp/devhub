@@ -28,7 +28,7 @@ import Testing
     @Test func fixThreadsWritesThePromptAndStartsClaudeInTheWorktree() async throws {
         let (ports, spies) = Ports.spies()
         let assembly = spyAssembly(ports)
-        let thread = PullRequestThread(id: "t1", noteID: 1, author: "lee", body: "Rename", filePath: "a.swift", line: 3, isOnOldLine: false, replies: [])
+        let thread = ReviewThread(id: "t1", noteID: 1, author: "lee", body: "Rename", filePath: "a.swift", line: 3, isOnOldLine: false, replies: [])
         spies.git.webURLResult = URL(string: "https://gitlab.example.com/team/app")
         spies.codeHost.detailsResult = .success(PullRequestDetails(description: "", threads: [thread]))
         spies.reviewPrompts.saveResult = .success("/tmp/prompts/mr-21.md")

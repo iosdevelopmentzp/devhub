@@ -2,7 +2,7 @@ import Foundation
 
 package enum ReviewPromptBuilder {
 
-    package static func prompt(for request: PullRequestSummary, threads: [PullRequestThread]) -> String {
+    package static func prompt(for request: PullRequestSummary, threads: [ReviewThread]) -> String {
         var lines = [
             "# Review threads of !\(request.iid): \(request.title)",
             "",
@@ -29,7 +29,7 @@ package enum ReviewPromptBuilder {
         template.replacingOccurrences(of: "{prompt}", with: promptPath.shellQuoted)
     }
 
-    private static func block(_ thread: PullRequestThread, number: Int) -> [String] {
+    private static func block(_ thread: ReviewThread, number: Int) -> [String] {
         var lines = ["## Thread \(number)" + location(thread), "", "**\(thread.author)**:", "", quoted(thread.body), ""]
         for reply in thread.replies {
             lines += ["**\(reply.author)** replied:", "", quoted(reply.body), ""]
@@ -37,7 +37,7 @@ package enum ReviewPromptBuilder {
         return lines
     }
 
-    private static func location(_ thread: PullRequestThread) -> String {
+    private static func location(_ thread: ReviewThread) -> String {
         guard let path = thread.filePath else { return " (general comment)" }
         guard let line = thread.line else { return ": `\(path)`" }
         return ": `\(path):\(line)`" + (thread.isOnOldLine ? " (a removed line)" : "")

@@ -184,9 +184,9 @@ enum GhPullRequestParser {
         guard let request = payload.repository?.pullRequest else { throw PullRequestError.command("GitHub did not find the pull request") }
         let threads = request.reviewThreads.nodes
             .filter { $0.isResolved == false }
-            .compactMap { thread -> PullRequestThread? in
+            .compactMap { thread -> ReviewThread? in
                 guard let first = thread.comments.nodes.first else { return nil }
-                return PullRequestThread(
+                return ReviewThread(
                     id: thread.id,
                     noteID: first.databaseId,
                     author: first.author?.login ?? "",
@@ -325,7 +325,7 @@ enum GhPullRequestParser {
         }
     }
 
-    private static func detail(_ node: PullRequestNode) -> MergeDetail? {
+    private static func detail(_ node: PullRequestNode) -> MergeReadiness? {
         if node.isDraft == true { return .draftStatus }
         let rollup = node.lastCommit?.nodes.first?.commit.statusCheckRollup?.state
         switch node.mergeStateStatus {

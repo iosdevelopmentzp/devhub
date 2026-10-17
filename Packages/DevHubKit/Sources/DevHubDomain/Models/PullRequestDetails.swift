@@ -2,11 +2,11 @@ import Foundation
 
 package struct PullRequestDetails: Hashable, Sendable {
     package let description: String
-    package let threads: [PullRequestThread]
+    package let threads: [ReviewThread]
     package let failedJobs: [PipelineJob]
     package let pipelineDuration: Int?
 
-    package init(description: String, threads: [PullRequestThread], failedJobs: [PipelineJob] = [], pipelineDuration: Int? = nil) {
+    package init(description: String, threads: [ReviewThread], failedJobs: [PipelineJob] = [], pipelineDuration: Int? = nil) {
         self.description = description
         self.threads = threads
         self.failedJobs = failedJobs

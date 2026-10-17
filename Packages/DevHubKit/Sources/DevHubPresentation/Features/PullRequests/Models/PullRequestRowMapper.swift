@@ -90,7 +90,7 @@ enum PullRequestRowMapper {
         return path
     }
 
-    private static func showsDetail(_ detail: MergeDetail, of request: PullRequestSummary) -> Bool {
+    private static func showsDetail(_ detail: MergeReadiness, of request: PullRequestSummary) -> Bool {
         detail != .discussionsNotResolved || request.openThreadCount == 0
     }
 

@@ -82,8 +82,8 @@ import DevHubTestSupport
         #expect(model.isExpanded)
     }
 
-    @Test(arguments: [PipelineStatus.success, .running, .pending, .failed])
-    func everyPipelineIsShown(status: PipelineStatus) {
+    @Test(arguments: [CheckStatus.success, .running, .pending, .failed])
+    func everyPipelineIsShown(status: CheckStatus) {
         let url = URL(string: "https://gitlab.example.com/p/1")
         let request = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, pipeline: PipelineInfo(status: status, webURL: url, updatedAt: nil))
 

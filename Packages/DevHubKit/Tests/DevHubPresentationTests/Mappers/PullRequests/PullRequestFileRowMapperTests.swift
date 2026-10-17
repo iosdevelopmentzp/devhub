@@ -50,14 +50,14 @@ import Testing
     }
 
     @Test func threadsSitUnderTheirLineWhenTheFileIsOpen() {
-        let thread = PullRequestThreadRowMapper.model(
-            for: PullRequestThread(id: "t1", noteID: 1, author: "sam", body: "Rename x.\nIt is unclear.", filePath: "App/Login/a.swift", line: 1, isOnOldLine: false, replies: []),
+        let thread = ReviewThreadRowMapper.model(
+            for: ReviewThread(id: "t1", noteID: 1, author: "sam", body: "Rename x.\nIt is unclear.", filePath: "App/Login/a.swift", line: 1, isOnOldLine: false, replies: []),
             diffs: [],
             webURL: nil,
             isBusy: false
         )
-        let elsewhere = PullRequestThreadRowMapper.model(
-            for: PullRequestThread(id: "t2", noteID: 2, author: "kim", body: "Other file", filePath: "Other.swift", line: 1, isOnOldLine: false, replies: []),
+        let elsewhere = ReviewThreadRowMapper.model(
+            for: ReviewThread(id: "t2", noteID: 2, author: "kim", body: "Other file", filePath: "Other.swift", line: 1, isOnOldLine: false, replies: []),
             diffs: [],
             webURL: nil,
             isBusy: false
@@ -78,8 +78,8 @@ import Testing
     }
 
     @Test func aThreadOnALineOutsideTheDiffStaysOutOfIt() {
-        let thread = PullRequestThreadRowMapper.model(
-            for: PullRequestThread(id: "t1", noteID: 1, author: "sam", body: "Old", filePath: "App/Login/a.swift", line: 40, isOnOldLine: false, replies: []),
+        let thread = ReviewThreadRowMapper.model(
+            for: ReviewThread(id: "t1", noteID: 1, author: "sam", body: "Old", filePath: "App/Login/a.swift", line: 40, isOnOldLine: false, replies: []),
             diffs: [],
             webURL: nil,
             isBusy: false

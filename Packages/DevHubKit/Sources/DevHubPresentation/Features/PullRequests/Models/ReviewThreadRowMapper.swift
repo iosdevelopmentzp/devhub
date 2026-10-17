@@ -1,15 +1,15 @@
 import Foundation
 import DevHubDomain
 
-enum PullRequestThreadRowMapper {
+enum ReviewThreadRowMapper {
 
-    static func model(for thread: PullRequestThread, diffs: [PullRequestFileDiff], webURL: URL?, isBusy: Bool) -> PullRequestThreadRowModel {
+    static func model(for thread: ReviewThread, diffs: [PullRequestFileDiff], webURL: URL?, isBusy: Bool) -> ReviewThreadRowModel {
         let fullLocation = thread.filePath.map { path in thread.line.map { "\(path):\($0)" } ?? path }
         let shortLocation = thread.filePath.map { path in
             let name = (path as NSString).lastPathComponent
             return thread.line.map { "\(name):\($0)" } ?? name
         }
-        return PullRequestThreadRowModel(
+        return ReviewThreadRowModel(
             id: thread.id,
             author: thread.author,
             location: shortLocation,
@@ -26,12 +26,12 @@ enum PullRequestThreadRowMapper {
         )
     }
 
-    private static func canShowInDiff(_ thread: PullRequestThread, diffs: [PullRequestFileDiff]) -> Bool {
+    private static func canShowInDiff(_ thread: ReviewThread, diffs: [PullRequestFileDiff]) -> Bool {
         guard let path = thread.filePath, let line = thread.line, let file = diffs.first(where: { $0.path == path }) else { return false }
         return DiffLineLocator.index(ofLine: line, isOld: thread.isOnOldLine, in: file.diff.lines) != nil
     }
 
-    private static func noteURL(_ thread: PullRequestThread, webURL: URL?) -> URL? {
+    private static func noteURL(_ thread: ReviewThread, webURL: URL?) -> URL? {
         guard let webURL, let noteID = thread.noteID else { return nil }
         return URL(string: "\(webURL.absoluteString)#note_\(noteID)")
     }

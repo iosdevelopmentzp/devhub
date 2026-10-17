@@ -4,7 +4,7 @@ import Foundation
 enum PullRequestFixture {
     static let url = URL(string: "https://gitlab.example.com/top/live/-/merge_requests/12")
 
-    static func request(state: PullRequestState, isDraft: Bool, hasConflicts: Bool, detail: MergeDetail?) -> PullRequestInfo {
+    static func request(state: PullRequestState, isDraft: Bool, hasConflicts: Bool, detail: MergeReadiness?) -> PullRequestInfo {
         PullRequestInfo(
             iid: 12,
             title: "ABC-1: Login screen",
@@ -18,7 +18,7 @@ enum PullRequestFixture {
         )
     }
 
-    static func pipeline(_ status: PipelineStatus) -> PipelineInfo {
+    static func pipeline(_ status: CheckStatus) -> PipelineInfo {
         PipelineInfo(status: status, webURL: URL(string: "https://gitlab.example.com/top/live/-/pipelines/7"), updatedAt: nil)
     }
 }

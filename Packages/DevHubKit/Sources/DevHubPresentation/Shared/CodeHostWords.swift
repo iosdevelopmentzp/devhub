@@ -106,7 +106,7 @@ struct CodeHostWords: Equatable {
         kind == .gitlab ? "Pipeline \(gitLabVerb)" : "Checks \(gitHubVerb)"
     }
 
-    func status(_ status: PipelineStatus) -> String {
+    func status(_ status: CheckStatus) -> String {
         guard kind != .gitlab else { return status.name }
         switch status {
         case .success: return "passed"

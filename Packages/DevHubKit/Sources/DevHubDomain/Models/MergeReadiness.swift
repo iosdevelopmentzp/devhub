@@ -1,6 +1,6 @@
 import Foundation
 
-package enum MergeDetail: Hashable, Sendable {
+package enum MergeReadiness: Hashable, Sendable {
     case mergeable
     case notApproved
     case ciMustPass

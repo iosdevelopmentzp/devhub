@@ -10,8 +10,8 @@ import DevHubTestSupport
     private let details = PullRequestDetails(
         description: "Adds login",
         threads: [
-            PullRequestThread(id: "t1", noteID: nil, author: "sam", body: "Move", filePath: "a.swift", line: 4, isOnOldLine: true, replies: []),
-            PullRequestThread(id: "t2", noteID: nil, author: "sam", body: "General", filePath: nil, line: nil, isOnOldLine: false, replies: []),
+            ReviewThread(id: "t1", noteID: nil, author: "sam", body: "Move", filePath: "a.swift", line: 4, isOnOldLine: true, replies: []),
+            ReviewThread(id: "t2", noteID: nil, author: "sam", body: "General", filePath: nil, line: nil, isOnOldLine: false, replies: []),
         ]
     )
     private let files = [

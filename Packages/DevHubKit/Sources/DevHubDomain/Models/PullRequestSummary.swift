@@ -11,7 +11,7 @@ package struct PullRequestSummary: Identifiable, Hashable, Sendable {
     package let sourceBranch: String
     package let targetBranch: String
     package let hasConflicts: Bool
-    package let detailedStatus: MergeDetail?
+    package let detailedStatus: MergeReadiness?
     package let commentCount: Int
     package let updatedAt: Date?
     package let pipeline: PipelineInfo?
@@ -42,7 +42,7 @@ package struct PullRequestSummary: Identifiable, Hashable, Sendable {
         sourceBranch: String,
         targetBranch: String,
         hasConflicts: Bool,
-        detailedStatus: MergeDetail?,
+        detailedStatus: MergeReadiness?,
         commentCount: Int,
         updatedAt: Date?,
         pipeline: PipelineInfo?,
