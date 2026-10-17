@@ -11,7 +11,8 @@ struct ShellScriptRunner: ScriptRunning {
                 do {
                     let status = try await withThrowingTaskGroup(of: Int32?.self) { group in
                         group.addTask {
-                            try await shell.stream(request.executable, request.arguments, cwd: request.cwd, environment: request.environment) { line in
+                            let (executable, arguments) = Self.invocation(request)
+                            return try await shell.stream(executable, arguments, cwd: request.cwd, environment: request.environment) { line in
                                 continuation.yield(.output(line))
                             }
                         }
@@ -38,5 +39,12 @@ struct ShellScriptRunner: ScriptRunning {
                 task.cancel()
             }
         }
+    }
+
+    static func invocation(_ request: ScriptRunRequest) -> (executable: String, arguments: [String]) {
+        let path = request.executable
+        let isFile = path.contains("/") && FileManager.default.fileExists(atPath: path)
+        guard isFile, FileManager.default.isExecutableFile(atPath: path) == false else { return (path, request.arguments) }
+        return ("/bin/zsh", [path] + request.arguments)
     }
 }

@@ -20,6 +20,12 @@ struct XcodeBuildRepository: BuildRepository {
         return productLocator.appPath(hints: [], container: container, scheme: scheme, configuration: configuration)
     }
 
+    func product(atAppPath path: String) throws -> BuildProduct {
+        let expanded = (path as NSString).expandingTildeInPath
+        guard let bundleID = productLocator.bundleID(ofApp: expanded) else { throw BuildError.appNotFound }
+        return BuildProduct(appPath: expanded, bundleID: bundleID)
+    }
+
     func clean(_ request: BuildRequest, onEvent: @escaping @Sendable (BuildEvent) -> Void) async throws {
         let invocation = try Invocation(request)
         try await xcodebuild(invocation.common + ["clean"], cwd: invocation.cwd, onEvent: onEvent)

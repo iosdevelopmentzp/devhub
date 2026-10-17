@@ -38,8 +38,9 @@ import Testing
 
         #expect(useCases.buildAndRun.build as? SpyBuildRepository === spies.build)
         #expect(useCases.buildAndRun.simulators as? SpySimulatorRepository === spies.simulators)
-        #expect(useCases.buildAndRun.identity as? SpyDeviceIdentityRepository === spies.identity)
-        #expect(useCases.buildAndRun.attacher as? SpyXcodeAttacher === spies.attacher)
+        #expect(useCases.buildAndRun.install.identity as? SpyDeviceIdentityRepository === spies.identity)
+        #expect(useCases.buildAndRun.install.attacher as? SpyXcodeAttacher === spies.attacher)
+        #expect(useCases.commandRun.scripts as? SpyScriptRunner === spies.scripts)
         #expect(useCases.launchInstalledApp.identity as? SpyDeviceIdentityRepository === spies.identity)
         #expect(useCases.launchInstalledApp.attacher as? SpyXcodeAttacher === spies.attacher)
     }

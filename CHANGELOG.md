@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Build & Run for `kind: command` projects: the run bar shows `build.command → run.command` instead of the scheme pickers and runs both in the selected checkout. Their output goes to the build log, `progress` lines move the progress bar, an `error` line or a non-zero exit fails the run, and an `app` line makes DevHub install and launch that app with the launch profile.
 - Launch profiles from `launch.profiles` in `.devhub/project.json`: the run bar has a profile picker with a summary. Build & Run passes the environment and the arguments of the profile to the app, writes its `defaults` into the app container (or the app group container) after install, and does a clean install when the profile says so. The choice is saved per simulator.
 - The configuration picker of the run bar also lists the configuration of `xcode.configuration` when it is not Debug or Release.
 - Config actions in pull request rows: the `pullRequests.row` placement puts an action into the menu of each open request, with `DEVHUB_PR_NUMBER`, `DEVHUB_PR_URL` and `DEVHUB_BRANCH`. `refresh: ["pullRequests"]` reads the requests again after an action, and `when: {"host": "github"}` shows an action only for that code host.

@@ -7,6 +7,10 @@ struct MockBuildRepository: BuildRepository {
         ["ExampleApp", "ExampleApp Staging", "NotificationServiceExtension"]
     }
 
+    func product(atAppPath path: String) throws -> BuildProduct {
+        BuildProduct(appPath: path, bundleID: "com.example.app")
+    }
+
     func lastBuiltAppPath(projectPath: String, container: String?, scheme: String, configuration: String) -> String? {
         nil
     }

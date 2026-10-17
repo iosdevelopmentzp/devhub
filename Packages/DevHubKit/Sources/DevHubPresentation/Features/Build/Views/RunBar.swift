@@ -78,6 +78,34 @@ struct RunBar: View {
 
     private func options(_ model: RunBarModel) -> some View {
         HStack(spacing: 8) {
+            if let commands = build.commandsSummary {
+                Label(commands, systemImage: "terminal")
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .hint("This project builds and runs with build.command and run.command: \(commands). A line @devhub {\"app\": \"<path>\"} makes DevHub install and launch that app.")
+            } else {
+                xcodePickers
+            }
+            BuildSourceMenu()
+            Toggle("Fast", isOn: Binding(get: { build.state.incremental }, set: { build.setIncremental($0) }))
+                .toggleStyle(.checkbox)
+                .hint("Incremental build: skip xcodebuild clean and reuse DerivedData")
+                .disabled(build.isCommandProject)
+            Toggle("Clean install", isOn: Binding(get: { build.state.cleanInstall }, set: { build.setCleanInstall($0) }))
+                .toggleStyle(.checkbox)
+                .hint("Cold install: delete the app and reset the simulator keychain before installing")
+            Spacer()
+            IconButton(systemImage: "arrow.clockwise", help: "Refresh simulators") {
+                Task { await simulators.refresh() }
+            }
+            .disabled(model.canRefreshSimulators == false)
+        }
+        .controlSize(.small)
+    }
+
+    private var xcodePickers: some View {
+        HStack(spacing: 8) {
             Picker("Scheme", selection: Binding(get: { build.state.scheme }, set: { build.setScheme($0) })) {
                 ForEach(build.schemeOptions, id: \.self) { scheme in
                     Text(scheme).tag(scheme)
@@ -92,20 +120,7 @@ struct RunBar: View {
             }
             .labelsHidden()
             .frame(width: 90)
-            BuildSourceMenu()
-            Toggle("Fast", isOn: Binding(get: { build.state.incremental }, set: { build.setIncremental($0) }))
-                .toggleStyle(.checkbox)
-                .hint("Incremental build: skip xcodebuild clean and reuse DerivedData")
-            Toggle("Clean install", isOn: Binding(get: { build.state.cleanInstall }, set: { build.setCleanInstall($0) }))
-                .toggleStyle(.checkbox)
-                .hint("Cold install: delete the app and reset the simulator keychain before installing")
-            Spacer()
-            IconButton(systemImage: "arrow.clockwise", help: "Refresh simulators") {
-                Task { await simulators.refresh() }
-            }
-            .disabled(model.canRefreshSimulators == false)
         }
-        .controlSize(.small)
     }
 
     private func targetColumn(_ model: RunBarModel) -> some View {
@@ -151,8 +166,8 @@ struct RunBar: View {
                     Label("Run & Attach", systemImage: "ladybug.fill")
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
-                .hint("Build, launch frozen with --wait-for-debugger and attach Xcode (⇧⌘R). Xcode's console stays empty for an attached process.")
-                .disabled(model.canRun == false)
+                .hint(build.isCommandProject ? "Run & Attach needs an Xcode project. This project builds with its commands." : "Build, launch frozen with --wait-for-debugger and attach Xcode (⇧⌘R). Xcode's console stays empty for an attached process.")
+                .disabled(model.canRun == false || build.isCommandProject)
                 Button {
                     appActions.buildAndRun()
                 } label: {

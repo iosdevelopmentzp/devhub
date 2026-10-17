@@ -13,16 +13,17 @@ final class BuildStore: BuildLookup {
     @ObservationIgnored private var buildLog = BuildLog(maxLines: 20_000, trimSlack: 2_000)
 
     @ObservationIgnored private let repository: any BuildRepository
-    @ObservationIgnored private let buildAndRun: BuildAndRunUseCase
+    @ObservationIgnored let buildAndRun: BuildAndRunUseCase
+    @ObservationIgnored let commandRun: CommandRunUseCase
     @ObservationIgnored private let prepareCheckout: PrepareBuildCheckoutUseCase
-    @ObservationIgnored private let config: ConfigStore
-    @ObservationIgnored private let session: ProjectSession
-    @ObservationIgnored private let worktrees: any WorktreeLookup
+    @ObservationIgnored let config: ConfigStore
+    @ObservationIgnored let session: ProjectSession
+    @ObservationIgnored let worktrees: any WorktreeLookup
     @ObservationIgnored private let simulators: any SimulatorLookup
     @ObservationIgnored private let identity: any IdentityLookup
-    @ObservationIgnored private let attacher: any XcodeAttaching
-    @ObservationIgnored private let activity: ActivityLog
-    @ObservationIgnored private let events: AppEvents
+    @ObservationIgnored let attacher: any XcodeAttaching
+    @ObservationIgnored let activity: ActivityLog
+    @ObservationIgnored let events: AppEvents
     @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private var runOptions: [String: SimulatorRunOptions]
     @ObservationIgnored private var buildTask: Task<Void, Never>?
@@ -34,6 +35,7 @@ final class BuildStore: BuildLookup {
     init(
         repository: any BuildRepository,
         buildAndRun: BuildAndRunUseCase,
+        commandRun: CommandRunUseCase,
         prepareCheckout: PrepareBuildCheckoutUseCase,
         config: ConfigStore,
         session: ProjectSession,
@@ -47,6 +49,7 @@ final class BuildStore: BuildLookup {
     ) {
         self.repository = repository
         self.buildAndRun = buildAndRun
+        self.commandRun = commandRun
         self.prepareCheckout = prepareCheckout
         self.config = config
         self.session = session
@@ -234,7 +237,22 @@ final class BuildStore: BuildLookup {
         run(attachDebugger: false)
     }
 
+    var isCommandProject: Bool {
+        effective.kind == .command
+    }
+
+    var commandsSummary: String? {
+        guard isCommandProject else { return nil }
+        let project = config.resolved.project
+        let commands = [project.build?.command, project.run?.command].compactMap { $0 }
+        return commands.isEmpty ? "No build.command or run.command" : commands.joined(separator: " → ")
+    }
+
     func runAndAttach() {
+        guard isCommandProject == false else {
+            activity.log("Run & Attach needs an Xcode project", detail: "This project builds with build.command and run.command.", outcome: .failure)
+            return
+        }
         guard ensureAccessibility() else { return }
         run(attachDebugger: true)
     }
@@ -260,16 +278,6 @@ final class BuildStore: BuildLookup {
 
     func lastBuiltAppPath() -> String? {
         repository.lastBuiltAppPath(projectPath: sourcePath, container: container, scheme: state.scheme, configuration: state.configuration)
-    }
-
-    func showLog() {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("DevHub-build.log")
-        do {
-            try log.joined(separator: "\n").write(to: url, atomically: true, encoding: .utf8)
-            NSWorkspace.shared.open(url)
-        } catch {
-            activity.log("Could not write build log", detail: error.localizedDescription, outcome: .failure)
-        }
     }
 
     // MARK: Private
@@ -323,7 +331,7 @@ final class BuildStore: BuildLookup {
                     launch: launch,
                     attachDebugger: attachDebugger
                 )
-                for try await event in buildAndRun.run(request) {
+                for try await event in events(for: request, prepared: prepared, simulator: simulator) {
                     handle(event)
                 }
                 try Task.checkCancellation()
@@ -378,32 +386,6 @@ final class BuildStore: BuildLookup {
         state.phase = .running(step: step, progress: nil)
     }
 
-    private func logPrepared(_ prepared: PrepareBuildCheckoutUseCase.Prepared) {
-        let name = prepared.worktreeName ?? prepared.path.abbreviatingHome
-        if prepared.createdWorktree {
-            activity.log("Created worktree", detail: "\(name) · \(prepared.path.abbreviatingHome)", outcome: .success)
-        }
-        if prepared.bootstrapped {
-            activity.log("Bootstrapped \(name)", detail: "\(worktrees.gitSettings.worktrees.bootstrap ?? "The bootstrap script") finished", outcome: .success)
-        }
-    }
-
-    private func logCheckoutFailure(_ error: Error) {
-        guard let error = error as? BuildSourceError else { return }
-        switch error {
-        case .worktreeNotCreated:
-            break
-        case .creationFailed(_, let message):
-            activity.log("Could not create worktree", detail: message, outcome: .failure)
-        case .bootstrapFailed(let name, let path, let createdWorktree, let message):
-            if createdWorktree {
-                activity.log("Created worktree", detail: "\(name) · \(path.abbreviatingHome)", outcome: .success)
-            }
-            activity.log("Bootstrap failed: \(name)", detail: "\(message) Full output in the Output panel.", outcome: .failure)
-            events.post(.worktreeCheckoutPrepared)
-        }
-    }
-
     private func handle(_ event: BuildEvent) {
         switch event {
         case .step(let title, let progress):
@@ -415,13 +397,6 @@ final class BuildStore: BuildLookup {
                 hasLog = true
             }
         }
-    }
-
-    private func ensureAccessibility() -> Bool {
-        guard attacher.isTrusted == false else { return true }
-        attacher.requestTrust()
-        activity.log("Allow DevHub in Accessibility", detail: "System Settings → Privacy & Security → Accessibility, then try again", outcome: .failure)
-        return false
     }
 
     private func dropMissingSource() {

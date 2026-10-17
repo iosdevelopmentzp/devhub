@@ -606,3 +606,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `9dc8549` | M4 | M4 closed: ADR 003, `GhIntegrationTests` (runs with `DEVHUB_PLAYGROUND`), STATUS and the testing skill. |
 | `4ad41c0` | M4 | Renames from section 7.4 (`MergeReadiness`, `CheckStatus`, `ReviewThread`); `PullRequestsStore` split to 300 lines. |
 | `98c7d9d` | M5 | Step 5.1: `xcode.scheme`, `schemes`, `configuration` and `container` reach the run bar and `xcodebuild` (`SchemeChoicePolicy` gets `configured`, `XcodeContainer.locate(preferred:)`). |
+| `c9e3da2` | M5 | Step 5.2: `launch.profiles` reach Build & Run: the profile picker, `LaunchSettings` (environment, arguments, `defaults` written into the app or group container), clean install, the choice saved per simulator; `DEVHUB_BUILD_PROFILE` and `DEVHUB_BUILD_BRANCH`. |

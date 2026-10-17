@@ -59,6 +59,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 20. `.gitignore` ignores only the top-level `/build/` folder. Why: on the case-insensitive macOS file system `build/` also matched every `Build/` source folder, and the Build feature was missing from the commits.
 21. UI words for the code host come from `CodeHostWords` (`Shared/`): "Pull Requests" and `#12` for GitHub, "Merge Requests" and `!12` for GitLab, "checks" or "pipeline". Mappers take `words:`; views and rows read `@Environment(\.codeHostWords)`, which `CodeHostRemote` sets after the first read of the remote. Before that the words are neutral ("Pull Requests", "Open in Browser"). Why: one place for the vocabulary, and rows need no new store.
 22. Actions that a host or a repository does not allow are hidden, not shown with an error: `PullRequestPermissions.canRevokeApproval` (GitHub: write access) and `canSetAutoMerge` (GitHub: write access and `autoMergeAllowed` on the repository).
+23. A `kind: command` project runs `build.command`, then `run.command`, in the checkout of the run bar, with the action variables (`DEVHUB_SIMULATOR_UDID`, `DEVHUB_BRANCH`, …). Both commands may print `@devhub {"app": "<path>"}`; a relative path is read from the checkout. A script file without the executable bit runs through `/bin/zsh`. Run & Attach stays off for these projects. Why: the app path is known only after the build, and a fresh clone often loses the executable bit.
 ## Next steps
 
 1. M5 (ADR 001 section 7.5): Build & Run, launch profiles, `kind: command` projects, the simulator status rows, log chips, Copilot sessions.
@@ -68,6 +69,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 ## Known gaps
 
 - Settings with no project: the Settings tab also shows "No project yet" until a project is added. Adding a project works from that screen and from the header menu.
+- `xcrun simctl boot` on a booted simulator shows a red row in the Output panel (exit code 149). The run goes on: the repository accepts that code, but the command log does not know it.
 - `network.toolbar` from ADR 001 Appendix B.3 is not a placement yet. It is not in `docs/extensions.md`; adding it changes the schema, so it waits for the owner.
 - Auto-merge on GitHub was not seen working: the test repository is private on a free plan, which has no branch protection and no auto-merge. The action stays hidden there (`autoMergeAllowed` is false).
 - The GitLab flows were not clicked through after the M4 rename: that needs a GitLab host of the owner. The `glab` code and its tests did not change in behaviour.

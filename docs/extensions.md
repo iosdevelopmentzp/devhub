@@ -35,8 +35,8 @@ All fields optional. Missing values are detected (see "default").
 | `xcode.bundleID` | string | shortest `PRODUCT_BUNDLE_IDENTIFIER` in the pbxproj without `Tests`, `Extension`, `Widget`, `Clip`, `$` | used for log streams, uninstall and clean install when no build ran yet |
 | `xcode.schemes` | [string] | every scheme found | the schemes shown in the run bar, in this order; use it to hide test and tool schemes |
 | `xcode.bundleIDs` | {key: string} | — | bundle ID per scheme for white-label projects with one scheme per brand; a key is `<scheme>` or `<scheme>/<configuration>` and the more exact key wins; falls back to `xcode.bundleID` |
-| `build.command` | path | — | `kind: command` only. Runs before `run.command`. Streams output. |
-| `run.command` | path | — | `kind: command` only. May print `@devhub {"app": "<path>"}`; then DevHub installs and launches that app on the target simulator. Otherwise the script launches by itself. |
+| `build.command` | path | — | `kind: command` only. Runs before `run.command` in the checkout of the run bar, with the variables of section 3.4. Streams output. A file without the executable bit runs through `/bin/zsh`. |
+| `run.command` | path | — | `kind: command` only. Either command may print `@devhub {"app": "<path>"}` (a relative path is read from the checkout); then DevHub installs and launches that app on the target simulator with the launch profile. Otherwise the script launches by itself. |
 | `git.remote` | string | `origin` | the remote that fetch, pull, push, the remote branch list, the web link and the base branch use |
 | `git.host.kind` | `"github"` \| `"gitlab"` | `github` when the host of the remote contains `github`, else `gitlab` | which CLI (`gh` or `glab`) and which words the merge request features use; set it for GitHub Enterprise on a custom host |
 | `git.host.name` | string | the host of the remote URL | passed to `gh --hostname` / `glab --hostname` |
@@ -210,7 +210,7 @@ A line that starts with `@devhub ` followed by one JSON object is a directive. O
 | `{"notify": "Title", "body": "…"}` | system notification when the panel is closed |
 | `{"refresh": ["git", "simulators"]}` | refreshes stores |
 | `{"error": "message"}` | the run is marked failed with this message even with exit code 0 |
-| `{"app": "/path/App.app"}` | `run.command` only: the app to install and launch |
+| `{"app": "/path/App.app"}` | `build.command` and `run.command` only: the app to install and launch |
 | `{"view": {...}}` | replaces the result area of the action (custom tab section or Output entry) |
 
 `view` shapes:

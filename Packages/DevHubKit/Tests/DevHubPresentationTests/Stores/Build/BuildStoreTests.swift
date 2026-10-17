@@ -398,4 +398,21 @@ import DevHubTestSupport
         #expect(request.cleanInstall)
         #expect(request.launch == LaunchSettings(profile: production))
     }
+
+    @Test func aCommandProjectRunsItsCommandsInsteadOfXcodebuild() async throws {
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(kind: .command, build: CommandConfig(command: "scripts/build.sh"), run: CommandConfig(command: "scripts/run.sh")), actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+        #expect(store.commandsSummary == "scripts/build.sh → scripts/run.sh")
+
+        store.runAndAttach()
+        #expect(store.isRunning == false)
+        #expect(harness.lastActivity?.title == "Run & Attach needs an Xcode project")
+
+        store.run()
+        try await waitUntil { hasFinished }
+
+        #expect(harness.spies.scripts.calls.map(\.executable) == [ProjectSample.path + "/scripts/build.sh", ProjectSample.path + "/scripts/run.sh"])
+        #expect(harness.spies.scripts.calls.first?.environment["DEVHUB_SIMULATOR_UDID"] == simulator.id)
+        #expect(harness.spies.build.calls.contains { if case .build = $0 { true } else { false } } == false)
+    }
 }

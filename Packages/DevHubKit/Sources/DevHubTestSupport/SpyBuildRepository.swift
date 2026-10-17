@@ -8,6 +8,7 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
         case build(BuildRequest)
         case locateProduct(BuildRequest, hints: [String])
         case lastBuiltAppPath(projectPath: String, scheme: String, configuration: String)
+        case product(appPath: String)
 
         package static func == (lhs: Call, rhs: Call) -> Bool {
             switch (lhs, rhs) {
@@ -17,6 +18,8 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
                 same(left, right)
             case let (.locateProduct(left, leftHints), .locateProduct(right, rightHints)):
                 same(left, right) && leftHints == rightHints
+            case let (.product(left), .product(right)):
+                left == right
             case let (.lastBuiltAppPath(leftPath, leftScheme, leftConfiguration), .lastBuiltAppPath(rightPath, rightScheme, rightConfiguration)):
                 leftPath == rightPath && leftScheme == rightScheme && leftConfiguration == rightConfiguration
             default:
@@ -116,6 +119,10 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
 
     package func locateProduct(_ request: BuildRequest, hints: [String]) async throws -> BuildProduct {
         try record(.locateProduct(request, hints: hints)) { try _locateProductResult.get() }
+    }
+
+    package func product(atAppPath path: String) throws -> BuildProduct {
+        try record(.product(appPath: path)) { try _locateProductResult.get() }
     }
 
     package func lastBuiltAppPath(projectPath: String, container: String?, scheme: String, configuration: String) -> String? {

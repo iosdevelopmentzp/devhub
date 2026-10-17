@@ -124,6 +124,7 @@ package final class PresentationAssembly {
         build = BuildStore(
             repository: ports.build,
             buildAndRun: useCases.buildAndRun,
+            commandRun: useCases.commandRun,
             prepareCheckout: useCases.prepareBuildCheckout,
             config: config,
             session: session,
