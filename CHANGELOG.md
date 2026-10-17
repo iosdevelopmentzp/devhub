@@ -11,6 +11,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Running a config action or a script asks for its inputs and confirmation inline, streams its output to the Output panel, shows `progress` in the footer, and handles `toast`, `copy`, `open`, `refresh`, `error` and `view` lines. Remembered inputs come back on the next run.
 - Editing a file in `.devhub/` reloads the config while the panel is open.
 - Settings has a "Project config" section: the three config folders, "Create .devhub Example" and "Reveal .devhub Folder".
+- The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
 - DevHub now runs on the package architecture of the main DevHub: seven modules in `Packages/DevHubKit`, Swift 6, about 1,480 tests. The tabs are Home, Git, GitLab, Worktrees, Simulators, Logs, Network and Claude, with Settings behind the gear.

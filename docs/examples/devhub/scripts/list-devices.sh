@@ -1,4 +1,6 @@
 #!/bin/zsh
+# devhub: title = Booted simulators
+# devhub: placements = palette
 # Source script for a custom tab section: prints rows with their own actions.
 set -u
 python3 - <<'PY'

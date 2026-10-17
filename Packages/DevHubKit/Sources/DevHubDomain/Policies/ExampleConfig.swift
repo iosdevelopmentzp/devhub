@@ -9,7 +9,7 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
 
 - `project.json`: how the project builds and runs, base branch, worktree rules, launch profiles, log filter, Home grid order.
 - `actions/`: buttons with placements, inputs and confirmation.
-- `scripts/`: executables with a `# devhub:` header; they become rows on Home without a JSON file.
+- `scripts/`: executables. A script with a `# devhub:` header becomes a row on Home without a JSON file. The helper scripts that an action, a tab or `simulators.statusScript` runs have `placements = palette`, so Home does not list them twice.
 - `tabs/`: a custom tab built from actions and a source script.
 """#, isExecutable: false),
         ExampleFile(path: "project.json", text: #"""
@@ -84,6 +84,8 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
 """#, isExecutable: false),
         ExampleFile(path: "scripts/clean-derived-data.sh", text: #"""
 #!/bin/zsh
+# devhub: title = Clean DerivedData
+# devhub: placements = palette
 set -euo pipefail
 ROOT="$HOME/Library/Developer/Xcode/DerivedData"
 echo "@devhub {\"progress\": \"Looking for DerivedData of $DEVHUB_CHECKOUT_PATH\"}"
@@ -104,6 +106,8 @@ echo "@devhub {\"toast\": \"Removed $REMOVED DerivedData folder(s)\"}"
 """#, isExecutable: true),
         ExampleFile(path: "scripts/list-devices.sh", text: #"""
 #!/bin/zsh
+# devhub: title = Booted simulators
+# devhub: placements = palette
 # Source script for a custom tab section: prints rows with their own actions.
 set -u
 python3 - <<'PY'
@@ -147,6 +151,7 @@ echo "@devhub {\"toast\": \"Resources generated\"}"
         ExampleFile(path: "scripts/sim-status.sh", text: #"""
 #!/bin/zsh
 # devhub: title = Simulator status
+# devhub: placements = palette
 # Prints one key-value block for the simulator row. Replace the body with what your app stores.
 set -u
 DATA="$(xcrun simctl get_app_container "$DEVHUB_SIMULATOR_UDID" "$DEVHUB_BUNDLE_ID" data 2>/dev/null || true)"

@@ -1,5 +1,6 @@
 #!/bin/zsh
 # devhub: title = Simulator status
+# devhub: placements = palette
 # Prints one key-value block for the simulator row. Replace the body with what your app stores.
 set -u
 DATA="$(xcrun simctl get_app_container "$DEVHUB_SIMULATOR_UDID" "$DEVHUB_BUNDLE_ID" data 2>/dev/null || true)"

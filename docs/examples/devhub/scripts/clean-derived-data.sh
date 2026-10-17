@@ -1,4 +1,6 @@
 #!/bin/zsh
+# devhub: title = Clean DerivedData
+# devhub: placements = palette
 set -euo pipefail
 ROOT="$HOME/Library/Developer/Xcode/DerivedData"
 echo "@devhub {\"progress\": \"Looking for DerivedData of $DEVHUB_CHECKOUT_PATH\"}"
