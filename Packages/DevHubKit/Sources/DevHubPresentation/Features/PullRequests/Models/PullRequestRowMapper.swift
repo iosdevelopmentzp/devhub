@@ -6,17 +6,18 @@ enum PullRequestRowMapper {
 
     static func model(for request: PullRequestSummary, context: PullRequestRowContext, local: PullRequestLocalState, isBusy: Bool, isExpanded: Bool) -> PullRequestRowModel {
         let username = context.username
+        let words = context.words
         let isOpen = request.state == .opened
         return PullRequestRowModel(
             id: request.id,
-            reference: "!\(request.iid)",
+            reference: words.reference(request.iid),
             title: request.title,
             icon: icon(request),
             iconTint: tint(request),
             iconHint: stateTitle(request),
             isNew: PullRequestAgePolicy.isNew(request, seenAt: context.seenAt),
             ticket: TicketMapper.model(for: [request.title, request.sourceBranch], ticket: context.ticket),
-            linkText: RequestLinkText.pullRequest(request),
+            linkText: RequestLinkText.pullRequest(request, words: words),
             author: context.scope == .mine ? "" : request.author,
             authorTint: request.author == username ? .blue : nil,
             authorHint: request.author == username ? "Opened by you" : "Opened by \(request.author)",
@@ -26,9 +27,9 @@ enum PullRequestRowMapper {
             dateHint: request.createdAt.map { "opened \($0.relativeDescription)" },
             statsText: statsText(request),
             tags: (isOpen ? [PullRequestLocalStateMapper.tag(for: local)].compactMap { $0 } : []) + tags(request, context: context),
-            pipelineTag: request.pipeline.map(PullRequestTagMapper.compactPipelineTag),
+            pipelineTag: request.pipeline.map { PullRequestTagMapper.compactPipelineTag($0, words: words) },
             pipelineURL: request.pipeline?.webURL,
-            labelTags: request.labels.map { TagModel($0, tint: .secondary, systemImage: "tag", hint: "Label on GitLab") },
+            labelTags: request.labels.map { TagModel($0, tint: .secondary, systemImage: "tag", hint: "Label on \(words.name)") },
             usesPlainTags: false,
             webURL: request.webURL,
             canCheckOut: isOpen,
@@ -36,10 +37,10 @@ enum PullRequestRowMapper {
             canSwitchBranch: isOpen && local == .local && context.isMainCheckoutClean,
             worktreePath: worktreePath(local),
             canFixThreads: isOpen && request.openThreadCount > 0,
-            primaryActions: PullRequestActionMapper.primary(for: request, username: username),
-            actions: PullRequestActionMapper.overflow(for: request, username: username),
-            mergeTitle: "Merge !\(request.iid) into \(request.targetBranch)?",
-            autoMergeTitle: "Merge !\(request.iid) into \(request.targetBranch) when the pipeline passes?",
+            primaryActions: PullRequestActionMapper.primary(for: request, username: username, words: words),
+            actions: PullRequestActionMapper.overflow(for: request, username: username, words: words),
+            mergeTitle: "Merge \(words.reference(request.iid)) into \(request.targetBranch)?",
+            autoMergeTitle: "Merge \(words.reference(request.iid)) into \(request.targetBranch) when \(words.checksPass)?",
             squashByDefault: request.squashOnMerge,
             removeSourceBranchByDefault: request.removesSourceBranch ?? true,
             isBusy: isBusy,
@@ -60,16 +61,16 @@ enum PullRequestRowMapper {
             tags.append(TagModel("needs your review", tint: .indigo, systemImage: "eye", hint: "Opened by \(request.author), not a draft, you have not approved it"))
         }
         if request.hasConflicts, isOpen {
-            tags.append(PullRequestTagMapper.conflictsTag(targetBranch: request.targetBranch))
+            tags.append(PullRequestTagMapper.conflictsTag(targetBranch: request.targetBranch, words: context.words))
         }
-        if let detail = request.detailedStatus, isOpen, showsDetail(detail, of: request), let tag = PullRequestTagMapper.detailTag(detail) {
+        if let detail = request.detailedStatus, isOpen, showsDetail(detail, of: request), let tag = PullRequestTagMapper.detailTag(detail, words: context.words) {
             tags.append(tag)
         }
         if request.isAutoMergeEnabled, isOpen {
-            tags.append(TagModel("auto-merge", tint: .blue, systemImage: "clock.badge.checkmark", hint: "GitLab merges it into \(request.targetBranch) when the pipeline passes"))
+            tags.append(TagModel("auto-merge", tint: .blue, systemImage: "clock.badge.checkmark", hint: "\(context.words.hostTitle) merges it into \(request.targetBranch) when \(context.words.checksPass)"))
         }
         if request.isBehindTarget, isOpen {
-            tags.append(PullRequestTagMapper.behindTag(targetBranch: request.targetBranch))
+            tags.append(PullRequestTagMapper.behindTag(targetBranch: request.targetBranch, words: context.words))
         }
         if PullRequestAgePolicy.isStale(request, now: context.now) {
             tags.append(TagModel("stale", tint: .orange, systemImage: "hourglass", hint: "No update for 14 days or more"))

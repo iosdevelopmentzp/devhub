@@ -5,6 +5,7 @@ import DevHubUI
 struct CommitRow: View {
     @Environment(Toaster.self) private var toaster
     @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     let model: CommitRowModel
     let onToggle: () -> Void
@@ -66,7 +67,7 @@ struct CommitRow: View {
         Divider()
         Button("Copy Hash", systemImage: "number") { toaster.copy(model.hash, label: model.shortHash) }
         Button("Copy Subject", systemImage: "doc.on.doc") { toaster.copy(model.subject, label: "Subject") }
-        Button("Open on GitLab", systemImage: "globe") { appActions.open(model.webURL) }
+        Button(words.openTitle, systemImage: "globe") { appActions.open(model.webURL) }
             .disabled(model.webURL == nil)
     }
 }

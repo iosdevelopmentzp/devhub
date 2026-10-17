@@ -36,6 +36,7 @@ extension View {
             .environment(assembly.messaging)
             .environment(assembly.claudeSessions)
             .environment(assembly.appActions)
+            .modifier(CodeHostWordsModifier(remote: assembly.codeHostRemote))
             .environment(\.hintCenter, assembly.hints)
             .environment(\.copyToPasteboard, { value, label in assembly.toaster.copy(value, label: label) })
     }

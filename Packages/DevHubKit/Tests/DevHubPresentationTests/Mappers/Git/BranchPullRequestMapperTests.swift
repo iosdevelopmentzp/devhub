@@ -6,14 +6,14 @@ import Testing
 
 @Suite struct BranchPullRequestMapperTests {
     @Test func noRequestNoModel() {
-        #expect(BranchPullRequestMapper.model(for: nil) == nil)
+        #expect(BranchPullRequestMapper.model(for: nil, words: .gitLab) == nil)
     }
 
     @Test func theTagShowsTheRequestInDevHub() throws {
-        let model = try #require(BranchPullRequestMapper.model(for: PullRequestSummaryFixture.open))
+        let model = try #require(BranchPullRequestMapper.model(for: PullRequestSummaryFixture.open, words: .gitLab))
 
         #expect(model.iid == 21)
-        #expect(model.tag == TagModel("!21", tint: .blue, systemImage: "arrow.triangle.pull", hint: "Open merge request into dev: ABC-5: Login. Click to show it in the GitLab tab."))
+        #expect(model.tag == TagModel("!21", tint: .blue, systemImage: "arrow.triangle.pull", hint: "Open merge request into dev: ABC-5: Login. Click to show it in the Merge Requests tab."))
         #expect(model.webURL == PullRequestSummaryFixture.open.webURL)
         #expect(model.pipelineTag == nil)
         #expect(model.statusTags.isEmpty)
@@ -21,7 +21,7 @@ import Testing
     }
 
     @Test func aDraftIsGray() throws {
-        let model = try #require(BranchPullRequestMapper.model(for: PullRequestSummaryFixture.request(iid: 3, source: "x", state: .opened, isDraft: true)))
+        let model = try #require(BranchPullRequestMapper.model(for: PullRequestSummaryFixture.request(iid: 3, source: "x", state: .opened, isDraft: true), words: .gitLab))
 
         #expect(model.tag.text == "!3 draft")
         #expect(model.tag.tint == .gray)
@@ -39,9 +39,9 @@ import Testing
             resolvedThreadCount: 1
         )
 
-        let model = try #require(BranchPullRequestMapper.model(for: request))
+        let model = try #require(BranchPullRequestMapper.model(for: request, words: .gitLab))
 
-        #expect(model.pipelineTag == PullRequestTagMapper.compactPipelineTag(request.pipeline!))
+        #expect(model.pipelineTag == PullRequestTagMapper.compactPipelineTag(request.pipeline!, words: .gitLab))
         #expect(model.pipelineURL == url)
         #expect(model.statusTags == [
             TagModel("approved", tint: .green, systemImage: "checkmark.seal.fill", hint: "Approved by kim, sam"),

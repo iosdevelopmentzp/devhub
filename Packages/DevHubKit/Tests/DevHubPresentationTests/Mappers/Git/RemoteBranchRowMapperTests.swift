@@ -12,6 +12,7 @@ import Testing
             localBranchNames: ["dev"],
             openPullRequest: nil,
             ticket: .standard,
+            words: .gitLab,
             checkoutPath: { _ in nil },
             isBuildRunning: false,
             isBusy: false
@@ -40,6 +41,7 @@ import Testing
             localBranchNames: ["feature/gifts"],
             openPullRequest: nil,
             ticket: .standard,
+            words: .gitLab,
             checkoutPath: { $0 == "feature/gifts" ? "/tmp/gifts" : nil },
             isBuildRunning: true,
             isBusy: true

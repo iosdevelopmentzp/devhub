@@ -131,7 +131,7 @@ import Testing
 
         let model = row(branch, current: nil, worktree: nil, openPullRequest: request)
 
-        #expect(model.pullRequest == BranchPullRequestMapper.model(for: request))
+        #expect(model.pullRequest == BranchPullRequestMapper.model(for: request, words: .gitLab))
         #expect(model.tags.contains { $0.text == "!21" } == false)
         #expect(model.canOpenPullRequest)
         #expect(model.pullRequestHint == "Merge request !21 into dev is open")
@@ -183,6 +183,7 @@ import Testing
             baseName: "dev",
             changedFiles: 0,
             ticket: .standard,
+            words: .gitLab,
             isBuildRunning: true,
             isBusy: true,
             configActions: []
@@ -215,6 +216,7 @@ import Testing
             baseName: "dev",
             changedFiles: changedFiles,
             ticket: .standard,
+            words: .gitLab,
             isBuildRunning: false,
             isBusy: false,
             configActions: configActions

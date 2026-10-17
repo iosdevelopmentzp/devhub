@@ -49,7 +49,7 @@ import Testing
             removesSourceBranch: false,
             headSHA: "abc123",
             isAutoMergeEnabled: true,
-            permissions: PullRequestPermissions(canMerge: true, canApprove: false)
+            permissions: PullRequestPermissions(canMerge: true, canApprove: false, canRevokeApproval: true, canSetAutoMerge: true)
         ))
         #expect(list.requests[0].openThreadCount == 3)
         let old = list.requests[1]

@@ -206,7 +206,7 @@ final class AppActions {
             guard let self else { return }
             guard let promptPath = await pullRequestDetails.writeReviewPrompt(for: summary) else { return }
             guard let path = await checkoutPath(creatingWorktreeFor: summary.sourceBranch) else { return }
-            workspace.runInTerminal(ReviewPromptBuilder.command(promptPath: promptPath), at: path, title: "Started Claude on the threads of !\(summary.iid)")
+            workspace.runInTerminal(ReviewPromptBuilder.command(promptPath: promptPath), at: path, title: "Started Claude on the threads of \(pullRequests.words.reference(summary.iid))")
         }
     }
 

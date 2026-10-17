@@ -108,7 +108,7 @@ package extension MockData {
             removesSourceBranch: true,
             headSHA: "9f3c2a1\(iid)",
             isAutoMergeEnabled: false,
-            permissions: PullRequestPermissions(canMerge: true, canApprove: author != gitLabUsername)
+            permissions: PullRequestPermissions(canMerge: true, canApprove: author != gitLabUsername, canRevokeApproval: true, canSetAutoMerge: true)
         )
     }
 }

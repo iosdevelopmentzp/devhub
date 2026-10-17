@@ -5,8 +5,8 @@ import DevHubUI
 
 @Suite struct QuickActionTileMapperTests {
     @Test func buildRunNamesTheSchemeAndFollowsTheBuild() {
-        let idle = QuickActionTileMapper.model(for: .builtin(.buildRun), scheme: "ExampleApp", branch: "main", isBuildRunning: false, isRunning: false)
-        let busy = QuickActionTileMapper.model(for: .builtin(.buildRun), scheme: "ExampleApp", branch: "main", isBuildRunning: true, isRunning: false)
+        let idle = QuickActionTileMapper.model(for: .builtin(.buildRun), scheme: "ExampleApp", branch: "main", words: .gitLab, isBuildRunning: false, isRunning: false)
+        let busy = QuickActionTileMapper.model(for: .builtin(.buildRun), scheme: "ExampleApp", branch: "main", words: .gitLab, isBuildRunning: true, isRunning: false)
 
         #expect(idle.title == "Build & Run")
         #expect(idle.subtitle == "Scheme ExampleApp")
@@ -17,8 +17,8 @@ import DevHubUI
     }
 
     @Test func copyBranchNeedsABranch() {
-        #expect(QuickActionTileMapper.model(for: .builtin(.copyBranch), scheme: nil, branch: nil, isBuildRunning: false, isRunning: false).isEnabled == false)
-        #expect(QuickActionTileMapper.model(for: .builtin(.copyBranch), scheme: nil, branch: "main", isBuildRunning: false, isRunning: false).subtitle == "main")
+        #expect(QuickActionTileMapper.model(for: .builtin(.copyBranch), scheme: nil, branch: nil, words: .gitLab, isBuildRunning: false, isRunning: false).isEnabled == false)
+        #expect(QuickActionTileMapper.model(for: .builtin(.copyBranch), scheme: nil, branch: "main", words: .gitLab, isBuildRunning: false, isRunning: false).subtitle == "main")
     }
 
     @Test func everyBuiltInHasItsOwnIcon() {
@@ -30,7 +30,7 @@ import DevHubUI
         action.config.subtitle = "Removes DerivedData"
         action.config.tint = .red
 
-        let model = QuickActionTileMapper.model(for: .config(action), scheme: nil, branch: nil, isBuildRunning: true, isRunning: true)
+        let model = QuickActionTileMapper.model(for: .config(action), scheme: nil, branch: nil, words: .gitLab, isBuildRunning: true, isRunning: true)
 
         #expect(model.id == "clean")
         #expect(model.subtitle == "Removes DerivedData")

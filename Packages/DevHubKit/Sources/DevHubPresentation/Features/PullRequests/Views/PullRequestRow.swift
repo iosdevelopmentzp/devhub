@@ -4,6 +4,7 @@ import DevHubUI
 
 struct PullRequestRow: View {
     @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     let model: PullRequestRowModel
     let details: PullRequestDetailsModel?
@@ -226,7 +227,7 @@ struct PullRequestRow: View {
                 }
                 .disabled(model.canCreateWorktree == false)
             }
-            IconButton(systemImage: "globe", help: "Open in GitLab") {
+            IconButton(systemImage: "globe", help: words.openTitle) {
                 appActions.open(model.webURL)
             }
             .disabled(model.webURL == nil)
@@ -246,7 +247,7 @@ struct PullRequestRow: View {
 
     @ViewBuilder
     private var menu: some View {
-        Button("Open in GitLab", systemImage: "globe") { appActions.open(model.webURL) }
+        Button(words.openTitle, systemImage: "globe") { appActions.open(model.webURL) }
         if let openWindow = detailActions.openWindow {
             Button("Open in Window", systemImage: "macwindow", action: openWindow)
         }

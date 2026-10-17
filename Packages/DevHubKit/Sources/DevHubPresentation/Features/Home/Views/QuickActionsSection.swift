@@ -7,6 +7,7 @@ struct QuickActionsSection: View {
     @Environment(ConfigActionsStore.self) private var store
     @Environment(BuildStore.self) private var build
     @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     private static let slot = "home.quickActions"
 
@@ -35,7 +36,7 @@ struct QuickActionsSection: View {
         let branch = store.currentBranch
         let effective = store.effective
         return store.actions(for: .homeQuickActions)
-            .map { QuickActionTileMapper.model(for: $0, scheme: effective.scheme, branch: branch, isBuildRunning: build.isRunning, isRunning: store.isRunning($0.id)) }
+            .map { QuickActionTileMapper.model(for: $0, scheme: effective.scheme, branch: branch, words: words, isBuildRunning: build.isRunning, isRunning: store.isRunning($0.id)) }
             .filter { session.matchesSearch($0.title, $0.subtitle) }
     }
 

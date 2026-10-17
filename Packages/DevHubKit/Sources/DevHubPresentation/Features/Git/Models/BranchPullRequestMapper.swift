@@ -4,21 +4,21 @@ import DevHubUI
 
 enum BranchPullRequestMapper {
 
-    static func model(for request: PullRequestSummary?) -> BranchPullRequestModel? {
+    static func model(for request: PullRequestSummary?, words: CodeHostWords) -> BranchPullRequestModel? {
         guard let request else { return nil }
         return BranchPullRequestModel(
             iid: request.iid,
             tag: TagModel(
-                request.isDraft ? "!\(request.iid) draft" : "!\(request.iid)",
+                request.isDraft ? "\(words.reference(request.iid)) draft" : words.reference(request.iid),
                 tint: request.isDraft ? .gray : .blue,
                 systemImage: "arrow.triangle.pull",
-                hint: "Open merge request into \(request.targetBranch): \(request.title). Click to show it in the GitLab tab."
+                hint: "Open \(words.request) into \(request.targetBranch): \(request.title). Click to show it in the \(words.requestsTitle) tab."
             ),
-            pipelineTag: request.pipeline.map(PullRequestTagMapper.compactPipelineTag),
+            pipelineTag: request.pipeline.map { PullRequestTagMapper.compactPipelineTag($0, words: words) },
             pipelineURL: request.pipeline?.webURL,
             statusTags: statusTags(request),
             webURL: request.webURL,
-            linkText: RequestLinkText.pullRequest(request)
+            linkText: RequestLinkText.pullRequest(request, words: words)
         )
     }
 

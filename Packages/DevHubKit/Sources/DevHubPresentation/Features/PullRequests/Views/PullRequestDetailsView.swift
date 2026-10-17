@@ -3,6 +3,7 @@ import DevHubUI
 
 struct PullRequestDetailsView: View {
     @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     let model: PullRequestDetailsModel
     let actions: PullRequestDetailActions
@@ -11,7 +12,7 @@ struct PullRequestDetailsView: View {
         Group {
             switch model.content {
             case .loading:
-                ProgressView("Reading the merge request…")
+                ProgressView("Reading the \(words.request)…")
                     .controlSize(.small)
                     .frame(maxWidth: .infinity)
                     .padding(8)
@@ -51,17 +52,17 @@ struct PullRequestDetailsView: View {
                             .foregroundStyle(.secondary)
                     }
                     if loaded.canCancelPipeline {
-                        Button("Cancel Pipeline", systemImage: "stop.circle", action: actions.cancelPipeline)
+                        Button(words.cancelChecksTitle, systemImage: "stop.circle", action: actions.cancelPipeline)
                             .controlSize(.small)
                             .fixedSize()
-                            .hint("Stop the running pipeline of the last commit")
+                            .hint("Stop the running \(words.checks) of the last commit")
                     }
                     Spacer(minLength: 4)
                     if let onOpenWindow = actions.openWindow {
                         Button("Open in Window", systemImage: "macwindow", action: onOpenWindow)
                             .controlSize(.small)
                             .fixedSize()
-                            .hint("Open this merge request in its own window that stays open after the panel closes")
+                            .hint("Open this \(words.request) in its own window that stays open after the panel closes")
                     }
                 }
             }
@@ -76,7 +77,7 @@ struct PullRequestDetailsView: View {
                         }
                         .buttonStyle(LinkButtonStyle(.accent))
                         .disabled(job.url == nil)
-                        .hint("Open the job log in GitLab")
+                        .hint("Open the \(words.job) log in \(words.name)")
                     }
                 }
             }

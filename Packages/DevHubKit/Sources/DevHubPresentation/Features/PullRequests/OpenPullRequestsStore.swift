@@ -22,6 +22,10 @@ final class OpenPullRequestsStore {
     private static let staleAfter: TimeInterval = 60
     private static let pollInterval: Duration = .seconds(300)
 
+    var words: CodeHostWords {
+        remote.words
+    }
+
     init(repository: CodeHostRepository, remote: any CodeHostLookup, activity: ActivityLog, events: AppEvents) {
         self.repository = repository
         self.remote = remote
@@ -96,7 +100,7 @@ final class OpenPullRequestsStore {
         if loaded.totalCount > loaded.requests.count, hasReportedCap == false {
             hasReportedCap = true
             activity.log(
-                "GitLab has \(loaded.totalCount) open merge requests, DevHub reads \(loaded.requests.count)",
+                "\(remote.words.hostTitle) has \(loaded.totalCount) open \(remote.words.requests), DevHub reads \(loaded.requests.count)",
                 detail: "Branch tags and the review count can miss the rest",
                 outcome: .info
             )
@@ -107,6 +111,6 @@ final class OpenPullRequestsStore {
         let message = error.localizedDescription
         guard message != loggedError else { return }
         loggedError = message
-        activity.log("Cannot read open merge requests", detail: message, outcome: .failure)
+        activity.log("Cannot read open \(remote.words.requests)", detail: message, outcome: .failure)
     }
 }

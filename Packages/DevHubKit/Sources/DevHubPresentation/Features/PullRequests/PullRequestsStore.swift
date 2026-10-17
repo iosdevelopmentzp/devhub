@@ -72,6 +72,10 @@ final class PullRequestsStore {
         "gitlab.seenAt.\(scope.rawValue)"
     }
 
+    var words: CodeHostWords {
+        remote.words
+    }
+
     init(repository: CodeHostRepository, remote: any CodeHostLookup, activity: ActivityLog, events: AppEvents, store: any KeyValueStore) {
         self.repository = repository
         self.remote = remote
@@ -137,40 +141,40 @@ final class PullRequestsStore {
     func perform(_ kind: PullRequestActionModel.Kind, on id: PullRequestSummary.ID) {
         switch kind {
         case .approve:
-            run(id, done: "Approved !\(id)", failed: "Cannot approve !\(id)") { [repository] in
+            run(id, done: "Approved \(remote.words.reference(id))", failed: "Cannot approve \(remote.words.reference(id))") { [repository] in
                 try await repository.approve(iid: id, repository: $0)
             }
         case .unapprove:
-            run(id, done: "Revoked the approval of !\(id)", failed: "Cannot revoke the approval of !\(id)") { [repository] in
+            run(id, done: "Revoked the approval of \(remote.words.reference(id))", failed: "Cannot revoke the approval of \(remote.words.reference(id))") { [repository] in
                 try await repository.unapprove(iid: id, repository: $0)
             }
         case .markReady:
-            run(id, done: "Marked !\(id) as ready", failed: "Cannot mark !\(id) as ready") { [repository] in
+            run(id, done: "Marked \(remote.words.reference(id)) as ready", failed: "Cannot mark \(remote.words.reference(id)) as ready") { [repository] in
                 try await repository.setDraft(iid: id, isDraft: false, repository: $0)
             }
         case .markDraft:
-            run(id, done: "Marked !\(id) as draft", failed: "Cannot mark !\(id) as draft") { [repository] in
+            run(id, done: "Marked \(remote.words.reference(id)) as draft", failed: "Cannot mark \(remote.words.reference(id)) as draft") { [repository] in
                 try await repository.setDraft(iid: id, isDraft: true, repository: $0)
             }
         case .rebase:
-            run(id, done: "Rebase of !\(id) started", failed: "Cannot rebase !\(id)") { [repository] in
+            run(id, done: "\(remote.words.updateWord.capitalized) of \(remote.words.reference(id)) started", failed: "Cannot \(remote.words.updateWord) \(remote.words.reference(id))") { [repository] in
                 try await repository.rebase(iid: id, repository: $0)
             }
         case .retryPipeline:
             guard let pipelineID = request(id: id)?.pipeline?.id else { return }
-            run(id, done: "Pipeline of !\(id) retried", failed: "Cannot retry the pipeline of !\(id)") { [repository] in
+            run(id, done: "\(remote.words.checksTitle) of \(remote.words.reference(id)) retried", failed: "Cannot retry the \(remote.words.checks) of \(remote.words.reference(id))") { [repository] in
                 try await repository.retryPipeline(id: pipelineID, repository: $0)
             }
         case .merge, .mergeWhenPipelinePasses:
             let request = request(id: id)
             merge(id, kind: kind, squash: request?.squashOnMerge ?? true, removeSourceBranch: request?.removesSourceBranch ?? true)
         case .cancelAutoMerge:
-            run(id, done: "Cancelled the auto-merge of !\(id)", failed: "Cannot cancel the auto-merge of !\(id)") { [repository] in
+            run(id, done: "Cancelled the auto-merge of \(remote.words.reference(id))", failed: "Cannot cancel the auto-merge of \(remote.words.reference(id))") { [repository] in
                 try await repository.cancelAutoMerge(iid: id, repository: $0)
             }
         case .cancelPipeline:
             guard let pipelineID = request(id: id)?.pipeline?.id else { return }
-            run(id, done: "Pipeline of !\(id) cancelled", failed: "Cannot cancel the pipeline of !\(id)") { [repository] in
+            run(id, done: "\(remote.words.checksTitle) of \(remote.words.reference(id)) cancelled", failed: "Cannot cancel the \(remote.words.checks) of \(remote.words.reference(id))") { [repository] in
                 try await repository.cancelPipeline(id: pipelineID, repository: $0)
             }
         }
@@ -178,16 +182,16 @@ final class PullRequestsStore {
 
     func merge(_ id: PullRequestSummary.ID, kind: PullRequestActionModel.Kind, squash: Bool, removeSourceBranch: Bool) {
         guard kind == .mergeWhenPipelinePasses else {
-            run(id, done: "Merged !\(id)", failed: "Cannot merge !\(id)") { [repository] in
+            run(id, done: "Merged \(remote.words.reference(id))", failed: "Cannot merge \(remote.words.reference(id))") { [repository] in
                 try await repository.merge(iid: id, squash: squash, removeSourceBranch: removeSourceBranch, repository: $0)
             }
             return
         }
         guard let sha = request(id: id)?.headSHA else {
-            activity.log("Cannot set auto-merge for !\(id)", detail: "GitLab did not send the last commit of the request. Refresh and try again.", outcome: .failure)
+            activity.log("Cannot set auto-merge for \(remote.words.reference(id))", detail: "\(remote.words.hostTitle) did not send the last commit of the request. Refresh and try again.", outcome: .failure)
             return
         }
-        run(id, done: "!\(id) merges when the pipeline passes", failed: "Cannot set auto-merge for !\(id)") { [repository] in
+        run(id, done: "\(remote.words.reference(id)) merges when \(remote.words.checksPass)", failed: "Cannot set auto-merge for \(remote.words.reference(id))") { [repository] in
             try await repository.setAutoMerge(iid: id, sha: sha, squash: squash, removeSourceBranch: removeSourceBranch, repository: $0)
         }
     }
@@ -250,7 +254,7 @@ final class PullRequestsStore {
             nextCursor = page.hasNextPage ? page.endCursor : nil
             rememberPage(query)
         } catch {
-            activity.log("Cannot read more merge requests", detail: error.localizedDescription, outcome: .failure)
+            activity.log("Cannot read more \(remote.words.requests)", detail: error.localizedDescription, outcome: .failure)
         }
     }
 
@@ -337,7 +341,7 @@ final class PullRequestsStore {
         let message = failure.localizedDescription
         guard message != loggedError else { return }
         loggedError = message
-        activity.log("Cannot read merge requests", detail: message, outcome: .failure)
+        activity.log("Cannot read \(remote.words.requests)", detail: message, outcome: .failure)
     }
 
     private var scopedRequests: [PullRequestSummary] {

@@ -4,45 +4,45 @@ import DevHubUI
 
 enum PullRequestTagMapper {
 
-    static func conflictsTag(targetBranch: String) -> TagModel {
+    static func conflictsTag(targetBranch: String, words: CodeHostWords) -> TagModel {
         TagModel(
             "conflicts",
             tint: .red,
             systemImage: "exclamationmark.triangle.fill",
-            hint: "GitLab cannot merge it: rebase on \(targetBranch) and solve the conflicts"
+            hint: "\(words.hostTitle) cannot merge it: \(words.catchUp(target: targetBranch)) and solve the conflicts"
         )
     }
 
-    static func detailTag(_ detail: MergeDetail) -> TagModel? {
-        guard let text = detailText(detail) else { return nil }
-        return TagModel(text.title, tint: text.tint, hint: "GitLab merge status: \(detail.name)")
+    static func detailTag(_ detail: MergeDetail, words: CodeHostWords) -> TagModel? {
+        guard let text = detailText(detail, words: words) else { return nil }
+        return TagModel(text.title, tint: text.tint, hint: "\(words.hostTitle) merge status: \(detail.name)")
     }
 
-    static func pipelineTag(_ pipeline: PipelineInfo, subject: String) -> TagModel {
+    static func pipelineTag(_ pipeline: PipelineInfo, subject: String, words: CodeHostWords) -> TagModel {
         TagModel(
-            "pipeline \(pipeline.status.name)",
+            "\(words.checks) \(words.status(pipeline.status))",
             tint: pipelineTint(pipeline.status),
             systemImage: pipelineIcon(pipeline.status),
             hint: "\(subject)\(pipeline.updatedAt.map { ", \($0.relativeDescription)" } ?? ""). Click to open it."
         )
     }
 
-    static func compactPipelineTag(_ pipeline: PipelineInfo) -> TagModel {
+    static func compactPipelineTag(_ pipeline: PipelineInfo, words: CodeHostWords) -> TagModel {
         switch pipeline.status {
         case .success:
             return .icon(
                 pipelineIcon(.success),
                 tint: .green,
-                hint: "Pipeline passed\((pipeline.finishedAt ?? pipeline.updatedAt).map { " \($0.relativeDescription)" } ?? ""). Click to open it."
+                hint: "\(words.checks("passed", "passed"))\((pipeline.finishedAt ?? pipeline.updatedAt).map { " \($0.relativeDescription)" } ?? ""). Click to open it."
             )
         case .running:
-            return TagModel("running", tint: .blue, systemImage: pipelineIcon(.running), hint: "Pipeline is running. Click to open it.")
+            return TagModel("running", tint: .blue, systemImage: pipelineIcon(.running), hint: "\(words.checks("is running", "are running")). Click to open it.")
         case .pending, .created, .waitingForResource, .preparing, .scheduled:
-            return TagModel("pending", tint: .orange, systemImage: pipelineIcon(.pending), hint: "Pipeline waits to start (\(pipeline.status.name)). Click to open it.")
+            return TagModel("pending", tint: .orange, systemImage: pipelineIcon(.pending), hint: "\(words.checks("waits", "wait")) to start (\(pipeline.status.name)). Click to open it.")
         case .failed:
-            return TagModel("pipeline failed", tint: .red, systemImage: pipelineIcon(.failed), hint: "\(failedJobsText(pipeline.failedJobCount)). Click to open it.")
+            return TagModel("\(words.checks) failed", tint: .red, systemImage: pipelineIcon(.failed), hint: "\(failedJobsText(pipeline.failedJobCount, words: words)). Click to open it.")
         default:
-            return TagModel("pipeline \(pipeline.status.name)", tint: pipelineTint(pipeline.status), systemImage: pipelineIcon(pipeline.status), hint: "Pipeline of the last commit. Click to open it.")
+            return TagModel("\(words.checks) \(words.status(pipeline.status))", tint: pipelineTint(pipeline.status), systemImage: pipelineIcon(pipeline.status), hint: "\(words.checksTitle) of the last commit. Click to open it.")
         }
     }
 
@@ -67,12 +67,12 @@ enum PullRequestTagMapper {
         )
     }
 
-    static func behindTag(targetBranch: String) -> TagModel {
+    static func behindTag(targetBranch: String, words: CodeHostWords) -> TagModel {
         TagModel(
             "behind \(targetBranch)",
             tint: .orange,
             systemImage: "arrow.down",
-            hint: "The source branch is behind \(targetBranch). Rebase brings it up to date"
+            hint: "The source branch is behind \(targetBranch). \(words.updateWord.capitalized) brings it up to date"
         )
     }
 
@@ -81,9 +81,9 @@ enum PullRequestTagMapper {
         return "\(names[0]) +\(names.count - 1)"
     }
 
-    private static func failedJobsText(_ count: Int?) -> String {
-        guard let count, count > 0 else { return "Pipeline failed" }
-        return "\(CountText.count(count, "job")) failed"
+    private static func failedJobsText(_ count: Int?, words: CodeHostWords) -> String {
+        guard let count, count > 0 else { return words.checks("failed", "failed") }
+        return "\(CountText.count(count, words.job)) failed"
     }
 
     private static func pipelineTint(_ status: PipelineStatus) -> Tint {
@@ -106,13 +106,13 @@ enum PullRequestTagMapper {
         }
     }
 
-    private static func detailText(_ detail: MergeDetail) -> (title: String, tint: Tint)? {
+    private static func detailText(_ detail: MergeDetail, words: CodeHostWords) -> (title: String, tint: Tint)? {
         switch detail {
         case .mergeable: ("ready to merge", .green)
         case .notApproved: ("needs approval", .orange)
-        case .ciMustPass, .ciStillRunning: ("waiting for CI", .blue)
+        case .ciMustPass, .ciStillRunning: ("waiting for \(words.kind == .gitlab ? "CI" : "checks")", .blue)
         case .discussionsNotResolved: ("open threads", .orange)
-        case .needRebase: ("needs rebase", .orange)
+        case .needRebase: ("needs \(words.updateWord)", .orange)
         case .draftStatus, .other("unchecked"), .other("checking"): nil
         case .other(let name): (name.replacingOccurrences(of: "_", with: " "), .secondary)
         }

@@ -1,12 +1,16 @@
 import Foundation
+import Observation
 import DevHubDomain
 
 @MainActor
+@Observable
 final class CodeHostRemote: CodeHostLookup {
-    private let git: any GitRepository
-    private let worktrees: any WorktreeLookup
-    private var cached: CodeHost?
-    private var subscription: SubscriptionToken?
+    private(set) var kind: CodeHostKind?
+
+    @ObservationIgnored private let git: any GitRepository
+    @ObservationIgnored private let worktrees: any WorktreeLookup
+    @ObservationIgnored private var cached: CodeHost?
+    @ObservationIgnored private var subscription: SubscriptionToken?
 
     init(git: any GitRepository, worktrees: any WorktreeLookup, events: AppEvents) {
         self.git = git
@@ -16,6 +20,7 @@ final class CodeHostRemote: CodeHostLookup {
             switch event {
             case .projectChanged, .configChanged:
                 cached = nil
+                kind = worktrees.gitSettings.hostKind
             default:
                 break
             }
@@ -33,6 +38,9 @@ final class CodeHostRemote: CodeHostLookup {
               let host = CodeHostPolicy.codeHost(webURL: url, kind: settings.hostKind, name: settings.hostName)
         else { throw PullRequestError.noCodeHost }
         cached = host
+        if kind != host.kind {
+            kind = host.kind
+        }
         return host
     }
 }

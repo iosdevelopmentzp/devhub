@@ -4,6 +4,7 @@ import DevHubUI
 struct PullRequestDetailsPane: View {
     @Environment(PullRequestDetailStore.self) private var detailStore
     @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     let model: PullRequestRowModel?
     let details: PullRequestDetailsModel?
@@ -23,9 +24,9 @@ struct PullRequestDetailsPane: View {
             }
         } else {
             ContentUnavailableView {
-                Label("No merge request selected", systemImage: "sidebar.right")
+                Label("No \(words.request) selected", systemImage: "sidebar.right")
             } description: {
-                Text("Click a merge request on the left to read its description, threads and files here.")
+                Text("Click a \(words.request) on the left to read its description, threads and files here.")
             }
         }
     }
@@ -43,7 +44,7 @@ struct PullRequestDetailsPane: View {
                     .hintWhenTruncated(model.title)
                 Spacer(minLength: 4)
                 if let openWindow = detailActions.openWindow {
-                    IconButton(systemImage: "macwindow", help: "Open this merge request in its own window", action: openWindow)
+                    IconButton(systemImage: "macwindow", help: "Open this \(words.request) in its own window", action: openWindow)
                 }
             }
             PullRequestActionBar(

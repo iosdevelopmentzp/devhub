@@ -45,6 +45,7 @@ enum GhPullRequestParser {
         let viewerPermission: String?
         let viewerDefaultMergeMethod: String?
         let deleteBranchOnMerge: Bool?
+        let autoMergeAllowed: Bool?
     }
 
     private struct PullRequestNode: Decodable {
@@ -306,7 +307,12 @@ enum GhPullRequestParser {
             removesSourceBranch: repository?.deleteBranchOnMerge,
             headSHA: node.headRefOid,
             isAutoMergeEnabled: node.autoMergeRequest != nil,
-            permissions: PullRequestPermissions(canMerge: canWrite, canApprove: author != viewer && repository?.viewerPermission != nil)
+            permissions: PullRequestPermissions(
+                canMerge: canWrite,
+                canApprove: author != viewer && repository?.viewerPermission != nil,
+                canRevokeApproval: canWrite,
+                canSetAutoMerge: canWrite && repository?.autoMergeAllowed == true
+            )
         )
     }
 

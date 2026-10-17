@@ -26,27 +26,27 @@ import Testing
 
     @Test func theButtonSaysWhenItPushes() {
         var draft = NewPullRequestDraft.preview
-        #expect(NewPullRequestMapper.model(for: draft).createTitle == "Push & Create")
-        #expect(NewPullRequestMapper.model(for: draft).createHint.contains("git push -u <remote> feature/ABC-2324-paid-call"))
+        #expect(NewPullRequestMapper.model(for: draft, words: .gitLab).createTitle == "Push & Create")
+        #expect(NewPullRequestMapper.model(for: draft, words: .gitLab).createHint.contains("git push -u <remote> feature/ABC-2324-paid-call"))
 
         draft.pushPlan = .none
-        #expect(NewPullRequestMapper.model(for: draft).createTitle == "Create")
+        #expect(NewPullRequestMapper.model(for: draft, words: .gitLab).createTitle == "Create")
     }
 
     @Test func anEmptyTitleOrBusyFormCannotCreate() {
         var draft = NewPullRequestDraft.preview
-        #expect(NewPullRequestMapper.model(for: draft).canCreate)
+        #expect(NewPullRequestMapper.model(for: draft, words: .gitLab).canCreate)
 
         draft.title = "  "
-        #expect(NewPullRequestMapper.model(for: draft).canCreate == false)
+        #expect(NewPullRequestMapper.model(for: draft, words: .gitLab).canCreate == false)
 
         draft = .preview
         draft.isLoading = true
-        #expect(NewPullRequestMapper.model(for: draft).canCreate == false)
-        #expect(NewPullRequestMapper.model(for: draft).busyText == "Reading commits and labels…")
+        #expect(NewPullRequestMapper.model(for: draft, words: .gitLab).canCreate == false)
+        #expect(NewPullRequestMapper.model(for: draft, words: .gitLab).busyText == "Reading commits and labels…")
 
         draft.isLoading = false
         draft.isCreating = true
-        #expect(NewPullRequestMapper.model(for: draft).busyText == "Creating…")
+        #expect(NewPullRequestMapper.model(for: draft, words: .gitLab).busyText == "Creating…")
     }
 }

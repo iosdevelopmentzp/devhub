@@ -8,10 +8,11 @@ struct HeaderView: View {
     @Environment(AppActions.self) private var appActions
     @Environment(\.isPinnedWindow) private var isPinnedWindow
     @Environment(\.togglePin) private var togglePin
+    @Environment(\.codeHostWords) private var words
     @FocusState private var isSearchFocused: Bool
 
     private var searchPrompt: String? {
-        FeatureRegistry.feature(navigator.selection).searchPrompt
+        FeatureRegistry.feature(navigator.selection).searchPrompt(words)
     }
 
     var body: some View {

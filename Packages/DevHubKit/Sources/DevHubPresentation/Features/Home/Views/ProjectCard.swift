@@ -5,6 +5,7 @@ import DevHubUI
 struct ProjectCard: View {
     @Environment(Toaster.self) private var toaster
     @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     let model: ProjectCardModel
 
@@ -55,7 +56,7 @@ struct ProjectCard: View {
                     Button("Terminal", systemImage: "terminal") {
                         appActions.openTerminal(at: model.path)
                     }
-                    Button("GitLab", systemImage: "link") {
+                    Button(words.hostTitle, systemImage: "link") {
                         appActions.openRepository()
                     }
                     Spacer()

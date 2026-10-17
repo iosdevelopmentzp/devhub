@@ -12,6 +12,7 @@ enum LocalBranchRowMapper {
         baseName: String,
         changedFiles: Int,
         ticket: TicketSettings,
+        words: CodeHostWords,
         isBuildRunning: Bool,
         isBusy: Bool,
         configActions: [ConfigActionItemModel]
@@ -26,8 +27,8 @@ enum LocalBranchRowMapper {
             icon: isCurrent ? "checkmark.circle.fill" : (isCheckedOut ? "rectangle.stack" : "arrow.triangle.branch"),
             iconHint: isCurrent ? "Checked out here" : (isCheckedOut ? "Checked out in another worktree" : "Local branch"),
             usesAccentIcon: isCurrent,
-            tags: checkoutTags(isCurrent: isCurrent, worktree: worktree) + trackingTags(branch, baseName: baseName),
-            pullRequest: BranchPullRequestMapper.model(for: openPullRequest),
+            tags: checkoutTags(isCurrent: isCurrent, worktree: worktree) + trackingTags(branch, baseName: baseName, words: words),
+            pullRequest: BranchPullRequestMapper.model(for: openPullRequest, words: words),
             ticket: TicketMapper.model(for: [branch.name], ticket: ticket),
             dateText: dateText(branch),
             subject: branch.subject,
@@ -42,10 +43,10 @@ enum LocalBranchRowMapper {
             canCreateWorktree: isCheckedOut == false,
             canDelete: isCurrent == false && isCheckedOut == false,
             canOpenPullRequest: isOnRemote || openPullRequest != nil,
-            pullRequestHint: pullRequestHint(openPullRequest, isOnRemote: isOnRemote),
+            pullRequestHint: pullRequestHint(openPullRequest, isOnRemote: isOnRemote, words: words),
             pullRequestIconTint: openPullRequest == nil ? nil : .blue,
-            pullRequestMenuTitle: openPullRequest == nil ? "New Merge Request…" : "Show Merge Request…",
-            existingPullRequest: openPullRequest.map(existingModel),
+            pullRequestMenuTitle: openPullRequest == nil ? "New \(words.requestTitle)…" : "Show \(words.requestTitle)…",
+            existingPullRequest: openPullRequest.map { existingModel($0, words: words) },
             areActionsEnabled: isBusy == false,
             deleteMessage: branch.isMerged || branch.isGone
                 ? "Delete local branch \(branch.name)?"
@@ -55,19 +56,19 @@ enum LocalBranchRowMapper {
         )
     }
 
-    private static func pullRequestHint(_ request: PullRequestSummary?, isOnRemote: Bool) -> String {
+    private static func pullRequestHint(_ request: PullRequestSummary?, isOnRemote: Bool, words: CodeHostWords) -> String {
         if let request {
-            return "Merge request !\(request.iid) into \(request.targetBranch) is open"
+            return "\(words.requestSentence) \(words.reference(request.iid)) into \(request.targetBranch) is open"
         }
         return isOnRemote
-            ? "New merge request: title, description and labels in DevHub"
-            : "Push the branch first: a merge request needs it on the remote"
+            ? "New \(words.request): title, description and labels in DevHub"
+            : "Push the branch first: a \(words.request) needs it on the remote"
     }
 
-    private static func existingModel(_ request: PullRequestSummary) -> ExistingPullRequestModel {
+    private static func existingModel(_ request: PullRequestSummary, words: CodeHostWords) -> ExistingPullRequestModel {
         ExistingPullRequestModel(
-            message: "Merge request !\(request.iid) into \(request.targetBranch) already exists: \(request.title)",
-            openTitle: "Open !\(request.iid)",
+            message: "\(words.requestSentence) \(words.reference(request.iid)) into \(request.targetBranch) already exists: \(request.title)",
+            openTitle: "Open \(words.reference(request.iid))",
             url: request.webURL
         )
     }
@@ -86,7 +87,7 @@ enum LocalBranchRowMapper {
         return tags
     }
 
-    private static func trackingTags(_ branch: GitBranch, baseName: String) -> [TagModel] {
+    private static func trackingTags(_ branch: GitBranch, baseName: String, words: CodeHostWords) -> [TagModel] {
         var tags: [TagModel] = []
         if branch.isGone {
             tags.append(
@@ -94,7 +95,7 @@ enum LocalBranchRowMapper {
                     "remote deleted",
                     tint: .purple,
                     systemImage: "icloud.slash",
-                    hint: "Its branch on the remote was deleted, usually after the merge request was merged"
+                    hint: "Its branch on the remote was deleted, usually after the \(words.request) was merged"
                 )
             )
         } else if branch.upstream == nil {

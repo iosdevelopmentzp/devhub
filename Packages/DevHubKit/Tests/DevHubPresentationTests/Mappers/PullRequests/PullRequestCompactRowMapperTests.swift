@@ -18,7 +18,7 @@ import Testing
             resolvedThreadCount: 1
         )
 
-        let signals = PullRequestCompactRowMapper.signals(for: request, username: "me", scope: .all)
+        let signals = PullRequestCompactRowMapper.signals(for: request, username: "me", scope: .all, words: .gitLab)
 
         #expect(signals.map(\.systemImage) == ["exclamationmark.triangle.fill", "eye", "checkmark.circle.fill", "checkmark.seal", "bubble.left.and.bubble.right"])
         #expect(signals.map(\.text) == ["", "", "", "2", "2"])
@@ -28,7 +28,7 @@ import Testing
     @Test func aFailedPipelineStaysRed() {
         let request = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, author: "me", pipeline: PipelineInfo(status: .failed, webURL: nil, updatedAt: nil))
 
-        let signals = PullRequestCompactRowMapper.signals(for: request, username: "me", scope: .mine)
+        let signals = PullRequestCompactRowMapper.signals(for: request, username: "me", scope: .mine, words: .gitLab)
 
         #expect(signals.map(\.tint) == [.red])
     }
@@ -37,14 +37,14 @@ import Testing
         let draft = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, author: "me", isDraft: true)
         let merged = PullRequestSummaryFixture.request(iid: 8, source: "y", state: .merged, author: "sam", hasConflicts: true, threadCount: 2)
 
-        #expect(PullRequestCompactRowMapper.signals(for: draft, username: "me", scope: .mine).map(\.text) == ["draft"])
-        #expect(PullRequestCompactRowMapper.signals(for: merged, username: "me", scope: .all).isEmpty)
+        #expect(PullRequestCompactRowMapper.signals(for: draft, username: "me", scope: .mine, words: .gitLab).map(\.text) == ["draft"])
+        #expect(PullRequestCompactRowMapper.signals(for: merged, username: "me", scope: .all, words: .gitLab).isEmpty)
     }
 
     @Test func modelTakesTheRowFactsAndHidesTheAuthorInMine() {
         let request = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, author: "me", updatedAt: Date(timeIntervalSinceNow: -60))
         let row = PullRequestRowModel.preview
-        let context = PullRequestRowContext(username: "me", scope: .mine, seenAt: nil, now: .now, isMainCheckoutClean: true, ticket: .standard)
+        let context = PullRequestRowContext(username: "me", scope: .mine, seenAt: nil, now: .now, isMainCheckoutClean: true, ticket: .standard, words: .gitLab)
 
         let model = PullRequestCompactRowMapper.model(for: request, row: row, context: context)
 

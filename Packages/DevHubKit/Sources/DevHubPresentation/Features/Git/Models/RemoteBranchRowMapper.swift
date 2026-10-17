@@ -10,6 +10,7 @@ enum RemoteBranchRowMapper {
         localBranchNames: Set<String>,
         openPullRequest: PullRequestSummary?,
         ticket: TicketSettings,
+        words: CodeHostWords,
         checkoutPath: (String) -> String?,
         isBuildRunning: Bool,
         isBusy: Bool
@@ -21,7 +22,7 @@ enum RemoteBranchRowMapper {
             remoteName: branch.name,
             localName: localName,
             tags: hasLocal ? [TagModel("local", tint: .blue)] : [],
-            pullRequest: BranchPullRequestMapper.model(for: openPullRequest),
+            pullRequest: BranchPullRequestMapper.model(for: openPullRequest, words: words),
             ticket: TicketMapper.model(for: [localName], ticket: ticket),
             dateText: branch.commitDate?.relativeDescription,
             author: branch.author,

@@ -4,7 +4,7 @@ import DevHubUI
 
 enum GitHeaderMapper {
 
-    static func model(for snapshot: GitSnapshot, baseName: String, ticket: TicketSettings) -> GitHeaderModel {
+    static func model(for snapshot: GitSnapshot, baseName: String, ticket: TicketSettings, words: CodeHostWords) -> GitHeaderModel {
         let branch = snapshot.branch ?? ""
         return GitHeaderModel(
             branchTitle: snapshot.branch ?? "detached HEAD",
@@ -20,8 +20,8 @@ enum GitHeaderMapper {
             canContinueOperation: snapshot.operation == "rebase",
             actions: actions(snapshot, baseName: baseName),
             webBranch: snapshot.webURL == nil ? nil : snapshot.branch,
-            newPullRequestHint: "New merge request for \(branch): title, description and labels here, pushes first when needed",
-            branchOnWebHint: "Open \(branch) on GitLab",
+            newPullRequestHint: "New \(words.request) for \(branch): title, description and labels here, pushes first when needed",
+            branchOnWebHint: "Open \(branch) in \(words.kind == nil ? "the browser" : words.name)",
             forcePushMessage: "Force push \(branch)? The remote branch is replaced with your local one. --force-with-lease refuses when someone else pushed meanwhile.",
             rebaseMessage: "Rebase \(branch) on \(snapshot.baseBranch)? \(snapshot.behindBase) new commits come in. Local changes are stashed and restored. After that you need a force push."
         )

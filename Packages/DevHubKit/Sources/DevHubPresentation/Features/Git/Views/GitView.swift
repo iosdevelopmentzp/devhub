@@ -13,6 +13,7 @@ struct GitView: View {
     @Environment(AppActions.self) private var appActions
     @Environment(ConfigActionsStore.self) private var configActions
     @Environment(\.panelOpenCount) private var openCount
+    @Environment(\.codeHostWords) private var words
 
     @State private var confirmingDeleteName: String?
     @State private var confirmingSwitchName: String?
@@ -94,6 +95,7 @@ struct GitView: View {
                 baseName: git.baseName,
                 changedFiles: git.snapshot?.changedFiles ?? 0,
                 ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate),
+                words: words,
                 isBuildRunning: build.isRunning,
                 isBusy: git.isBusy,
                 configActions: branchActions
@@ -126,6 +128,7 @@ struct GitView: View {
                     localBranchNames: localNames,
                     openPullRequest: openPullRequests.request(forBranch: branch.name),
                     ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate),
+                    words: words,
                     checkoutPath: git.checkoutPath(forBranch:),
                     isBuildRunning: build.isRunning,
                     isBusy: git.isBusy

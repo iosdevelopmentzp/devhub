@@ -44,4 +44,14 @@ import DevHubTestSupport
         #expect(host.host == "code.example.com")
         #expect(host.path == "team/app")
     }
+
+    @Test func theKindIsKnownAfterTheFirstRead() async throws {
+        harness.spies.git.webURLResult = CodeHost.gitHubSample.webURL
+        #expect(harness.codeHostRemote.kind == nil)
+
+        _ = try await harness.codeHostRemote.codeHost()
+
+        #expect(harness.codeHostRemote.kind == .github)
+        #expect(harness.codeHostRemote.words.requestsTitle == "Pull Requests")
+    }
 }

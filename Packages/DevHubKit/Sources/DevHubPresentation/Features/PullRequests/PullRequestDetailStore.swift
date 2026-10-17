@@ -22,6 +22,10 @@ final class PullRequestDetailStore {
     @ObservationIgnored private var loading: Set<PullRequestSummary.ID> = []
     @ObservationIgnored private var subscription: SubscriptionToken?
 
+    var words: CodeHostWords {
+        remote.words
+    }
+
     init(repository: CodeHostRepository, remote: any CodeHostLookup, prompts: any ReviewPromptRepository, activity: ActivityLog, events: AppEvents) {
         self.repository = repository
         self.remote = remote
@@ -147,23 +151,23 @@ final class PullRequestDetailStore {
     func writeReviewPrompt(for summary: PullRequestSummary) async -> String? {
         await load(summary.id)
         guard let threads = details[summary.id]?.threads else {
-            activity.log("Cannot read the threads of !\(summary.iid)", detail: errors[summary.id] ?? "", outcome: .failure)
+            activity.log("Cannot read the threads of \(remote.words.reference(summary.iid))", detail: errors[summary.id] ?? "", outcome: .failure)
             return nil
         }
         guard threads.isEmpty == false else {
-            activity.log("!\(summary.iid) has no open threads", detail: "Nothing to fix", outcome: .info)
+            activity.log("\(remote.words.reference(summary.iid)) has no open threads", detail: "Nothing to fix", outcome: .info)
             return nil
         }
         do {
             return try await prompts.save(ReviewPromptBuilder.prompt(for: summary, threads: threads), iid: summary.iid)
         } catch {
-            activity.log("Cannot write the review prompt of !\(summary.iid)", detail: error.localizedDescription, outcome: .failure)
+            activity.log("Cannot write the review prompt of \(remote.words.reference(summary.iid))", detail: error.localizedDescription, outcome: .failure)
             return nil
         }
     }
 
     func resolveThread(_ threadID: PullRequestThread.ID, of id: PullRequestSummary.ID) {
-        run(threadID, of: id, "Resolved a thread of !\(id)") { [repository] in
+        run(threadID, of: id, "Resolved a thread of \(remote.words.reference(id))") { [repository] in
             try await repository.resolveThread(id: threadID, repository: $0)
         }
     }
@@ -171,7 +175,7 @@ final class PullRequestDetailStore {
     func reply(_ body: String, to threadID: PullRequestThread.ID, of id: PullRequestSummary.ID) {
         let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
         guard text.isEmpty == false else { return }
-        run(threadID, of: id, "Replied in a thread of !\(id)") { [repository] in
+        run(threadID, of: id, "Replied in a thread of \(remote.words.reference(id))") { [repository] in
             try await repository.reply(threadID: threadID, body: text, iid: id, repository: $0)
         }
     }

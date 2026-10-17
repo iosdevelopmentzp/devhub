@@ -89,7 +89,7 @@ import DevHubTestSupport
 
         let model = map(request)
 
-        #expect(model.pipelineTag == PullRequestTagMapper.compactPipelineTag(request.pipeline!))
+        #expect(model.pipelineTag == PullRequestTagMapper.compactPipelineTag(request.pipeline!, words: .gitLab))
         #expect(model.pipelineURL == url)
     }
 
@@ -291,7 +291,7 @@ import DevHubTestSupport
     ) -> PullRequestRowModel {
         PullRequestRowMapper.model(
             for: request,
-            context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}")),
+            context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}"), words: .gitLab),
             local: local,
             isBusy: isBusy,
             isExpanded: isExpanded

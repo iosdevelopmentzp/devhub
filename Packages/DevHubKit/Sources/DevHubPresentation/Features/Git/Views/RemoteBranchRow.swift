@@ -5,6 +5,7 @@ import DevHubUI
 struct RemoteBranchRow: View {
     @Environment(Toaster.self) private var toaster
     @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     let model: RemoteBranchRowModel
     let onCheckOut: () -> Void
@@ -21,11 +22,11 @@ struct RemoteBranchRow: View {
             Button("Copy Name", systemImage: "doc.on.doc") { toaster.copy(model.localName) }
             Button("Open on Web", systemImage: "globe") { appActions.openBranchOnWeb(model.remoteName) }
             if let pullRequest = model.pullRequest {
-                Button("Show Merge Request", systemImage: "arrow.triangle.pull") { appActions.showPullRequest(iid: pullRequest.iid) }
-                Button("Open Merge Request in GitLab", systemImage: "globe") { appActions.open(pullRequest.webURL) }
+                Button("Show \(words.requestTitle)", systemImage: "arrow.triangle.pull") { appActions.showPullRequest(iid: pullRequest.iid) }
+                Button(words.openRequestTitle, systemImage: "globe") { appActions.open(pullRequest.webURL) }
                 Button("Copy Link with Title", systemImage: "text.bubble") { toaster.copy(pullRequest.linkText, label: "Link with title") }
             } else {
-                Button("New Merge Request", systemImage: "arrow.triangle.pull") { appActions.openNewPullRequest(for: model.remoteName) }
+                Button("New \(words.requestTitle)", systemImage: "arrow.triangle.pull") { appActions.openNewPullRequest(for: model.remoteName) }
             }
         }
     }

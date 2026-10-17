@@ -16,6 +16,10 @@ final class NewPullRequestStore {
     @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private var subscription: SubscriptionToken?
 
+    var words: CodeHostWords {
+        remote.words
+    }
+
     init(
         git: any GitRepository,
         codeHost: any CodeHostRepository,
@@ -98,7 +102,7 @@ final class NewPullRequestStore {
         do {
             let url = try await remote.codeHost()
             let created = try await createPullRequest.execute(current.request, push: current.pushPlan, remote: remote.remoteName, checkoutPath: checkout.checkoutPath, repository: url)
-            activity.log("Created !\(created.iid)", detail: created.title, outcome: .success)
+            activity.log("Created \(remote.words.reference(created.iid))", detail: created.title, outcome: .success)
             if current.pushPlan != .none {
                 events.post(.branchesChanged)
             }
@@ -106,7 +110,7 @@ final class NewPullRequestStore {
             draft = nil
             return created.iid
         } catch {
-            activity.log("Cannot create the merge request", detail: error.localizedDescription, outcome: .failure)
+            activity.log("Cannot create the \(remote.words.request)", detail: error.localizedDescription, outcome: .failure)
             draft?.isCreating = false
             draft?.error = error.localizedDescription
             return nil

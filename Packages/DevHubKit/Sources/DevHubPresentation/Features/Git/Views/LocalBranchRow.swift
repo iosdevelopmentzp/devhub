@@ -5,6 +5,7 @@ import DevHubUI
 struct LocalBranchRow: View {
     @Environment(Toaster.self) private var toaster
     @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     let model: LocalBranchRowModel
     let isConfirmingDelete: Bool
@@ -199,7 +200,7 @@ struct LocalBranchRow: View {
         Button(model.pullRequestMenuTitle, systemImage: "arrow.triangle.pull") { onRequestPullRequest() }
             .disabled(model.canOpenPullRequest == false)
         if let pullRequest = model.pullRequest {
-            Button("Open Merge Request in GitLab", systemImage: "globe") { appActions.open(pullRequest.webURL) }
+            Button(words.openRequestTitle, systemImage: "globe") { appActions.open(pullRequest.webURL) }
             Button("Copy Link with Title", systemImage: "text.bubble") { toaster.copy(pullRequest.linkText, label: "Link with title") }
         }
         Divider()

@@ -174,7 +174,7 @@ package final class AppWindows: NSObject {
             backing: .buffered,
             defer: false
         )
-        window.title = "!\(summary.iid) \(summary.title)"
+        window.title = "\(assembly.codeHostRemote.words.reference(summary.iid)) \(summary.title)"
         window.isReleasedWhenClosed = false
         window.appearance = NSAppearance(named: .aqua)
         window.contentMinSize = NSSize(width: 640, height: 400)

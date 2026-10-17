@@ -8,4 +8,5 @@ struct PullRequestRowContext {
     var now: Date
     var isMainCheckoutClean: Bool
     var ticket: TicketSettings
+    var words: CodeHostWords
 }

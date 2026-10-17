@@ -17,6 +17,10 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- The tab, the Git header, branch rows, Home and Settings use the words of the code host: "Pull Requests", `#12`, "checks" and "Open in GitHub" for GitHub; "Merge Requests", `!12`, "pipeline" and "Open in GitLab" for GitLab. On GitHub the rebase action is "Update Branch from <target>" and the retry action is "Re-run Failed Checks".
+- "Revoke Approval" and "Merge When Checks Pass" are hidden when the host does not allow them for you (on GitHub: without write access, or when the repository does not allow auto-merge).
+- The toolbar of the pull request tab moves its menus to a second line when the panel is narrow, so the count and the refresh button stay visible.
+- The review prompt for "Fix threads with AI" says "Review page" instead of naming GitLab.
 - The merge request types, stores and views use pull request names (`PullRequestSummary`, `CodeHostRepository`, `PullRequestsStore`). The tab id is `pullRequests` (`DEVHUB_TAB=pullRequests`).
 - The merge request features work with a code host value instead of a GitLab URL: the kind (GitHub or GitLab), the host name and the repository path. `git.host.kind` and `git.host.name` in `.devhub/project.json` set them for a custom host. Error messages name the tool (`gh` or `glab`) and its login command.
 - The `build-and-run` skill describes the package scripts, headless snapshots and the current debug switches.

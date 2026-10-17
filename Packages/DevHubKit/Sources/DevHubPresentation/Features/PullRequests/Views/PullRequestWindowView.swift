@@ -9,6 +9,7 @@ struct PullRequestWindowView: View {
     @Environment(GitStore.self) private var git
     @Environment(WorktreesStore.self) private var worktrees
     @Environment(SettingsStore.self) private var settings
+    @Environment(\.codeHostWords) private var words
 
     let summary: PullRequestSummary
 
@@ -20,7 +21,7 @@ struct PullRequestWindowView: View {
                 PullRequestRow(
                     model: PullRequestRowMapper.model(
                         for: summary,
-                        context: PullRequestRowContext(username: pullRequests.username, scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate)),
+                        context: PullRequestRowContext(username: pullRequests.username, scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate), words: words),
                         local: PullRequestLocalStateMapper.state(for: summary.sourceBranch, checkout: git, worktrees: worktrees),
                         isBusy: pullRequests.isBusy(summary.id),
                         isExpanded: true
@@ -59,7 +60,8 @@ struct PullRequestWindowView: View {
             details: detailStore.details[summary.id],
             diffs: detailStore.diffs[summary.id],
             error: detailStore.errors[summary.id],
-            review: detailStore.review(of: summary.id)
+            review: detailStore.review(of: summary.id),
+            words: words
         )
     }
 }

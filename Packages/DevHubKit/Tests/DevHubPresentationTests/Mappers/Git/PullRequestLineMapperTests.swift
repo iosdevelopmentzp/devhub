@@ -6,7 +6,7 @@ import Testing
 
 @Suite struct PullRequestLineMapperTests {
     @Test func notLoggedInShowsTheLoginCommand() {
-        let model = PullRequestLineMapper.model(status: nil, error: .notLoggedIn(tool: "glab", host: "gitlab.example.com"), isLoading: false, openRequest: nil, username: nil)
+        let model = PullRequestLineMapper.model(status: nil, error: .notLoggedIn(tool: "glab", host: "gitlab.example.com"), isLoading: false, openRequest: nil, username: nil, words: .gitLab)
 
         #expect(model.content == .notConnected(loginCommand: "glab auth login --hostname gitlab.example.com"))
         #expect(model.canRefresh)
@@ -14,9 +14,9 @@ import Testing
     }
 
     @Test func otherErrorsShowTheirDescription() {
-        let notGitLab = PullRequestLineMapper.model(status: nil, error: .noCodeHost, isLoading: false, openRequest: nil, username: nil)
-        let notInstalled = PullRequestLineMapper.model(status: nil, error: .notInstalled(tool: "glab"), isLoading: true, openRequest: nil, username: nil)
-        let command = PullRequestLineMapper.model(status: nil, error: .command("HTTP 500"), isLoading: false, openRequest: nil, username: nil)
+        let notGitLab = PullRequestLineMapper.model(status: nil, error: .noCodeHost, isLoading: false, openRequest: nil, username: nil, words: .gitLab)
+        let notInstalled = PullRequestLineMapper.model(status: nil, error: .notInstalled(tool: "glab"), isLoading: true, openRequest: nil, username: nil, words: .gitLab)
+        let command = PullRequestLineMapper.model(status: nil, error: .command("HTTP 500"), isLoading: false, openRequest: nil, username: nil, words: .gitLab)
 
         #expect(notGitLab.content == .failure("The remote has no web address on GitHub or GitLab"))
         #expect(notGitLab.canRefresh == false)
@@ -29,15 +29,15 @@ import Testing
     @Test func errorWinsOverStatus() {
         let status = PullRequestStatus(pullRequest: nil, pipeline: nil)
 
-        #expect(PullRequestLineMapper.model(status: status, error: .command("x"), isLoading: false, openRequest: nil, username: nil).content == .failure("x"))
+        #expect(PullRequestLineMapper.model(status: status, error: .command("x"), isLoading: false, openRequest: nil, username: nil, words: .gitLab).content == .failure("x"))
     }
 
     @Test func noStatusYetIsChecking() {
-        #expect(PullRequestLineMapper.model(status: nil, error: nil, isLoading: true, openRequest: nil, username: nil).content == .checking)
+        #expect(PullRequestLineMapper.model(status: nil, error: nil, isLoading: true, openRequest: nil, username: nil, words: .gitLab).content == .checking)
     }
 
     @Test func noPullRequestAndNoPipeline() {
-        let model = PullRequestLineMapper.model(status: PullRequestStatus(pullRequest: nil, pipeline: nil), error: nil, isLoading: false, openRequest: nil, username: nil)
+        let model = PullRequestLineMapper.model(status: PullRequestStatus(pullRequest: nil, pipeline: nil), error: nil, isLoading: false, openRequest: nil, username: nil, words: .gitLab)
 
         #expect(model.content == .status(PullRequestLineModel.Status(
             requestTag: nil,
@@ -56,7 +56,7 @@ import Testing
             "!12 open",
             tint: .blue,
             systemImage: "arrow.triangle.pull",
-            hint: "ABC-1: Login screen\nby alex into dev. Click to show it in the GitLab tab."
+            hint: "ABC-1: Login screen\nby alex into dev. Click to show it in the Merge Requests tab."
         ))
         #expect(status.requestURL == PullRequestFixture.url)
         #expect(status.requestTags.isEmpty)
@@ -178,7 +178,7 @@ import Testing
     }
 
     private func mapStatus(request: PullRequestInfo?, pipeline: PipelineInfo?, openRequest: PullRequestSummary? = nil) throws -> PullRequestLineModel.Status {
-        let model = PullRequestLineMapper.model(status: PullRequestStatus(pullRequest: request, pipeline: pipeline), error: nil, isLoading: false, openRequest: openRequest, username: "me")
+        let model = PullRequestLineMapper.model(status: PullRequestStatus(pullRequest: request, pipeline: pipeline), error: nil, isLoading: false, openRequest: openRequest, username: "me", words: .gitLab)
         guard case .status(let status) = model.content else {
             throw MapperFailure.notStatus
         }

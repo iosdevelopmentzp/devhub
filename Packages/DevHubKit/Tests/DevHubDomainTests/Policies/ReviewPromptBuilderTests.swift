@@ -15,13 +15,13 @@ import Testing
         let prompt = ReviewPromptBuilder.prompt(for: request, threads: threads)
 
         #expect(prompt.hasPrefix("# Review threads of !21: ABC-5: Login\n"))
-        #expect(prompt.contains("Branch `feature/login` into `dev`. Merge request: https://gitlab.example.com/team/app/-/merge_requests/21"))
+        #expect(prompt.contains("Branch `feature/login` into `dev`. Review page: https://gitlab.example.com/team/app/-/merge_requests/21"))
         #expect(prompt.contains("Reviewers left 3 open threads."))
         #expect(prompt.contains("## Thread 1: `App/Login.swift:42`\n\n**lee**:\n\n> Rename this.\n> It reads badly.\n\n**alex** replied:\n\n> To what?\n"))
         #expect(prompt.contains("## Thread 2: `App/Old.swift:7` (a removed line)"))
         #expect(prompt.contains("## Thread 3 (general comment)"))
         #expect(prompt.contains("## What to do"))
-        #expect(prompt.hasSuffix("as replies in GitLab.\n"))
+        #expect(prompt.hasSuffix("as replies in the review.\n"))
     }
 
     @Test func oneThreadIsSingular() {

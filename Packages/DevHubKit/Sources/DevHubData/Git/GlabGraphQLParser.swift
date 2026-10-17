@@ -266,7 +266,7 @@ enum GlabGraphQLParser {
             removesSourceBranch: node.shouldRemoveSourceBranch,
             headSHA: node.diffHeadSha,
             isAutoMergeEnabled: node.autoMergeEnabled ?? false,
-            permissions: node.userPermissions.map { PullRequestPermissions(canMerge: $0.canMerge, canApprove: $0.canApprove) } ?? .none
+            permissions: node.userPermissions.map { PullRequestPermissions(canMerge: $0.canMerge, canApprove: $0.canApprove, canRevokeApproval: true, canSetAutoMerge: $0.canMerge) } ?? .none
         )
     }
 

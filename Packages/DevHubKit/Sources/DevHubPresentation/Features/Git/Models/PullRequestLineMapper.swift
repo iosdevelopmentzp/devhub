@@ -4,15 +4,15 @@ import DevHubUI
 
 enum PullRequestLineMapper {
 
-    static func model(status: PullRequestStatus?, error: PullRequestError?, isLoading: Bool, openRequest: PullRequestSummary?, username: String?) -> PullRequestLineModel {
+    static func model(status: PullRequestStatus?, error: PullRequestError?, isLoading: Bool, openRequest: PullRequestSummary?, username: String?, words: CodeHostWords) -> PullRequestLineModel {
         PullRequestLineModel(
-            content: content(status: status, error: error, openRequest: openRequest, username: username),
+            content: content(status: status, error: error, openRequest: openRequest, username: username, words: words),
             isLoading: isLoading,
             canRefresh: error != .noCodeHost
         )
     }
 
-    private static func content(status: PullRequestStatus?, error: PullRequestError?, openRequest: PullRequestSummary?, username: String?) -> PullRequestLineModel.Content {
+    private static func content(status: PullRequestStatus?, error: PullRequestError?, openRequest: PullRequestSummary?, username: String?, words: CodeHostWords) -> PullRequestLineModel.Content {
         if case .notLoggedIn(let tool, let host) = error {
             return .notConnected(loginCommand: "\(tool) auth login --hostname \(host)")
         }
@@ -20,39 +20,39 @@ enum PullRequestLineMapper {
             return .failure(error.localizedDescription)
         }
         guard let status else { return .checking }
-        return .status(statusModel(status, openRequest: openRequest, username: username))
+        return .status(statusModel(status, openRequest: openRequest, username: username, words: words))
     }
 
-    private static func statusModel(_ status: PullRequestStatus, openRequest: PullRequestSummary?, username: String?) -> PullRequestLineModel.Status {
+    private static func statusModel(_ status: PullRequestStatus, openRequest: PullRequestSummary?, username: String?, words: CodeHostWords) -> PullRequestLineModel.Status {
         let request = status.pullRequest
         let summary = openRequest.flatMap { $0.iid == request?.iid ? $0 : nil }
         return PullRequestLineModel.Status(
-            requestTag: request.map { requestTag($0) },
+            requestTag: request.map { requestTag($0, words: words) },
             requestIID: request?.iid,
             requestURL: request?.webURL,
-            linkText: request.map { RequestLinkText.pullRequest(iid: $0.iid, title: $0.title, url: $0.webURL) },
-            requestTags: (request.map { requestTags($0) } ?? []) + (summary.map { summaryTags($0, username: username) } ?? []),
-            placeholder: request == nil ? "No merge request yet" : nil,
-            pipelineTag: status.pipeline.map { PullRequestTagMapper.pipelineTag($0, subject: "Latest pipeline on this branch") },
+            linkText: request.map { RequestLinkText.pullRequest(iid: $0.iid, title: $0.title, url: $0.webURL, words: words) },
+            requestTags: (request.map { requestTags($0, words: words) } ?? []) + (summary.map { summaryTags($0, username: username) } ?? []),
+            placeholder: request == nil ? "No \(words.request) yet" : nil,
+            pipelineTag: status.pipeline.map { PullRequestTagMapper.pipelineTag($0, subject: "Latest \(words.checks) on this branch", words: words) },
             pipelineURL: status.pipeline?.webURL
         )
     }
 
-    private static func requestTag(_ request: PullRequestInfo) -> TagModel {
+    private static func requestTag(_ request: PullRequestInfo, words: CodeHostWords) -> TagModel {
         TagModel(
-            "!\(request.iid) \(stateTitle(request))",
+            "\(words.reference(request.iid)) \(stateTitle(request))",
             tint: stateTint(request),
             systemImage: "arrow.triangle.pull",
-            hint: "\(request.title)\nby \(request.author) into \(request.targetBranch). Click to show it in the GitLab tab."
+            hint: "\(request.title)\nby \(request.author) into \(request.targetBranch). Click to show it in the \(words.requestsTitle) tab."
         )
     }
 
-    private static func requestTags(_ request: PullRequestInfo) -> [TagModel] {
+    private static func requestTags(_ request: PullRequestInfo, words: CodeHostWords) -> [TagModel] {
         var tags: [TagModel] = []
         if request.hasConflicts {
-            tags.append(PullRequestTagMapper.conflictsTag(targetBranch: request.targetBranch))
+            tags.append(PullRequestTagMapper.conflictsTag(targetBranch: request.targetBranch, words: words))
         }
-        if let detail = request.detailedStatus, request.state == .opened, let tag = PullRequestTagMapper.detailTag(detail) {
+        if let detail = request.detailedStatus, request.state == .opened, let tag = PullRequestTagMapper.detailTag(detail, words: words) {
             tags.append(tag)
         }
         return tags

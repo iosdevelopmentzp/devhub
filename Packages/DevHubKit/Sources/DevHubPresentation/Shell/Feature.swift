@@ -26,3 +26,13 @@ struct Feature: Identifiable {
         self.makeView = { AnyView(content()) }
     }
 }
+
+extension Feature {
+    func title(_ words: CodeHostWords) -> String {
+        id == .pullRequests ? words.requestsTitle : title
+    }
+
+    func searchPrompt(_ words: CodeHostWords) -> String? {
+        id == .pullRequests ? "Search \(words.requests)" : searchPrompt
+    }
+}

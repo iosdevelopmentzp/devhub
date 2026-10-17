@@ -15,7 +15,7 @@ enum GhGraphQLQueries {
     reviewThreads(first: 100) { totalCount nodes { isResolved } } commitCount: commits { totalCount } \(checks)
     """
 
-    private static let repositoryFields = "viewerPermission viewerDefaultMergeMethod deleteBranchOnMerge"
+    private static let repositoryFields = "viewerPermission viewerDefaultMergeMethod deleteBranchOnMerge autoMergeAllowed"
 
     static let list = """
     query($search: String!, $owner: String!, $name: String!, $after: String) { viewer { login } \

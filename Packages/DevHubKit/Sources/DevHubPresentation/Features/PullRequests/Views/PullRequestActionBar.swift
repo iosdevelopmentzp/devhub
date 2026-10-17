@@ -4,6 +4,7 @@ import DevHubUI
 
 struct PullRequestActionBar: View {
     @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     let model: PullRequestRowModel
     let isPickingLaunch: Bool
@@ -59,7 +60,7 @@ struct PullRequestActionBar: View {
                 appActions.createWorktree(branch: remoteBranch)
             })
         }
-        items.append(ActionItem("GitLab", systemImage: "globe", hint: "Open in GitLab", priority: 5, isDisabled: model.webURL == nil) {
+        items.append(ActionItem(words.kind == nil ? "Browser" : words.name, systemImage: "globe", hint: words.openTitle, priority: 5, isDisabled: model.webURL == nil) {
             appActions.open(model.webURL)
         })
         return items

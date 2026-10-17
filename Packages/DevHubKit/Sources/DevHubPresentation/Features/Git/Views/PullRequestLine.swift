@@ -5,6 +5,7 @@ import DevHubUI
 struct PullRequestLine: View {
     @Environment(AppActions.self) private var appActions
     @Environment(Toaster.self) private var toaster
+    @Environment(\.codeHostWords) private var words
 
     let model: PullRequestLineModel
     let terminalPath: String
@@ -14,14 +15,14 @@ struct PullRequestLine: View {
         HStack(spacing: 6) {
             Image(systemName: "arrow.triangle.pull")
                 .foregroundStyle(.secondary)
-                .hint("Merge request and pipeline of this branch on GitLab, read with glab")
+                .hint("\(words.requestSentence) and \(words.checks) of this branch on \(words.name), read with \(words.tool)")
             content
             Spacer(minLength: 0)
             if model.isLoading {
                 ProgressView()
                     .controlSize(.mini)
             } else if model.canRefresh {
-                IconButton(systemImage: "arrow.clockwise", help: "Ask GitLab again") {
+                IconButton(systemImage: "arrow.clockwise", help: "Ask \(words.name) again") {
                     onRefresh()
                 }
             }
@@ -33,7 +34,7 @@ struct PullRequestLine: View {
     private var content: some View {
         switch model.content {
         case .notConnected(let command):
-            Text("GitLab is not connected.")
+            Text("\(words.hostTitle) is not connected.")
                 .foregroundStyle(.orange)
             Text(command)
                 .font(.caption.monospaced())
@@ -43,7 +44,7 @@ struct PullRequestLine: View {
             }
             .controlSize(.mini)
             .fixedSize()
-            .hint("Open a terminal, paste the command, follow the steps. DevHub never sees the token: glab keeps it.")
+            .hint("Open a terminal, paste the command, follow the steps. DevHub never sees the token: \(words.tool) keeps it.")
         case .failure(let message):
             Text(message)
                 .foregroundStyle(.secondary)
@@ -52,7 +53,7 @@ struct PullRequestLine: View {
         case .status(let status):
             statusTags(status)
         case .checking:
-            Text("Checking GitLab…")
+            Text("Checking \(words.name)…")
                 .foregroundStyle(.secondary)
         }
     }
@@ -67,7 +68,7 @@ struct PullRequestLine: View {
                     }
             }
             if status.requestURL != nil {
-                IconButton(systemImage: "globe", help: "Open the merge request in GitLab") {
+                IconButton(systemImage: "globe", help: "Open the \(words.request) in \(words.name)") {
                     appActions.open(status.requestURL)
                 }
             }

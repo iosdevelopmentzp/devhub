@@ -3,10 +3,10 @@ import DevHubDomain
 import DevHubUI
 
 enum QuickActionTileMapper {
-    static func model(for action: CatalogAction, scheme: String?, branch: String?, isBuildRunning: Bool, isRunning: Bool) -> QuickActionTileModel {
+    static func model(for action: CatalogAction, scheme: String?, branch: String?, words: CodeHostWords, isBuildRunning: Bool, isRunning: Bool) -> QuickActionTileModel {
         switch action {
         case let .builtin(builtin):
-            let text = text(for: builtin, scheme: scheme, branch: branch)
+            let text = text(for: builtin, scheme: scheme, branch: branch, words: words)
             let isBuild = builtin == .buildRun || builtin == .runAttach
             return QuickActionTileModel(
                 id: action.id,
@@ -56,7 +56,7 @@ enum QuickActionTileMapper {
         }
     }
 
-    private static func text(for builtin: BuiltinAction, scheme: String?, branch: String?) -> (title: String, subtitle: String) {
+    private static func text(for builtin: BuiltinAction, scheme: String?, branch: String?, words: CodeHostWords) -> (title: String, subtitle: String) {
         switch builtin {
         case .buildRun: ("Build & Run", scheme.map { "Scheme \($0)" } ?? "Target simulator, run bar options")
         case .runAttach: ("Run & Attach", "Build, launch, attach Xcode")
@@ -65,7 +65,7 @@ enum QuickActionTileMapper {
         case .terminal: ("Terminal here", "Main checkout")
         case .copyBranch: ("Copy branch", branch ?? "No branch")
         case .repository: ("Repository", "Open the web page")
-        case .newPullRequest: ("Merge request", "New request for this branch")
+        case .newPullRequest: (words.requestSentence, "New request for this branch")
         }
     }
 }

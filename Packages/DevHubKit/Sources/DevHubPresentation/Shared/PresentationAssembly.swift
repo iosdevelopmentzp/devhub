@@ -21,6 +21,7 @@ package final class PresentationAssembly {
     let git: GitStore
     let changes: GitChangesStore
     let history: CommitHistoryStore
+    let codeHostRemote: CodeHostRemote
     let branchPullRequest: BranchPullRequestStore
     let pullRequests: PullRequestsStore
     let openPullRequests: OpenPullRequestsStore
@@ -96,7 +97,7 @@ package final class PresentationAssembly {
         )
         history = CommitHistoryStore(repository: ports.changes, checkout: git, activity: activity, events: events, store: store)
         branchPullRequest = BranchPullRequestStore(repository: ports.codeHost, checkout: git, events: events)
-        let codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
+        codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
         pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
         openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events)
         pullRequestDetails = PullRequestDetailStore(repository: ports.codeHost, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)

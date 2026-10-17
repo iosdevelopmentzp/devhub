@@ -9,7 +9,8 @@ enum PullRequestDetailsMapper {
         details: PullRequestDetails?,
         diffs: [PullRequestFileDiff]?,
         error: String?,
-        review: PullRequestReviewState
+        review: PullRequestReviewState,
+        words: CodeHostWords
     ) -> PullRequestDetailsModel {
         if let error {
             return PullRequestDetailsModel(content: .failure(error))
@@ -23,7 +24,7 @@ enum PullRequestDetailsMapper {
         return PullRequestDetailsModel(
             content: .loaded(
                 PullRequestDetailsModel.Loaded(
-                    pipelineTag: summary.pipeline.map { PullRequestTagMapper.pipelineTag($0, subject: "Pipeline of the last commit") },
+                    pipelineTag: summary.pipeline.map { PullRequestTagMapper.pipelineTag($0, subject: "\(words.checksTitle) of the last commit", words: words) },
                     pipelineURL: summary.pipeline?.webURL,
                     pipelineDurationText: (details.pipelineDuration ?? summary.pipeline?.duration).map { "took \(DurationFormat.text(TimeInterval($0)))" },
                     canCancelPipeline: summary.pipeline.map { $0.id != nil && PipelineStatePolicy.isActive($0.status) } ?? false,
@@ -37,7 +38,7 @@ enum PullRequestDetailsMapper {
                     canCollapseAllFiles: expandedCount > 0,
                     hasThreadsInDiff: threadRows.contains { $0.canShowInDiff },
                     showsThreadsInDiff: review.showsThreadsInDiff,
-                    files: diffs.map { PullRequestFileRowMapper.model(for: $0, review: review, threads: threadRows) }
+                    files: diffs.map { PullRequestFileRowMapper.model(for: $0, review: review, threads: threadRows, words: words) }
                 )
             )
         )

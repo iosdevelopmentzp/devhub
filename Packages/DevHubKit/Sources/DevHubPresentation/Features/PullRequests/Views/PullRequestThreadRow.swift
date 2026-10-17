@@ -3,6 +3,7 @@ import DevHubUI
 
 struct PullRequestThreadRow: View {
     @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     let model: PullRequestThreadRowModel
     let onShowInDiff: () -> Void
@@ -104,7 +105,7 @@ struct PullRequestThreadRow: View {
                     }
                 }
                 if model.noteURL != nil {
-                    IconButton(systemImage: "globe", help: "Open this thread in GitLab") {
+                    IconButton(systemImage: "globe", help: "Open this thread in \(words.name)") {
                         appActions.open(model.noteURL)
                     }
                 }

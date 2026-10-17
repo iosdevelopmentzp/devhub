@@ -18,24 +18,24 @@ enum NewPullRequestMapper {
         return (lines + (lines.isEmpty || changes.isEmpty ? [] : [""]) + changes).joined(separator: "\n")
     }
 
-    static func model(for draft: NewPullRequestDraft) -> NewPullRequestFormModel {
+    static func model(for draft: NewPullRequestDraft, words: CodeHostWords) -> NewPullRequestFormModel {
         let isBusy = draft.isLoading || draft.isCreating
         return NewPullRequestFormModel(
-            heading: "New merge request from \(draft.sourceBranch)",
+            heading: "New \(words.request) from \(draft.sourceBranch)",
             createTitle: draft.pushPlan == .none ? "Create" : "Push & Create",
-            createHint: createHint(draft),
+            createHint: createHint(draft, words: words),
             canCreate: isBusy == false && draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false && draft.targetBranch.isEmpty == false,
             isBusy: isBusy,
             busyText: draft.isCreating ? "Creating…" : (draft.isLoading ? "Reading commits and labels…" : nil)
         )
     }
 
-    private static func createHint(_ draft: NewPullRequestDraft) -> String {
+    private static func createHint(_ draft: NewPullRequestDraft, words: CodeHostWords) -> String {
         switch draft.pushPlan {
         case .none:
-            "Create the merge request into \(draft.targetBranch) on GitLab"
+            "Create the \(words.request) into \(draft.targetBranch) on \(words.name)"
         case .push(let setUpstream):
-            "Push the branch first (\(setUpstream ? "git push -u <remote> \(draft.sourceBranch)" : "git push")), then create the merge request into \(draft.targetBranch)"
+            "Push the branch first (\(setUpstream ? "git push -u <remote> \(draft.sourceBranch)" : "git push")), then create the \(words.request) into \(draft.targetBranch)"
         }
     }
 }

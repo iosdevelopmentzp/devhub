@@ -11,6 +11,7 @@ struct GitHeader: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(NewPullRequestStore.self) private var newPullRequest
     @Environment(ConfigActionsStore.self) private var configActions
+    @Environment(\.codeHostWords) private var words
 
     @State private var confirming: Confirmation?
 
@@ -27,7 +28,7 @@ struct GitHeader: View {
             VStack(alignment: .leading, spacing: 10) {
                 topLine
                 if let snapshot = git.snapshot {
-                    let model = GitHeaderMapper.model(for: snapshot, baseName: git.baseName, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate))
+                    let model = GitHeaderMapper.model(for: snapshot, baseName: git.baseName, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate), words: words)
                     branchLine(model)
                     if model.showsPullRequestLine {
                         pullRequestLine
@@ -94,7 +95,8 @@ struct GitHeader: View {
                 error: branchPullRequest.error,
                 isLoading: branchPullRequest.isLoading,
                 openRequest: git.currentBranch.flatMap(openPullRequests.request(forBranch:)),
-                username: openPullRequests.username
+                username: openPullRequests.username,
+                words: words
             ),
             terminalPath: git.checkoutPath,
             onRefresh: { Task { await branchPullRequest.refresh() } }

@@ -6,7 +6,7 @@ import Testing
 
 @Suite struct PullRequestTagMapperTests {
     @Test func aPassedPipelineIsAnIconOnlyGreenTag() {
-        let tag = PullRequestTagMapper.compactPipelineTag(PipelineInfo(status: .success, webURL: nil, updatedAt: nil))
+        let tag = PullRequestTagMapper.compactPipelineTag(PipelineInfo(status: .success, webURL: nil, updatedAt: nil), words: .gitLab)
 
         #expect(tag == .icon("checkmark.circle.fill", tint: .green, hint: "Pipeline passed. Click to open it."))
     }
@@ -19,7 +19,7 @@ import Testing
         (.canceled, "pipeline canceled", .secondary),
     ])
     func everyPipelineStatusHasATag(status: PipelineStatus, text: String, tint: Tint) {
-        let tag = PullRequestTagMapper.compactPipelineTag(PipelineInfo(status: status, webURL: nil, updatedAt: nil))
+        let tag = PullRequestTagMapper.compactPipelineTag(PipelineInfo(status: status, webURL: nil, updatedAt: nil), words: .gitLab)
 
         #expect(tag.text == text)
         #expect(tag.tint == tint)
@@ -29,8 +29,8 @@ import Testing
         let failed = PipelineInfo(status: .failed, webURL: nil, updatedAt: nil, failedJobCount: 2)
         let unknown = PipelineInfo(status: .failed, webURL: nil, updatedAt: nil)
 
-        #expect(PullRequestTagMapper.compactPipelineTag(failed).hint == "2 jobs failed. Click to open it.")
-        #expect(PullRequestTagMapper.compactPipelineTag(unknown).hint == "Pipeline failed. Click to open it.")
+        #expect(PullRequestTagMapper.compactPipelineTag(failed, words: .gitLab).hint == "2 jobs failed. Click to open it.")
+        #expect(PullRequestTagMapper.compactPipelineTag(unknown, words: .gitLab).hint == "Pipeline failed. Click to open it.")
     }
 
     @Test(arguments: [
@@ -59,7 +59,7 @@ import Testing
     }
 
     @Test func behindNamesTheTarget() {
-        let tag = PullRequestTagMapper.behindTag(targetBranch: "dev")
+        let tag = PullRequestTagMapper.behindTag(targetBranch: "dev", words: .gitLab)
 
         #expect(tag.text == "behind dev")
         #expect(tag.tint == .orange)

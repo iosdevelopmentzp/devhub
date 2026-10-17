@@ -56,6 +56,8 @@ Numbered. What, then why. A later session must not undo these without a new numb
 
 19. The code host types use pull request words: `PullRequestSummary`, `CodeHostRepository`, `PullRequestsStore`, the tab id `pullRequests`. The fields keep their names (`iid`, `pipeline`, `detailedStatus`), and the GitLab GraphQL strings keep the GitLab names (`MergeRequestState`, `mergeRequests`). Why: a field rename touches every mapper and test for no change in behaviour, and the GraphQL names belong to GitLab.
 20. `.gitignore` ignores only the top-level `/build/` folder. Why: on the case-insensitive macOS file system `build/` also matched every `Build/` source folder, and the Build feature was missing from the commits.
+21. UI words for the code host come from `CodeHostWords` (`Shared/`): "Pull Requests" and `#12` for GitHub, "Merge Requests" and `!12` for GitLab, "checks" or "pipeline". Mappers take `words:`; views and rows read `@Environment(\.codeHostWords)`, which `CodeHostRemote` sets after the first read of the remote. Before that the words are neutral ("Pull Requests", "Open in Browser"). Why: one place for the vocabulary, and rows need no new store.
+22. Actions that a host or a repository does not allow are hidden, not shown with an error: `PullRequestPermissions.canRevokeApproval` (GitHub: write access) and `canSetAutoMerge` (GitHub: write access and `autoMergeAllowed` on the repository).
 ## Next steps
 
 1. M4 (ADR 001 sections 6 and 7.4): a code host protocol, `gh` for GitHub and `glab` for GitLab, the Pull Requests tab instead of the GitLab tab, `git.host.*` and `git.pullRequests.*`, checks on the playground repository.

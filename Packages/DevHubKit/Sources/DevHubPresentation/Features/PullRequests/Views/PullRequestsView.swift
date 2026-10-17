@@ -14,6 +14,7 @@ struct PullRequestsView: View {
     @Environment(WorktreesStore.self) private var worktrees
     @Environment(SettingsStore.self) private var settings
     @Environment(NewPullRequestStore.self) private var newPullRequest
+    @Environment(\.codeHostWords) private var words
 
     @State private var launchID: PullRequestSummary.ID?
     @State private var dragFraction: CGFloat?
@@ -37,7 +38,7 @@ struct PullRequestsView: View {
                 Divider()
             }
             if let error = pullRequests.error, pullRequests.requests.isEmpty == false {
-                NoticeBar("Cannot read merge requests: \(error.localizedDescription)", actionTitle: "Retry") {
+                NoticeBar("Cannot read \(words.requests): \(error.localizedDescription)", actionTitle: "Retry") {
                     Task { await pullRequests.refresh() }
                 }
                 Divider()
@@ -60,7 +61,7 @@ struct PullRequestsView: View {
 
     private var visible: [PullRequestRowModel] {
         pullRequests.visible
-            .filter { session.matchesSearch($0.title, "!\($0.iid)", $0.author, $0.sourceBranch, $0.targetBranch, $0.labels.joined(separator: " ")) }
+            .filter { session.matchesSearch($0.title, words.reference($0.iid), $0.author, $0.sourceBranch, $0.targetBranch, $0.labels.joined(separator: " ")) }
             .map { styled(PullRequestRowMapper.model(for: $0, context: context, local: localState($0.sourceBranch), isBusy: pullRequests.isBusy($0.id), isExpanded: $0.id == pullRequests.expandedID)) }
     }
 
@@ -69,7 +70,7 @@ struct PullRequestsView: View {
     }
 
     private var context: PullRequestRowContext {
-        PullRequestRowContext(username: pullRequests.username, scope: pullRequests.scope, seenAt: pullRequests.seenAt, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate))
+        PullRequestRowContext(username: pullRequests.username, scope: pullRequests.scope, seenAt: pullRequests.seenAt, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate), words: words)
     }
 
     private func localState(_ branch: String) -> PullRequestLocalState {
@@ -112,7 +113,7 @@ struct PullRequestsView: View {
         ListState(
             failure: pullRequests.requests.isEmpty ? pullRequests.error.map(failure) : nil,
             isLoading: pullRequests.hasLoaded == false,
-            loadingTitle: "Reading merge requests…",
+            loadingTitle: "Reading \(words.requests)…",
             empty: pullRequests.visible.isEmpty ? emptyMessage : nil,
             noResultsFor: visible.isEmpty ? session.searchText : nil
         ) {
@@ -183,7 +184,7 @@ struct PullRequestsView: View {
             }
             .controlSize(.small)
             .disabled(pullRequests.isLoadingMore)
-            .hint("GitLab sends 100 merge requests at a time. Search and filters work on the loaded ones.")
+            .hint("\(words.hostTitle) sends \(words.pageSize) \(words.requests) at a time. Search and filters work on the loaded ones.")
             Spacer()
         }
         .padding(.vertical, 10)
@@ -234,7 +235,8 @@ struct PullRequestsView: View {
             details: detailStore.details[id],
             diffs: detailStore.diffs[id],
             error: detailStore.errors[id],
-            review: detailStore.review(of: id)
+            review: detailStore.review(of: id),
+            words: words
         )
     }
 
@@ -249,14 +251,14 @@ struct PullRequestsView: View {
                 toaster.copy(command, label: "Login command")
             }
         }
-        return ListMessage.failure("Cannot read merge requests", description: error.localizedDescription) {
+        return ListMessage.failure("Cannot read \(words.requests)", description: error.localizedDescription) {
             Task { await pullRequests.refresh() }
         }
     }
 
     private var emptyMessage: ListMessage {
         ListMessage(
-            "No merge requests",
+            "No \(words.requests)",
             systemImage: "arrow.triangle.pull",
             description: pullRequests.filter.isActive
                 ? "Nothing matches the filters. Clear them in the filter menu."

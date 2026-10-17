@@ -7,7 +7,7 @@ import DevHubTestSupport
 
 @Suite struct GitHeaderMapperTests {
     @Test func cleanTrackedBranch() {
-        let model = GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticket: .standard)
+        let model = GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticket: .standard, words: .gitLab)
 
         #expect(model.branchTitle == "feature/login")
         #expect(model.branchCopyValue == "feature/login")
@@ -20,7 +20,7 @@ import DevHubTestSupport
         #expect(model.canContinueOperation == false)
         #expect(model.webBranch == "feature/login")
         #expect(model.newPullRequestHint == "New merge request for feature/login: title, description and labels here, pushes first when needed")
-        #expect(model.branchOnWebHint == "Open feature/login on GitLab")
+        #expect(model.branchOnWebHint == "Open feature/login in GitLab")
         #expect(model.forcePushMessage == "Force push feature/login? The remote branch is replaced with your local one. --force-with-lease refuses when someone else pushed meanwhile.")
         #expect(model.rebaseMessage == "Rebase feature/login on origin/dev? 0 new commits come in. Local changes are stashed and restored. After that you need a force push.")
     }
@@ -30,7 +30,7 @@ import DevHubTestSupport
         snapshot.branch = nil
         snapshot.upstream = nil
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard, words: .gitLab)
 
         #expect(model.branchTitle == "detached HEAD")
         #expect(model.branchCopyValue == "a1b2c3d")
@@ -45,7 +45,7 @@ import DevHubTestSupport
         var snapshot = GitSnapshotFixture.clean
         snapshot.webURL = nil
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard, words: .gitLab)
 
         #expect(model.showsPullRequestLine == false)
         #expect(model.webBranch == nil)
@@ -55,7 +55,7 @@ import DevHubTestSupport
         var snapshot = GitSnapshotFixture.clean
         snapshot.changedFiles = 3
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard, words: .gitLab)
 
         #expect(model.statusTag == TagModel("3 changed", tint: .orange, systemImage: "pencil", hint: "3 files with changes that are not committed"))
     }
@@ -68,7 +68,7 @@ import DevHubTestSupport
         snapshot.aheadOfBase = 5
         snapshot.stashCount = 2
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard, words: .gitLab)
 
         #expect(model.tags == [
             TagModel("↑2 to push", tint: .blue, hint: "2 local commits are not on origin/feature/login yet"),
@@ -83,15 +83,15 @@ import DevHubTestSupport
         var snapshot = GitSnapshotFixture.clean
         snapshot.branch = "feature/ABC-12-login"
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .linking("https://t.example.com/{key}"))
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .linking("https://t.example.com/{key}"), words: .gitLab)
 
         #expect(model.ticket?.key == "ABC-12")
         #expect(model.ticket?.url == URL(string: "https://t.example.com/ABC-12"))
-        #expect(GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticket: .standard).ticket == nil)
+        #expect(GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticket: .standard, words: .gitLab).ticket == nil)
     }
 
     @Test func noStashNoStashTag() {
-        #expect(GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticket: .standard).stashTag == nil)
+        #expect(GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticket: .standard, words: .gitLab).stashTag == nil)
     }
 
     @Test func branchWithoutUpstreamIsNotPushed() {
@@ -99,7 +99,7 @@ import DevHubTestSupport
         snapshot.upstream = nil
         snapshot.ahead = 3
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard, words: .gitLab)
 
         #expect(model.tags == [TagModel("not pushed", tint: .orange, systemImage: "icloud.slash", hint: "The branch has no remote branch yet. Push creates it.")])
         #expect(action(.push, in: model)?.hint == "Publish this branch. git push -u <remote> <branch>")
@@ -107,7 +107,7 @@ import DevHubTestSupport
     }
 
     @Test func actionListWithPrioritiesAndHints() {
-        let model = GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticket: .standard)
+        let model = GitHeaderMapper.model(for: GitSnapshotFixture.clean, baseName: "dev", ticket: .standard, words: .gitLab)
 
         #expect(model.actions.map(\.id) == [.fetch, .pull, .push, .forcePush, .rebase, .updateBase])
         #expect(model.actions.map(\.title) == ["Fetch", "Pull", "Push", "Force Push…", "Rebase on dev…", "Update dev"])
@@ -129,7 +129,7 @@ import DevHubTestSupport
         snapshot.changedFiles = 1
         snapshot.stashCount = 3
 
-        let stash = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard).actions.last
+        let stash = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard, words: .gitLab).actions.last
 
         #expect(stash == GitHeaderActionModel(
             id: .stash,
@@ -145,7 +145,7 @@ import DevHubTestSupport
         var snapshot = GitSnapshotFixture.clean
         snapshot.stashCount = 1
 
-        let pop = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard).actions.last
+        let pop = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard, words: .gitLab).actions.last
 
         #expect(pop == GitHeaderActionModel(
             id: .popStash,
@@ -161,7 +161,7 @@ import DevHubTestSupport
         var snapshot = GitSnapshotFixture.clean
         snapshot.operation = "rebase"
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard, words: .gitLab)
 
         #expect(model.operationText == "Rebase in progress. Resolve conflicts in the terminal or Xcode, then continue.")
         #expect(model.canContinueOperation)
@@ -172,7 +172,7 @@ import DevHubTestSupport
         var snapshot = GitSnapshotFixture.clean
         snapshot.operation = "merge"
 
-        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
+        let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard, words: .gitLab)
 
         #expect(model.operationText == "Merge in progress. Resolve conflicts in the terminal or Xcode, then continue.")
         #expect(model.canContinueOperation == false)

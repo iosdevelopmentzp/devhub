@@ -4,6 +4,7 @@ import DevHubUI
 struct PullRequestCompactRow: View {
     @Environment(Toaster.self) private var toaster
     @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     let model: PullRequestCompactRowModel
     let isSelected: Bool
@@ -53,7 +54,7 @@ struct PullRequestCompactRow: View {
             .onTapGesture(perform: onToggle)
         }
         .contextMenu {
-            Button("Open in GitLab", systemImage: "globe") { appActions.open(model.webURL) }
+            Button(words.openTitle, systemImage: "globe") { appActions.open(model.webURL) }
             Button("Copy Link", systemImage: "link") {
                 guard let url = model.webURL else { return }
                 toaster.copy(url.absoluteString, label: model.reference)

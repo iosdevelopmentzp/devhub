@@ -5,10 +5,11 @@ import DevHubUI
 struct NewPullRequestForm: View {
     @Environment(NewPullRequestStore.self) private var store
     @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     var body: some View {
         if let draft = store.draft {
-            content(draft, model: NewPullRequestMapper.model(for: draft))
+            content(draft, model: NewPullRequestMapper.model(for: draft, words: words))
                 .padding(10)
                 .background(Color.blue.opacity(0.06), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
@@ -60,7 +61,7 @@ struct NewPullRequestForm: View {
                     .foregroundStyle(.red)
             }
             HStack(spacing: 8) {
-                Button("Open in GitLab Instead") {
+                Button("\(words.openTitle) Instead") {
                     appActions.openNewPullRequest(for: draft.sourceBranch, target: draft.targetBranch)
                     store.cancel()
                 }

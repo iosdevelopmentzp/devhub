@@ -5,6 +5,7 @@ import DevHubUI
 struct SettingsView: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(ProjectSession.self) private var session
+    @Environment(\.codeHostWords) private var words
 
     var body: some View {
         @Bindable var settings = settings
@@ -30,9 +31,9 @@ struct SettingsView: View {
                 Toggle("Show session usage in the menu bar", isOn: $settings.values.showUsageInMenuBar)
             }
 
-            Section("GitLab") {
-                Toggle("Show the number of merge requests waiting for your review in the menu bar", isOn: $settings.values.showReviewCountInMenuBar)
-                    .hint("Open merge requests by other people, not drafts, that you have not approved. Checked every 5 minutes.")
+            Section(words.requestsTitle) {
+                Toggle("Show the number of \(words.requests) waiting for your review in the menu bar", isOn: $settings.values.showReviewCountInMenuBar)
+                    .hint("Open \(words.requests) by other people, not drafts, that you have not approved. Checked every 5 minutes.")
             }
 
             Section {
@@ -76,7 +77,7 @@ struct SettingsView: View {
             } header: {
                 Text("Tickets")
             } footer: {
-                Text("A ticket key such as ABC-2324 in a branch name or a merge request title becomes a chip. With a link here, a click opens the ticket; {key} is replaced with the key. Without a link, a click copies the key. A project can set its own pattern and link with git.commitPrefix and git.ticketURL in .devhub/project.json.")
+                Text("A ticket key such as ABC-2324 in a branch name or a \(words.request) title becomes a chip. With a link here, a click opens the ticket; {key} is replaced with the key. Without a link, a click copies the key. A project can set its own pattern and link with git.commitPrefix and git.ticketURL in .devhub/project.json.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
