@@ -15,6 +15,7 @@ final class BuildStore: BuildLookup {
     @ObservationIgnored private let repository: any BuildRepository
     @ObservationIgnored private let buildAndRun: BuildAndRunUseCase
     @ObservationIgnored private let prepareCheckout: PrepareBuildCheckoutUseCase
+    @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let worktrees: any WorktreeLookup
     @ObservationIgnored private let simulators: any SimulatorLookup
@@ -34,6 +35,7 @@ final class BuildStore: BuildLookup {
         repository: any BuildRepository,
         buildAndRun: BuildAndRunUseCase,
         prepareCheckout: PrepareBuildCheckoutUseCase,
+        config: ConfigStore,
         session: ProjectSession,
         worktrees: any WorktreeLookup,
         simulators: any SimulatorLookup,
@@ -46,6 +48,7 @@ final class BuildStore: BuildLookup {
         self.repository = repository
         self.buildAndRun = buildAndRun
         self.prepareCheckout = prepareCheckout
+        self.config = config
         self.session = session
         self.worktrees = worktrees
         self.simulators = simulators
@@ -69,7 +72,9 @@ final class BuildStore: BuildLookup {
                 Task { await self.refreshSchemes() }
             case .worktreesChanged:
                 dropMissingSource()
-            case .branchesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .configChanged, .refreshRequested:
+            case .configChanged:
+                Task { await self.refreshSchemes() }
+            case .branchesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .refreshRequested:
                 break
             }
         }
@@ -84,7 +89,16 @@ final class BuildStore: BuildLookup {
     }
 
     var schemeOptions: [String] {
-        schemes.isEmpty ? [state.scheme] : schemes
+        let visible = effective.schemes
+        return visible.isEmpty ? [state.scheme] : visible
+    }
+
+    var effective: EffectiveProject {
+        config.effective(detectedSchemes: schemes, detectedBaseBranch: worktrees.baseBranch)
+    }
+
+    private var container: String? {
+        config.resolved.project.xcode?.container
     }
 
     var selectedScheme: String {
@@ -179,13 +193,18 @@ final class BuildStore: BuildLookup {
 
     func refreshSchemes() async {
         let project = session.selectedProject
-        schemes = await repository.schemes(projectPath: project.path)
-        let saved = state.targetSimulatorID.flatMap { runOptions[$0]?.scheme }
+        schemes = await repository.schemes(projectPath: project.path, container: container)
+        let effective = effective
+        let saved = state.targetSimulatorID.flatMap { runOptions[$0] }
+        if saved == nil, state.configuration != effective.configuration {
+            state.configuration = effective.configuration
+        }
         guard let scheme = SchemeChoicePolicy.choose(
-            available: schemes,
-            saved: saved,
+            available: effective.schemes,
+            saved: saved?.scheme,
+            configured: config.resolved.project.xcode?.scheme,
             current: state.scheme,
-            projectDefault: project.scheme
+            projectDefault: effective.scheme ?? project.scheme
         ) else { return }
         state.scheme = scheme
     }
@@ -219,7 +238,7 @@ final class BuildStore: BuildLookup {
     }
 
     func lastBuiltAppPath() -> String? {
-        repository.lastBuiltAppPath(projectPath: sourcePath, scheme: state.scheme, configuration: state.configuration)
+        repository.lastBuiltAppPath(projectPath: sourcePath, container: container, scheme: state.scheme, configuration: state.configuration)
     }
 
     func showLog() {
@@ -255,6 +274,7 @@ final class BuildStore: BuildLookup {
         let scheme = state.scheme
         let configuration = state.configuration
         let incremental = state.incremental
+        let container = container
         events.post(.buildStarted(simulatorID: simulator.id))
         buildLog.removeAll()
         hasLog = false
@@ -269,6 +289,7 @@ final class BuildStore: BuildLookup {
                 logPrepared(prepared)
                 let request = BuildRequest(
                     projectPath: prepared.path,
+                    container: container,
                     scheme: scheme,
                     configuration: configuration,
                     incremental: incremental,

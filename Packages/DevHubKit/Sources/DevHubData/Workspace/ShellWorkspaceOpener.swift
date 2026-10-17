@@ -82,7 +82,7 @@ struct ShellWorkspaceOpener: WorkspaceOpening {
 
     func openInXcode(_ path: String) async -> String? {
         let target: String
-        if let container = try? XcodeContainer.locate(in: path) {
+        if let container = try? XcodeContainer.locate(in: path, preferred: nil) {
             target = container.url.path
         } else {
             target = (path as NSString).expandingTildeInPath

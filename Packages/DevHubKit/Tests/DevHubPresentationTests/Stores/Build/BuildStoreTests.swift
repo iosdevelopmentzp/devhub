@@ -30,6 +30,7 @@ import DevHubTestSupport
     private func request(path: String, attachDebugger: Bool) -> BuildRequest {
         BuildRequest(
             projectPath: path,
+            container: nil,
             scheme: "App",
             configuration: "Debug",
             incremental: true,
@@ -351,5 +352,28 @@ import DevHubTestSupport
 
         #expect(store.lastBuiltAppPath() == product.appPath)
         #expect(harness.spies.build.calls == [.lastBuiltAppPath(projectPath: ProjectSample.path, scheme: "App", configuration: "Debug")])
+    }
+
+    @Test func theProjectConfigChoosesTheSchemesTheConfigurationAndTheContainer() async throws {
+        harness.spies.build.schemesResult = ["App", "AppTests", "Tools"]
+        let xcode = XcodeConfig(container: "App.xcworkspace", scheme: "Tools", configuration: "Release", schemes: ["Tools", "App"])
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(xcode: xcode), actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+
+        await store.refreshSchemes()
+
+        #expect(store.schemeOptions == ["Tools", "App"])
+        #expect(store.state.scheme == "Tools")
+        #expect(store.state.configuration == "Release")
+        store.run()
+        try await waitUntil { hasFinished }
+        let build = harness.spies.build.calls.first { if case .build = $0 { true } else { false } }
+        guard case .build(let request) = build else {
+            Issue.record("Expected a build call")
+            return
+        }
+        #expect(request.container == "App.xcworkspace")
+        #expect(request.scheme == "Tools")
+        #expect(request.configuration == "Release")
     }
 }

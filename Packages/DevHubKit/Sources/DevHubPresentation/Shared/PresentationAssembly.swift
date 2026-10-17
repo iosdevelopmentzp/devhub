@@ -125,6 +125,7 @@ package final class PresentationAssembly {
             repository: ports.build,
             buildAndRun: useCases.buildAndRun,
             prepareCheckout: useCases.prepareBuildCheckout,
+            config: config,
             session: session,
             worktrees: worktrees,
             simulators: simulators,

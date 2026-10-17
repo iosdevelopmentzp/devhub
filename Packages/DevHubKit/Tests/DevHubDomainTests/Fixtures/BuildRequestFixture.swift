@@ -8,6 +8,7 @@ enum BuildRequestFixture {
 
     static let incremental = BuildRequest(
         projectPath: "/repo",
+        container: nil,
         scheme: "App",
         configuration: "Debug",
         incremental: true,

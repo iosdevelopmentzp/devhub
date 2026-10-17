@@ -21,6 +21,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- Build & Run follows `xcode.*` in `.devhub/project.json`: the run bar lists `xcode.schemes` in their order, starts with `xcode.scheme` and `xcode.configuration` when the simulator has no saved choice, and `xcodebuild` uses `xcode.container` (also inside worktrees).
 - "Fix Threads with Claude" is "Fix Threads with AI": it runs `ai.reviewCommand`.
 - The tab, the Git header, branch rows, Home and Settings use the words of the code host: "Pull Requests", `#12`, "checks" and "Open in GitHub" for GitHub; "Merge Requests", `!12`, "pipeline" and "Open in GitLab" for GitLab. On GitHub the rebase action is "Update Branch from <target>" and the retry action is "Re-run Failed Checks".
 - "Revoke Approval" and "Merge When Checks Pass" are hidden when the host does not allow them for you (on GitHub: without write access, or when the repository does not allow auto-merge).

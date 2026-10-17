@@ -2,6 +2,7 @@ import Foundation
 
 package struct BuildRequest: Sendable {
     package var projectPath: String
+    package var container: String?
     package var scheme: String
     package var configuration: String
     package var incremental: Bool
@@ -13,6 +14,7 @@ package struct BuildRequest: Sendable {
 
     package init(
         projectPath: String,
+        container: String?,
         scheme: String,
         configuration: String,
         incremental: Bool,
@@ -23,6 +25,7 @@ package struct BuildRequest: Sendable {
         attachDebugger: Bool
     ) {
         self.projectPath = projectPath
+        self.container = container
         self.scheme = scheme
         self.configuration = configuration
         self.incremental = incremental

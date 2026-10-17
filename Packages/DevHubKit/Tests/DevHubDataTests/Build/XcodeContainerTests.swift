@@ -25,7 +25,7 @@ import Testing
         try makeFolder("App.xcodeproj")
         try makeFolder("App.xcworkspace")
 
-        let container = try XcodeContainer.locate(in: directory.url.path)
+        let container = try XcodeContainer.locate(in: directory.url.path, preferred: nil)
 
         #expect(container.kind == .workspace)
         #expect(container.url.lastPathComponent == "App.xcworkspace")
@@ -35,7 +35,7 @@ import Testing
         try makeFolder("App.xcodeproj")
         _ = try directory.write("", to: "README.md")
 
-        let container = try XcodeContainer.locate(in: directory.url.path)
+        let container = try XcodeContainer.locate(in: directory.url.path, preferred: nil)
 
         #expect(container.kind == .project)
         #expect(container.url.lastPathComponent == "App.xcodeproj")
@@ -46,7 +46,7 @@ import Testing
         let path = directory.url.path
 
         let error = try #require(throws: BuildError.self) {
-            try XcodeContainer.locate(in: path)
+            try XcodeContainer.locate(in: path, preferred: nil)
         }
         guard case .noXcodeContainer(let folder) = error else {
             Issue.record("Expected .noXcodeContainer, got \(error)")
@@ -62,7 +62,7 @@ import Testing
         try scheme("App.xcodeproj/xcuserdata/me.xcuserdatad/xcschemes/xcschememanagement.plist")
         try scheme("App.xcodeproj/xcuserdata/other.xcuserdatad/xcschemes/Dev.xcscheme")
 
-        let container = try XcodeContainer.locate(in: directory.url.path)
+        let container = try XcodeContainer.locate(in: directory.url.path, preferred: nil)
 
         #expect(container.schemeNames() == ["App", "App 2", "App 10", "Dev"])
     }
@@ -73,7 +73,7 @@ import Testing
         try scheme("Pods.xcodeproj/xcshareddata/xcschemes/Pods.xcscheme")
         try scheme("Pods.xcodeproj/xcuserdata/me.xcuserdatad/xcschemes/App.xcscheme")
 
-        let container = try XcodeContainer.locate(in: directory.url.path)
+        let container = try XcodeContainer.locate(in: directory.url.path, preferred: nil)
 
         #expect(container.schemeNames() == ["App", "Pods", "Workspace"])
     }
@@ -81,7 +81,23 @@ import Testing
     @Test func projectWithoutSchemes() throws {
         try makeFolder("App.xcodeproj")
 
-        #expect(try XcodeContainer.locate(in: directory.url.path).schemeNames().isEmpty)
+        #expect(try XcodeContainer.locate(in: directory.url.path, preferred: nil).schemeNames().isEmpty)
+    }
+
+    @Test func aConfiguredContainerWins() throws {
+        try makeFolder("App.xcworkspace")
+        try makeFolder("Tools/Tools.xcodeproj")
+
+        let container = try XcodeContainer.locate(in: directory.url.path, preferred: "Tools/Tools.xcodeproj")
+
+        #expect(container.kind == .project)
+        #expect(container.url.lastPathComponent == "Tools.xcodeproj")
+    }
+
+    @Test func aMissingConfiguredContainerIsAnError() {
+        #expect(throws: BuildError.self) {
+            try XcodeContainer.locate(in: directory.url.path, preferred: "Missing.xcworkspace")
+        }
     }
 
     private func makeFolder(_ name: String) throws {

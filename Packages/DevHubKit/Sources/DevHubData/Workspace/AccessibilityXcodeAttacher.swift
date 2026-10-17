@@ -19,7 +19,7 @@ struct AccessibilityXcodeAttacher: XcodeAttaching {
             requestTrust()
             throw XcodeAttachError.accessibilityNotGranted
         }
-        guard let container = try? XcodeContainer.locate(in: projectPath) else {
+        guard let container = try? XcodeContainer.locate(in: projectPath, preferred: nil) else {
             throw XcodeAttachError.noProject(projectPath)
         }
         let hadWindows = await windowCount() > 0

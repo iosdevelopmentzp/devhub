@@ -5,7 +5,7 @@ struct XcodeProjectDetector: ProjectDetecting {
 
     func project(at folder: URL) -> Project {
         let path = folder.path.abbreviatingHome
-        let container = try? XcodeContainer.locate(in: folder.path)
+        let container = try? XcodeContainer.locate(in: folder.path, preferred: nil)
         let scheme = container?.schemeNames().first ?? container?.url.deletingPathExtension().lastPathComponent ?? folder.lastPathComponent
         let bundleID = appBundleID(in: folder) ?? ""
         return Project(

@@ -3,11 +3,11 @@ import DevHubDomain
 
 struct MockBuildRepository: BuildRepository {
 
-    func schemes(projectPath: String) async -> [String] {
+    func schemes(projectPath: String, container: String?) async -> [String] {
         ["ExampleApp", "ExampleApp Staging", "NotificationServiceExtension"]
     }
 
-    func lastBuiltAppPath(projectPath: String, scheme: String, configuration: String) -> String? {
+    func lastBuiltAppPath(projectPath: String, container: String?, scheme: String, configuration: String) -> String? {
         nil
     }
 

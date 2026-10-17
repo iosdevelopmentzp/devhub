@@ -10,13 +10,13 @@ struct XcodeBuildRepository: BuildRepository {
         self.productLocator = productLocator
     }
 
-    func schemes(projectPath: String) async -> [String] {
-        guard let container = try? XcodeContainer.locate(in: projectPath) else { return [] }
+    func schemes(projectPath: String, container: String?) async -> [String] {
+        guard let container = try? XcodeContainer.locate(in: projectPath, preferred: container) else { return [] }
         return container.schemeNames()
     }
 
-    func lastBuiltAppPath(projectPath: String, scheme: String, configuration: String) -> String? {
-        guard let container = try? XcodeContainer.locate(in: projectPath) else { return nil }
+    func lastBuiltAppPath(projectPath: String, container: String?, scheme: String, configuration: String) -> String? {
+        guard let container = try? XcodeContainer.locate(in: projectPath, preferred: container) else { return nil }
         return productLocator.appPath(hints: [], container: container, scheme: scheme, configuration: configuration)
     }
 
@@ -91,7 +91,7 @@ private nonisolated struct Invocation {
     let common: [String]
 
     init(_ request: BuildRequest) throws {
-        container = try XcodeContainer.locate(in: request.projectPath)
+        container = try XcodeContainer.locate(in: request.projectPath, preferred: request.container)
         cwd = (request.projectPath as NSString).expandingTildeInPath
         common = container.xcodebuildArguments + [
             "-scheme", request.scheme,

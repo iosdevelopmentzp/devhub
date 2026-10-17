@@ -17,8 +17,13 @@ struct XcodeContainer {
         }
     }
 
-    static func locate(in folder: String) throws -> XcodeContainer {
+    static func locate(in folder: String, preferred: String?) throws -> XcodeContainer {
         let root = URL(fileURLWithPath: (folder as NSString).expandingTildeInPath)
+        if let preferred, let kind = kind(of: preferred) {
+            let url = preferred.hasPrefix("/") ? URL(fileURLWithPath: preferred) : root.appendingPathComponent(preferred)
+            guard FileManager.default.fileExists(atPath: url.path) else { throw BuildError.noXcodeContainer(url.path) }
+            return XcodeContainer(kind: kind, url: url)
+        }
         let entries = (try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []
         if let workspace = entries.first(where: { $0.pathExtension == "xcworkspace" }) {
             return XcodeContainer(kind: .workspace, url: workspace)
@@ -27,6 +32,14 @@ struct XcodeContainer {
             return XcodeContainer(kind: .project, url: project)
         }
         throw BuildError.noXcodeContainer(folder)
+    }
+
+    private static func kind(of path: String) -> Kind? {
+        switch (path as NSString).pathExtension {
+        case "xcworkspace": .workspace
+        case "xcodeproj": .project
+        default: nil
+        }
     }
 
     func schemeNames() -> [String] {

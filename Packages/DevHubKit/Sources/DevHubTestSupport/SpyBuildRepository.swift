@@ -26,6 +26,7 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
 
         private static func same(_ left: BuildRequest, _ right: BuildRequest) -> Bool {
             left.projectPath == right.projectPath
+                && left.container == right.container
                 && left.scheme == right.scheme
                 && left.configuration == right.configuration
                 && left.incremental == right.incremental
@@ -96,7 +97,7 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
         set { lock.withLock { _lastBuiltAppPathResult = newValue } }
     }
 
-    package func schemes(projectPath: String) async -> [String] {
+    package func schemes(projectPath: String, container: String?) async -> [String] {
         record(.schemes(projectPath: projectPath)) { _schemesResult }
     }
 
@@ -117,7 +118,7 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
         try record(.locateProduct(request, hints: hints)) { try _locateProductResult.get() }
     }
 
-    package func lastBuiltAppPath(projectPath: String, scheme: String, configuration: String) -> String? {
+    package func lastBuiltAppPath(projectPath: String, container: String?, scheme: String, configuration: String) -> String? {
         record(.lastBuiltAppPath(projectPath: projectPath, scheme: scheme, configuration: configuration)) { _lastBuiltAppPathResult }
     }
 
