@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- `simulators.statusScript` shows its result under the name of the booted, favourite and target simulators, and under the target of the run bar. The line is read again after each launch and on refresh. A failure, a missing script or a timeout shows in red.
 - Build & Run for `kind: command` projects: the run bar shows `build.command → run.command` instead of the scheme pickers and runs both in the selected checkout. Their output goes to the build log, `progress` lines move the progress bar, an `error` line or a non-zero exit fails the run, and an `app` line makes DevHub install and launch that app with the launch profile.
 - Launch profiles from `launch.profiles` in `.devhub/project.json`: the run bar has a profile picker with a summary. Build & Run passes the environment and the arguments of the profile to the app, writes its `defaults` into the app container (or the app group container) after install, and does a clean install when the profile says so. The choice is saved per simulator.
 - The configuration picker of the run bar also lists the configuration of `xcode.configuration` when it is not Debug or Release.

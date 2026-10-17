@@ -5,6 +5,7 @@ import DevHubUI
 struct RunBar: View {
     @Environment(BuildStore.self) private var build
     @Environment(SimulatorsStore.self) private var simulators
+    @Environment(SimulatorStatusStore.self) private var statuses
     @Environment(IdentityStore.self) private var identityStore
     @Environment(MockServerStore.self) private var mockServerStore
     @Environment(AppActions.self) private var appActions
@@ -137,6 +138,9 @@ struct RunBar: View {
                     if let runtimeTag = target.runtimeTag {
                         ModelTag(model: runtimeTag)
                     }
+                }
+                if let status = SimulatorStatusLineMapper.model(statuses.statuses[target.id]) {
+                    SimulatorStatusLine(model: status)
                 }
                 if let identity = target.identity {
                     IdentitySummary(model: identity)

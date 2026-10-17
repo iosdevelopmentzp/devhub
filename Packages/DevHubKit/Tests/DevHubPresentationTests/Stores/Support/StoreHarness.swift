@@ -146,6 +146,8 @@ final class StoreHarness {
         store: store
     )
 
+    lazy var simulatorStatuses = SimulatorStatusStore(readStatus: useCases.readSimulatorStatus, config: config, session: session, simulators: simulators, build: build, events: events)
+
     lazy var build = BuildStore(
         repository: ports.build,
         buildAndRun: useCases.buildAndRun,

@@ -11,6 +11,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
     var stateDotOpacity: Double
     var stateText: String
     var detailText: String
+    var status: SimulatorStatusLineModel?
     var isHighlighted: Bool
     var targetTag: TagModel?
     var isFavorite: Bool
@@ -50,6 +51,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
         stateDotOpacity: 1,
         stateText: "Booted",
         detailText: "Booted · 3 apps installed",
+        status: .preview,
         isHighlighted: true,
         targetTag: TagModel("target", tint: .blue, hint: "Build & Run and the run bar above use this simulator. Click a row to change it."),
         isFavorite: true,

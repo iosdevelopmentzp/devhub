@@ -26,7 +26,7 @@ struct LaunchProfilePicker: View {
 
     @ViewBuilder
     private var picker: some View {
-        let selection = Binding(get: { model.selectedID }, set: onSelect)
+        let selection = Binding(get: { model.selectedID }, set: { onSelect($0) })
         if model.usesSegments {
             Picker("Launch profile", selection: selection) {
                 ForEach(model.options) { option in

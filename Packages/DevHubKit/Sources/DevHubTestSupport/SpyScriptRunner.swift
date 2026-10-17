@@ -5,7 +5,7 @@ package final class SpyScriptRunner: ScriptRunning, @unchecked Sendable {
     private let lock = NSLock()
     private var _calls: [ScriptRunRequest] = []
     private var _events: [ScriptEvent] = [.exited(0)]
-    private var _runError: TestError? = nil
+    private var _runError: (any Error)? = nil
     private var _holdsOpen = false
     private var continuations: [AsyncThrowingStream<ScriptEvent, any Error>.Continuation] = []
 
@@ -20,7 +20,7 @@ package final class SpyScriptRunner: ScriptRunning, @unchecked Sendable {
         set { lock.withLock { _events = newValue } }
     }
 
-    package var runError: TestError? {
+    package var runError: (any Error)? {
         get { lock.withLock { _runError } }
         set { lock.withLock { _runError = newValue } }
     }

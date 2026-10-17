@@ -195,7 +195,9 @@ The selected profile is saved per simulator. The run bar shows a picker when the
 
 ## 6. Simulator status script
 
-`simulators.statusScript` runs with `DEVHUB_SIMULATOR_UDID` and `DEVHUB_BUNDLE_ID` for booted, favourite and target simulators, and again after each launch. Its last `@devhub {"view": {"keyValues": [["Environment", "staging"], ["User", "qa-12"]]}}` line, or its last plain line, is shown under the device name. The result is cached until the next launch or refresh. The script must finish in under 5 seconds; a slower script is cancelled and the row shows "status timed out".
+`simulators.statusScript` runs with `DEVHUB_SIMULATOR_UDID` and `DEVHUB_BUNDLE_ID` for booted, favourite and target simulators, and again after each launch. Its last `@devhub {"view": {"keyValues": [["Environment", "staging"], ["User", "qa-12"]]}}` line, or its last plain line, is shown under the device name, in the simulator row and under the target of the run bar. The result is cached until the next launch or refresh. The script must finish in under 5 seconds; a slower script is cancelled and the row shows "status timed out". A non-zero exit code shows the last line in red.
+
+A relative path is looked up in the user, project and global config folders, then in the project folder; the first file that exists runs. When no file exists, the row shows "Status script not found". A file without the executable bit runs through `/bin/zsh`.
 
 ## 7. Script line protocol
 

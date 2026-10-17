@@ -6,6 +6,7 @@ struct SimulatorsView: View {
     @Environment(ProjectSession.self) private var session
     @Environment(SimulatorsStore.self) private var simulators
     @Environment(BuildStore.self) private var build
+    @Environment(SimulatorStatusStore.self) private var statuses
     @Environment(IdentityStore.self) private var identityStore
     @Environment(MockServerStore.self) private var mockServerStore
     @Environment(AppActions.self) private var appActions
@@ -54,6 +55,9 @@ struct SimulatorsView: View {
         }
         .background(Theme.surface)
         .animation(.snappy(duration: 0.18), value: isConfirmingBulkRemove)
+        .task(id: build.target?.id) {
+            statuses.loadMissing()
+        }
     }
 
     private var sections: [SimulatorSectionModel] {
@@ -82,6 +86,7 @@ struct SimulatorsView: View {
             runtime: runtime,
             isTarget: build.isTarget(simulator.id),
             installedApps: simulators.installedAppCounts[simulator.id],
+            status: statuses.statuses[simulator.id],
             identity: identityStore.identities[simulator.id],
             identitySettings: identityStore.settings(for: simulator.id),
             deviceIDAliases: identityStore.deviceIDAliases,

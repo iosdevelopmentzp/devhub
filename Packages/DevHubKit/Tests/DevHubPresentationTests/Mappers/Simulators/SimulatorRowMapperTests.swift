@@ -14,6 +14,19 @@ import Testing
         #expect(row(SimulatorFixture.iPhone, flags: Flags()).configActions.isEmpty)
     }
 
+    @Test func statusLineAndItsTint() {
+        var flags = Flags()
+        #expect(row(SimulatorFixture.iPhone, flags: flags).status == nil)
+
+        flags.status = SimulatorStatus(text: "Environment: staging", isFailure: false)
+        let plain = row(SimulatorFixture.iPhone, flags: flags)
+        flags.status = SimulatorStatus(text: "status timed out", isFailure: true)
+        let failed = row(SimulatorFixture.iPhone, flags: flags)
+
+        #expect(plain.status == SimulatorStatusLineModel(text: "Environment: staging", tint: .secondary))
+        #expect(failed.status == SimulatorStatusLineModel(text: "status timed out", tint: .red))
+    }
+
     @Test func kindIcon() {
         #expect(SimulatorRowMapper.kindIcon(.phone) == "iphone")
         #expect(SimulatorRowMapper.kindIcon(.pad) == "ipad")
@@ -184,6 +197,7 @@ import Testing
             runtime: "iOS 18.2",
             isTarget: flags.isTarget,
             installedApps: flags.installedApps,
+            status: flags.status,
             identity: flags.identity,
             identitySettings: noSettings,
             deviceIDAliases: [:],
@@ -205,6 +219,7 @@ private struct Flags {
     var configActions: [ConfigActionItemModel] = []
     var isTarget = false
     var installedApps: Int?
+    var status: SimulatorStatus?
     var identity: AppIdentity?
     var hasIdentityConfig = false
     var isUninstalling = false

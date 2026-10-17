@@ -7,4 +7,8 @@ struct PathToolLocator: ToolLocating {
         let folders = ["/opt/homebrew/bin", "/usr/local/bin"] + inherited.split(separator: ":").map(String.init)
         return folders.contains { FileManager.default.isExecutableFile(atPath: $0 + "/" + executable) }
     }
+
+    func fileExists(atPath path: String) -> Bool {
+        FileManager.default.fileExists(atPath: path)
+    }
 }

@@ -66,6 +66,7 @@ import Testing
                 runtime: runtime,
                 isTarget: false,
                 installedApps: nil,
+                status: nil,
                 identity: nil,
                 identitySettings: SimulatorIdentitySettings(hasApplied: false),
                 deviceIDAliases: [:],

@@ -30,6 +30,7 @@ package final class PresentationAssembly {
     let simulators: SimulatorsStore
     let identity: IdentityStore
     let build: BuildStore
+    let simulatorStatuses: SimulatorStatusStore
     let configActions: ConfigActionsStore
     let logs: LogsStore
     let mockSets: MockSetsStore
@@ -136,6 +137,7 @@ package final class PresentationAssembly {
             events: events,
             store: store
         )
+        simulatorStatuses = SimulatorStatusStore(readStatus: useCases.readSimulatorStatus, config: config, session: session, simulators: simulators, build: build, events: events)
         configActions = ConfigActionsStore(
             config: config,
             scripts: ports.scripts,

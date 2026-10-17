@@ -81,6 +81,9 @@ struct SimulatorRow<Panels: View>: View {
             Text(model.detailText)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            if let status = model.status {
+                SimulatorStatusLine(model: status)
+            }
             if let identity = model.identity {
                 IdentitySummary(model: identity)
             }
