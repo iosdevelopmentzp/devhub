@@ -61,6 +61,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The sample data banners on Git, Worktrees, Logs, AI and Simulators, because these screens now show live data.
 
 ### Infrastructure
+- `Scripts/check-anonymous.sh` checks the whole tree and the last commit message for names of the owner's projects (from `~/.devhub/anonymity-denylist.txt`, outside the repository) and for bundle IDs, plist suites and hosts that are not sample values. `Scripts/build.sh` runs it first.
+- `docs/adr/001-port-from-main-devhub.md`: the plan for the port from the package-based DevHub, with a step log.
 - Skills, `AGENTS.md` and `docs/STATUS.md` updated for the M0 and M1 structure.
 - `README.md`, `DevHub.command` and `Scripts/make-launcher.sh`.
 - Provider protocols with mock types for Git, Xcode, Simulators, Logs, AI, Config, Scripts and Workspace, bundled in `Providers`.

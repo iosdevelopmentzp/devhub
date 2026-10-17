@@ -2,6 +2,7 @@
 set -o pipefail
 cd "${0:A:h}/.."
 CONFIGURATION="${1:-Debug}"
+Scripts/check-anonymous.sh || exit 1
 xcodebuild \
   -project DevHub.xcodeproj \
   -scheme DevHub \
