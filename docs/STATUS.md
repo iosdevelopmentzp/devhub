@@ -19,7 +19,7 @@ The app is being rewritten on the package architecture of the main DevHub. The p
 | Home | real | Project card, quick actions from `home.quickActions`, Scripts from `.devhub/scripts` with inputs, confirm, result area and last run, config problems. Checked with headless snapshots on a throwaway repository with the example `.devhub` folder: a script run, the footer progress, the Output panel and a hot reload of `project.json` |
 | Git | real | Local, Remote, History, Reflog, Changes, stash, commit box, switch with local changes, request line. The base branch falls back to `origin/main`; config comes in M3. Config actions: `git.pills` in the header, `git.branchRow` in the branch context menu |
 | GitLab | real | Merge requests through `glab` only. Becomes the Pull Requests tab with GitHub first in M4 |
-| Worktrees | real | Config actions in the row context menu (`worktrees.row`). The worktree folder, include list and bootstrap script still follow the old fixed conventions until M3 |
+| Worktrees | real | Config actions in the row context menu (`worktrees.row`). Folder, include list and bootstrap script from `git.worktrees`. Checked with a headless snapshot: a worktree in `.worktrees/` shows "needs bootstrap" when `Pods` exists only in the main checkout |
 | Simulators, Build & Run | real | From the package. Config actions in the run bar (`simulators.runBar`) and in the row overflow menu (`simulators.row`). Launch profiles and `kind: command` projects come in M5 |
 | Device identity | hidden | No project has an identity config: the presets are gone. Launch identities from config come in M6 |
 | Logs | real | One stream at a time. Config actions in the toolbar (`logs.toolbar`). Chips for several streams come in M5 |

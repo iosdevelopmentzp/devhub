@@ -3,7 +3,6 @@ import Foundation
 package struct Worktree: Identifiable, Hashable, Sendable {
     package enum Kind: Hashable, Sendable {
         case main
-        case agent
         case linked
     }
 

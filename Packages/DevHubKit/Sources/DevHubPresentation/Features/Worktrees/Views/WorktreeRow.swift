@@ -106,7 +106,7 @@ struct WorktreeRow: View {
             if model.isBootstrapping {
                 ProgressView()
                     .controlSize(.mini)
-                Text("Running init.sh…")
+                Text(model.bootstrapRunningText)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             } else if let bootstrapTag = model.bootstrapTag {
@@ -211,8 +211,8 @@ struct WorktreeRow: View {
                 toaster.copy(branch)
             }
         }
-        if model.canRunInit {
-            Button("Run init.sh", systemImage: "wrench.and.screwdriver", action: onBootstrap)
+        if model.canRunBootstrap {
+            Button(model.bootstrapTitle, systemImage: "wrench.and.screwdriver", action: onBootstrap)
         }
         ConfigActionMenuItems(items: model.configActions, onRun: onConfigAction)
         Divider()

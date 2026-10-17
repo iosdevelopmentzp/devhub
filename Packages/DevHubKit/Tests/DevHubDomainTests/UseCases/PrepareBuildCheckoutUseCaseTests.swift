@@ -71,7 +71,7 @@ import Testing
             .list(projectPath: "/repo"),
             .bootstrap(worktreePath: fresh.path),
         ])
-        #expect(steps.values == ["Creating a worktree for feature", "Running init.sh in feature"])
+        #expect(steps.values == ["Creating a worktree for feature", "Running scripts/bootstrap.sh in feature"])
         #expect(bootstraps.values == [BootstrapEvent(path: fresh.path, isRunning: true), BootstrapEvent(path: fresh.path, isRunning: false)])
         #expect(prepared.createdWorktree)
         #expect(prepared.bootstrapped)
@@ -87,6 +87,29 @@ import Testing
         #expect(spies.worktrees.calls == [.bootstrap(worktreePath: fresh.path)])
         #expect(prepared.createdWorktree == false)
         #expect(prepared.bootstrapped)
+    }
+
+    @Test func aNewWorktreeRunsTheBootstrapOnceWithoutAMarker() async throws {
+        let (ports, spies) = Ports.spies()
+        scriptCreation(spies, listed: [WorktreeFixture.main, feature])
+        var settings = GitSettings.withBootstrap
+        settings.worktrees.bootstrapMarker = nil
+
+        let prepared = try await prepare(ports, source: .branch("feature"), known: [WorktreeFixture.main], settings: settings)
+
+        #expect(spies.worktrees.scripts == ["scripts/bootstrap.sh"])
+        #expect(prepared.bootstrapped)
+    }
+
+    @Test func withoutABootstrapScriptNothingRuns() async throws {
+        let (ports, spies) = Ports.spies()
+        var fresh = feature
+        fresh.needsBootstrap = true
+
+        let prepared = try await prepare(ports, source: .worktree(fresh.path), known: [WorktreeFixture.main, fresh], settings: .standard)
+
+        #expect(spies.worktrees.calls.isEmpty)
+        #expect(prepared.bootstrapped == false)
     }
 
     @Test func failedCreationIsCreationFailed() async {
@@ -154,7 +177,7 @@ import Testing
         var fresh = feature
         fresh.needsBootstrap = true
         scriptCreation(spies, listed: [WorktreeFixture.main, fresh])
-        spies.worktrees.bootstrapError = TestError.scripted("init.sh failed")
+        spies.worktrees.bootstrapError = TestError.scripted("bootstrap failed")
 
         let error = await #expect(throws: BuildSourceError.self) {
             try await prepare(ports, source: .branch("feature"), known: [WorktreeFixture.main])
@@ -175,7 +198,7 @@ import Testing
         spies.worktrees.listResult = .success(listed)
     }
 
-    private func prepare(_ ports: Ports, source: BuildSourceChoice, known: [Worktree]) async throws -> PrepareBuildCheckoutUseCase.Prepared {
+    private func prepare(_ ports: Ports, source: BuildSourceChoice, known: [Worktree], settings: GitSettings = .withBootstrap) async throws -> PrepareBuildCheckoutUseCase.Prepared {
         let steps = steps
         let bootstraps = bootstraps
         return try await PrepareBuildCheckoutUseCase(
@@ -188,6 +211,7 @@ import Testing
             projectName: "App",
             projectPath: "/repo",
             baseBranch: "origin/dev",
+            settings: settings,
             onStep: { steps.append($0) },
             onBootstrap: { bootstraps.append(BootstrapEvent(path: $0, isRunning: $1)) }
         )

@@ -22,7 +22,7 @@ import Testing
         let (ports, spies) = Ports.spies()
 
         try await ports.git.perform(.fetchPrune, in: "repo")
-        let worktrees = try await ports.worktrees.list(projectPath: "repo")
+        let worktrees = try await ports.worktrees.list(projectPath: "repo", settings: .standard)
 
         #expect(worktrees.isEmpty)
         #expect(spies.git.calls == [.perform(.fetchPrune, path: "repo")])

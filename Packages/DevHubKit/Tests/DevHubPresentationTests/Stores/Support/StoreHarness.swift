@@ -81,6 +81,7 @@ final class StoreHarness {
         cleanFinishedWorktrees: useCases.cleanFinishedWorktrees,
         createWorktree: useCases.createWorktree,
         session: session,
+        config: config,
         activity: activity,
         events: events
     )

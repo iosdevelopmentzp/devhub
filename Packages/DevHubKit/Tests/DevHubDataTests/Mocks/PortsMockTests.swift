@@ -8,7 +8,7 @@ import Testing
         let ports = Ports.mock()
 
         #expect(try await ports.simulators.list() == MockData.simulatorGroups)
-        #expect(try await ports.worktrees.list(projectPath: "~/App") == MockData.worktrees)
+        #expect(try await ports.worktrees.list(projectPath: "~/App", settings: .standard) == MockData.worktrees)
         #expect(await ports.claudeSessions.sessions() == MockData.claudeSessions)
         #expect(ports.projectDetector.isGitRepository(URL(fileURLWithPath: "/tmp")))
         #expect(await ports.config.load(projectPath: "~/App") == MockData.resolvedConfig)

@@ -6,31 +6,26 @@ struct ShellWorktreeRepository: WorktreeRepository {
     let git: GitCommandRunner
     let mergedBranches: MergedBranchesQuery
 
-    private static let agentFolder = ".claude/worktrees"
-    private static let bootstrapScript = "init.sh"
-    private static let bootstrapMarker = "Carthage/Build"
-    private static let includeFile = ".worktreeinclude"
-
     init(shell: ShellRunner) {
         self.shell = shell
         git = GitCommandRunner(shell: shell)
         mergedBranches = MergedBranchesQuery(git: git)
     }
 
-    func list(projectPath: String) async throws -> [Worktree] {
+    func list(projectPath: String, settings: GitSettings) async throws -> [Worktree] {
         let root = (projectPath as NSString).expandingTildeInPath
         let listing = try await git.run(["worktree", "list", "--porcelain"], in: root)
         let entries = WorktreePorcelainParser.parse(listing)
         guard let mainPath = entries.first?.path else { throw WorktreeError.notARepository(projectPath) }
 
-        async let merged = merged(in: root)
+        async let merged = merged(in: root, remote: settings.remote, base: settings.baseBranch)
         async let tracking = trackingInfo(in: root)
         let (mergedSet, trackingMap) = await (merged, tracking)
 
         return await withTaskGroup(of: (Int, Worktree).self) { group in
             for (index, entry) in entries.enumerated() {
                 group.addTask {
-                    (index, await details(for: entry, index: index, mainPath: mainPath, merged: mergedSet, tracking: trackingMap))
+                    (index, await details(for: entry, index: index, mainPath: mainPath, merged: mergedSet, tracking: trackingMap, settings: settings.worktrees))
                 }
             }
             var result: [(Int, Worktree)] = []
@@ -41,14 +36,15 @@ struct ShellWorktreeRepository: WorktreeRepository {
         }
     }
 
-    func baseBranch(projectPath: String) async -> String {
+    func baseBranch(projectPath: String, remote: String) async -> String {
         let root = (projectPath as NSString).expandingTildeInPath
-        let reference = (try? await git.run(["symbolic-ref", "--short", "refs/remotes/origin/HEAD"], in: root))?.trimmed
-        return reference?.isEmpty == false ? reference! : "origin/main"
+        let reference = (try? await git.run(["symbolic-ref", "--short", "refs/remotes/\(remote)/HEAD"], in: root))?.trimmed
+        guard let reference, reference.isEmpty == false else { return GitSettingsPolicy.baseRef(remote: remote) }
+        return reference
     }
 
-    func fetch(projectPath: String) async throws {
-        _ = try await git.run(["fetch", "--prune", "origin"], in: (projectPath as NSString).expandingTildeInPath)
+    func fetch(projectPath: String, remote: String) async throws {
+        _ = try await git.run(["fetch", "--prune", remote], in: (projectPath as NSString).expandingTildeInPath)
     }
 
     func remove(_ worktree: Worktree, projectPath: String) async throws {
@@ -68,31 +64,34 @@ struct ShellWorktreeRepository: WorktreeRepository {
         _ = try await git.run(["worktree", "prune"], in: (projectPath as NSString).expandingTildeInPath)
     }
 
-    func create(branch: String, base: String, projectPath: String) async throws -> NewWorktree {
+    func create(branch: String, base: String, projectPath: String, settings: GitSettings) async throws -> NewWorktree {
         let root = (projectPath as NSString).expandingTildeInPath
         let check = try await git.result(["check-ref-format", "--branch", branch], in: root)
         guard check.exitCode == 0 else { throw WorktreeError.invalidBranchName }
 
-        let path = worktreePath(for: branch, root: root)
+        let path = WorktreePathPolicy.path(forBranch: branch, root: root, folder: settings.worktrees.folder)
         let localExists = (try? await git.run(["rev-parse", "--verify", "--quiet", "refs/heads/\(branch)"], in: root)) != nil
-        let remoteExists = (try? await git.run(["rev-parse", "--verify", "--quiet", "refs/remotes/origin/\(branch)"], in: root)) != nil
+        let remoteBranch = "\(settings.remote)/\(branch)"
+        let remoteExists = (try? await git.run(["rev-parse", "--verify", "--quiet", "refs/remotes/\(remoteBranch)"], in: root)) != nil
 
         if localExists {
             _ = try await git.run(["worktree", "add", path, branch], in: root)
         } else if remoteExists {
-            _ = try await git.run(["worktree", "add", "--track", "-b", branch, path, "origin/\(branch)"], in: root)
+            _ = try await git.run(["worktree", "add", "--track", "-b", branch, path, remoteBranch], in: root)
         } else {
             _ = try await git.run(["worktree", "add", "--no-track", "-b", branch, path, base], in: root)
         }
-        copyIncludedFiles(from: root, to: path)
+        copyIncludedFiles(settings.worktrees.include, from: root, to: path)
         return NewWorktree(path: path, branch: branch)
     }
 
-    func bootstrap(worktreePath: String, onLine: @escaping @Sendable (String) -> Void) async throws {
+    func bootstrap(worktreePath: String, script: String, onLine: @escaping @Sendable (String) -> Void) async throws {
         let path = (worktreePath as NSString).expandingTildeInPath
-        let exitCode = try await shell.stream("bash", [Self.bootstrapScript], cwd: path, onLine: onLine)
+        let file = (path as NSString).appendingPathComponent(script)
+        let isExecutable = FileManager.default.isExecutableFile(atPath: file)
+        let exitCode = try await shell.stream(isExecutable ? file : "/bin/zsh", isExecutable ? [] : [file], cwd: path, onLine: onLine)
         try Task.checkCancellation()
-        guard exitCode == 0 else { throw WorktreeError.command("\(Self.bootstrapScript) exited with code \(exitCode).") }
+        guard exitCode == 0 else { throw WorktreeError.command("\(script) exited with code \(exitCode).") }
     }
 
     // MARK: Details
@@ -102,7 +101,8 @@ struct ShellWorktreeRepository: WorktreeRepository {
         index: Int,
         mainPath: String,
         merged: Set<String>,
-        tracking: [String: TrackingInfoParser.Tracking]
+        tracking: [String: TrackingInfoParser.Tracking],
+        settings: WorktreeSettings
     ) async -> Worktree {
         let exists = FileManager.default.fileExists(atPath: entry.path)
         var worktree = Worktree(
@@ -110,7 +110,7 @@ struct ShellWorktreeRepository: WorktreeRepository {
             path: entry.path,
             branch: entry.branch,
             head: String(entry.head.prefix(9)),
-            kind: kind(of: entry.path, index: index, mainPath: mainPath),
+            kind: index == 0 ? .main : .linked,
             isLocked: entry.isLocked,
             isMissing: entry.isPrunable || exists == false,
             changedFiles: 0,
@@ -149,20 +149,16 @@ struct ShellWorktreeRepository: WorktreeRepository {
         if logLines.count > 1, let seconds = TimeInterval(logLines[1].trimmed) {
             worktree.lastActivity = Date(timeIntervalSince1970: seconds)
         }
-        worktree.needsBootstrap = needsBootstrap(entry.path, mainPath: mainPath)
+        worktree.needsBootstrap = index > 0 && needsBootstrap(entry.path, mainPath: mainPath, settings: settings)
         return worktree
     }
 
-    private func kind(of path: String, index: Int, mainPath: String) -> Worktree.Kind {
-        if index == 0 { return .main }
-        return path.hasPrefix((mainPath as NSString).appendingPathComponent(Self.agentFolder) + "/") ? .agent : .linked
-    }
-
-    private func needsBootstrap(_ path: String, mainPath: String) -> Bool {
+    private func needsBootstrap(_ path: String, mainPath: String, settings: WorktreeSettings) -> Bool {
+        guard let script = settings.bootstrap, let marker = settings.bootstrapMarker else { return false }
         let manager = FileManager.default
-        guard manager.fileExists(atPath: (path as NSString).appendingPathComponent(Self.bootstrapScript)) else { return false }
-        guard manager.fileExists(atPath: (mainPath as NSString).appendingPathComponent(Self.bootstrapMarker)) else { return false }
-        return manager.fileExists(atPath: (path as NSString).appendingPathComponent(Self.bootstrapMarker)) == false
+        guard manager.fileExists(atPath: (path as NSString).appendingPathComponent(script)) else { return false }
+        guard manager.fileExists(atPath: (mainPath as NSString).appendingPathComponent(marker)) else { return false }
+        return manager.fileExists(atPath: (path as NSString).appendingPathComponent(marker)) == false
     }
 
     private func trackingInfo(in root: String) async -> [String: TrackingInfoParser.Tracking] {
@@ -171,31 +167,18 @@ struct ShellWorktreeRepository: WorktreeRepository {
         return TrackingInfoParser.parse(output)
     }
 
-    private func merged(in root: String) async -> Set<String> {
-        let base = await baseBranch(projectPath: root)
-        return await mergedBranches.branches(mergedInto: base, in: root)
+    private func merged(in root: String, remote: String, base configured: String?) async -> Set<String> {
+        let detected = await baseBranch(projectPath: root, remote: remote)
+        return await mergedBranches.branches(mergedInto: configured ?? detected, in: root)
     }
 
     // MARK: Create helpers
 
-    private func worktreePath(for branch: String, root: String) -> String {
-        let folderName = branch.replacingOccurrences(of: "/", with: "-")
-        let agentFolder = (root as NSString).appendingPathComponent(Self.agentFolder)
-        if FileManager.default.fileExists(atPath: agentFolder) {
-            return (agentFolder as NSString).appendingPathComponent(folderName)
-        }
-        let parent = (root as NSString).deletingLastPathComponent
-        return (parent as NSString).appendingPathComponent("\((root as NSString).lastPathComponent)-\(folderName)")
-    }
-
-    private func copyIncludedFiles(from root: String, to path: String) {
-        let includeURL = URL(fileURLWithPath: root).appendingPathComponent(Self.includeFile)
-        guard let content = try? String(contentsOf: includeURL, encoding: .utf8) else { return }
+    private func copyIncludedFiles(_ include: [String], from root: String, to path: String) {
         let manager = FileManager.default
-        for rawLine in content.split(separator: "\n") {
-            let line = String(rawLine).trimmed
-            guard line.isEmpty == false, line.hasPrefix("#") == false, line.contains("*") == false else { continue }
-            let relative = line.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        for entry in include {
+            let relative = entry.trimmed.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            guard relative.isEmpty == false, relative.contains("*") == false else { continue }
             let source = (root as NSString).appendingPathComponent(relative)
             let destination = (path as NSString).appendingPathComponent(relative)
             guard manager.fileExists(atPath: source), manager.fileExists(atPath: destination) == false else { continue }

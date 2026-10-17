@@ -18,6 +18,7 @@ package struct PrepareBuildCheckoutUseCase: Sendable {
         projectName: String,
         projectPath: String,
         baseBranch: String,
+        settings: GitSettings,
         onStep: @escaping @Sendable (String) -> Void,
         onBootstrap: @escaping @Sendable (_ path: String, _ isRunning: Bool) -> Void
     ) async throws -> Prepared {
@@ -25,7 +26,7 @@ package struct PrepareBuildCheckoutUseCase: Sendable {
         var createdWorktree = false
         if case .branch(let name) = source, BuildSourceResolver.checkoutPath(forBranch: name, in: current) == nil {
             onStep("Creating a worktree for \(name)")
-            current = try await create(branch: name, baseBranch: baseBranch, projectPath: projectPath)
+            current = try await create(branch: name, baseBranch: baseBranch, projectPath: projectPath, settings: settings)
             createdWorktree = true
         }
         let path = BuildSourceResolver.resolve(
@@ -35,14 +36,14 @@ package struct PrepareBuildCheckoutUseCase: Sendable {
             projectName: projectName
         ).path
         let worktree = current.first { $0.path == path }
-        guard let worktree, worktree.needsBootstrap else {
+        guard let worktree, let script = settings.worktrees.bootstrap, needsBootstrap(worktree, created: createdWorktree, settings: settings.worktrees) else {
             return Prepared(path: path, worktreeName: worktree?.displayName, createdWorktree: createdWorktree, bootstrapped: false)
         }
-        onStep("Running init.sh in \(worktree.displayName)")
+        onStep("Running \(script) in \(worktree.displayName)")
         onBootstrap(worktree.path, true)
         defer { onBootstrap(worktree.path, false) }
         do {
-            try await worktrees.bootstrap(worktreePath: worktree.path) { _ in }
+            try await worktrees.bootstrap(worktreePath: worktree.path, script: script) { _ in }
         } catch {
             throw BuildSourceError.bootstrapFailed(
                 worktreeName: worktree.displayName,
@@ -54,15 +55,19 @@ package struct PrepareBuildCheckoutUseCase: Sendable {
         return Prepared(path: path, worktreeName: worktree.displayName, createdWorktree: createdWorktree, bootstrapped: true)
     }
 
-    private func create(branch name: String, baseBranch: String, projectPath: String) async throws -> [Worktree] {
+    private func needsBootstrap(_ worktree: Worktree, created: Bool, settings: WorktreeSettings) -> Bool {
+        worktree.needsBootstrap || (created && worktree.isMain == false && settings.bootstrapMarker == nil)
+    }
+
+    private func create(branch name: String, baseBranch: String, projectPath: String, settings: GitSettings) async throws -> [Worktree] {
         let created: NewWorktree?
         do {
-            created = try await createWorktree.execute(branch: name, base: baseBranch, projectPath: projectPath)
+            created = try await createWorktree.execute(branch: name, base: baseBranch, projectPath: projectPath, settings: settings)
         } catch {
             throw BuildSourceError.creationFailed(branch: name, message: error.localizedDescription)
         }
         guard let created else { throw BuildSourceError.worktreeNotCreated(name) }
-        let listed = (try? await worktrees.list(projectPath: projectPath)) ?? []
+        let listed = (try? await worktrees.list(projectPath: projectPath, settings: settings)) ?? []
         guard listed.contains(where: { $0.path == created.path }) else { throw BuildSourceError.worktreeNotCreated(name) }
         return listed
     }

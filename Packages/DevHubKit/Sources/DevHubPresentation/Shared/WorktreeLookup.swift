@@ -8,6 +8,7 @@ protocol WorktreeLookup: AnyObject {
     var mainWorktree: Worktree? { get }
     var mainCheckoutPath: String { get }
     var baseBranch: String { get }
+    var gitSettings: GitSettings { get }
     func worktree(atPath path: String) -> Worktree?
     func checkoutPath(forBranch name: String) -> String?
 }

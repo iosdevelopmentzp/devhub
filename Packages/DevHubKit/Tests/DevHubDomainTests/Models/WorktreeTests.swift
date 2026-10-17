@@ -3,12 +3,8 @@ import Testing
 
 @Suite struct WorktreeTests {
     @Test func onlyTheMainKindIsMain() {
-        var agent = WorktreeFixture.linked(branch: "agent")
-        agent.kind = .agent
-
         #expect(WorktreeFixture.main.isMain)
         #expect(WorktreeFixture.linked(branch: "x").isMain == false)
-        #expect(agent.isMain == false)
     }
 
     @Test func dirtyMeansChangedFiles() {

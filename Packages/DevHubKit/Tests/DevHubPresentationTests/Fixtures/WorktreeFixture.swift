@@ -42,12 +42,12 @@ enum WorktreeFixture {
         needsBootstrap: false
     )
 
-    static let agent = Worktree(
-        id: "\(mainPath)/.claude/worktrees/gifts",
-        path: "\(mainPath)/.claude/worktrees/gifts",
+    static let nested = Worktree(
+        id: "\(mainPath)/.worktrees/gifts",
+        path: "\(mainPath)/.worktrees/gifts",
         branch: "feature/gifts",
         head: "c3d4e5f",
-        kind: .agent,
+        kind: .linked,
         isLocked: false,
         isMissing: false,
         changedFiles: 0,

@@ -13,6 +13,7 @@ enum WorktreeRowMapper {
         isBootstrapping: Bool,
         isBuildSource: Bool,
         buildIsRunning: Bool,
+        bootstrap: WorktreeSettings,
         configActions: [ConfigActionItemModel]
     ) -> WorktreeRowModel {
         WorktreeRowModel(
@@ -33,8 +34,10 @@ enum WorktreeRowMapper {
             titleTags: titleTags(for: worktree, isBuildSource: isBuildSource),
             statusTags: statusTags(for: worktree, baseBranch: baseBranch, derivedDataSize: derivedDataSize),
             isBootstrapping: isBootstrapping,
-            bootstrapTag: isBootstrapping || worktree.needsBootstrap == false ? nil : bootstrapTag,
-            canRunInit: worktree.needsBootstrap,
+            bootstrapTag: isBootstrapping || worktree.needsBootstrap == false ? nil : bootstrapTag(bootstrap),
+            canRunBootstrap: bootstrap.bootstrap != nil && worktree.isMain == false && worktree.isMissing == false,
+            bootstrapTitle: "Run \(bootstrap.bootstrap ?? "Bootstrap")",
+            bootstrapRunningText: "Running \(bootstrap.bootstrap ?? "bootstrap")…",
             isBusy: isBusy,
             isBuildSource: isBuildSource,
             canBuildAndRun: worktree.isMissing == false && buildIsRunning == false,
@@ -54,12 +57,14 @@ enum WorktreeRowMapper {
         )
     }
 
-    private static let bootstrapTag = TagModel(
-        "needs init.sh",
-        tint: .orange,
-        systemImage: "wrench.and.screwdriver",
-        hint: "Carthage/Build is missing in this worktree. Click to run init.sh (Carthage, SwiftGen)."
-    )
+    private static func bootstrapTag(_ settings: WorktreeSettings) -> TagModel {
+        TagModel(
+            "needs bootstrap",
+            tint: .orange,
+            systemImage: "wrench.and.screwdriver",
+            hint: "\(settings.bootstrapMarker ?? "The marker") is missing in this worktree. Click to run \(settings.bootstrap ?? "the bootstrap script")."
+        )
+    }
 
     private static func displayPath(for worktree: Worktree, mainCheckoutPath: String?) -> String {
         guard worktree.isMain == false, let mainCheckoutPath else {
@@ -74,14 +79,14 @@ enum WorktreeRowMapper {
         if worktree.isMain { return "house.fill" }
         if worktree.isMissing { return "questionmark.folder" }
         if worktree.isFinished { return "checkmark.seal.fill" }
-        return worktree.kind == .agent ? "sparkles" : "arrow.triangle.branch"
+        return "arrow.triangle.branch"
     }
 
     private static func iconHint(for worktree: Worktree) -> String {
         if worktree.isMain { return "Main checkout" }
         if worktree.isMissing { return "The folder is gone. Prune removes the entry." }
         if worktree.isFinished { return "Finished: merged or the remote branch is deleted" }
-        return worktree.kind == .agent ? "Claude Code agent worktree" : "Linked worktree"
+        return "Linked worktree"
     }
 
     private static func iconTint(for worktree: Worktree) -> Tint {
@@ -95,14 +100,6 @@ enum WorktreeRowMapper {
         var tags: [TagModel] = []
         if worktree.isMain {
             tags.append(TagModel("main", tint: .indigo))
-        }
-        if worktree.kind == .agent {
-            tags.append(TagModel(
-                "claude",
-                tint: .teal,
-                systemImage: "sparkle",
-                hint: "Lives in .claude/worktrees, the Claude Code agent folder. Gitignored."
-            ))
         }
         if isBuildSource {
             tags.append(TagModel(

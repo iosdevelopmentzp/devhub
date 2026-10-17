@@ -11,7 +11,7 @@ final class WorktreesStore: WorktreeLookup {
     private(set) var isLoading = false
     private(set) var error: String?
     private(set) var isFetching = false
-    private(set) var baseBranch = BranchName.defaultBaseRef
+    private(set) var baseBranch = GitSettingsPolicy.baseRef(remote: GitSettingsPolicy.defaultRemote)
     private(set) var busyIDs: Set<Worktree.ID> = []
     private(set) var bootstrappingIDs: Set<Worktree.ID> = []
 
@@ -21,10 +21,12 @@ final class WorktreesStore: WorktreeLookup {
     @ObservationIgnored private let cleanFinishedWorktrees: CleanFinishedWorktreesUseCase
     @ObservationIgnored private let createWorktree: CreateWorktreeUseCase
     @ObservationIgnored private let session: ProjectSession
+    @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private let refreshTask = RefreshTask()
     @ObservationIgnored private var subscription: SubscriptionToken?
+    @ObservationIgnored private var loadedSettings = GitSettings.standard
 
     init(
         repository: WorktreeRepository,
@@ -33,6 +35,7 @@ final class WorktreesStore: WorktreeLookup {
         cleanFinishedWorktrees: CleanFinishedWorktreesUseCase,
         createWorktree: CreateWorktreeUseCase,
         session: ProjectSession,
+        config: ConfigStore,
         activity: ActivityLog,
         events: AppEvents
     ) {
@@ -42,6 +45,7 @@ final class WorktreesStore: WorktreeLookup {
         self.cleanFinishedWorktrees = cleanFinishedWorktrees
         self.createWorktree = createWorktree
         self.session = session
+        self.config = config
         self.activity = activity
         self.events = events
         subscription = events.subscribe { [weak self] event in
@@ -58,10 +62,17 @@ final class WorktreesStore: WorktreeLookup {
                 } else {
                     bootstrappingIDs.remove(path)
                 }
-            case .worktreesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .mockSetChanged, .mergeRequestsChanged, .configChanged, .refreshRequested:
+            case .configChanged:
+                guard gitSettings != loadedSettings else { return }
+                Task { await self.refresh() }
+            case .worktreesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .mockSetChanged, .mergeRequestsChanged, .refreshRequested:
                 break
             }
         }
+    }
+
+    var gitSettings: GitSettings {
+        config.git
     }
 
     var mainWorktree: Worktree? {
@@ -112,11 +123,14 @@ final class WorktreesStore: WorktreeLookup {
                 }
             }
             let projectPath = session.selectedProject.path
+            let settings = gitSettings
+            loadedSettings = settings
             do {
-                async let list = repository.list(projectPath: projectPath)
-                async let base = repository.baseBranch(projectPath: projectPath)
-                let (loaded, baseName) = try await (list, base)
+                async let list = repository.list(projectPath: projectPath, settings: settings)
+                async let base = repository.baseBranch(projectPath: projectPath, remote: settings.remote)
+                let (loaded, detected) = try await (list, base)
                 try Task.checkCancellation()
+                let baseName = settings.baseBranch ?? detected
                 let changed = loaded != worktrees || baseName != baseBranch
                 worktrees = loaded
                 baseBranch = baseName
@@ -143,10 +157,11 @@ final class WorktreesStore: WorktreeLookup {
         guard isFetching == false else { return }
         isFetching = true
         let path = session.selectedProject.path
+        let remote = gitSettings.remote
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await repository.fetch(projectPath: path)
+                try await repository.fetch(projectPath: path, remote: remote)
             } catch {
                 activity.log("git fetch failed", detail: error.localizedDescription, outcome: .failure)
             }
@@ -218,7 +233,8 @@ final class WorktreesStore: WorktreeLookup {
             guard let created = try await createWorktree.execute(
                 branch: branch,
                 base: baseBranch,
-                projectPath: session.selectedProject.path
+                projectPath: session.selectedProject.path,
+                settings: gitSettings
             ) else { return nil }
             activity.log("Created worktree", detail: "\(created.branch) · \(created.path.abbreviatingHome)", outcome: .success)
             await refresh()
@@ -231,27 +247,27 @@ final class WorktreesStore: WorktreeLookup {
 
     func createAndBootstrap(branch: String) async -> Bool {
         guard let worktree = await create(branch: branch) else { return false }
-        if worktree.needsBootstrap {
+        if worktree.needsBootstrap || (gitSettings.worktrees.bootstrap != nil && gitSettings.worktrees.bootstrapMarker == nil) {
             bootstrap(id: worktree.id)
         }
         return true
     }
 
     func bootstrap(id: Worktree.ID) {
-        guard let worktree = worktree(atPath: id), bootstrappingIDs.contains(id) == false else { return }
+        guard let worktree = worktree(atPath: id), bootstrappingIDs.contains(id) == false, let script = gitSettings.worktrees.bootstrap else { return }
         Task { [weak self] in
             guard let self else { return }
-            try? await runBootstrap(worktree)
+            try? await runBootstrap(worktree, script: script)
             await refresh()
         }
     }
 
-    private func runBootstrap(_ worktree: Worktree) async throws {
+    private func runBootstrap(_ worktree: Worktree, script: String) async throws {
         bootstrappingIDs.insert(worktree.id)
         defer { bootstrappingIDs.remove(worktree.id) }
         do {
-            try await repository.bootstrap(worktreePath: worktree.path) { _ in }
-            activity.log("Bootstrapped \(worktree.displayName)", detail: "init.sh finished", outcome: .success)
+            try await repository.bootstrap(worktreePath: worktree.path, script: script) { _ in }
+            activity.log("Bootstrapped \(worktree.displayName)", detail: "\(script) finished", outcome: .success)
         } catch {
             activity.log("Bootstrap failed: \(worktree.displayName)", detail: "\(error.localizedDescription) Full output in the Output panel.", outcome: .failure)
             throw error

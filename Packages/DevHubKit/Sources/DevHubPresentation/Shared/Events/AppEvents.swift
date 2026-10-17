@@ -17,7 +17,8 @@ final class AppEvents {
         handlers.append((id, handler))
         return SubscriptionToken { [weak self] in
             guard let self else { return }
-            handlers.removeAll { $0.id == id }
+            guard let index = handlers.firstIndex(where: { $0.id == id }) else { return }
+            handlers.remove(at: index)
         }
     }
 }

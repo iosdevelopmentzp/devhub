@@ -15,6 +15,9 @@ package final class SpyWorktreeRepository: WorktreeRepository, @unchecked Sendab
 
     private let lock = NSLock()
     private var _calls: [Call] = []
+    private var _settings: [GitSettings] = []
+    private var _remotes: [String] = []
+    private var _scripts: [String] = []
     private var _listResult: Result<[Worktree], any Error> = .success([])
     private var _baseBranchResult: String = "main"
     private var _fetchError: (any Error)? = nil
@@ -29,6 +32,18 @@ package final class SpyWorktreeRepository: WorktreeRepository, @unchecked Sendab
 
     package var calls: [Call] {
         lock.withLock { _calls }
+    }
+
+    package var settings: [GitSettings] {
+        lock.withLock { _settings }
+    }
+
+    package var remotes: [String] {
+        lock.withLock { _remotes }
+    }
+
+    package var scripts: [String] {
+        lock.withLock { _scripts }
     }
 
     package var listResult: Result<[Worktree], any Error> {
@@ -76,16 +91,25 @@ package final class SpyWorktreeRepository: WorktreeRepository, @unchecked Sendab
         set { lock.withLock { _bootstrapError = newValue } }
     }
 
-    package func list(projectPath: String) async throws -> [Worktree] {
-        try record(.list(projectPath: projectPath)) { try _listResult.get() }
+    package func list(projectPath: String, settings: GitSettings) async throws -> [Worktree] {
+        try record(.list(projectPath: projectPath)) {
+            _settings.append(settings)
+            return try _listResult.get()
+        }
     }
 
-    package func baseBranch(projectPath: String) async -> String {
-        record(.baseBranch(projectPath: projectPath)) { _baseBranchResult }
+    package func baseBranch(projectPath: String, remote: String) async -> String {
+        record(.baseBranch(projectPath: projectPath)) {
+            _remotes.append(remote)
+            return _baseBranchResult
+        }
     }
 
-    package func fetch(projectPath: String) async throws {
-        let error = record(.fetch(projectPath: projectPath)) { _fetchError }
+    package func fetch(projectPath: String, remote: String) async throws {
+        let error = record(.fetch(projectPath: projectPath)) {
+            _remotes.append(remote)
+            return _fetchError
+        }
         if let error { throw error }
     }
 
@@ -104,12 +128,18 @@ package final class SpyWorktreeRepository: WorktreeRepository, @unchecked Sendab
         if let error { throw error }
     }
 
-    package func create(branch: String, base: String, projectPath: String) async throws -> NewWorktree {
-        try record(.create(branch: branch, base: base, projectPath: projectPath)) { try _createResult.get() }
+    package func create(branch: String, base: String, projectPath: String, settings: GitSettings) async throws -> NewWorktree {
+        try record(.create(branch: branch, base: base, projectPath: projectPath)) {
+            _settings.append(settings)
+            return try _createResult.get()
+        }
     }
 
-    package func bootstrap(worktreePath: String, onLine: @escaping @Sendable (String) -> Void) async throws {
-        let (lines, error) = record(.bootstrap(worktreePath: worktreePath)) { (_bootstrapLines, _bootstrapError) }
+    package func bootstrap(worktreePath: String, script: String, onLine: @escaping @Sendable (String) -> Void) async throws {
+        let (lines, error) = record(.bootstrap(worktreePath: worktreePath)) {
+            _scripts.append(script)
+            return (_bootstrapLines, _bootstrapError)
+        }
         lines.forEach(onLine)
         if let error { throw error }
     }

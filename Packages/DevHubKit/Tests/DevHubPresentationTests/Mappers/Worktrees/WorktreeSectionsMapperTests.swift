@@ -68,6 +68,7 @@ import Testing
                 isBootstrapping: false,
                 isBuildSource: false,
                 buildIsRunning: false,
+                bootstrap: .standard,
                 configActions: []
             )
         }

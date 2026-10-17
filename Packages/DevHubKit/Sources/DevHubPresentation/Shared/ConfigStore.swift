@@ -46,6 +46,10 @@ final class ConfigStore {
         resolved.tabs
     }
 
+    var git: GitSettings {
+        GitSettingsPolicy.settings(for: resolved.project)
+    }
+
     func effective(detectedSchemes: [String], detectedBaseBranch: String?) -> EffectiveProject {
         EffectiveProjectPolicy.resolve(config: resolved.project, project: session.selectedProject, detectedSchemes: detectedSchemes, detectedBaseBranch: detectedBaseBranch)
     }

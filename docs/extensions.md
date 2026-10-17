@@ -37,12 +37,12 @@ All fields optional. Missing values are detected (see "default").
 | `xcode.bundleIDs` | {key: string} | — | bundle ID per scheme for white-label projects with one scheme per brand; a key is `<scheme>` or `<scheme>/<configuration>` and the more exact key wins; falls back to `xcode.bundleID` |
 | `build.command` | path | — | `kind: command` only. Runs before `run.command`. Streams output. |
 | `run.command` | path | — | `kind: command` only. May print `@devhub {"app": "<path>"}`; then DevHub installs and launches that app on the target simulator. Otherwise the script launches by itself. |
-| `git.baseBranch` | string | `refs/remotes/origin/HEAD`, else `origin/main` | base for merged, rebase, distance, new worktrees |
-| `git.commitPrefix.pattern` | regex | `^([A-Z]+-\d+)` | applied to the branch name |
+| `git.baseBranch` | string | `<remote>/HEAD`, else `<remote>/main` | base for merged, rebase, distance, new worktrees |
+| `git.commitPrefix.pattern` | regex | `^([A-Z][A-Z0-9]+-\d+)` | applied to the branch name; the same pattern without `^` finds the ticket key for the ticket chip |
 | `git.commitPrefix.format` | string | `$1: ` | the commit box starts with this text when the pattern matches |
 | `git.worktrees.folder` | path relative to the repo | sibling `<repo>-<branch>` | where new worktrees go; slashes in branch names become dashes |
 | `git.worktrees.include` | [path] | `[]` | files copied from the main checkout into a new worktree when they are missing there |
-| `git.worktrees.bootstrap` | path | — | script run inside a new worktree when `bootstrapMarker` exists in the main checkout and not in the worktree |
+| `git.worktrees.bootstrap` | path relative to the worktree | — | script run inside a new worktree when `bootstrapMarker` exists in the main checkout and not in the worktree; an executable file runs as is, another file runs with `zsh`; a worktree row offers it in its menu |
 | `git.worktrees.bootstrapMarker` | path | — | see above; without a marker the bootstrap runs once after creation |
 | `launch.profiles[]` | [profile] | `[]` | section 5 |
 | `logs.process` | string | `CFBundleExecutable` of the installed app | default process filter of a log stream |

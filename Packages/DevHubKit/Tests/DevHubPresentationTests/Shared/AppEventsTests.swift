@@ -32,6 +32,23 @@ import Testing
         withExtendedLifetime(kept) {}
     }
 
+    @Test func aHandlerThatOwnsAnotherTokenCanBeReleased() {
+        let events = AppEvents()
+        let log = Log()
+        var outer: SubscriptionToken?
+        do {
+            let inner = events.subscribe { log.items.append("inner \($0)") }
+            outer = events.subscribe { _ in withExtendedLifetime(inner) {} }
+        }
+
+        events.post(.projectChanged)
+        outer = nil
+        events.post(.worktreesChanged)
+
+        #expect(outer == nil)
+        #expect(log.items == ["inner projectChanged"])
+    }
+
     @Test func postingInsideHandlerDeliversToEveryHandler() {
         let events = AppEvents()
         let log = Log()

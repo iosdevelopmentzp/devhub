@@ -16,7 +16,62 @@ import DevHubTestSupport
         harness.spies.worktrees.calls.filter { $0 == .list(projectPath: harness.session.selectedProject.path) }.count
     }
 
+    private func useConfig(_ git: GitConfig) async {
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(git: git), actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+    }
+
+    private func useBootstrap() async {
+        await useConfig(GitConfig(worktrees: WorktreesConfig(bootstrap: "scripts/bootstrap.sh", bootstrapMarker: "Pods")))
+    }
+
     // MARK: Refresh
+
+    @Test func refreshUsesTheGitSettingsOfTheConfig() async {
+        await useConfig(GitConfig(remote: "upstream", baseBranch: "upstream/develop", worktrees: WorktreesConfig(folder: ".worktrees")))
+        harness.spies.worktrees.baseBranchResult = "upstream/main"
+
+        await store.refresh()
+
+        #expect(store.baseBranch == "upstream/develop")
+        #expect(harness.spies.worktrees.remotes == ["upstream"])
+        #expect(harness.spies.worktrees.settings.first?.worktrees.folder == ".worktrees")
+    }
+
+    @Test func aChangedGitConfigRefreshes() async throws {
+        _ = store
+        await useConfig(GitConfig(remote: "upstream"))
+
+        try await waitUntil { harness.spies.worktrees.remotes.contains("upstream") }
+    }
+
+    @Test func anActionOnlyConfigChangeDoesNotRefresh() async {
+        await store.refresh()
+        let before = listCalls
+
+        harness.events.post(.configChanged)
+
+        #expect(listCalls == before)
+    }
+
+    @Test func bootstrapWithoutAScriptDoesNothing() async {
+        store.worktrees = [WorktreeSample.needsBootstrap]
+
+        store.bootstrap(id: WorktreeSample.needsBootstrap.id)
+
+        #expect(store.bootstrappingIDs.isEmpty)
+        #expect(harness.spies.worktrees.calls.isEmpty)
+    }
+
+    @Test func aNewWorktreeRunsTheBootstrapOnceWithoutAMarker() async throws {
+        await useConfig(GitConfig(worktrees: WorktreesConfig(bootstrap: "scripts/bootstrap.sh")))
+        harness.spies.worktrees.createResult = .success(NewWorktree(path: WorktreeSample.feature.path, branch: "feature/login"))
+        harness.spies.worktrees.listResult = .success([WorktreeSample.main, WorktreeSample.feature])
+
+        _ = await store.createAndBootstrap(branch: "feature/login")
+
+        try await waitUntil { harness.spies.worktrees.scripts == ["scripts/bootstrap.sh"] }
+    }
 
     @Test func refreshLoadsTheListAndTheBaseBranch() async {
         harness.spies.worktrees.listResult = .success([WorktreeSample.main, WorktreeSample.feature])
@@ -270,7 +325,8 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.outcome == .failure)
     }
 
-    @Test func createAndBootstrapRunsInitForANewWorktree() async throws {
+    @Test func createAndBootstrapRunsTheScriptForANewWorktree() async throws {
+        await useBootstrap()
         harness.spies.worktrees.createResult = .success(NewWorktree(path: WorktreeSample.needsBootstrap.path, branch: "feature/new"))
         harness.spies.worktrees.listResult = .success([WorktreeSample.main, WorktreeSample.needsBootstrap])
 
@@ -288,6 +344,7 @@ import DevHubTestSupport
     }
 
     @Test func bootstrapLogsSuccess() async throws {
+        await useBootstrap()
         store.worktrees = [WorktreeSample.needsBootstrap]
 
         store.bootstrap(id: WorktreeSample.needsBootstrap.id)
@@ -298,6 +355,7 @@ import DevHubTestSupport
     }
 
     @Test func bootstrapLogsFailure() async throws {
+        await useBootstrap()
         store.worktrees = [WorktreeSample.needsBootstrap]
         harness.spies.worktrees.bootstrapError = failure
 

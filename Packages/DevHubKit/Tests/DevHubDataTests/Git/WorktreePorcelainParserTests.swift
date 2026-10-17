@@ -7,7 +7,7 @@ import Testing
     @Test func parsesEveryEntry() {
         #expect(entries.map(\.path) == [
             "/Users/me/App",
-            "/Users/me/App/.claude/worktrees/feature-x",
+            "/Users/me/App/.worktrees/feature-x",
             "/Users/me/App-detached",
             "/Users/me/App-locked",
         ])

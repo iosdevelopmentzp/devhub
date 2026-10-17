@@ -21,7 +21,9 @@ struct WorktreeRowModel: Identifiable, Equatable {
     var statusTags: [TagModel]
     var isBootstrapping: Bool
     var bootstrapTag: TagModel?
-    var canRunInit: Bool
+    var canRunBootstrap: Bool
+    var bootstrapTitle: String
+    var bootstrapRunningText: String
     var isBusy: Bool
     var isBuildSource: Bool
     var canBuildAndRun: Bool
@@ -40,12 +42,12 @@ struct WorktreeRowModel: Identifiable, Equatable {
     var configActions: [ConfigActionItemModel]
 
     static let preview = WorktreeRowModel(
-        id: "/Users/dev/Projects/ExampleApp/.claude/worktrees/ABC-2600-newFeature",
+        id: "/Users/dev/Projects/ExampleApp/.worktrees/ABC-2600-newFeature",
         title: "ABC-2600-newFeature",
         titleCopyValue: "ABC-2600-newFeature",
-        path: "/Users/dev/Projects/ExampleApp/.claude/worktrees/ABC-2600-newFeature",
-        pathCopyLabel: "~/Projects/ExampleApp/.claude/worktrees/ABC-2600-newFeature",
-        displayPath: ".claude/worktrees/ABC-2600-newFeature",
+        path: "/Users/dev/Projects/ExampleApp/.worktrees/ABC-2600-newFeature",
+        pathCopyLabel: "~/Projects/ExampleApp/.worktrees/ABC-2600-newFeature",
+        displayPath: ".worktrees/ABC-2600-newFeature",
         head: "a1b2c3d",
         branch: "ABC-2600-newFeature",
         lastCommit: "Add the new feature screen",
@@ -54,9 +56,7 @@ struct WorktreeRowModel: Identifiable, Equatable {
         iconHint: "Claude Code agent worktree",
         iconTint: .orange,
         isHighlighted: false,
-        titleTags: [
-            TagModel("claude", tint: .teal, systemImage: "sparkle", hint: "Lives in .claude/worktrees, the Claude Code agent folder. Gitignored.")
-        ],
+        titleTags: [],
         statusTags: [
             TagModel("3 changed", tint: .orange, systemImage: "pencil"),
             TagModel("↑2", hint: "Commits ahead / behind origin/ABC-2600-newFeature"),
@@ -64,18 +64,20 @@ struct WorktreeRowModel: Identifiable, Equatable {
         ],
         isBootstrapping: false,
         bootstrapTag: TagModel(
-            "needs init.sh",
+            "needs bootstrap",
             tint: .orange,
             systemImage: "wrench.and.screwdriver",
-            hint: "Carthage/Build is missing in this worktree. Click to run init.sh (Carthage, SwiftGen)."
+            hint: "Pods is missing in this worktree. Click to run scripts/bootstrap.sh."
         ),
-        canRunInit: true,
+        canRunBootstrap: true,
+        bootstrapTitle: "Run scripts/bootstrap.sh",
+        bootstrapRunningText: "Running scripts/bootstrap.sh…",
         isBusy: false,
         isBuildSource: false,
         canBuildAndRun: true,
         canOpen: true,
         canUseAsBuildSource: true,
-        buildSourceIDToUse: "/Users/dev/Projects/ExampleApp/.claude/worktrees/ABC-2600-newFeature",
+        buildSourceIDToUse: "/Users/dev/Projects/ExampleApp/.worktrees/ABC-2600-newFeature",
         buildAndRunTint: .green,
         deleteTint: .red,
         canDelete: true,

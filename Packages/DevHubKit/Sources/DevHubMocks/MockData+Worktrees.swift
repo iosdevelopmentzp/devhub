@@ -12,7 +12,7 @@ extension MockData {
             lastActivity: ago(hours: 2)
         ),
         worktree(
-            "~/Documents/Projects/example-app/.claude/worktrees/ABC-2501",
+            "~/Documents/Projects/example-app/.worktrees/ABC-2501",
             branch: "ABC-2501-giftsBannerRedesign",
             changedFiles: 7,
             behind: 3,
@@ -20,7 +20,7 @@ extension MockData {
             lastActivity: ago(minutes: 35)
         ),
         worktree(
-            "~/Documents/Projects/example-app/.claude/worktrees/ABC-1881",
+            "~/Documents/Projects/example-app/.worktrees/ABC-1881",
             branch: "ABC-1881-neverCarriedSettled",
             behind: 12,
             isMerged: true,
@@ -28,7 +28,7 @@ extension MockData {
             lastActivity: ago(days: 2)
         ),
         worktree(
-            "~/Documents/Projects/example-app/.claude/worktrees/NO-TASK",
+            "~/Documents/Projects/example-app/.worktrees/NO-TASK",
             branch: "NO-TASK-mrClaudeAutoReview",
             isUpstreamGone: true,
             lastCommit: "Add MR auto review job",
@@ -44,7 +44,7 @@ extension MockData {
             needsBootstrap: true
         ),
         worktree(
-            "~/Documents/Projects/example-app/.claude/worktrees/hotfix",
+            "~/Documents/Projects/example-app/.worktrees/hotfix",
             branch: "hotfix-login-crash",
             isMissing: true,
             lastCommit: "",
@@ -54,15 +54,15 @@ extension MockData {
 
     package static let derivedDataSizes: [Worktree.ID: Int64] = [
         "~/Documents/Projects/example-app": 6_800_000_000,
-        "~/Documents/Projects/example-app/.claude/worktrees/ABC-2501": 3_100_000_000,
-        "~/Documents/Projects/example-app/.claude/worktrees/ABC-1881": 2_900_000_000,
-        "~/Documents/Projects/example-app/.claude/worktrees/NO-TASK": 2_400_000_000
+        "~/Documents/Projects/example-app/.worktrees/ABC-2501": 3_100_000_000,
+        "~/Documents/Projects/example-app/.worktrees/ABC-1881": 2_900_000_000,
+        "~/Documents/Projects/example-app/.worktrees/NO-TASK": 2_400_000_000
     ]
 
     private static func worktree(
         _ path: String,
         branch: String,
-        kind: Worktree.Kind = .agent,
+        kind: Worktree.Kind = .linked,
         changedFiles: Int = 0,
         isUpstreamGone: Bool = false,
         ahead: Int = 0,

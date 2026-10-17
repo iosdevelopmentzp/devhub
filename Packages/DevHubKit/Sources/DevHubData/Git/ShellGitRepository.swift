@@ -17,7 +17,7 @@ struct ShellGitRepository: GitRepository {
     func state(checkoutPath: String, mainPath: String) async throws -> GitRepositoryState {
         let path = (checkoutPath as NSString).expandingTildeInPath
         let main = (mainPath as NSString).expandingTildeInPath
-        let base = await worktrees.baseBranch(projectPath: main)
+        let base = await worktrees.baseBranch(projectPath: main, remote: GitSettingsPolicy.defaultRemote)
 
         async let snapshot = snapshot(in: path, base: base)
         async let locals = localBranches(in: path, main: main, base: base)

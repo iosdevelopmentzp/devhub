@@ -16,12 +16,16 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- Worktrees follow `git.worktrees` in `.devhub/project.json`: new worktrees go into `folder` (default: next to the repository as `<repo>-<branch>`), the `include` files are copied from the main checkout, and the `bootstrap` script runs when `bootstrapMarker` is missing in the worktree, or once after creation when there is no marker. The fixed `init.sh`, `.worktreeinclude` and `.claude/worktrees` conventions and the "claude" tag are gone.
 - DevHub now runs on the package architecture of the main DevHub: seven modules in `Packages/DevHubKit`, Swift 6, about 1,480 tests. The tabs are Home, Git, GitLab, Worktrees, Simulators, Logs, Network and Claude, with Settings behind the gear.
 - The first launch has no project. The panel shows "No project yet" with an Add Project button.
 - The Network tab shows only the requests that pass through the DevHub mock server.
 - "Copy for Slack" is now "Copy Link with Title".
 - The base branch falls back to `origin/main`.
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
+
+### Fixed
+- Releasing a store whose event handler held another store no longer crashes: `AppEvents` released a handler while it changed the handler list.
 
 ### Removed
 - Slack commands (tab, catalog file, history). A config action or a script covers that need.

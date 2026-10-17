@@ -4,7 +4,7 @@ enum WorktreePorcelainFixture {
     HEAD 0123456789abcdef
     branch refs/heads/main
 
-    worktree /Users/me/App/.claude/worktrees/feature-x
+    worktree /Users/me/App/.worktrees/feature-x
     HEAD abcdef0123456789
     branch refs/heads/feature/x
     locked agent is working

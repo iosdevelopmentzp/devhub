@@ -28,7 +28,7 @@ struct MockGitRepository: GitRepository {
             localBranches: [
                 GitBranch(name: "ABC-2489-leaderboardFollowStatusReset", upstream: "origin/ABC-2489-leaderboardFollowStatusReset", ahead: 1, behind: 0, isGone: false, isMerged: false, subject: "Reset a Leaderboard follow status", commitDate: now.addingTimeInterval(-7_200), lastVisited: now.addingTimeInterval(-600), worktreePath: mainPath),
                 GitBranch(name: "dev", upstream: "origin/dev", ahead: 0, behind: 12, isGone: false, isMerged: true, subject: "Merge branch 'ABC-1881' into 'dev'", commitDate: now.addingTimeInterval(-3_600), lastVisited: now.addingTimeInterval(-86_400), worktreePath: nil),
-                GitBranch(name: "ABC-2245-leaderboarLocalizationFixes", upstream: "origin/ABC-2245-leaderboarLocalizationFixes", ahead: 0, behind: 0, isGone: true, isMerged: true, subject: "Rename the Leaderboard diamonds keys", commitDate: now.addingTimeInterval(-172_800), lastVisited: now.addingTimeInterval(-259_200), worktreePath: "\(mainPath)/.claude/worktrees/ABC-2245")
+                GitBranch(name: "ABC-2245-leaderboarLocalizationFixes", upstream: "origin/ABC-2245-leaderboarLocalizationFixes", ahead: 0, behind: 0, isGone: true, isMerged: true, subject: "Rename the Leaderboard diamonds keys", commitDate: now.addingTimeInterval(-172_800), lastVisited: now.addingTimeInterval(-259_200), worktreePath: "\(mainPath)/.worktrees/ABC-2245")
             ],
             remoteBranches: [
                 RemoteBranch(name: "origin/dev", author: "GitLab", subject: "Merge branch 'ABC-1881' into 'dev'", commitDate: now.addingTimeInterval(-3_600)),

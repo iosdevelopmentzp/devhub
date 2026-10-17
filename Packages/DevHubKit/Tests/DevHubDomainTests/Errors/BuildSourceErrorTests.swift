@@ -11,8 +11,8 @@ import Testing
     }
 
     @Test func bootstrapFailedShowsTheMessage() {
-        let error = BuildSourceError.bootstrapFailed(worktreeName: "feature", path: "/w", createdWorktree: true, message: "init.sh failed")
+        let error = BuildSourceError.bootstrapFailed(worktreeName: "feature", path: "/w", createdWorktree: true, message: "bootstrap failed")
 
-        #expect(error.errorDescription == "init.sh failed")
+        #expect(error.errorDescription == "bootstrap failed")
     }
 }

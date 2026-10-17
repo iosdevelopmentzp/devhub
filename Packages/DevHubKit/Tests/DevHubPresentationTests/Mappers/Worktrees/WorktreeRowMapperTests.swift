@@ -1,4 +1,5 @@
 import DevHubDomain
+import DevHubTestSupport
 import DevHubUI
 import Foundation
 import Testing
@@ -7,10 +8,10 @@ import Testing
 @Suite struct WorktreeRowMapperTests {
     let clean = TagModel("clean", tint: .green, systemImage: "checkmark")
     let bootstrapTag = TagModel(
-        "needs init.sh",
+        "needs bootstrap",
         tint: .orange,
         systemImage: "wrench.and.screwdriver",
-        hint: "Carthage/Build is missing in this worktree. Click to run init.sh (Carthage, SwiftGen)."
+        hint: "Pods is missing in this worktree. Click to run scripts/bootstrap.sh."
     )
 
     @Test func mainCheckout() {
@@ -60,19 +61,31 @@ import Testing
         #expect(model.defaultDeleteBranch == false)
     }
 
-    @Test func agentWorktreeInsideTheMainCheckout() {
-        let model = row(WorktreeFixture.agent)
+    @Test func aWorktreeInsideTheMainCheckoutShowsARelativePath() {
+        let model = row(WorktreeFixture.nested)
 
-        #expect(model.icon == "sparkles")
-        #expect(model.iconHint == "Claude Code agent worktree")
-        #expect(model.displayPath == ".claude/worktrees/gifts")
+        #expect(model.icon == "arrow.triangle.branch")
+        #expect(model.iconHint == "Linked worktree")
+        #expect(model.displayPath == ".worktrees/gifts")
         #expect(model.lastCommit == nil)
-        #expect(model.titleTags == [TagModel(
-            "claude",
-            tint: .teal,
-            systemImage: "sparkle",
-            hint: "Lives in .claude/worktrees, the Claude Code agent folder. Gitignored."
-        )])
+        #expect(model.titleTags.isEmpty)
+    }
+
+    @Test func withoutABootstrapScriptTheRowCannotRunOne() {
+        let model = WorktreeRowMapper.model(
+            for: WorktreeFixture.linked,
+            baseBranch: "origin/dev",
+            mainCheckoutPath: WorktreeFixture.mainPath,
+            derivedDataSize: nil,
+            isBusy: false,
+            isBootstrapping: false,
+            isBuildSource: false,
+            buildIsRunning: false,
+            bootstrap: .standard,
+            configActions: []
+        )
+
+        #expect(model.canRunBootstrap == false)
     }
 
     @Test func dirtyWorktree() {
@@ -189,6 +202,7 @@ import Testing
             isBootstrapping: false,
             isBuildSource: false,
             buildIsRunning: false,
+            bootstrap: GitSettings.withBootstrap.worktrees,
             configActions: [.preview]
         )
 
@@ -210,13 +224,16 @@ import Testing
             isBootstrapping: true,
             isBuildSource: false,
             buildIsRunning: false,
+            bootstrap: GitSettings.withBootstrap.worktrees,
             configActions: []
         )
 
         #expect(row(WorktreeFixture.linked).bootstrapTag == nil)
-        #expect(row(WorktreeFixture.linked).canRunInit == false)
+        #expect(row(WorktreeFixture.linked).canRunBootstrap)
+        #expect(row(WorktreeFixture.main).canRunBootstrap == false)
         #expect(needed.bootstrapTag == bootstrapTag)
-        #expect(needed.canRunInit)
+        #expect(needed.bootstrapTitle == "Run scripts/bootstrap.sh")
+        #expect(needed.bootstrapRunningText == "Running scripts/bootstrap.sh…")
         #expect(needed.isBootstrapping == false)
         #expect(running.bootstrapTag == nil)
         #expect(running.isBootstrapping)
@@ -232,6 +249,7 @@ import Testing
             isBootstrapping: false,
             isBuildSource: true,
             buildIsRunning: true,
+            bootstrap: GitSettings.withBootstrap.worktrees,
             configActions: []
         )
 
@@ -256,7 +274,7 @@ import Testing
 
     @Test func pathOutsideTheMainCheckoutIsAbbreviated() {
         let model = WorktreeRowMapper.model(
-            for: WorktreeFixture.agent,
+            for: WorktreeFixture.nested,
             baseBranch: "origin/dev",
             mainCheckoutPath: nil,
             derivedDataSize: nil,
@@ -264,10 +282,11 @@ import Testing
             isBootstrapping: false,
             isBuildSource: false,
             buildIsRunning: false,
+            bootstrap: GitSettings.withBootstrap.worktrees,
             configActions: []
         )
 
-        #expect(model.displayPath == WorktreeFixture.agent.path.abbreviatingHome)
+        #expect(model.displayPath == WorktreeFixture.nested.path.abbreviatingHome)
     }
 
     private func row(_ worktree: Worktree) -> WorktreeRowModel {
@@ -280,6 +299,7 @@ import Testing
             isBootstrapping: false,
             isBuildSource: false,
             buildIsRunning: false,
+            bootstrap: GitSettings.withBootstrap.worktrees,
             configActions: []
         )
     }

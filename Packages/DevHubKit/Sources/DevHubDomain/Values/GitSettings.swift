@@ -1,0 +1,31 @@
+import Foundation
+
+package struct GitSettings: Hashable, Sendable {
+    package var remote: String
+    package var baseBranch: String?
+    package var protectedBranches: [String]
+    package var ticketPattern: String
+    package var ticketFormat: String
+    package var ticketURL: String?
+    package var worktrees: WorktreeSettings
+
+    package static let standard = GitSettingsPolicy.settings(for: ProjectConfig())
+
+    package init(
+        remote: String,
+        baseBranch: String?,
+        protectedBranches: [String],
+        ticketPattern: String,
+        ticketFormat: String,
+        ticketURL: String?,
+        worktrees: WorktreeSettings
+    ) {
+        self.remote = remote
+        self.baseBranch = baseBranch
+        self.protectedBranches = protectedBranches
+        self.ticketPattern = ticketPattern
+        self.ticketFormat = ticketFormat
+        self.ticketURL = ticketURL
+        self.worktrees = worktrees
+    }
+}
