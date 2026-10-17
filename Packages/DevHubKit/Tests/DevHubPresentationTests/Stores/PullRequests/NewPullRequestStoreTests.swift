@@ -115,4 +115,27 @@ import Testing
         harness.events.post(.projectChanged)
         #expect(store.draft == nil)
     }
+
+    @Test func theProjectConfigSetsTheFormDefaults() async throws {
+        await prepare()
+        let config = ProjectConfig(git: GitConfig(pullRequests: PullRequestsConfig(defaults: PullRequestDefaultsConfig(draft: true, deleteSourceBranch: false, squash: true))))
+        harness.spies.config.loadResult = ResolvedConfig(project: config, actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+
+        await store.open(branch: "APP-12-login", origin: .pullRequests)
+
+        let draft = try #require(store.draft)
+        #expect(draft.isDraft)
+        #expect(draft.removeSourceBranch == false)
+        #expect(draft.squash)
+    }
+
+    @Test func gitHubReadsItsOwnTemplate() async {
+        await prepare()
+        harness.spies.git.webURLResult = CodeHost.gitHubSample.webURL
+
+        await store.open(branch: "APP-12-login", origin: .pullRequests)
+
+        #expect(harness.spies.git.templateFiles == [".github/pull_request_template.md"])
+    }
 }

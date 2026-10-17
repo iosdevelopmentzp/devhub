@@ -21,7 +21,7 @@ struct PullRequestWindowView: View {
                 PullRequestRow(
                     model: PullRequestRowMapper.model(
                         for: summary,
-                        context: PullRequestRowContext(username: pullRequests.username, scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate), words: words),
+                        context: PullRequestRowContext(username: pullRequests.username, scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate), words: words, staleDays: git.gitSettings.pullRequests.staleDays),
                         local: PullRequestLocalStateMapper.state(for: summary.sourceBranch, checkout: git, worktrees: worktrees),
                         isBusy: pullRequests.isBusy(summary.id),
                         isExpanded: true

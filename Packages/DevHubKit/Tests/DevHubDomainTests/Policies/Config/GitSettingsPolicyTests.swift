@@ -62,4 +62,33 @@ import Testing
         #expect(config.git?.protectedBranches == ["release"])
         #expect(config.git?.ticketURL == "https://tracker.example.com/{key}")
     }
+
+    @Test func pullRequestSettingsHaveDefaults() {
+        let settings = GitSettingsPolicy.settings(for: ProjectConfig()).pullRequests
+
+        #expect(settings == PullRequestSettings(targets: nil, template: nil, staleDays: 14, isDraft: false, deleteSourceBranch: true, squash: false, reviewCommand: #"claude "$(cat {prompt})""#))
+    }
+
+    @Test func pullRequestSettingsComeFromConfig() {
+        let config = ProjectConfig(
+            git: GitConfig(pullRequests: PullRequestsConfig(
+                targets: ["main", " "],
+                template: "docs/pr.md",
+                staleDays: 3,
+                defaults: PullRequestDefaultsConfig(draft: true, deleteSourceBranch: false, squash: true)
+            )),
+            ai: AIConfig(reviewCommand: "codex {prompt}")
+        )
+
+        let settings = GitSettingsPolicy.settings(for: config).pullRequests
+
+        #expect(settings == PullRequestSettings(targets: ["main"], template: "docs/pr.md", staleDays: 3, isDraft: true, deleteSourceBranch: false, squash: true, reviewCommand: "codex {prompt}"))
+    }
+
+    @Test func theTemplateDependsOnTheHost() {
+        let settings = GitSettings.standard.pullRequests
+
+        #expect(GitSettingsPolicy.templatePath(settings, kind: .github) == ".github/pull_request_template.md")
+        #expect(GitSettingsPolicy.templatePath(settings, kind: .gitlab) == ".gitlab/merge_request_templates/Default.md")
+    }
 }

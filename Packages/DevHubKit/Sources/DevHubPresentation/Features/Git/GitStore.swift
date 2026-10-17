@@ -366,7 +366,8 @@ final class GitStore: CheckoutContext {
             remoteBranches: (state?.remoteBranches ?? []).map(\.name),
             source: branch,
             baseName: baseName,
-            remote: remote
+            remote: remote,
+            preferred: gitSettings.pullRequests.targets
         )
     }
 

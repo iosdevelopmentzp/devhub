@@ -7,7 +7,8 @@ import Testing
             remoteBranches: ["origin/release/2.0", "origin/main", "origin/feature/x", "origin/dev", "origin/staging"],
             source: "feature/x",
             baseName: "staging",
-            remote: "origin"
+            remote: "origin",
+            preferred: nil
         )
 
         #expect(targets == ["dev", "staging", "main", "release/2.0"])
@@ -18,14 +19,27 @@ import Testing
             remoteBranches: ["origin/HEAD", "origin/dev", "origin/feature/x"],
             source: "origin/feature/x",
             baseName: "dev",
-            remote: "origin"
+            remote: "origin",
+            preferred: nil
         )
 
         #expect(targets == ["dev"])
     }
 
     @Test func withoutRemoteBranchesTheBaseIsTheOnlyTarget() {
-        #expect(PullRequestTargetPolicy.targets(remoteBranches: [], source: "feature/x", baseName: "dev", remote: "origin") == ["dev"])
-        #expect(PullRequestTargetPolicy.targets(remoteBranches: [], source: "dev", baseName: "dev", remote: "origin").isEmpty)
+        #expect(PullRequestTargetPolicy.targets(remoteBranches: [], source: "feature/x", baseName: "dev", remote: "origin", preferred: nil) == ["dev"])
+        #expect(PullRequestTargetPolicy.targets(remoteBranches: [], source: "dev", baseName: "dev", remote: "origin", preferred: nil).isEmpty)
+    }
+
+    @Test func configuredTargetsComeFirstInTheirOrder() {
+        let targets = PullRequestTargetPolicy.targets(
+            remoteBranches: ["origin/main", "origin/dev", "origin/release", "origin/feature/x"],
+            source: "feature/x",
+            baseName: "dev",
+            remote: "origin",
+            preferred: ["release", "main", "missing"]
+        )
+
+        #expect(targets == ["release", "main", "dev"])
     }
 }

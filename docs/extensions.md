@@ -49,6 +49,13 @@ All fields optional. Missing values are detected (see "default").
 | `git.worktrees.include` | [path] | `[]` | files copied from the main checkout into a new worktree when they are missing there |
 | `git.worktrees.bootstrap` | path relative to the worktree | — | script run inside a new worktree when `bootstrapMarker` exists in the main checkout and not in the worktree; an executable file runs as is, another file runs with `zsh`; a worktree row offers it in its menu |
 | `git.worktrees.bootstrapMarker` | path | — | see above; without a marker the bootstrap runs once after creation |
+| `git.pullRequests.targets` | [string] | `dev`, the base branch, `develop`, `main`, `master` | the order of the target picker in the new request form; names that do not exist on the remote are skipped; the other remote branches follow, sorted |
+| `git.pullRequests.template` | path relative to the checkout | `.github/pull_request_template.md` on GitHub, `.gitlab/merge_request_templates/Default.md` on GitLab | the description of a new request starts with this file when it exists |
+| `git.pullRequests.staleDays` | number | `14` | an open request without an update for this many days gets the `stale` tag |
+| `git.pullRequests.defaults.draft` | bool | `false` | the Draft box of the new request form |
+| `git.pullRequests.defaults.deleteSourceBranch` | bool | `true` | the "Delete source branch" box of the new request form |
+| `git.pullRequests.defaults.squash` | bool | `false` | the Squash box of the new request form |
+| `ai.reviewCommand` | string | `claude "$(cat {prompt})"` | "Fix threads with AI" runs this command in a terminal inside the worktree; `{prompt}` becomes the quoted path of the prompt file |
 | `launch.profiles[]` | [profile] | `[]` | section 5 |
 | `logs.process` | string | `CFBundleExecutable` of the installed app | default process filter of a log stream |
 | `logs.subsystem` | string | — | when set, the stream predicate filters by subsystem instead of process |

@@ -34,6 +34,10 @@ import Testing
     }
 
     @Test func commandReadsTheQuotedPromptFile() {
-        #expect(ReviewPromptBuilder.command(promptPath: "/Users/me/.devhub/prompts/mr-21.md") == "claude \"$(cat '/Users/me/.devhub/prompts/mr-21.md')\"")
+        #expect(ReviewPromptBuilder.command(promptPath: "/Users/me/.devhub/prompts/mr-21.md", template: GitSettingsPolicy.defaultReviewCommand) == "claude \"$(cat '/Users/me/.devhub/prompts/mr-21.md')\"")
+    }
+
+    @Test func theCommandFollowsTheTemplate() {
+        #expect(ReviewPromptBuilder.command(promptPath: "/tmp/p.md", template: "codex exec \"$(cat {prompt})\"") == "codex exec \"$(cat '/tmp/p.md')\"")
     }
 }

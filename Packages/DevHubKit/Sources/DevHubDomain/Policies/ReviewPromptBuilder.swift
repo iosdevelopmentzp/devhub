@@ -25,8 +25,8 @@ package enum ReviewPromptBuilder {
         return lines.joined(separator: "\n") + "\n"
     }
 
-    package static func command(promptPath: String) -> String {
-        "claude \"$(cat \(promptPath.shellQuoted))\""
+    package static func command(promptPath: String, template: String) -> String {
+        template.replacingOccurrences(of: "{prompt}", with: promptPath.shellQuoted)
     }
 
     private static func block(_ thread: PullRequestThread, number: Int) -> [String] {

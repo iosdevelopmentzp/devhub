@@ -122,7 +122,7 @@ private final class PushFailingGitRepository: GitRepository {
         []
     }
 
-    func pullRequestTemplate(in path: String) async -> String? {
+    func pullRequestTemplate(in path: String, file: String) async -> String? {
         nil
     }
 }

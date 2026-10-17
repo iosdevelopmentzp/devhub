@@ -5,5 +5,5 @@ package protocol GitRepository: Sendable {
     func perform(_ command: GitCommand, in path: String) async throws
     func webURL(checkoutPath: String, remote: String) async -> URL?
     func commitSubjects(from base: String, to head: String, in path: String) async throws -> [String]
-    func pullRequestTemplate(in path: String) async -> String?
+    func pullRequestTemplate(in path: String, file: String) async -> String?
 }

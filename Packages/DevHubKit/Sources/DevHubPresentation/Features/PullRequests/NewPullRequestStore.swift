@@ -44,6 +44,7 @@ final class NewPullRequestStore {
     }
 
     func open(branch: String, origin: NewPullRequestDraft.Origin) async {
+        let settings = checkout.gitSettings.pullRequests
         let targets = checkout.pullRequestTargets(for: branch)
         let local = checkout.localBranch(named: branch)
         let target = targets.first ?? checkout.baseName
@@ -56,9 +57,9 @@ final class NewPullRequestStore {
             description: "",
             availableLabels: [],
             labels: [],
-            isDraft: false,
-            removeSourceBranch: true,
-            squash: false,
+            isDraft: settings.isDraft,
+            removeSourceBranch: settings.deleteSourceBranch,
+            squash: settings.squash,
             pushPlan: CreatePullRequestUseCase.pushPlan(upstream: local?.upstream, ahead: local?.ahead ?? 0, isCurrent: branch == checkout.currentBranch),
             isLoading: true,
             isCreating: false,
@@ -67,7 +68,8 @@ final class NewPullRequestStore {
         let path = checkout.checkoutPath
         let targetRef = BranchName(target, remote: remote.remoteName).remoteRef
         async let subjects = try? git.commitSubjects(from: targetRef, to: branch, in: path)
-        async let template = git.pullRequestTemplate(in: path)
+        let kind = (try? await remote.codeHost())?.kind
+        async let template = git.pullRequestTemplate(in: path, file: GitSettingsPolicy.templatePath(settings, kind: kind))
         async let labels = loadLabels()
         let (loadedSubjects, loadedTemplate, loadedLabels) = await (subjects ?? [], template, labels)
         guard draft?.sourceBranch == branch, draft?.origin == origin else { return }

@@ -70,7 +70,7 @@ struct PullRequestsView: View {
     }
 
     private var context: PullRequestRowContext {
-        PullRequestRowContext(username: pullRequests.username, scope: pullRequests.scope, seenAt: pullRequests.seenAt, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate), words: words)
+        PullRequestRowContext(username: pullRequests.username, scope: pullRequests.scope, seenAt: pullRequests.seenAt, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate), words: words, staleDays: git.gitSettings.pullRequests.staleDays)
     }
 
     private func localState(_ branch: String) -> PullRequestLocalState {

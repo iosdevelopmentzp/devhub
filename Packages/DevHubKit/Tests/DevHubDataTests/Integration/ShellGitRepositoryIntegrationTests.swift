@@ -69,11 +69,11 @@ import Testing
     }
 
     @Test func thePullRequestTemplateIsReadFromTheCheckout() async throws {
-        #expect(await repository.pullRequestTemplate(in: repo.path) == nil)
+        #expect(await repository.pullRequestTemplate(in: repo.path, file: ".gitlab/merge_request_templates/Default.md") == nil)
 
         try repo.write("## What\n", to: ".gitlab/merge_request_templates/Default.md")
 
-        #expect(await repository.pullRequestTemplate(in: repo.path) == "## What\n")
+        #expect(await repository.pullRequestTemplate(in: repo.path, file: ".gitlab/merge_request_templates/Default.md") == "## What\n")
     }
 
     @Test func stateReportsAMergeInProgress() async throws {

@@ -48,7 +48,7 @@ struct MockGitRepository: GitRepository {
         ["ABC-2489: Reset the follow status", "ABC-2489: Add a test for the reset"]
     }
 
-    func pullRequestTemplate(in path: String) async -> String? {
+    func pullRequestTemplate(in path: String, file: String) async -> String? {
         nil
     }
 

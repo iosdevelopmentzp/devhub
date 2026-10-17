@@ -86,12 +86,10 @@ struct ShellGitRepository: GitRepository {
         return output.split(separator: "\n").map(String.init)
     }
 
-    func pullRequestTemplate(in path: String) async -> String? {
-        let file = ((path as NSString).expandingTildeInPath as NSString).appendingPathComponent(Self.templatePath)
-        return try? String(contentsOfFile: file, encoding: .utf8)
+    func pullRequestTemplate(in path: String, file: String) async -> String? {
+        let full = ((path as NSString).expandingTildeInPath as NSString).appendingPathComponent(file)
+        return try? String(contentsOfFile: full, encoding: .utf8)
     }
-
-    static let templatePath = ".gitlab/merge_request_templates/Default.md"
 
     static func webURL(fromRemote remote: String) -> URL? {
         var value = remote

@@ -9,13 +9,18 @@ import Testing
         let old = request(.opened, updatedDaysAgo: 14)
         let fresh = request(.opened, updatedDaysAgo: 13)
 
-        #expect(PullRequestAgePolicy.isStale(old, now: now))
-        #expect(PullRequestAgePolicy.isStale(fresh, now: now) == false)
+        #expect(PullRequestAgePolicy.isStale(old, now: now, staleDays: 14))
+        #expect(PullRequestAgePolicy.isStale(fresh, now: now, staleDays: 14) == false)
+    }
+
+    @Test func theProjectSetsTheDays() {
+        #expect(PullRequestAgePolicy.isStale(request(.opened, updatedDaysAgo: 3), now: now, staleDays: 3))
+        #expect(PullRequestAgePolicy.isStale(request(.opened, updatedDaysAgo: 2), now: now, staleDays: 3) == false)
     }
 
     @Test func finishedOrUndatedRequestsAreNeverStale() {
-        #expect(PullRequestAgePolicy.isStale(request(.merged, updatedDaysAgo: 40), now: now) == false)
-        #expect(PullRequestAgePolicy.isStale(PullRequestSummaryFixture.open, now: now) == false)
+        #expect(PullRequestAgePolicy.isStale(request(.merged, updatedDaysAgo: 40), now: now, staleDays: 14) == false)
+        #expect(PullRequestAgePolicy.isStale(PullRequestSummaryFixture.open, now: now, staleDays: 14) == false)
     }
 
     @Test func aRequestIsNewWhenUpdatedAfterTheLastVisit() {

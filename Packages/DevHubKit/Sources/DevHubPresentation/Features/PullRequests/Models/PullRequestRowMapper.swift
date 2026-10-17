@@ -72,8 +72,8 @@ enum PullRequestRowMapper {
         if request.isBehindTarget, isOpen {
             tags.append(PullRequestTagMapper.behindTag(targetBranch: request.targetBranch, words: context.words))
         }
-        if PullRequestAgePolicy.isStale(request, now: context.now) {
-            tags.append(TagModel("stale", tint: .orange, systemImage: "hourglass", hint: "No update for 14 days or more"))
+        if PullRequestAgePolicy.isStale(request, now: context.now, staleDays: context.staleDays) {
+            tags.append(TagModel("stale", tint: .orange, systemImage: "hourglass", hint: "No update for \(context.staleDays) days or more"))
         }
         if let approval = PullRequestTagMapper.approvalTag(approvedBy: request.approvedBy, username: context.username) {
             tags.append(approval)

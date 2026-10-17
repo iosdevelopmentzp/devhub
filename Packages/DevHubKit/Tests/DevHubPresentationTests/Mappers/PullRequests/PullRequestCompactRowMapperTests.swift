@@ -44,7 +44,7 @@ import Testing
     @Test func modelTakesTheRowFactsAndHidesTheAuthorInMine() {
         let request = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, author: "me", updatedAt: Date(timeIntervalSinceNow: -60))
         let row = PullRequestRowModel.preview
-        let context = PullRequestRowContext(username: "me", scope: .mine, seenAt: nil, now: .now, isMainCheckoutClean: true, ticket: .standard, words: .gitLab)
+        let context = PullRequestRowContext(username: "me", scope: .mine, seenAt: nil, now: .now, isMainCheckoutClean: true, ticket: .standard, words: .gitLab, staleDays: 14)
 
         let model = PullRequestCompactRowMapper.model(for: request, row: row, context: context)
 

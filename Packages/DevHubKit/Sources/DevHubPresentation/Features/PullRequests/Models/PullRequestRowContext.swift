@@ -9,4 +9,5 @@ struct PullRequestRowContext {
     var isMainCheckoutClean: Bool
     var ticket: TicketSettings
     var words: CodeHostWords
+    var staleDays: Int
 }

@@ -388,7 +388,7 @@ private nonisolated final class PushRejectingGitRepository: GitRepository {
         []
     }
 
-    func pullRequestTemplate(in path: String) async -> String? {
+    func pullRequestTemplate(in path: String, file: String) async -> String? {
         nil
     }
 }

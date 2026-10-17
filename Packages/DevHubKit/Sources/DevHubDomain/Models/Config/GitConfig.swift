@@ -8,6 +8,7 @@ package struct GitConfig: Codable, Hashable, Sendable {
     package var ticketURL: String? = nil
     package var worktrees: WorktreesConfig? = nil
     package var host: GitHostConfig? = nil
+    package var pullRequests: PullRequestsConfig? = nil
 
     package init(
         remote: String? = nil,
@@ -16,7 +17,8 @@ package struct GitConfig: Codable, Hashable, Sendable {
         commitPrefix: CommitPrefixConfig? = nil,
         ticketURL: String? = nil,
         worktrees: WorktreesConfig? = nil,
-        host: GitHostConfig? = nil
+        host: GitHostConfig? = nil,
+        pullRequests: PullRequestsConfig? = nil
     ) {
         self.remote = remote
         self.baseBranch = baseBranch
@@ -25,5 +27,6 @@ package struct GitConfig: Codable, Hashable, Sendable {
         self.ticketURL = ticketURL
         self.worktrees = worktrees
         self.host = host
+        self.pullRequests = pullRequests
     }
 }

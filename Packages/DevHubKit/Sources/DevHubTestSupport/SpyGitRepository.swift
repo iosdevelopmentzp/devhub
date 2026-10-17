@@ -35,6 +35,7 @@ package final class SpyGitRepository: GitRepository, @unchecked Sendable {
     private var _calls: [Call] = []
     private var _settings: [GitSettings] = []
     private var _remotes: [String] = []
+    private var _templateFiles: [String] = []
     private var _stateResult: Result<GitRepositoryState, any Error> = .success(SpyGitRepository.emptyState)
     private var _performError: (any Error)? = nil
     private var _commandErrors: [GitCommand: any Error] = [:]
@@ -77,8 +78,13 @@ package final class SpyGitRepository: GitRepository, @unchecked Sendable {
         record(.commitSubjects(base: base, head: head, path: path)) { _subjectsResult }
     }
 
-    package func pullRequestTemplate(in path: String) async -> String? {
-        record(.pullRequestTemplate(path: path)) { _templateResult }
+    package func pullRequestTemplate(in path: String, file: String) async -> String? {
+        lock.withLock { _templateFiles.append(file) }
+        return record(.pullRequestTemplate(path: path)) { _templateResult }
+    }
+
+    package var templateFiles: [String] {
+        lock.withLock { _templateFiles }
     }
 
     package var settings: [GitSettings] {
