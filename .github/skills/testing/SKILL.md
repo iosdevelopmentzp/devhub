@@ -142,6 +142,10 @@ that something did **not** happen.
   <Type>IntegrationTests`. Both the tag and the name are required: `swift test` cannot skip by tag, so
   `Scripts/test.sh --skip integration` skips by the name. `.integration` is declared in
   `DevHubDataTests/Support/Tag+Integration.swift`.
+- `GhIntegrationTests` reads a real GitHub repository through `gh`. It runs only with
+  `DEVHUB_PLAYGROUND=owner/repo Scripts/test.sh --filter GhIntegrationTests` and is skipped otherwise.
+  The repository needs open pull requests, one of them with an open review thread, and one merged
+  pull request. The suite only reads: it never approves, merges or writes.
 - `TemporaryGitRepository` (`DevHubDataTests/Support/`) runs `git init -b main`, two commits, branches `feature` and
   `merged-branch`, and a linked worktree `linked`, through a real `ShellRunner` with a `SpyCommandRecorder`.
 

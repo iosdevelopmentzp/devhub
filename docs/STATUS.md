@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-18 (rewrite, milestone M3)
+Last updated: 2026-10-18 (rewrite, milestone M4)
 
 ## Stage
 
@@ -10,7 +10,8 @@ The app is being rewritten on the package architecture of the main DevHub. The p
 - M1 done: the package `Packages/DevHubKit` (seven modules, about 1,480 tests) is the app. Slack commands and the session log reader are gone. The first generic app is in `legacy/` as the port source and is not built.
 - M2 done: the `.devhub/` config system inside the modules (ADR 002): Home quick actions and scripts, config problems, hot reload, placements in the Git header, branch, worktree and simulator rows, the run bar and the Logs toolbar. About 1,570 tests.
 - M3 done: Git from config. `git.remote`, `git.baseBranch`, `git.protectedBranches`, `git.commitPrefix`, `git.ticketURL`, `git.worktrees.*`; "Open in Editor" on file rows; `DEVHUB_GIT_OPS`. Checked on a throwaway repository with a bare remote called `upstream`. About 1,600 tests.
-- Next: M4, Pull Requests with GitHub first and GitLab second (ADR 001 section 6 and 7.4).
+- M4 done: one code host port for GitHub (`gh`) and GitLab (`glab`), ADR 003. The Pull Requests tab, the Git status line and branch tags use the words of the host. `git.host.*`, `git.pullRequests.*`, `ai.reviewCommand`, the `pullRequests.row` placement, `when.host` and the `pullRequests` refresh target. Checked on a private GitHub test repository: the list in four scopes, details with a thread, files, draft and ready, update branch, merge with branch removal, create with labels, reply, resolve, re-run and cancel a check run. About 1,650 tests.
+- Next: M5, Build & Run and launch profiles (ADR 001 section 7.5).
 
 ## Screens
 
@@ -19,7 +20,7 @@ The app is being rewritten on the package architecture of the main DevHub. The p
 | Panel shell (status item, panel, pin, hot key, header, tab bar, footer, Output panel) | real | From the package. Checked with headless snapshots. With no project the panel shows "No project yet" and an Add Project button |
 | Home | real | Project card, quick actions from `home.quickActions`, Scripts from `.devhub/scripts` with inputs, confirm, result area and last run, config problems. Checked with headless snapshots on a throwaway repository with the example `.devhub` folder: a script run, the footer progress, the Output panel and a hot reload of `project.json` |
 | Git | real | Local, Remote, History, Reflog, Changes, stash, commit box, switch with local changes, request line. The remote is `git.remote` (default `origin`); the base branch is `git.baseBranch`, else `<remote>/HEAD`, else `<remote>/main`. Checked with a headless snapshot on a throwaway repository with a bare remote called `upstream`. Config actions: `git.pills` in the header, `git.branchRow` in the branch context menu |
-| GitLab | real | Merge requests through `glab` only. Becomes the Pull Requests tab with GitHub first in M4 |
+| Pull Requests | real | GitHub through `gh`, GitLab through `glab`, chosen by the remote or `git.host.kind`. Title, `#`/`!`, checks or pipeline and the open-in-browser words follow the host. Config actions in the row menus (`pullRequests.row`). The toolbar wraps on a narrow panel. Checked with headless snapshots and `gh` on a private GitHub test repository |
 | Worktrees | real | Config actions in the row context menu (`worktrees.row`). Folder, include list and bootstrap script from `git.worktrees`. Checked with a headless snapshot: a worktree in `.worktrees/` shows "needs bootstrap" when `Pods` exists only in the main checkout |
 | Simulators, Build & Run | real | From the package. Config actions in the run bar (`simulators.runBar`) and in the row overflow menu (`simulators.row`). Launch profiles and `kind: command` projects come in M5 |
 | Device identity | hidden | No project has an identity config: the presets are gone. Launch identities from config come in M6 |
@@ -60,14 +61,17 @@ Numbered. What, then why. A later session must not undo these without a new numb
 22. Actions that a host or a repository does not allow are hidden, not shown with an error: `PullRequestPermissions.canRevokeApproval` (GitHub: write access) and `canSetAutoMerge` (GitHub: write access and `autoMergeAllowed` on the repository).
 ## Next steps
 
-1. M4 (ADR 001 sections 6 and 7.4): a code host protocol, `gh` for GitHub and `glab` for GitLab, the Pull Requests tab instead of the GitLab tab, `git.host.*` and `git.pullRequests.*`, checks on the playground repository.
+1. M5 (ADR 001 section 7.5): Build & Run, launch profiles, `kind: command` projects, the simulator status rows, log chips, Copilot sessions.
 2. Rewrite the skills that still describe the first generic app (`add-feature`, `providers-and-shell`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`) when the milestone that touches their area lands.
 3. `docs/SPEC.md` still describes the first generic app; M8 refreshes it.
 
 ## Known gaps
 
 - Settings with no project: the Settings tab also shows "No project yet" until a project is added. Adding a project works from that screen and from the header menu.
-- `pullRequests.row` and `network.toolbar` from ADR 001 Appendix B.3 are not placements yet. `pullRequests.row` comes with the Pull Requests tab in M4. `network.toolbar` is not in `docs/extensions.md`; adding it changes the schema, so it waits for the owner.
+- `network.toolbar` from ADR 001 Appendix B.3 is not a placement yet. It is not in `docs/extensions.md`; adding it changes the schema, so it waits for the owner.
+- Auto-merge on GitHub was not seen working: the test repository is private on a free plan, which has no branch protection and no auto-merge. The action stays hidden there (`autoMergeAllowed` is false).
+- The GitLab flows were not clicked through after the M4 rename: that needs a GitLab host of the owner. The `glab` code and its tests did not change in behaviour.
+- The Doctor rows for `gh` and `glab` come with the Doctor section in M7.
 - The context menus of rows were checked by tests only: a headless snapshot does not open a menu.
 - The identity panel is hidden for every project (no identity config) until M6.
 - The status item click, the global shortcut and the right-click menu were not exercised with real clicks in this session; only headless snapshots.
