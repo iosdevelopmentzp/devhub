@@ -12,7 +12,8 @@ enum WorktreeRowMapper {
         isBusy: Bool,
         isBootstrapping: Bool,
         isBuildSource: Bool,
-        buildIsRunning: Bool
+        buildIsRunning: Bool,
+        configActions: [ConfigActionItemModel]
     ) -> WorktreeRowModel {
         WorktreeRowModel(
             id: worktree.id,
@@ -48,7 +49,8 @@ enum WorktreeRowMapper {
             defaultDeleteBranch: WorktreeCleanupPolicy.defaultDeleteBranch(for: worktree),
             derivedDataLabel: derivedDataLabel(size: derivedDataSize),
             canDeleteDerivedData: derivedDataSize != nil,
-            deleteBranchLabel: worktree.branch.map { "Delete branch \($0)" }
+            deleteBranchLabel: worktree.branch.map { "Delete branch \($0)" },
+            configActions: configActions
         )
     }
 

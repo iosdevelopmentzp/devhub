@@ -84,7 +84,13 @@ struct LogsToolbar: View {
                     logs.clear()
                 }
             }
+            ConfigActionBar(placement: .logsToolbar, item: chipItem)
         }
+    }
+
+    private var chipItem: ActionItemContext {
+        let simulator = logs.selectedUDID.flatMap(simulators.simulator(id:))
+        return ActionItemContext(simulatorUDID: simulator?.id, simulatorName: simulator?.name)
     }
 
     private var model: LogsToolbarModel {

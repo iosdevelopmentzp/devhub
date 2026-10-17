@@ -13,7 +13,8 @@ enum LocalBranchRowMapper {
         changedFiles: Int,
         ticketURLTemplate: String,
         isBuildRunning: Bool,
-        isBusy: Bool
+        isBusy: Bool,
+        configActions: [ConfigActionItemModel]
     ) -> LocalBranchRowModel {
         let isCurrent = branch.name == currentBranch
         let isCheckedOut = branch.worktreePath != nil
@@ -49,7 +50,8 @@ enum LocalBranchRowMapper {
             deleteMessage: branch.isMerged || branch.isGone
                 ? "Delete local branch \(branch.name)?"
                 : "Delete \(branch.name)? It is not merged into \(baseName); without force git refuses.",
-            showsForceToggle: branch.isMerged == false
+            showsForceToggle: branch.isMerged == false,
+            configActions: configActions
         )
     }
 

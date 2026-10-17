@@ -49,6 +49,39 @@ import DevHubTestSupport
         #expect(harness.spies.scripts.calls.first?.environment["DEVHUB_BRANCH"] == WorktreeSample.main.branch)
     }
 
+    @Test func aRowRequestByIDGetsTheRowContext() async throws {
+        let action = ConfigSample.action("open", placements: [.worktreesRow])
+        await load([action])
+
+        store.request(id: "open", item: ActionItemContext(branch: "feature/ABC-2", worktreePath: "/tmp/wt", rowID: "/tmp/wt"), slot: Placement.worktreesRow.slot(for: "/tmp/wt"))
+        try await finish("open")
+
+        let environment = try #require(harness.spies.scripts.calls.first?.environment)
+        #expect(environment["DEVHUB_WORKTREE_PATH"] == "/tmp/wt")
+        #expect(environment["DEVHUB_ROW_ID"] == "/tmp/wt")
+        #expect(environment["DEVHUB_BRANCH"] == "feature/ABC-2")
+    }
+
+    @Test func aRowRequestWithInputsOpensThePromptInTheRowSlot() async {
+        let action = ConfigSample.action("ask", placements: [.gitBranchRow], confirm: "Sure?")
+        await load([action])
+
+        store.request(id: "ask", item: ActionItemContext(branch: "main", rowID: "main"), slot: Placement.gitBranchRow.slot(for: "main"))
+
+        #expect(store.pending(in: "git.branchRow:main")?.action.id == "ask")
+        #expect(store.pending(in: "git.branchRow:other") == nil)
+        #expect(harness.spies.scripts.calls.isEmpty)
+    }
+
+    @Test func aRequestForAnUnknownIDShowsAToast() async {
+        await load([])
+
+        store.request(id: "gone", item: .none, slot: "s")
+
+        #expect(harness.toaster.text?.contains("gone") == true)
+        #expect(harness.spies.scripts.calls.isEmpty)
+    }
+
     @Test func aCommandExpandsPlaceholders() async throws {
         let action = ConfigSample.action("echo", run: .command(["/bin/echo", "{branch}", "{name}"]), inputs: [ActionInput(key: "name", title: "Name", type: .text, defaultValue: "sam")])
         await load([action])

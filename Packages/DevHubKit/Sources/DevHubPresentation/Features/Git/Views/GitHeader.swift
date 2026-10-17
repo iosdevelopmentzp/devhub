@@ -10,6 +10,7 @@ struct GitHeader: View {
     @Environment(AppActions.self) private var appActions
     @Environment(SettingsStore.self) private var settings
     @Environment(NewMergeRequestStore.self) private var newMergeRequest
+    @Environment(ConfigActionsStore.self) private var configActions
 
     @State private var confirming: Confirmation?
 
@@ -35,6 +36,7 @@ struct GitHeader: View {
                         operationBanner(operationText, canContinue: model.canContinueOperation)
                     }
                     actions(model)
+                    ConfigActionResults(placement: .gitPills, slot: Placement.gitPills.slot)
                     if let confirming {
                         confirmation(confirming, model: model)
                     }
@@ -167,7 +169,7 @@ struct GitHeader: View {
 
     private func actions(_ model: GitHeaderModel) -> some View {
         HStack(spacing: 6) {
-            ActionBar(items: model.actions.map(actionItem))
+            ActionBar(items: model.actions.map(actionItem) + configItems)
             Spacer(minLength: 0)
             IconButton(systemImage: "terminal", help: "Open this checkout in the terminal") {
                 appActions.openTerminal(at: git.checkoutPath)
@@ -183,6 +185,19 @@ struct GitHeader: View {
         }
         .controlSize(.small)
         .disabled(git.isBusy)
+    }
+
+    private var configItems: [ActionItem] {
+        ConfigActionItemMapper.models(for: configActions.actions(for: .gitPills), isRunning: configActions.isRunning)
+            .map { $0.actionItem(priority: 1, onRun: runConfigAction) }
+    }
+
+    private func runConfigAction(_ id: String) {
+        configActions.request(
+            id: id,
+            item: ActionItemContext(branch: git.currentBranch, worktreePath: git.checkoutPath),
+            slot: Placement.gitPills.slot
+        )
     }
 
     private func actionItem(_ action: GitHeaderActionModel) -> ActionItem {

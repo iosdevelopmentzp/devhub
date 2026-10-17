@@ -16,12 +16,12 @@ The app is being rewritten on the package architecture of the main DevHub. The p
 |---|---|---|
 | Panel shell (status item, panel, pin, hot key, header, tab bar, footer, Output panel) | real | From the package. Checked with headless snapshots. With no project the panel shows "No project yet" and an Add Project button |
 | Home | real | Project card, quick actions from `home.quickActions`, Scripts from `.devhub/scripts` with inputs, confirm, result area and last run, config problems. Checked with headless snapshots on a throwaway repository with the example `.devhub` folder: a script run, the footer progress, the Output panel and a hot reload of `project.json` |
-| Git | real | Local, Remote, History, Reflog, Changes, stash, commit box, switch with local changes, request line. The base branch falls back to `origin/main`; config comes in M3 |
+| Git | real | Local, Remote, History, Reflog, Changes, stash, commit box, switch with local changes, request line. The base branch falls back to `origin/main`; config comes in M3. Config actions: `git.pills` in the header, `git.branchRow` in the branch context menu |
 | GitLab | real | Merge requests through `glab` only. Becomes the Pull Requests tab with GitHub first in M4 |
-| Worktrees | real | The worktree folder, include list and bootstrap script still follow the old fixed conventions until M3 |
-| Simulators, Build & Run | real | From the package. Launch profiles and `kind: command` projects come in M5 |
+| Worktrees | real | Config actions in the row context menu (`worktrees.row`). The worktree folder, include list and bootstrap script still follow the old fixed conventions until M3 |
+| Simulators, Build & Run | real | From the package. Config actions in the run bar (`simulators.runBar`) and in the row overflow menu (`simulators.row`). Launch profiles and `kind: command` projects come in M5 |
 | Device identity | hidden | No project has an identity config: the presets are gone. Launch identities from config come in M6 |
-| Logs | real | One stream at a time. Chips for several streams come in M5 |
+| Logs | real | One stream at a time. Config actions in the toolbar (`logs.toolbar`). Chips for several streams come in M5 |
 | Network | partial | Shows the requests that pass through the DevHub mock server only. The session log source is gone. The base URL variable and upstreams from config come in M6 |
 | Claude | real | Claude sessions and usage. Copilot comes in M5 |
 | Settings | real | From the package. Doctor and launch at login come in M7 |
@@ -49,6 +49,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 14. `waitUntil` waits 10 s by default, not 2 s. Why: right after a build, about 25 store tests timed out on the busy main actor while the same tests passed alone.
 15. The `.devhub/` config models are `Codable` Domain types (`Models/Config/`), the one exception to "no `Decodable` Domain model" (`docs/ARCHITECTURE.md` section 5). `ExampleConfig.files` is generated from `docs/examples/devhub/` by `Scripts/generate-example-config.sh`; run it after every change there.
 16. After a change to an enum in a lower module (for example a new `Tint` case), remove `Packages/DevHubKit/.build` before `Scripts/test.sh`. Why: the incremental test build once kept old object files, and the tests read wrong enum values.
+17. A config action in a row placement shows its inputs and confirmation under that row. The screen draws the prompt (`ConfigActionsStore.pending(in:)` with the slot `<placement>:<row id>`), the row gets only `configActions` in its model and an `onConfigAction` closure. Why: a row reads no store but `Toaster` and `AppActions`.
 
 ## Next steps
 
@@ -59,5 +60,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 ## Known gaps
 
 - Settings with no project: the Settings tab also shows "No project yet" until a project is added. Adding a project works from that screen and from the header menu.
+- `pullRequests.row` and `network.toolbar` from ADR 001 Appendix B.3 are not placements yet. `pullRequests.row` comes with the Pull Requests tab in M4. `network.toolbar` is not in `docs/extensions.md`; adding it changes the schema, so it waits for the owner.
+- The context menus of rows were checked by tests only: a headless snapshot does not open a menu.
 - The identity panel is hidden for every project (no identity config) until M6.
 - The status item click, the global shortcut and the right-click menu were not exercised with real clicks in this session; only headless snapshots.

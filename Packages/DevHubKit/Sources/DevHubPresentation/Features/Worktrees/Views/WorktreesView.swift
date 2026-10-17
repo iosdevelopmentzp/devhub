@@ -6,6 +6,7 @@ struct WorktreesView: View {
     @Environment(ProjectSession.self) private var session
     @Environment(WorktreesStore.self) private var worktrees
     @Environment(BuildStore.self) private var build
+    @Environment(ConfigActionsStore.self) private var configActions
 
     @State private var confirmingDeleteID: Worktree.ID?
     @State private var launchID: Worktree.ID?
@@ -69,8 +70,14 @@ struct WorktreesView: View {
                                     confirmingDeleteID = nil
                                     launchID = model.id
                                 },
-                                onCancelLaunch: { launchID = nil }
+                                onCancelLaunch: { launchID = nil },
+                                onConfigAction: { runConfigAction($0, for: model) }
                             )
+                            if let pending = configActions.pending(in: Placement.worktreesRow.slot(for: model.path)) {
+                                ConfigActionPrompt(pending: pending)
+                                    .padding(.horizontal, 14)
+                                    .padding(.bottom, 8)
+                            }
                             if model.id != section.rows.last?.id {
                                 Divider()
                                     .padding(.leading, 56)
@@ -92,7 +99,20 @@ struct WorktreesView: View {
             isBusy: worktrees.busyIDs.contains(worktree.id),
             isBootstrapping: worktrees.bootstrappingIDs.contains(worktree.id),
             isBuildSource: build.sourceWorktreeID == worktree.id,
-            buildIsRunning: build.isRunning
+            buildIsRunning: build.isRunning,
+            configActions: rowActions
+        )
+    }
+
+    private var rowActions: [ConfigActionItemModel] {
+        ConfigActionItemMapper.models(for: configActions.actions(for: .worktreesRow), isRunning: configActions.isRunning)
+    }
+
+    private func runConfigAction(_ id: String, for model: WorktreeRowModel) {
+        configActions.request(
+            id: id,
+            item: ActionItemContext(branch: model.branch, worktreePath: model.path, rowID: model.path),
+            slot: Placement.worktreesRow.slot(for: model.path)
         )
     }
 }

@@ -67,7 +67,8 @@ import Testing
                 isBusy: false,
                 isBootstrapping: false,
                 isBuildSource: false,
-                buildIsRunning: false
+                buildIsRunning: false,
+                configActions: []
             )
         }
     }

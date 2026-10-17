@@ -11,6 +11,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Running a config action or a script asks for its inputs and confirmation inline, streams its output to the Output panel, shows `progress` in the footer, and handles `toast`, `copy`, `open`, `refresh`, `error` and `view` lines. Remembered inputs come back on the next run.
 - Editing a file in `.devhub/` reloads the config while the panel is open.
 - Settings has a "Project config" section: the three config folders, "Create .devhub Example" and "Reveal .devhub Folder".
+- Config actions appear in every placement: buttons in the Git header (`git.pills`), the Simulators run bar (`simulators.runBar`) and the Logs toolbar (`logs.toolbar`); menu items in branch rows (`git.branchRow`), worktree rows (`worktrees.row`) and simulator rows (`simulators.row`). A row action gets the branch, worktree path or simulator of its row. Its inputs and confirmation open under the row.
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed

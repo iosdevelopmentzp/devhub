@@ -3,22 +3,17 @@ import DevHubDomain
 import DevHubUI
 
 struct ConfigActionMenuItems: View {
-    @Environment(ConfigActionsStore.self) private var store
-
-    let placement: Placement
-    let slot: String
-    let item: ActionItemContext
+    let items: [ConfigActionItemModel]
+    let onRun: (ConfigActionItemModel.ID) -> Void
 
     var body: some View {
-        let actions = store.actions(for: placement).compactMap(\.resolved)
-        if actions.isEmpty == false {
+        if items.isEmpty == false {
             Divider()
-            ForEach(actions) { action in
-                let model = ConfigActionItemMapper.model(for: action, isRunning: store.isRunning(action.id))
-                Button(model.title, systemImage: model.systemImage) {
-                    store.request(action, item: item, slot: slot)
+            ForEach(items) { item in
+                Button(item.title, systemImage: item.systemImage) {
+                    onRun(item.id)
                 }
-                .disabled(model.isEnabled == false)
+                .disabled(item.isEnabled == false)
             }
         }
     }
@@ -26,8 +21,7 @@ struct ConfigActionMenuItems: View {
 
 #Preview {
     Menu("Actions") {
-        ConfigActionMenuItems(placement: .gitBranchRow, slot: "preview", item: .none)
+        ConfigActionMenuItems(items: [.preview], onRun: { _ in })
     }
     .padding()
-    .previewEnvironment()
 }

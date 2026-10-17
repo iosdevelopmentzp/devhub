@@ -9,6 +9,7 @@ struct SimulatorsView: View {
     @Environment(IdentityStore.self) private var identityStore
     @Environment(MockServerStore.self) private var mockServerStore
     @Environment(AppActions.self) private var appActions
+    @Environment(ConfigActionsStore.self) private var configActions
 
     @State private var confirmingEraseID: Simulator.ID?
     @State private var isConfirmingBulkRemove = false
@@ -92,7 +93,16 @@ struct SimulatorsView: View {
             bundleID: session.selectedProject.bundleID,
             isConfirmingErase: confirmingEraseID == simulator.id,
             isEditingIdentity: editingIdentityID == simulator.id,
-            isMessaging: messagingID == simulator.id
+            isMessaging: messagingID == simulator.id,
+            configActions: ConfigActionItemMapper.models(for: configActions.actions(for: .simulatorsRow), isRunning: configActions.isRunning)
+        )
+    }
+
+    private func runConfigAction(_ id: String, for model: SimulatorRowModel) {
+        configActions.request(
+            id: id,
+            item: ActionItemContext(simulatorUDID: model.id, simulatorName: model.name, rowID: model.id),
+            slot: Placement.simulatorsRow.slot(for: model.id)
         )
     }
 
@@ -113,7 +123,8 @@ struct SimulatorsView: View {
             onConfirmErase: {
                 confirmingEraseID = nil
                 simulators.erase(id: id)
-            }
+            },
+            onConfigAction: { runConfigAction($0, for: model) }
         ) {
             panels(for: model)
         }
@@ -121,6 +132,9 @@ struct SimulatorsView: View {
 
     @ViewBuilder
     private func panels(for model: SimulatorRowModel) -> some View {
+        if let pending = configActions.pending(in: Placement.simulatorsRow.slot(for: model.id)) {
+            ConfigActionPrompt(pending: pending)
+        }
         if model.isMessaging, let simulator = simulators.simulator(id: model.id) {
             MessagingPanel(simulator: simulator, onClose: { messagingID = nil })
         }

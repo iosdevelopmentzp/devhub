@@ -18,6 +18,7 @@ struct SimulatorRow<Panels: View>: View {
     let onRequestErase: () -> Void
     let onCancelErase: () -> Void
     let onConfirmErase: () -> Void
+    let onConfigAction: (ConfigActionItemModel.ID) -> Void
     @ViewBuilder var panels: () -> Panels
 
     var body: some View {
@@ -147,6 +148,7 @@ struct SimulatorRow<Panels: View>: View {
             Button("Copy UDID", systemImage: "doc.on.doc") {
                 toaster.copy(model.id, label: model.copyUDIDLabel)
             }
+            ConfigActionMenuItems(items: model.configActions, onRun: onConfigAction)
             Divider()
             Button("Erase Content and Settings…", systemImage: "trash", role: .destructive) {
                 onRequestErase()
@@ -169,7 +171,8 @@ struct SimulatorRow<Panels: View>: View {
         onUninstall: {},
         onRequestErase: {},
         onCancelErase: {},
-        onConfirmErase: {}
+        onConfirmErase: {},
+        onConfigAction: { _ in }
     ) {
         EmptyView()
     }

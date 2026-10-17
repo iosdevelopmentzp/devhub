@@ -77,7 +77,8 @@ import Testing
                 bundleID: "com.example.app",
                 isConfirmingErase: false,
                 isEditingIdentity: false,
-                isMessaging: false
+                isMessaging: false,
+                configActions: []
             )
         }
     }

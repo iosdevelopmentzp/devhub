@@ -98,6 +98,14 @@ final class ConfigActionsStore {
         pending = PendingConfigAction(action: action, slot: slot, item: item, inputs: initialInputs(for: action, item: item))
     }
 
+    func request(id: String, item: ActionItemContext, slot: String) {
+        guard let action = ActionCatalogPolicy.action(id: id, resolved: config.resolved)?.resolved else {
+            toaster.show("The action \(id) is no longer in the config")
+            return
+        }
+        request(action, item: item, slot: slot)
+    }
+
     func setInput(_ value: String, for key: String) {
         pending?.inputs[key] = value
     }

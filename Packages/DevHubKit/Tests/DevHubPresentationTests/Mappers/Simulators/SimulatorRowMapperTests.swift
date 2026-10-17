@@ -6,6 +6,14 @@ import Testing
 @Suite struct SimulatorRowMapperTests {
     let noSettings = SimulatorIdentitySettings(hasApplied: false)
 
+    @Test func configActionsPassThrough() {
+        var flags = Flags()
+        flags.configActions = [.preview]
+
+        #expect(row(SimulatorFixture.iPhone, flags: flags).configActions == [.preview])
+        #expect(row(SimulatorFixture.iPhone, flags: Flags()).configActions.isEmpty)
+    }
+
     @Test func kindIcon() {
         #expect(SimulatorRowMapper.kindIcon(.phone) == "iphone")
         #expect(SimulatorRowMapper.kindIcon(.pad) == "ipad")
@@ -187,12 +195,14 @@ import Testing
             bundleID: "com.example.app",
             isConfirmingErase: flags.isConfirmingErase,
             isEditingIdentity: flags.isEditingIdentity,
-            isMessaging: flags.isMessaging
+            isMessaging: flags.isMessaging,
+            configActions: flags.configActions
         )
     }
 }
 
 private struct Flags {
+    var configActions: [ConfigActionItemModel] = []
     var isTarget = false
     var installedApps: Int?
     var identity: AppIdentity?

@@ -23,6 +23,7 @@ struct LocalBranchRow: View {
     let onCancelMergeRequest: () -> Void
     let onRequestLaunch: () -> Void
     let onCancelLaunch: () -> Void
+    let onConfigAction: (ConfigActionItemModel.ID) -> Void
 
     @State private var force = false
 
@@ -202,6 +203,8 @@ struct LocalBranchRow: View {
             Button("Copy Link with Title", systemImage: "text.bubble") { toaster.copy(mergeRequest.linkText, label: "Link with title") }
         }
         Divider()
+        ConfigActionMenuItems(items: model.configActions, onRun: onConfigAction)
+        Divider()
         Button("Delete…", systemImage: "trash", role: .destructive) { onRequestDelete() }
             .disabled(model.canDelete == false)
     }
@@ -225,7 +228,8 @@ struct LocalBranchRow: View {
         onRequestMergeRequest: {},
         onCancelMergeRequest: {},
         onRequestLaunch: {},
-        onCancelLaunch: {}
+        onCancelLaunch: {},
+        onConfigAction: { _ in }
     )
     .previewEnvironment()
 }

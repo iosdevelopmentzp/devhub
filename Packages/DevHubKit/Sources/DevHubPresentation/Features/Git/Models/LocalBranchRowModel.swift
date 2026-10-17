@@ -29,6 +29,7 @@ struct LocalBranchRowModel: Identifiable, Equatable {
     var areActionsEnabled: Bool
     var deleteMessage: String
     var showsForceToggle: Bool
+    var configActions: [ConfigActionItemModel]
 
     static let preview = LocalBranchRowModel(
         id: "feature/ABC-2324-paid-call",
@@ -59,6 +60,7 @@ struct LocalBranchRowModel: Identifiable, Equatable {
         existingMergeRequest: nil,
         areActionsEnabled: true,
         deleteMessage: "Delete feature/ABC-2324-paid-call? It is not merged into dev; without force git refuses.",
-        showsForceToggle: true
+        showsForceToggle: true,
+        configActions: [.preview]
     )
 }

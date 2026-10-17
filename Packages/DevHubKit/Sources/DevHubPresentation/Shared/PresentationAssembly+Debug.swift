@@ -18,6 +18,7 @@ package extension PresentationAssembly {
 
     func debugRunAction(_ id: String, prompt: Bool) async {
         await worktrees.refresh()
+        await simulators.refresh()
         await config.reload()
         guard let action = config.resolved.action(id: id) else {
             activity.log("Debug run", detail: "No action with id \(id).", outcome: .failure)

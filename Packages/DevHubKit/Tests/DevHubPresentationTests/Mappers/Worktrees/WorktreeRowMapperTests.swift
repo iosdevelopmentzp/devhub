@@ -179,6 +179,23 @@ import Testing
         #expect(model.deleteWarnings == ["The worktree is locked."])
     }
 
+    @Test func configActionsPassThrough() {
+        let model = WorktreeRowMapper.model(
+            for: WorktreeFixture.linked,
+            baseBranch: "origin/dev",
+            mainCheckoutPath: WorktreeFixture.mainPath,
+            derivedDataSize: nil,
+            isBusy: false,
+            isBootstrapping: false,
+            isBuildSource: false,
+            buildIsRunning: false,
+            configActions: [.preview]
+        )
+
+        #expect(model.configActions == [.preview])
+        #expect(row(WorktreeFixture.linked).configActions.isEmpty)
+    }
+
     @Test func bootstrapStates() {
         var worktree = WorktreeFixture.linked
         worktree.needsBootstrap = true
@@ -192,7 +209,8 @@ import Testing
             isBusy: false,
             isBootstrapping: true,
             isBuildSource: false,
-            buildIsRunning: false
+            buildIsRunning: false,
+            configActions: []
         )
 
         #expect(row(WorktreeFixture.linked).bootstrapTag == nil)
@@ -213,7 +231,8 @@ import Testing
             isBusy: true,
             isBootstrapping: false,
             isBuildSource: true,
-            buildIsRunning: true
+            buildIsRunning: true,
+            configActions: []
         )
 
         #expect(model.isHighlighted)
@@ -244,7 +263,8 @@ import Testing
             isBusy: false,
             isBootstrapping: false,
             isBuildSource: false,
-            buildIsRunning: false
+            buildIsRunning: false,
+            configActions: []
         )
 
         #expect(model.displayPath == WorktreeFixture.agent.path.abbreviatingHome)
@@ -259,7 +279,8 @@ import Testing
             isBusy: false,
             isBootstrapping: false,
             isBuildSource: false,
-            buildIsRunning: false
+            buildIsRunning: false,
+            configActions: []
         )
     }
 }

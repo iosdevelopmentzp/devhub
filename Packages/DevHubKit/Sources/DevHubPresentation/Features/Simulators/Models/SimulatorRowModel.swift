@@ -35,6 +35,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
     var isEditingIdentity: Bool
     var isMessaging: Bool
     var pinsActions: Bool
+    var configActions: [ConfigActionItemModel]
 
     func showsActions(isHovered: Bool) -> Bool {
         (isHovered || pinsActions) && isConfirmingErase == false
@@ -72,6 +73,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
         isConfirmingErase: false,
         isEditingIdentity: false,
         isMessaging: false,
-        pinsActions: true
+        pinsActions: true,
+        configActions: [.preview]
     )
 }

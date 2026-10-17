@@ -15,6 +15,7 @@ struct WorktreeRow: View {
     let onBootstrap: () -> Void
     let onRequestLaunch: () -> Void
     let onCancelLaunch: () -> Void
+    let onConfigAction: (ConfigActionItemModel.ID) -> Void
 
     @State private var deleteDerivedData = true
     @State private var deleteBranch = false
@@ -213,6 +214,7 @@ struct WorktreeRow: View {
         if model.canRunInit {
             Button("Run init.sh", systemImage: "wrench.and.screwdriver", action: onBootstrap)
         }
+        ConfigActionMenuItems(items: model.configActions, onRun: onConfigAction)
         Divider()
         Button("Delete Worktree…", systemImage: "trash", role: .destructive) {
             onRequestDelete()
@@ -231,7 +233,8 @@ struct WorktreeRow: View {
         onConfirmDelete: { _, _ in },
         onBootstrap: {},
         onRequestLaunch: {},
-        onCancelLaunch: {}
+        onCancelLaunch: {},
+        onConfigAction: { _ in }
     )
     .frame(width: 680)
     .previewEnvironment()

@@ -11,6 +11,7 @@ struct GitView: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(NewMergeRequestStore.self) private var newMergeRequest
     @Environment(AppActions.self) private var appActions
+    @Environment(ConfigActionsStore.self) private var configActions
     @Environment(\.panelOpenCount) private var openCount
 
     @State private var confirmingDeleteName: String?
@@ -94,9 +95,14 @@ struct GitView: View {
                 changedFiles: git.snapshot?.changedFiles ?? 0,
                 ticketURLTemplate: settings.values.ticketURLTemplate,
                 isBuildRunning: build.isRunning,
-                isBusy: git.isBusy
+                isBusy: git.isBusy,
+                configActions: branchActions
             )
         }
+    }
+
+    private var branchActions: [ConfigActionItemModel] {
+        ConfigActionItemMapper.models(for: configActions.actions(for: .gitBranchRow), isRunning: configActions.isRunning)
     }
 
     private var stashRows: [StashRowModel] {
@@ -206,6 +212,11 @@ struct GitView: View {
         if isCollapsed == false {
             ForEach(section.rows) { model in
                 localRow(model)
+                if let pending = configActions.pending(in: Placement.gitBranchRow.slot(for: model.name)) {
+                    ConfigActionPrompt(pending: pending)
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 8)
+                }
                 if newMergeRequest.draft?.origin == .branch(model.name) {
                     NewMergeRequestForm()
                         .padding(.horizontal, 14)
@@ -255,7 +266,14 @@ struct GitView: View {
                 mergeRequestBranchName = nil
                 launchBranchName = model.name
             },
-            onCancelLaunch: { launchBranchName = nil }
+            onCancelLaunch: { launchBranchName = nil },
+            onConfigAction: { id in
+                configActions.request(
+                    id: id,
+                    item: ActionItemContext(branch: model.name, worktreePath: model.worktreePath, rowID: model.name),
+                    slot: Placement.gitBranchRow.slot(for: model.name)
+                )
+            }
         )
     }
 

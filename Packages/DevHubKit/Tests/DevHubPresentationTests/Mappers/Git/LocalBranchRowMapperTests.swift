@@ -169,6 +169,11 @@ import Testing
         #expect(row(GitBranchFixture.feature, current: nil, worktree: nil).dateText == nil)
     }
 
+    @Test func configActionsPassThrough() {
+        #expect(row(GitBranchFixture.feature, current: nil, worktree: nil, configActions: [.preview]).configActions == [.preview])
+        #expect(row(GitBranchFixture.feature, current: nil, worktree: nil).configActions.isEmpty)
+    }
+
     @Test func buildAndBusyFlags() {
         let model = LocalBranchRowMapper.model(
             for: GitBranchFixture.feature,
@@ -179,7 +184,8 @@ import Testing
             changedFiles: 0,
             ticketURLTemplate: "",
             isBuildRunning: true,
-            isBusy: true
+            isBusy: true,
+            configActions: []
         )
 
         #expect(model.canBuild == false)
@@ -200,7 +206,7 @@ import Testing
         #expect(row(GitBranchFixture.feature, current: "dev", worktree: nil, changedFiles: 1).switchConfirmation?.hasPrefix("You have 1 changed file.") == true)
     }
 
-    private func row(_ branch: GitBranch, current: String?, worktree: Worktree?, openMergeRequest: MergeRequestSummary? = nil, changedFiles: Int = 0) -> LocalBranchRowModel {
+    private func row(_ branch: GitBranch, current: String?, worktree: Worktree?, openMergeRequest: MergeRequestSummary? = nil, changedFiles: Int = 0, configActions: [ConfigActionItemModel] = []) -> LocalBranchRowModel {
         LocalBranchRowMapper.model(
             for: branch,
             currentBranch: current,
@@ -210,7 +216,8 @@ import Testing
             changedFiles: changedFiles,
             ticketURLTemplate: "",
             isBuildRunning: false,
-            isBusy: false
+            isBusy: false,
+            configActions: configActions
         )
     }
 }

@@ -20,7 +20,8 @@ enum SimulatorRowMapper {
         bundleID: String,
         isConfirmingErase: Bool,
         isEditingIdentity: Bool,
-        isMessaging: Bool
+        isMessaging: Bool,
+        configActions: [ConfigActionItemModel]
     ) -> SimulatorRowModel {
         let isTransitioning = isTransitioning(simulator.state)
         let isInstalled = identity?.isInstalled == true
@@ -63,7 +64,8 @@ enum SimulatorRowMapper {
             isConfirmingErase: isConfirmingErase,
             isEditingIdentity: isEditingIdentity,
             isMessaging: isMessaging,
-            pinsActions: isTarget || isUninstalling || isEditingIdentity || isMessaging
+            pinsActions: isTarget || isUninstalling || isEditingIdentity || isMessaging,
+            configActions: configActions
         )
     }
 

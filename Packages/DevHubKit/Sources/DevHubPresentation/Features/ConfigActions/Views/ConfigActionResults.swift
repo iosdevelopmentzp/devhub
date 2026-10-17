@@ -10,9 +10,7 @@ struct ConfigActionResults: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            if let pending = store.pending(in: slot) {
-                ConfigActionPrompt(pending: pending)
-            }
+            ConfigActionPromptSlot(slot: slot)
             ForEach(store.actions(for: placement).compactMap(\.resolved)) { action in
                 ConfigActionResultView(action: action)
             }

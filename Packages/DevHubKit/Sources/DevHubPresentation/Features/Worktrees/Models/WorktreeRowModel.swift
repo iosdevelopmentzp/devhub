@@ -37,6 +37,7 @@ struct WorktreeRowModel: Identifiable, Equatable {
     var derivedDataLabel: String
     var canDeleteDerivedData: Bool
     var deleteBranchLabel: String?
+    var configActions: [ConfigActionItemModel]
 
     static let preview = WorktreeRowModel(
         id: "/Users/dev/Projects/ExampleApp/.claude/worktrees/ABC-2600-newFeature",
@@ -83,6 +84,7 @@ struct WorktreeRowModel: Identifiable, Equatable {
         defaultDeleteBranch: false,
         derivedDataLabel: "Delete DerivedData (1.2 GB)",
         canDeleteDerivedData: true,
-        deleteBranchLabel: "Delete branch ABC-2600-newFeature"
+        deleteBranchLabel: "Delete branch ABC-2600-newFeature",
+        configActions: [.preview]
     )
 }
