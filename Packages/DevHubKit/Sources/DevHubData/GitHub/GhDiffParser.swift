@@ -14,15 +14,15 @@ enum GhDiffParser {
         let patch: String?
     }
 
-    static func files(from data: Data) throws -> [MergeRequestFileDiff] {
+    static func files(from data: Data) throws -> [PullRequestFileDiff] {
         let files: [FileDTO] = try GhPullRequestParser.decodeREST(data)
         return files.map(file)
     }
 
-    private static func file(_ dto: FileDTO) -> MergeRequestFileDiff {
+    private static func file(_ dto: FileDTO) -> PullRequestFileDiff {
         let text = dto.patch ?? ""
         let lines = text.isEmpty ? [] : text.components(separatedBy: "\n")
-        return MergeRequestFileDiff(
+        return PullRequestFileDiff(
             oldPath: dto.previousFilename ?? dto.filename,
             path: dto.filename,
             kind: kind(dto.status),
@@ -37,7 +37,7 @@ enum GhDiffParser {
         )
     }
 
-    private static func kind(_ status: String) -> MergeRequestFileDiff.Kind {
+    private static func kind(_ status: String) -> PullRequestFileDiff.Kind {
         switch status {
         case "added": .added
         case "removed": .deleted

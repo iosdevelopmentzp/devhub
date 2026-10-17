@@ -21,22 +21,22 @@ import Testing
         #expect(RepositoryWebLinks.branchURL(base: base, branch: "dev", remote: "origin")?.absoluteString == "https://github.example.com/org/app/tree/dev")
     }
 
-    @Test func gitHubMergeRequestUsesCompare() throws {
-        let url = RepositoryWebLinks.newMergeRequestURL(base: try github(), branch: "origin/feature/login", baseName: "dev", remote: "origin")
+    @Test func gitHubPullRequestUsesCompare() throws {
+        let url = RepositoryWebLinks.newPullRequestURL(base: try github(), branch: "origin/feature/login", baseName: "dev", remote: "origin")
 
         #expect(url?.absoluteString == "https://github.com/org/app/compare/dev...feature/login?expand=1")
     }
 
-    @Test func gitLabMergeRequestUsesTheNewMergeRequestForm() throws {
-        let url = RepositoryWebLinks.newMergeRequestURL(base: try gitlab(), branch: "feature/login", baseName: "dev", remote: "origin")
+    @Test func gitLabPullRequestUsesTheNewPullRequestForm() throws {
+        let url = RepositoryWebLinks.newPullRequestURL(base: try gitlab(), branch: "feature/login", baseName: "dev", remote: "origin")
 
         let expected = "https://gitlab.example.com/org/app/-/merge_requests/new"
             + "?merge_request%5Bsource_branch%5D=feature/login&merge_request%5Btarget_branch%5D=dev"
         #expect(url?.absoluteString == expected)
     }
 
-    @Test func mergeRequestEncodesTheBranchName() throws {
-        let url = RepositoryWebLinks.newMergeRequestURL(base: try github(), branch: "fix space", baseName: "dev", remote: "origin")
+    @Test func pullRequestEncodesTheBranchName() throws {
+        let url = RepositoryWebLinks.newPullRequestURL(base: try github(), branch: "fix space", baseName: "dev", remote: "origin")
 
         #expect(url?.absoluteString == "https://github.com/org/app/compare/dev...fix%20space?expand=1")
     }

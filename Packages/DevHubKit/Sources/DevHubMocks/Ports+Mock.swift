@@ -16,7 +16,7 @@ extension Ports {
             mockServer: MockLocalServerRepository(),
             mockSets: MockSetStoreRepository(),
             messaging: MockSimulatorMessagingRepository(),
-            mergeRequests: MockMergeRequestRepository(),
+            codeHost: MockCodeHostRepository(),
             claudeSessions: MockClaudeSessionRepository(),
             derivedData: MockDerivedDataRepository(),
             opener: MockWorkspaceOpener(),

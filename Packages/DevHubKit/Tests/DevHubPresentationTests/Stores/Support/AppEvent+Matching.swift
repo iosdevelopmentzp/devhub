@@ -26,8 +26,8 @@ extension AppEvent {
             "worktreeBootstrapping(\(path), \(isRunning))"
         case .mockSetChanged(let id):
             "mockSetChanged(\(id))"
-        case .mergeRequestsChanged:
-            "mergeRequestsChanged"
+        case .pullRequestsChanged:
+            "pullRequestsChanged"
         case .configChanged:
             "configChanged"
         case .refreshRequested(let target):

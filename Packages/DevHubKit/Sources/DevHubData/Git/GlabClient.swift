@@ -26,7 +26,7 @@ struct GlabClient {
     }
 
     static func host(of repository: CodeHost) throws -> String {
-        guard repository.kind == .gitlab else { throw MergeRequestError.noCodeHost }
+        guard repository.kind == .gitlab else { throw PullRequestError.noCodeHost }
         return repository.host
     }
 
@@ -39,7 +39,7 @@ struct GlabClient {
         do {
             result = try await shell.run("glab", arguments, cwd: nil)
         } catch {
-            throw MergeRequestError.notInstalled(tool: "glab")
+            throw PullRequestError.notInstalled(tool: "glab")
         }
         guard result.exitCode == 0 else {
             throw CodeHostErrorMapper.error(tool: "glab", exitCode: result.exitCode, message: result.failureMessage, host: host)

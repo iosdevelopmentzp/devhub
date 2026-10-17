@@ -8,7 +8,7 @@ package enum RepositoryWebLinks {
         return URL(string: base.absoluteString + path)
     }
 
-    package static func newMergeRequestURL(base: URL, branch: String, baseName: String, remote: String) -> URL? {
+    package static func newPullRequestURL(base: URL, branch: String, baseName: String, remote: String) -> URL? {
         let local = BranchName(branch, remote: remote).local
         let encoded = local.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? local
         let suffix = isGitHub(base)

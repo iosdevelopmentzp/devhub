@@ -60,12 +60,12 @@ struct GhClient {
     }
 
     private func run(_ arguments: [String], host: CodeHost) async throws -> Data {
-        guard host.kind == .github else { throw MergeRequestError.noCodeHost }
+        guard host.kind == .github else { throw PullRequestError.noCodeHost }
         let result: ShellResult
         do {
             result = try await shell.run("gh", arguments, cwd: nil)
         } catch {
-            throw MergeRequestError.notInstalled(tool: "gh")
+            throw PullRequestError.notInstalled(tool: "gh")
         }
         guard result.exitCode == 0 else {
             throw CodeHostErrorMapper.error(tool: "gh", exitCode: result.exitCode, message: result.failureMessage, host: host.host)

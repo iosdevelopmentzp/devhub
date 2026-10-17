@@ -8,7 +8,7 @@ enum LocalBranchRowMapper {
         for branch: GitBranch,
         currentBranch: String?,
         worktree: Worktree?,
-        openMergeRequest: MergeRequestSummary?,
+        openPullRequest: PullRequestSummary?,
         baseName: String,
         changedFiles: Int,
         ticket: TicketSettings,
@@ -27,7 +27,7 @@ enum LocalBranchRowMapper {
             iconHint: isCurrent ? "Checked out here" : (isCheckedOut ? "Checked out in another worktree" : "Local branch"),
             usesAccentIcon: isCurrent,
             tags: checkoutTags(isCurrent: isCurrent, worktree: worktree) + trackingTags(branch, baseName: baseName),
-            mergeRequest: BranchMergeRequestMapper.model(for: openMergeRequest),
+            pullRequest: BranchPullRequestMapper.model(for: openPullRequest),
             ticket: TicketMapper.model(for: [branch.name], ticket: ticket),
             dateText: dateText(branch),
             subject: branch.subject,
@@ -41,11 +41,11 @@ enum LocalBranchRowMapper {
             canBuild: isBuildRunning == false,
             canCreateWorktree: isCheckedOut == false,
             canDelete: isCurrent == false && isCheckedOut == false,
-            canOpenMergeRequest: isOnRemote || openMergeRequest != nil,
-            mergeRequestHint: mergeRequestHint(openMergeRequest, isOnRemote: isOnRemote),
-            mergeRequestIconTint: openMergeRequest == nil ? nil : .blue,
-            mergeRequestMenuTitle: openMergeRequest == nil ? "New Merge Request…" : "Show Merge Request…",
-            existingMergeRequest: openMergeRequest.map(existingModel),
+            canOpenPullRequest: isOnRemote || openPullRequest != nil,
+            pullRequestHint: pullRequestHint(openPullRequest, isOnRemote: isOnRemote),
+            pullRequestIconTint: openPullRequest == nil ? nil : .blue,
+            pullRequestMenuTitle: openPullRequest == nil ? "New Merge Request…" : "Show Merge Request…",
+            existingPullRequest: openPullRequest.map(existingModel),
             areActionsEnabled: isBusy == false,
             deleteMessage: branch.isMerged || branch.isGone
                 ? "Delete local branch \(branch.name)?"
@@ -55,7 +55,7 @@ enum LocalBranchRowMapper {
         )
     }
 
-    private static func mergeRequestHint(_ request: MergeRequestSummary?, isOnRemote: Bool) -> String {
+    private static func pullRequestHint(_ request: PullRequestSummary?, isOnRemote: Bool) -> String {
         if let request {
             return "Merge request !\(request.iid) into \(request.targetBranch) is open"
         }
@@ -64,8 +64,8 @@ enum LocalBranchRowMapper {
             : "Push the branch first: a merge request needs it on the remote"
     }
 
-    private static func existingModel(_ request: MergeRequestSummary) -> ExistingMergeRequestModel {
-        ExistingMergeRequestModel(
+    private static func existingModel(_ request: PullRequestSummary) -> ExistingPullRequestModel {
+        ExistingPullRequestModel(
             message: "Merge request !\(request.iid) into \(request.targetBranch) already exists: \(request.title)",
             openTitle: "Open !\(request.iid)",
             url: request.webURL

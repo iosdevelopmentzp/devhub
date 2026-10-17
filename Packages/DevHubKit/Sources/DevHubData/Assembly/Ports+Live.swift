@@ -25,9 +25,9 @@ extension Ports {
             mockServer: NWMockServerRepository(session: .mockForwarding()),
             mockSets: FileMockSetRepository(root: home.appendingPathComponent(".devhub/mocks", isDirectory: true)),
             messaging: SimctlMessagingRepository(shell: shell),
-            mergeRequests: CodeHostMergeRequestRepository(
-                gitHub: GhMergeRequestRepository(client: GhClient(shell: shell)),
-                gitLab: GlabMergeRequestRepository(client: GlabClient(shell: shell))
+            codeHost: RoutingCodeHostRepository(
+                gitHub: GhPullRequestRepository(client: GhClient(shell: shell)),
+                pullRequests: GlabPullRequestRepository(client: GlabClient(shell: shell))
             ),
             claudeSessions: ClaudeTranscriptSessionRepository(root: home.appendingPathComponent(".claude/projects", isDirectory: true)),
             derivedData: derivedData,

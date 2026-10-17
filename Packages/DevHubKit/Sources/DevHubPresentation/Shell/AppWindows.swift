@@ -9,7 +9,7 @@ package final class AppWindows: NSObject {
     private let statusItem: NSStatusItem
     let panel: MenuBarPanel
     private var pinnedWindow: NSWindow?
-    private var mergeRequestWindows: [MergeRequestSummary.ID: NSWindow] = [:]
+    private var pullRequestWindows: [PullRequestSummary.ID: NSWindow] = [:]
     private var clickMonitor: Any?
     private var resignObserver: NSObjectProtocol?
     private var lastPanelTopLeft: CGPoint?
@@ -40,7 +40,7 @@ package final class AppWindows: NSObject {
         updateStatusLabel()
         observeLayout()
         assembly.usage.startPolling()
-        assembly.openMergeRequests.startPolling()
+        assembly.openPullRequests.startPolling()
         Task { [assembly] in
             await assembly.mockSets.load()
             assembly.mockServer.restoreServers()
@@ -78,14 +78,14 @@ package final class AppWindows: NSObject {
         showPinnedWindow()
     }
 
-    func showMergeRequestWindow(_ summary: MergeRequestSummary) {
+    func showPullRequestWindow(_ summary: PullRequestSummary) {
         closePanel()
         let window: NSWindow
-        if let existing = mergeRequestWindows[summary.id], existing.isVisible {
+        if let existing = pullRequestWindows[summary.id], existing.isVisible {
             window = existing
         } else {
-            window = makeMergeRequestWindow(summary)
-            mergeRequestWindows[summary.id] = window
+            window = makePullRequestWindow(summary)
+            pullRequestWindows[summary.id] = window
         }
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
@@ -167,7 +167,7 @@ package final class AppWindows: NSObject {
         return window
     }
 
-    private func makeMergeRequestWindow(_ summary: MergeRequestSummary) -> NSWindow {
+    private func makePullRequestWindow(_ summary: PullRequestSummary) -> NSWindow {
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: NSSize(width: 860, height: 720)),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -178,14 +178,14 @@ package final class AppWindows: NSObject {
         window.isReleasedWhenClosed = false
         window.appearance = NSAppearance(named: .aqua)
         window.contentMinSize = NSSize(width: 640, height: 400)
-        let root = MergeRequestWindowView(summary: summary)
+        let root = PullRequestWindowView(summary: summary)
             .inject(assembly)
             .colorScheme(.light)
         window.contentViewController = NSHostingController(rootView: root)
-        if window.setFrameUsingName(WindowLayout.mergeRequestAutosaveName) == false {
+        if window.setFrameUsingName(WindowLayout.pullRequestAutosaveName) == false {
             window.center()
         }
-        window.setFrameAutosaveName(WindowLayout.mergeRequestAutosaveName)
+        window.setFrameAutosaveName(WindowLayout.pullRequestAutosaveName)
         return window
     }
 
@@ -194,7 +194,7 @@ package final class AppWindows: NSObject {
             .inject(assembly)
             .environment(\.isPinnedWindow, isPinned)
             .environment(\.togglePin, { [weak self] in self?.togglePin() })
-            .environment(\.openMergeRequestWindow, { [weak self] in self?.showMergeRequestWindow($0) })
+            .environment(\.openPullRequestWindow, { [weak self] in self?.showPullRequestWindow($0) })
         let controller = NSHostingController(rootView: root)
         controller.sizingOptions = isPinned ? [.minSize] : []
         return controller
@@ -233,7 +233,7 @@ package final class AppWindows: NSObject {
             statusItem.button?.image = image
             statusItem.button?.title = StatusItemTitle.text(
                 usage: settings.values.showUsageInMenuBar ? usage.usage?.limits.first?.percentText : nil,
-                reviewCount: settings.values.showReviewCountInMenuBar ? assembly.openMergeRequests.reviewCount : nil
+                reviewCount: settings.values.showReviewCountInMenuBar ? assembly.openPullRequests.reviewCount : nil
             )
         } onChange: {
             DispatchQueue.main.async { [weak self] in

@@ -47,7 +47,7 @@ enum GlabGraphQLParser {
         let canApprove: Bool
     }
 
-    private struct MergeRequestNode: Decodable {
+    private struct PullRequestNode: Decodable {
         let iid: String
         let title: String
         let state: String
@@ -87,7 +87,7 @@ enum GlabGraphQLParser {
     private struct Connection: Decodable {
         let count: Int
         let pageInfo: PageInfo?
-        let nodes: [MergeRequestNode]
+        let nodes: [PullRequestNode]
     }
 
     private struct ListData: Decodable {
@@ -107,10 +107,10 @@ enum GlabGraphQLParser {
 
     private struct DetailsData: Decodable {
         struct Project: Decodable {
-            let mergeRequest: MergeRequest?
+            let mergeRequest: PullRequest?
         }
 
-        struct MergeRequest: Decodable {
+        struct PullRequest: Decodable {
             let description: String?
             let headPipeline: HeadPipeline?
             let discussions: Nodes<Discussion>
@@ -155,12 +155,12 @@ enum GlabGraphQLParser {
         let project: Project?
     }
 
-    static func list(from data: Data, host: String) throws -> MergeRequestList {
+    static func list(from data: Data, host: String) throws -> PullRequestList {
         let payload: ListData = try payload(data)
-        guard let user = payload.currentUser else { throw MergeRequestError.notLoggedIn(tool: "glab", host: host) }
+        guard let user = payload.currentUser else { throw PullRequestError.notLoggedIn(tool: "glab", host: host) }
         let connection = user.authoredMergeRequests ?? user.assignedMergeRequests ?? payload.project?.mergeRequests
-        guard let connection else { throw MergeRequestError.command("GitLab did not find the project") }
-        return MergeRequestList(
+        guard let connection else { throw PullRequestError.command("GitLab did not find the project") }
+        return PullRequestList(
             username: user.username,
             requests: connection.nodes.compactMap { summary($0, host: host) },
             totalCount: connection.count,
@@ -179,7 +179,7 @@ enum GlabGraphQLParser {
 
     static func labels(from data: Data) throws -> [String] {
         let payload: LabelsData = try payload(data)
-        guard let project = payload.project else { throw MergeRequestError.command("GitLab did not find the project") }
+        guard let project = payload.project else { throw PullRequestError.command("GitLab did not find the project") }
         return (project.labels?.nodes ?? []).map(\.title).sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
     }
 
@@ -190,18 +190,18 @@ enum GlabGraphQLParser {
     static func mutation(from data: Data) throws {
         let payload: [String: MutationPayload] = try self.payload(data)
         let errors = payload.values.flatMap { $0.errors ?? [] }
-        guard errors.isEmpty else { throw MergeRequestError.command(errors.joined(separator: " ")) }
+        guard errors.isEmpty else { throw PullRequestError.command(errors.joined(separator: " ")) }
     }
 
-    static func details(from data: Data, host: String) throws -> MergeRequestDetails {
+    static func details(from data: Data, host: String) throws -> PullRequestDetails {
         let payload: DetailsData = try payload(data)
-        guard let request = payload.project?.mergeRequest else { throw MergeRequestError.command("GitLab did not find the merge request") }
+        guard let request = payload.project?.mergeRequest else { throw PullRequestError.command("GitLab did not find the merge request") }
         let threads = request.discussions.nodes
             .filter { $0.resolvable && $0.resolved == false }
-            .compactMap { discussion -> MergeRequestThread? in
+            .compactMap { discussion -> PullRequestThread? in
                 let notes = discussion.notes.nodes.filter { $0.system == false }
                 guard let first = notes.first else { return nil }
-                return MergeRequestThread(
+                return PullRequestThread(
                     id: discussion.id,
                     noteID: first.id.flatMap(noteID),
                     author: first.author?.username ?? "",
@@ -209,11 +209,11 @@ enum GlabGraphQLParser {
                     filePath: first.position?.filePath,
                     line: first.position?.newLine ?? first.position?.oldLine,
                     isOnOldLine: first.position?.newLine == nil && first.position?.oldLine != nil,
-                    replies: notes.dropFirst().map { MergeRequestNote(author: $0.author?.username ?? "", body: $0.body) }
+                    replies: notes.dropFirst().map { PullRequestNote(author: $0.author?.username ?? "", body: $0.body) }
                 )
             }
         let jobs = request.headPipeline?.jobs?.nodes ?? []
-        return MergeRequestDetails(
+        return PullRequestDetails(
             description: request.description ?? "",
             threads: threads,
             failedJobs: jobs.compactMap { job in
@@ -228,26 +228,26 @@ enum GlabGraphQLParser {
     }
 
     private static func payload<Payload: Decodable>(_ data: Data) throws -> Payload {
-        let response: Response<Payload> = try GlabMergeRequestParser.decode(data)
+        let response: Response<Payload> = try GlabPullRequestParser.decode(data)
         guard let payload = response.data else {
-            throw MergeRequestError.command(response.errors?.first?.message ?? "Empty answer from GitLab")
+            throw PullRequestError.command(response.errors?.first?.message ?? "Empty answer from GitLab")
         }
         return payload
     }
 
-    private static func summary(_ node: MergeRequestNode, host: String) -> MergeRequestSummary? {
+    private static func summary(_ node: PullRequestNode, host: String) -> PullRequestSummary? {
         guard let iid = Int(node.iid) else { return nil }
-        return MergeRequestSummary(
+        return PullRequestSummary(
             iid: iid,
             title: node.title,
-            state: GlabMergeRequestParser.state(node.state.lowercased()),
+            state: GlabPullRequestParser.state(node.state.lowercased()),
             isDraft: node.draft ?? false,
             webURL: node.webUrl.flatMap(URL.init(string:)),
             author: node.author?.username ?? "",
             sourceBranch: node.sourceBranch,
             targetBranch: node.targetBranch,
             hasConflicts: node.conflicts ?? false,
-            detailedStatus: node.detailedMergeStatus.map { GlabMergeRequestParser.detail($0.lowercased()) },
+            detailedStatus: node.detailedMergeStatus.map { GlabPullRequestParser.detail($0.lowercased()) },
             commentCount: node.userNotesCount ?? 0,
             updatedAt: node.updatedAt,
             pipeline: node.headPipeline.map { pipeline($0, host: host) },
@@ -266,13 +266,13 @@ enum GlabGraphQLParser {
             removesSourceBranch: node.shouldRemoveSourceBranch,
             headSHA: node.diffHeadSha,
             isAutoMergeEnabled: node.autoMergeEnabled ?? false,
-            permissions: node.userPermissions.map { MergeRequestPermissions(canMerge: $0.canMerge, canApprove: $0.canApprove) } ?? .none
+            permissions: node.userPermissions.map { PullRequestPermissions(canMerge: $0.canMerge, canApprove: $0.canApprove) } ?? .none
         )
     }
 
     private static func pipeline(_ pipeline: Pipeline, host: String) -> PipelineInfo {
         PipelineInfo(
-            status: GlabMergeRequestParser.pipelineStatus(pipeline.status.lowercased()),
+            status: GlabPullRequestParser.pipelineStatus(pipeline.status.lowercased()),
             webURL: pipeline.detailedStatus?.detailsPath.flatMap { URL(string: "https://\(host)\($0)") },
             updatedAt: pipeline.updatedAt,
             id: pipeline.detailedStatus?.detailsPath.flatMap { $0.split(separator: "/").last.flatMap { Int($0) } },

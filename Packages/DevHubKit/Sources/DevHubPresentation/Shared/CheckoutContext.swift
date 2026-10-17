@@ -14,5 +14,5 @@ protocol CheckoutContext: AnyObject {
     var localBranchNames: Set<String> { get }
     var isMainCheckoutClean: Bool { get }
     func localBranch(named name: String) -> GitBranch?
-    func mergeRequestTargets(for branch: String) -> [String]
+    func pullRequestTargets(for branch: String) -> [String]
 }

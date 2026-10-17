@@ -3,13 +3,13 @@ import Testing
 @testable import DevHubDomain
 
 @Suite struct ReviewPromptBuilderTests {
-    private let request = MergeRequestSummaryFixture.open
+    private let request = PullRequestSummaryFixture.open
 
     @Test func everyThreadBecomesABlockWithItsPlaceAuthorAndReplies() {
         let threads = [
-            MergeRequestThread(id: "d1", noteID: 1, author: "lee", body: "Rename this.\nIt reads badly.", filePath: "App/Login.swift", line: 42, isOnOldLine: false, replies: [MergeRequestNote(author: "alex", body: "To what?")]),
-            MergeRequestThread(id: "d2", noteID: 2, author: "kim", body: "Why was this removed?", filePath: "App/Old.swift", line: 7, isOnOldLine: true, replies: []),
-            MergeRequestThread(id: "d3", noteID: 3, author: "sam", body: "Add a test.", filePath: nil, line: nil, isOnOldLine: false, replies: []),
+            PullRequestThread(id: "d1", noteID: 1, author: "lee", body: "Rename this.\nIt reads badly.", filePath: "App/Login.swift", line: 42, isOnOldLine: false, replies: [PullRequestNote(author: "alex", body: "To what?")]),
+            PullRequestThread(id: "d2", noteID: 2, author: "kim", body: "Why was this removed?", filePath: "App/Old.swift", line: 7, isOnOldLine: true, replies: []),
+            PullRequestThread(id: "d3", noteID: 3, author: "sam", body: "Add a test.", filePath: nil, line: nil, isOnOldLine: false, replies: []),
         ]
 
         let prompt = ReviewPromptBuilder.prompt(for: request, threads: threads)
@@ -25,7 +25,7 @@ import Testing
     }
 
     @Test func oneThreadIsSingular() {
-        let thread = MergeRequestThread(id: "d1", noteID: 1, author: "lee", body: "Fix", filePath: "a.swift", line: nil, isOnOldLine: false, replies: [])
+        let thread = PullRequestThread(id: "d1", noteID: 1, author: "lee", body: "Fix", filePath: "a.swift", line: nil, isOnOldLine: false, replies: [])
 
         let prompt = ReviewPromptBuilder.prompt(for: request, threads: [thread])
 

@@ -112,20 +112,20 @@ final class StoreHarness {
 
     lazy var history = CommitHistoryStore(repository: ports.changes, checkout: git, activity: activity, events: events, store: store)
 
-    lazy var mergeRequests = MergeRequestStore(repository: ports.mergeRequests, checkout: git, events: events)
+    lazy var branchPullRequest = BranchPullRequestStore(repository: ports.codeHost, checkout: git, events: events)
 
     lazy var codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
 
-    lazy var gitLab = GitLabStore(repository: ports.mergeRequests, remote: codeHostRemote, activity: activity, events: events, store: store)
+    lazy var pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
 
-    lazy var openMergeRequests = OpenMergeRequestsStore(repository: ports.mergeRequests, remote: codeHostRemote, activity: activity, events: events)
+    lazy var openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events)
 
-    lazy var mergeRequestDetails = MergeRequestDetailStore(repository: ports.mergeRequests, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
+    lazy var pullRequestDetails = PullRequestDetailStore(repository: ports.codeHost, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
 
-    lazy var newMergeRequest = NewMergeRequestStore(
+    lazy var newPullRequest = NewPullRequestStore(
         git: ports.git,
-        mergeRequests: ports.mergeRequests,
-        createMergeRequest: useCases.createMergeRequest,
+        codeHost: ports.codeHost,
+        createPullRequest: useCases.createPullRequest,
         checkout: git,
         remote: codeHostRemote,
         activity: activity,

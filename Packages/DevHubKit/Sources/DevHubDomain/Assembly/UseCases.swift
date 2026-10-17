@@ -6,7 +6,7 @@ package struct UseCases: Sendable {
     package let checkOutRemoteBranch: CheckOutRemoteBranchUseCase
     package let rebaseOnBase: RebaseOnBaseUseCase
     package let switchBranch: SwitchBranchUseCase
-    package let createMergeRequest: CreateMergeRequestUseCase
+    package let createPullRequest: CreatePullRequestUseCase
     package let pushCurrentBranch: PushCurrentBranchUseCase
     package let discardChange: DiscardChangeUseCase
     package let commit: CommitUseCase
@@ -24,7 +24,7 @@ package struct UseCases: Sendable {
         checkOutRemoteBranch = CheckOutRemoteBranchUseCase(git: ports.git)
         rebaseOnBase = RebaseOnBaseUseCase(git: ports.git)
         switchBranch = SwitchBranchUseCase(git: ports.git)
-        createMergeRequest = CreateMergeRequestUseCase(git: ports.git, mergeRequests: ports.mergeRequests)
+        createPullRequest = CreatePullRequestUseCase(git: ports.git, codeHost: ports.codeHost)
         pushCurrentBranch = PushCurrentBranchUseCase(git: ports.git)
         discardChange = DiscardChangeUseCase(changes: ports.git)
         commit = CommitUseCase(git: ports.git)

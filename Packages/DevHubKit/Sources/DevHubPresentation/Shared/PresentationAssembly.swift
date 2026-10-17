@@ -21,11 +21,11 @@ package final class PresentationAssembly {
     let git: GitStore
     let changes: GitChangesStore
     let history: CommitHistoryStore
-    let mergeRequests: MergeRequestStore
-    let gitLab: GitLabStore
-    let openMergeRequests: OpenMergeRequestsStore
-    let newMergeRequest: NewMergeRequestStore
-    let mergeRequestDetails: MergeRequestDetailStore
+    let branchPullRequest: BranchPullRequestStore
+    let pullRequests: PullRequestsStore
+    let openPullRequests: OpenPullRequestsStore
+    let newPullRequest: NewPullRequestStore
+    let pullRequestDetails: PullRequestDetailStore
     let simulators: SimulatorsStore
     let identity: IdentityStore
     let build: BuildStore
@@ -95,15 +95,15 @@ package final class PresentationAssembly {
             events: events
         )
         history = CommitHistoryStore(repository: ports.changes, checkout: git, activity: activity, events: events, store: store)
-        mergeRequests = MergeRequestStore(repository: ports.mergeRequests, checkout: git, events: events)
+        branchPullRequest = BranchPullRequestStore(repository: ports.codeHost, checkout: git, events: events)
         let codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
-        gitLab = GitLabStore(repository: ports.mergeRequests, remote: codeHostRemote, activity: activity, events: events, store: store)
-        openMergeRequests = OpenMergeRequestsStore(repository: ports.mergeRequests, remote: codeHostRemote, activity: activity, events: events)
-        mergeRequestDetails = MergeRequestDetailStore(repository: ports.mergeRequests, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
-        newMergeRequest = NewMergeRequestStore(
+        pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
+        openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events)
+        pullRequestDetails = PullRequestDetailStore(repository: ports.codeHost, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
+        newPullRequest = NewPullRequestStore(
             git: ports.git,
-            mergeRequests: ports.mergeRequests,
-            createMergeRequest: useCases.createMergeRequest,
+            codeHost: ports.codeHost,
+            createPullRequest: useCases.createPullRequest,
             checkout: git,
             remote: codeHostRemote,
             activity: activity,
@@ -169,9 +169,9 @@ package final class PresentationAssembly {
             navigator: navigator,
             build: build,
             git: git,
-            gitLab: gitLab,
-            newMergeRequest: newMergeRequest,
-            mergeRequestDetails: mergeRequestDetails,
+            pullRequests: pullRequests,
+            newPullRequest: newPullRequest,
+            pullRequestDetails: pullRequestDetails,
             worktrees: worktrees,
             identity: identity,
             logs: logs,

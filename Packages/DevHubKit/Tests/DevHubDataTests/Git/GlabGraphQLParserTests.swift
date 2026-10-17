@@ -12,7 +12,7 @@ import Testing
         #expect(list.hasNextPage)
         #expect(list.endCursor == "eyJpZCI6IjIwIn0")
         #expect(list.requests.count == 2)
-        #expect(list.requests[0] == MergeRequestSummary(
+        #expect(list.requests[0] == PullRequestSummary(
             iid: 21,
             title: "ABC-5: Login",
             state: .opened,
@@ -49,7 +49,7 @@ import Testing
             removesSourceBranch: false,
             headSHA: "abc123",
             isAutoMergeEnabled: true,
-            permissions: MergeRequestPermissions(canMerge: true, canApprove: false)
+            permissions: PullRequestPermissions(canMerge: true, canApprove: false)
         ))
         #expect(list.requests[0].openThreadCount == 3)
         let old = list.requests[1]
@@ -87,7 +87,7 @@ import Testing
     }
 
     @Test func missingUserMeansNotLoggedIn() {
-        #expect(throws: MergeRequestError.notLoggedIn(tool: "glab", host: "h")) {
+        #expect(throws: PullRequestError.notLoggedIn(tool: "glab", host: "h")) {
             try GlabGraphQLParser.list(from: GlabGraphQLFixture.noUser, host: "h")
         }
     }
@@ -99,10 +99,10 @@ import Testing
     }
 
     @Test func missingProjectAndErrorsThrow() {
-        #expect(throws: MergeRequestError.command("GitLab did not find the project")) {
+        #expect(throws: PullRequestError.command("GitLab did not find the project")) {
             try GlabGraphQLParser.list(from: GlabGraphQLFixture.noProject, host: "h")
         }
-        #expect(throws: MergeRequestError.command("Field 'x' doesn't exist")) {
+        #expect(throws: PullRequestError.command("Field 'x' doesn't exist")) {
             try GlabGraphQLParser.list(from: GlabGraphQLFixture.failure, host: "h")
         }
     }
@@ -112,8 +112,8 @@ import Testing
 
         #expect(details.description == "Adds **login**.")
         #expect(details.threads == [
-            MergeRequestThread(id: "d1", noteID: 11, author: "sam", body: "Move this", filePath: "App/Login.swift", line: 12, isOnOldLine: true, replies: [MergeRequestNote(author: "me", body: "Done?")]),
-            MergeRequestThread(id: "d4", noteID: 44, author: "kim", body: "Need a test", filePath: nil, line: nil, isOnOldLine: false, replies: []),
+            PullRequestThread(id: "d1", noteID: 11, author: "sam", body: "Move this", filePath: "App/Login.swift", line: 12, isOnOldLine: true, replies: [PullRequestNote(author: "me", body: "Done?")]),
+            PullRequestThread(id: "d4", noteID: 44, author: "kim", body: "Need a test", filePath: nil, line: nil, isOnOldLine: false, replies: []),
         ])
     }
 
@@ -139,7 +139,7 @@ import Testing
     @Test func autoMergePayloadReportsTheRefusal() throws {
         try GlabGraphQLParser.mutation(from: GlabGraphQLFixture.autoMergeAccepted)
 
-        #expect(throws: MergeRequestError.command("SHA does not match HEAD of source branch")) {
+        #expect(throws: PullRequestError.command("SHA does not match HEAD of source branch")) {
             try GlabGraphQLParser.mutation(from: GlabGraphQLFixture.autoMergeRefused)
         }
     }
@@ -147,23 +147,23 @@ import Testing
     @Test func mutationErrorsAreReported() throws {
         try GlabGraphQLParser.mutation(from: Data(#"{"data":{"mergeRequestSetDraft":{"errors":[]}}}"#.utf8))
 
-        #expect(throws: MergeRequestError.command("Not allowed")) {
+        #expect(throws: PullRequestError.command("Not allowed")) {
             try GlabGraphQLParser.mutation(from: Data(#"{"data":{"mergeRequestSetDraft":{"errors":["Not allowed"]}}}"#.utf8))
         }
-        #expect(throws: MergeRequestError.command("Field 'x' doesn't exist")) {
+        #expect(throws: PullRequestError.command("Field 'x' doesn't exist")) {
             try GlabGraphQLParser.mutation(from: GlabGraphQLFixture.failure)
         }
     }
 
     @Test func labelsAreSortedByName() throws {
         #expect(try GlabGraphQLParser.labels(from: GlabGraphQLFixture.labels) == ["ADR", "bugfix", "tech"])
-        #expect(throws: MergeRequestError.command("GitLab did not find the project")) {
+        #expect(throws: PullRequestError.command("GitLab did not find the project")) {
             try GlabGraphQLParser.labels(from: GlabGraphQLFixture.noProject)
         }
     }
 
     @Test func missingMergeRequestThrows() {
-        #expect(throws: MergeRequestError.command("GitLab did not find the merge request")) {
+        #expect(throws: PullRequestError.command("GitLab did not find the merge request")) {
             try GlabGraphQLParser.details(from: GlabGraphQLFixture.noMergeRequest, host: "h")
         }
     }

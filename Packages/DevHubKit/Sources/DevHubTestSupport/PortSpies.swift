@@ -12,7 +12,7 @@ package struct PortSpies: Sendable {
     package let mockServer = SpyMockServerRepository()
     package let mockSets = SpyMockSetRepository()
     package let messaging = SpySimulatorMessagingRepository()
-    package let mergeRequests = SpyMergeRequestRepository()
+    package let codeHost = SpyCodeHostRepository()
     package let claudeSessions = SpyClaudeSessionRepository()
     package let derivedData = SpyDerivedDataRepository()
     package let opener = SpyWorkspaceOpener()

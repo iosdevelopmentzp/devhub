@@ -51,7 +51,7 @@ enum GhGraphQLQueries {
 
     static let reply = "mutation($id: ID!, $body: String!) { addPullRequestReviewThreadReply(input: { pullRequestReviewThreadId: $id, body: $body }) { clientMutationId } }"
 
-    static func search(_ query: MergeRequestQuery, repository: String) -> String {
+    static func search(_ query: PullRequestQuery, repository: String) -> String {
         var parts = ["repo:\(repository)", "is:pr"]
         switch query.scope {
         case .mine: parts.append("author:@me")
@@ -59,7 +59,7 @@ enum GhGraphQLQueries {
         case .assigned: parts.append("assignee:@me")
         case .all: break
         }
-        let state: MergeRequestStateFilter = query.scope == .reviewing ? .opened : query.state
+        let state: PullRequestStateFilter = query.scope == .reviewing ? .opened : query.state
         switch state {
         case .opened: parts.append("is:open")
         case .merged: parts.append("is:merged")

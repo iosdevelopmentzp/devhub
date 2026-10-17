@@ -24,7 +24,7 @@ import DevHubTestSupport
     }
 
     @Test func aMissingRemoteIsNotCached() async {
-        await #expect(throws: MergeRequestError.noCodeHost) {
+        await #expect(throws: PullRequestError.noCodeHost) {
             try await harness.codeHostRemote.codeHost()
         }
 

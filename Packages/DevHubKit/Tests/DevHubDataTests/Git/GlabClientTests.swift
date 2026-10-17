@@ -29,7 +29,7 @@ import Testing
     @Test func hostAndProjectComeFromTheCodeHost() throws {
         #expect(try GlabClient.host(of: .gitLabSample) == "gitlab.example.com")
         #expect(GlabClient.projectPath(of: .gitLabSample) == "team/app")
-        #expect(throws: MergeRequestError.noCodeHost) {
+        #expect(throws: PullRequestError.noCodeHost) {
             try GlabClient.host(of: .gitHubSample)
         }
     }

@@ -4,7 +4,7 @@ import DevHubUI
 enum FeatureID: String, CaseIterable, Hashable {
     case home
     case git
-    case gitlab
+    case pullRequests
     case worktrees
     case simulators
     case logs

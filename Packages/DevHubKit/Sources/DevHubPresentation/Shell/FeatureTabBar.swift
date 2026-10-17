@@ -3,7 +3,7 @@ import DevHubDomain
 import DevHubUI
 
 struct FeatureTabBar: View {
-    @Environment(OpenMergeRequestsStore.self) private var openMergeRequests
+    @Environment(OpenPullRequestsStore.self) private var openPullRequests
 
     @Binding var selection: FeatureID
 
@@ -17,8 +17,8 @@ struct FeatureTabBar: View {
     }
 
     private func badge(for id: FeatureID) -> Int? {
-        guard id == .gitlab, openMergeRequests.reviewCount > 0 else { return nil }
-        return openMergeRequests.reviewCount
+        guard id == .pullRequests, openPullRequests.reviewCount > 0 else { return nil }
+        return openPullRequests.reviewCount
     }
 
     private func tabs(showsTitles: Bool) -> some View {

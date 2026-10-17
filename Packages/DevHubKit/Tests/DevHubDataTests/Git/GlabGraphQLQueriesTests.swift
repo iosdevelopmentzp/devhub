@@ -4,13 +4,13 @@ import Testing
 
 @Suite struct GlabGraphQLQueriesTests {
     @Test(arguments: [
-        (MergeRequestScope.mine, MergeRequestStateFilter.opened, "authoredMergeRequests", ["projectPath=team/app", "state=opened"]),
+        (PullRequestScope.mine, PullRequestStateFilter.opened, "authoredMergeRequests", ["projectPath=team/app", "state=opened"]),
         (.assigned, .merged, "assignedMergeRequests", ["projectPath=team/app", "state=merged"]),
         (.all, .all, "project(fullPath: $path)", ["path=team/app"]),
         (.reviewing, .closed, "project(fullPath: $path)", ["path=team/app", "state=opened"]),
     ])
-    func listQueryAndVariables(scope: MergeRequestScope, state: MergeRequestStateFilter, field: String, variables: [String]) {
-        let query = MergeRequestQuery(scope: scope, state: state)
+    func listQueryAndVariables(scope: PullRequestScope, state: PullRequestStateFilter, field: String, variables: [String]) {
+        let query = PullRequestQuery(scope: scope, state: state)
 
         #expect(GlabGraphQLQueries.list(scope).contains(field))
         #expect(GlabGraphQLQueries.list(scope).contains("headPipeline"))
@@ -20,10 +20,10 @@ import Testing
     }
 
     @Test func aCursorReadsTheNextPage() {
-        let variables = GlabGraphQLQueries.listVariables(MergeRequestQuery(scope: .all, state: .merged), after: "abc", projectPath: "team/app")
+        let variables = GlabGraphQLQueries.listVariables(PullRequestQuery(scope: .all, state: .merged), after: "abc", projectPath: "team/app")
 
         #expect(variables.map { "\($0.name)=\($0.value)" } == ["path=team/app", "state=merged", "after=abc"])
-        for scope in MergeRequestScope.allCases {
+        for scope in PullRequestScope.allCases {
             #expect(GlabGraphQLQueries.list(scope).contains("$after: String"))
             #expect(GlabGraphQLQueries.list(scope).contains("first: 100, after: $after"))
             #expect(GlabGraphQLQueries.list(scope).contains("pageInfo { hasNextPage endCursor }"))

@@ -9,7 +9,7 @@ final class WindowLayout {
     static let minimumSize = CGSize(width: 640, height: 560)
     static let defaultSize = CGSize(width: 720, height: 820)
     static let pinnedAutosaveName = "DevHubPinnedWindow"
-    static let mergeRequestAutosaveName = "DevHubMergeRequestWindow"
+    static let pullRequestAutosaveName = "DevHubPullRequestWindow"
     static let screenInset: CGFloat = 12
 
     var size: CGSize {

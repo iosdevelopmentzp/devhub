@@ -68,12 +68,12 @@ import Testing
         #expect(subjects == ["Polish feature", "Add feature"])
     }
 
-    @Test func theMergeRequestTemplateIsReadFromTheCheckout() async throws {
-        #expect(await repository.mergeRequestTemplate(in: repo.path) == nil)
+    @Test func thePullRequestTemplateIsReadFromTheCheckout() async throws {
+        #expect(await repository.pullRequestTemplate(in: repo.path) == nil)
 
         try repo.write("## What\n", to: ".gitlab/merge_request_templates/Default.md")
 
-        #expect(await repository.mergeRequestTemplate(in: repo.path) == "## What\n")
+        #expect(await repository.pullRequestTemplate(in: repo.path) == "## What\n")
     }
 
     @Test func stateReportsAMergeInProgress() async throws {

@@ -5,11 +5,11 @@ import DevHubUI
 struct GitHeader: View {
     @Environment(GitStore.self) private var git
     @Environment(WorktreesStore.self) private var worktrees
-    @Environment(MergeRequestStore.self) private var mergeRequests
-    @Environment(OpenMergeRequestsStore.self) private var openMergeRequests
+    @Environment(BranchPullRequestStore.self) private var branchPullRequest
+    @Environment(OpenPullRequestsStore.self) private var openPullRequests
     @Environment(AppActions.self) private var appActions
     @Environment(SettingsStore.self) private var settings
-    @Environment(NewMergeRequestStore.self) private var newMergeRequest
+    @Environment(NewPullRequestStore.self) private var newPullRequest
     @Environment(ConfigActionsStore.self) private var configActions
 
     @State private var confirming: Confirmation?
@@ -29,8 +29,8 @@ struct GitHeader: View {
                 if let snapshot = git.snapshot {
                     let model = GitHeaderMapper.model(for: snapshot, baseName: git.baseName, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate))
                     branchLine(model)
-                    if model.showsMergeRequestLine {
-                        mergeRequestLine
+                    if model.showsPullRequestLine {
+                        pullRequestLine
                     }
                     if let operationText = model.operationText {
                         operationBanner(operationText, canContinue: model.canContinueOperation)
@@ -40,8 +40,8 @@ struct GitHeader: View {
                     if let confirming {
                         confirmation(confirming, model: model)
                     }
-                    if newMergeRequest.draft?.origin == .header {
-                        NewMergeRequestForm()
+                    if newPullRequest.draft?.origin == .header {
+                        NewPullRequestForm()
                     }
                 }
             }
@@ -87,20 +87,20 @@ struct GitHeader: View {
         return GitHeaderMapper.checkoutLabel(path: path, worktree: worktrees.worktree(atPath: path))
     }
 
-    private var mergeRequestLine: some View {
-        MergeRequestLine(
-            model: MergeRequestLineMapper.model(
-                status: mergeRequests.status,
-                error: mergeRequests.error,
-                isLoading: mergeRequests.isLoading,
-                openRequest: git.currentBranch.flatMap(openMergeRequests.request(forBranch:)),
-                username: openMergeRequests.username
+    private var pullRequestLine: some View {
+        PullRequestLine(
+            model: PullRequestLineMapper.model(
+                status: branchPullRequest.status,
+                error: branchPullRequest.error,
+                isLoading: branchPullRequest.isLoading,
+                openRequest: git.currentBranch.flatMap(openPullRequests.request(forBranch:)),
+                username: openPullRequests.username
             ),
             terminalPath: git.checkoutPath,
-            onRefresh: { Task { await mergeRequests.refresh() } }
+            onRefresh: { Task { await branchPullRequest.refresh() } }
         )
         .task(id: git.snapshot?.branch) {
-            await mergeRequests.refreshIfStale()
+            await branchPullRequest.refreshIfStale()
         }
     }
 
@@ -175,8 +175,8 @@ struct GitHeader: View {
                 appActions.openTerminal(at: git.checkoutPath)
             }
             if let branch = model.webBranch {
-                IconButton(systemImage: "arrow.triangle.pull", help: model.newMergeRequestHint) {
-                    appActions.startMergeRequest(branch: branch, origin: .header)
+                IconButton(systemImage: "arrow.triangle.pull", help: model.newPullRequestHint) {
+                    appActions.startPullRequest(branch: branch, origin: .header)
                 }
                 IconButton(systemImage: "globe", help: model.branchOnWebHint) {
                     appActions.openBranchOnWeb(branch)

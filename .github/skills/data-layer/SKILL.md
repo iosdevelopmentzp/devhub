@@ -15,9 +15,9 @@ Paths below are relative to `Packages/DevHubKit/Sources/`.
 DevHubData/
     Shell/          ShellRunner (actor), ShellResult, LineBatcher, CommandFormatter, ISO8601
     Persistence/    UserDefaultsKeyValueStore(defaults:)
-    Git/            ShellGitRepository, ShellWorktreeRepository, ShellGitChangesRepository, GlabMergeRequestRepository,
+    Git/            ShellGitRepository, ShellWorktreeRepository, ShellGitChangesRepository, GlabPullRequestRepository,
                     GitCommandRunner, GitCommandEncoder, TrackingInfoParser, MergedBranchesQuery, GitStatusParser,
-                    WorktreePorcelainParser, GlabMergeRequestParser, GlabErrorMapper
+                    WorktreePorcelainParser, GlabPullRequestParser, GlabErrorMapper
     Git/Parsers/    GitBranchHeaderParser, GitLogParser, LocalBranchParser, RemoteBranchParser, ReflogVisitParser
     Simulators/     SimctlSimulatorRepository, SimctlDeviceIdentityRepository, SimctlMessagingRepository, SimctlRunner,
                     SimctlListParser, ContainerLocator
@@ -130,7 +130,7 @@ actor ShellRunner {
 ## Parsers and DTOs
 
 A parser is a pure type in its own file: text in, values out (`SimctlListParser`, `WorktreePorcelainParser`,
-`GitStatusParser`, `Git/Parsers/GitLogParser`, `BuildOutputParser`, `AppLogParser`, `GlabMergeRequestParser`,
+`GitStatusParser`, `Git/Parsers/GitLogParser`, `BuildOutputParser`, `AppLogParser`, `GlabPullRequestParser`,
 `ClaudeTranscriptParser`, `HTTPRequestParser`). A parser never reads the clock: it takes `now` or `date` as a parameter
 (`ClaudeUsageParser.parse(_:plan:now:)`). A repository reads the file or runs the command and calls the parser. A `Decodable` DTO for JSON or plist
 output is `private` to its parser or repository. A Domain model is never `Decodable` for an external format: map

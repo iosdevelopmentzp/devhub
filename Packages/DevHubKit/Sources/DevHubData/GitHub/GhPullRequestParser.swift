@@ -98,10 +98,10 @@ enum GhPullRequestParser {
         let search: Search
     }
 
-    static func list(from data: Data) throws -> MergeRequestList {
+    static func list(from data: Data) throws -> PullRequestList {
         let payload: ListData = try payload(data)
         let viewer = payload.viewer?.login ?? ""
-        return MergeRequestList(
+        return PullRequestList(
             username: viewer,
             requests: payload.search.nodes.compactMap { summary($0, viewer: viewer, repository: payload.repository) },
             totalCount: payload.search.issueCount,
@@ -123,14 +123,14 @@ enum GhPullRequestParser {
         let repository: Repo?
     }
 
-    static func status(from data: Data) throws -> MergeRequestStatus {
+    static func status(from data: Data) throws -> PullRequestStatus {
         let payload: StatusData = try payload(data)
-        guard let repository = payload.repository else { throw MergeRequestError.command("GitHub did not find the repository") }
+        guard let repository = payload.repository else { throw PullRequestError.command("GitHub did not find the repository") }
         let nodes = repository.pullRequests.nodes
         let request = nodes.first { $0.state == "OPEN" } ?? nodes.first
-        let info = request.flatMap { node -> MergeRequestInfo? in
+        let info = request.flatMap { node -> PullRequestInfo? in
             guard let number = node.number else { return nil }
-            return MergeRequestInfo(
+            return PullRequestInfo(
                 iid: number,
                 title: node.title ?? "",
                 state: state(node.state),
@@ -144,7 +144,7 @@ enum GhPullRequestParser {
         }
         let rollup = repository.ref?.target?.statusCheckRollup
         let checksURL = request?.url.map { "\($0)/checks" }
-        return MergeRequestStatus(mergeRequest: info, pipeline: rollup.map { GhCheckParser.pipeline($0, fallbackURL: checksURL) })
+        return PullRequestStatus(pullRequest: info, pipeline: rollup.map { GhCheckParser.pipeline($0, fallbackURL: checksURL) })
     }
 
     private struct DetailsData: Decodable {
@@ -178,14 +178,14 @@ enum GhPullRequestParser {
         let repository: Repo?
     }
 
-    static func details(from data: Data) throws -> MergeRequestDetails {
+    static func details(from data: Data) throws -> PullRequestDetails {
         let payload: DetailsData = try payload(data)
-        guard let request = payload.repository?.pullRequest else { throw MergeRequestError.command("GitHub did not find the pull request") }
+        guard let request = payload.repository?.pullRequest else { throw PullRequestError.command("GitHub did not find the pull request") }
         let threads = request.reviewThreads.nodes
             .filter { $0.isResolved == false }
-            .compactMap { thread -> MergeRequestThread? in
+            .compactMap { thread -> PullRequestThread? in
                 guard let first = thread.comments.nodes.first else { return nil }
-                return MergeRequestThread(
+                return PullRequestThread(
                     id: thread.id,
                     noteID: first.databaseId,
                     author: first.author?.login ?? "",
@@ -193,11 +193,11 @@ enum GhPullRequestParser {
                     filePath: thread.path,
                     line: thread.line ?? thread.originalLine,
                     isOnOldLine: thread.diffSide == "LEFT",
-                    replies: thread.comments.nodes.dropFirst().map { MergeRequestNote(author: $0.author?.login ?? "", body: $0.body) }
+                    replies: thread.comments.nodes.dropFirst().map { PullRequestNote(author: $0.author?.login ?? "", body: $0.body) }
                 )
             }
         let rollup = request.lastCommit?.nodes.first?.commit.statusCheckRollup
-        return MergeRequestDetails(
+        return PullRequestDetails(
             description: request.body ?? "",
             threads: threads,
             failedJobs: rollup.map(GhCheckParser.failedJobs) ?? [],
@@ -238,7 +238,7 @@ enum GhPullRequestParser {
     static func mutation(from data: Data) throws {
         let response: Response<[String: AnyDecodable?]> = try decode(data)
         if let failure = response.errors?.first {
-            throw MergeRequestError.command(failure.message)
+            throw PullRequestError.command(failure.message)
         }
     }
 
@@ -260,24 +260,24 @@ enum GhPullRequestParser {
         do {
             return try decoder.decode(Value.self, from: data)
         } catch {
-            throw MergeRequestError.command("Unexpected answer from GitHub: \(error.localizedDescription)")
+            throw PullRequestError.command("Unexpected answer from GitHub: \(error.localizedDescription)")
         }
     }
 
     private static func payload<Payload: Decodable>(_ data: Data) throws -> Payload {
         let response: Response<Payload> = try decode(data)
         guard let payload = response.data else {
-            throw MergeRequestError.command(response.errors?.first?.message ?? "Empty answer from GitHub")
+            throw PullRequestError.command(response.errors?.first?.message ?? "Empty answer from GitHub")
         }
         return payload
     }
 
-    private static func summary(_ node: PullRequestNode, viewer: String, repository: Repository?) -> MergeRequestSummary? {
+    private static func summary(_ node: PullRequestNode, viewer: String, repository: Repository?) -> PullRequestSummary? {
         guard let number = node.number else { return nil }
         let threads = node.reviewThreads
         let author = node.author?.login ?? ""
         let canWrite = ["ADMIN", "MAINTAIN", "WRITE"].contains(repository?.viewerPermission ?? "")
-        return MergeRequestSummary(
+        return PullRequestSummary(
             iid: number,
             title: node.title ?? "",
             state: state(node.state),
@@ -306,11 +306,11 @@ enum GhPullRequestParser {
             removesSourceBranch: repository?.deleteBranchOnMerge,
             headSHA: node.headRefOid,
             isAutoMergeEnabled: node.autoMergeRequest != nil,
-            permissions: MergeRequestPermissions(canMerge: canWrite, canApprove: author != viewer && repository?.viewerPermission != nil)
+            permissions: PullRequestPermissions(canMerge: canWrite, canApprove: author != viewer && repository?.viewerPermission != nil)
         )
     }
 
-    private static func state(_ name: String?) -> MergeRequestState {
+    private static func state(_ name: String?) -> PullRequestState {
         switch name {
         case "OPEN": .opened
         case "MERGED": .merged

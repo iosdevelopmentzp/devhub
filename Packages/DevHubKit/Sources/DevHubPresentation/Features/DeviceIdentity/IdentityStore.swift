@@ -64,7 +64,7 @@ final class IdentityStore: IdentityLookup {
                 rememberDesiredDeviceID(for: id)
             case .buildFinished(let id, let launchedDeviceID):
                 buildFinished(id: id, launchedDeviceID: launchedDeviceID)
-            case .branchesChanged, .worktreesChanged, .commandFailed, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .mergeRequestsChanged, .configChanged, .refreshRequested:
+            case .branchesChanged, .worktreesChanged, .commandFailed, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .configChanged, .refreshRequested:
                 break
             }
         }

@@ -8,7 +8,7 @@ enum FeatureRegistry {
     static let all: [Feature] = [
         Feature(id: .home, title: "Home", systemImage: "house", searchPrompt: "Search actions and scripts") { HomeView() },
         Feature(id: .git, title: "Git", systemImage: "arrow.triangle.pull", searchPrompt: "Search branches, commits, files") { GitView() },
-        Feature(id: .gitlab, title: "GitLab", systemImage: "arrow.triangle.merge", searchPrompt: "Search merge requests") { GitLabView() },
+        Feature(id: .pullRequests, title: "GitLab", systemImage: "arrow.triangle.merge", searchPrompt: "Search merge requests") { PullRequestsView() },
         Feature(id: .worktrees, title: "Worktrees", systemImage: "arrow.triangle.branch", searchPrompt: "Search worktrees") { WorktreesView() },
         Feature(id: .simulators, title: "Simulators", systemImage: "iphone", searchPrompt: "Search simulators") { SimulatorsView() },
         Feature(id: .logs, title: "Logs", systemImage: "text.alignleft", searchPrompt: "Search log lines") { LogsView() },

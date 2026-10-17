@@ -39,7 +39,7 @@ import Testing
             assembly.commandLog, assembly.events, assembly.session, assembly.config, assembly.configActions, assembly.navigator, assembly.activity,
             assembly.toaster, assembly.hints, assembly.output, assembly.layout, assembly.settings,
             assembly.workspace, assembly.usage, assembly.worktrees, assembly.git, assembly.changes,
-            assembly.mergeRequests, assembly.simulators, assembly.identity, assembly.build,
+            assembly.branchPullRequest, assembly.simulators, assembly.identity, assembly.build,
             assembly.logs, assembly.messaging, assembly.claudeSessions, assembly.appActions
         ]
 

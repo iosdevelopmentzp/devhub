@@ -533,22 +533,22 @@ import DevHubTestSupport
 
     @Test func branchLinksUseTheSnapshotURL() async {
         #expect(store.branchURL("dev") == nil)
-        #expect(store.newMergeRequestURL("dev") == nil)
+        #expect(store.newPullRequestURL("dev") == nil)
 
         await load(GitStateSample.state)
 
         #expect(store.branchURL("origin/feature/x") == URL(string: "https://gitlab.example.com/team/app/-/tree/feature/x"))
-        #expect(store.newMergeRequestURL("feature/x") == URL(string: "https://gitlab.example.com/team/app/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature/x&merge_request%5Btarget_branch%5D=dev"))
+        #expect(store.newPullRequestURL("feature/x") == URL(string: "https://gitlab.example.com/team/app/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature/x&merge_request%5Btarget_branch%5D=dev"))
     }
 
-    @Test func mergeRequestTargetsComeFromRemoteBranches() async {
-        #expect(store.mergeRequestTargets(for: "feature/x") == ["main"])
+    @Test func pullRequestTargetsComeFromRemoteBranches() async {
+        #expect(store.pullRequestTargets(for: "feature/x") == ["main"])
 
         await load(GitStateSample.state)
 
-        #expect(store.mergeRequestTargets(for: "feature/x") == ["dev", "feature/new"])
-        #expect(store.mergeRequestTargets(for: "feature/new") == ["dev"])
-        #expect(store.newMergeRequestURL("feature/x", target: "feature/new") == URL(string: "https://gitlab.example.com/team/app/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature/x&merge_request%5Btarget_branch%5D=feature/new"))
+        #expect(store.pullRequestTargets(for: "feature/x") == ["dev", "feature/new"])
+        #expect(store.pullRequestTargets(for: "feature/new") == ["dev"])
+        #expect(store.newPullRequestURL("feature/x", target: "feature/new") == URL(string: "https://gitlab.example.com/team/app/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature/x&merge_request%5Btarget_branch%5D=feature/new"))
     }
 
     // MARK: Branch lists

@@ -114,7 +114,7 @@ Packages/DevHubKit/
 ## 5. Data and Mocks
 
 - A live implementation is named by its technology: `ShellGitRepository`, `SimctlSimulatorRepository`,
-  `XcodeBuildRepository`, `GlabMergeRequestRepository`, `AnthropicUsageRepository`, `FileMockSetRepository`.
+  `XcodeBuildRepository`, `GlabPullRequestRepository`, `AnthropicUsageRepository`, `FileMockSetRepository`.
 - Every repository takes what it needs in `init` (`ShellRunner`, another port, a file root, a `KeyValueStore`). No
   repository builds another repository. No `.shared`, no static service with side effects.
 - File roots are injected so tests can use a temporary folder: `FileMockSetRepository(root:)`,
@@ -122,7 +122,7 @@ Packages/DevHubKit/
 - Every process goes through `ShellRunner`, which reports every command to a `CommandRecording`. Never `Process`
   outside `ShellRunner.swift`. Shared runners: `GitCommandRunner`, `SimctlRunner`, `PlistReader`, `ISO8601`.
 - Parsers are pure types in their own file: text in, values out (`GitStatusParser`, `Git/Parsers/GitLogParser`,
-  `GlabMergeRequestParser`, `ClaudeTranscriptParser`, `HTTPRequestParser`, …). DTOs are `private`. A Domain model
+  `GlabPullRequestParser`, `ClaudeTranscriptParser`, `HTTPRequestParser`, …). DTOs are `private`. A Domain model
   is never `Decodable` for an external format. One exception: the `.devhub/` config models in
   `DevHubDomain/Models/Config/` are `Codable`, because the user writes that JSON for DevHub and `docs/extensions.md`
   defines it. About 35 DTOs that mirror them one to one would add nothing. The decoding and the layer merge are pure

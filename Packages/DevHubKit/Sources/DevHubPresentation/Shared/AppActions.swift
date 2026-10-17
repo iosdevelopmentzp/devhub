@@ -9,9 +9,9 @@ final class AppActions {
     @ObservationIgnored private let navigator: Navigator
     @ObservationIgnored private let build: BuildStore
     @ObservationIgnored private let git: GitStore
-    @ObservationIgnored private let gitLab: GitLabStore
-    @ObservationIgnored private let newMergeRequest: NewMergeRequestStore
-    @ObservationIgnored private let mergeRequestDetails: MergeRequestDetailStore
+    @ObservationIgnored private let pullRequests: PullRequestsStore
+    @ObservationIgnored private let newPullRequest: NewPullRequestStore
+    @ObservationIgnored private let pullRequestDetails: PullRequestDetailStore
     @ObservationIgnored private let worktrees: WorktreesStore
     @ObservationIgnored private let identity: IdentityStore
     @ObservationIgnored private let logs: LogsStore
@@ -23,9 +23,9 @@ final class AppActions {
         navigator: Navigator,
         build: BuildStore,
         git: GitStore,
-        gitLab: GitLabStore,
-        newMergeRequest: NewMergeRequestStore,
-        mergeRequestDetails: MergeRequestDetailStore,
+        pullRequests: PullRequestsStore,
+        newPullRequest: NewPullRequestStore,
+        pullRequestDetails: PullRequestDetailStore,
         worktrees: WorktreesStore,
         identity: IdentityStore,
         logs: LogsStore,
@@ -36,9 +36,9 @@ final class AppActions {
         self.navigator = navigator
         self.build = build
         self.git = git
-        self.gitLab = gitLab
-        self.newMergeRequest = newMergeRequest
-        self.mergeRequestDetails = mergeRequestDetails
+        self.pullRequests = pullRequests
+        self.newPullRequest = newPullRequest
+        self.pullRequestDetails = pullRequestDetails
         self.worktrees = worktrees
         self.identity = identity
         self.logs = logs
@@ -70,7 +70,7 @@ final class AppActions {
             openRepository()
         case .newPullRequest:
             guard let branch else { return }
-            openNewMergeRequest(for: branch)
+            openNewPullRequest(for: branch)
         }
     }
 
@@ -145,12 +145,12 @@ final class AppActions {
         workspace.open(git.branchURL(branch))
     }
 
-    func openNewMergeRequest(for branch: String) {
-        openWhenLoaded { [git] in git.newMergeRequestURL(branch) }
+    func openNewPullRequest(for branch: String) {
+        openWhenLoaded { [git] in git.newPullRequestURL(branch) }
     }
 
-    func openNewMergeRequest(for branch: String, target: String) {
-        openWhenLoaded { [git] in git.newMergeRequestURL(branch, target: target) }
+    func openNewPullRequest(for branch: String, target: String) {
+        openWhenLoaded { [git] in git.newPullRequestURL(branch, target: target) }
     }
 
     func openRepository() {
@@ -178,33 +178,33 @@ final class AppActions {
 
     // MARK: GitLab
 
-    func showMergeRequest(iid: Int) {
-        navigator.show(.gitlab)
+    func showPullRequest(iid: Int) {
+        navigator.show(.pullRequests)
         Task { [weak self] in
             guard let self else { return }
-            await gitLab.reveal(iid)
+            await pullRequests.reveal(iid)
         }
     }
 
-    func startMergeRequest(branch: String, origin: NewMergeRequestDraft.Origin) {
+    func startPullRequest(branch: String, origin: NewPullRequestDraft.Origin) {
         Task { [weak self] in
             guard let self else { return }
-            await newMergeRequest.open(branch: branch, origin: origin)
+            await newPullRequest.open(branch: branch, origin: origin)
         }
     }
 
-    func createMergeRequest() {
+    func createPullRequest() {
         Task { [weak self] in
             guard let self else { return }
-            guard let iid = await newMergeRequest.create() else { return }
-            showMergeRequest(iid: iid)
+            guard let iid = await newPullRequest.create() else { return }
+            showPullRequest(iid: iid)
         }
     }
 
-    func fixThreadsWithClaude(_ summary: MergeRequestSummary) {
+    func fixThreadsWithClaude(_ summary: PullRequestSummary) {
         Task { [weak self] in
             guard let self else { return }
-            guard let promptPath = await mergeRequestDetails.writeReviewPrompt(for: summary) else { return }
+            guard let promptPath = await pullRequestDetails.writeReviewPrompt(for: summary) else { return }
             guard let path = await checkoutPath(creatingWorktreeFor: summary.sourceBranch) else { return }
             workspace.runInTerminal(ReviewPromptBuilder.command(promptPath: promptPath), at: path, title: "Started Claude on the threads of !\(summary.iid)")
         }

@@ -86,7 +86,7 @@ struct ShellGitRepository: GitRepository {
         return output.split(separator: "\n").map(String.init)
     }
 
-    func mergeRequestTemplate(in path: String) async -> String? {
+    func pullRequestTemplate(in path: String) async -> String? {
         let file = ((path as NSString).expandingTildeInPath as NSString).appendingPathComponent(Self.templatePath)
         return try? String(contentsOfFile: file, encoding: .utf8)
     }

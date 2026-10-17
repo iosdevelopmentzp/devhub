@@ -15,11 +15,11 @@ import DevHubTestSupport
         #expect(model.statusTag == TagModel("clean", tint: .green, systemImage: "checkmark", hint: "No uncommitted changes"))
         #expect(model.upstreamTag == TagModel("origin/feature/login", systemImage: "icloud"))
         #expect(model.tags.isEmpty)
-        #expect(model.showsMergeRequestLine)
+        #expect(model.showsPullRequestLine)
         #expect(model.operationText == nil)
         #expect(model.canContinueOperation == false)
         #expect(model.webBranch == "feature/login")
-        #expect(model.newMergeRequestHint == "New merge request for feature/login: title, description and labels here, pushes first when needed")
+        #expect(model.newPullRequestHint == "New merge request for feature/login: title, description and labels here, pushes first when needed")
         #expect(model.branchOnWebHint == "Open feature/login on GitLab")
         #expect(model.forcePushMessage == "Force push feature/login? The remote branch is replaced with your local one. --force-with-lease refuses when someone else pushed meanwhile.")
         #expect(model.rebaseMessage == "Rebase feature/login on origin/dev? 0 new commits come in. Local changes are stashed and restored. After that you need a force push.")
@@ -36,18 +36,18 @@ import DevHubTestSupport
         #expect(model.branchCopyValue == "a1b2c3d")
         #expect(model.upstreamTag == nil)
         #expect(model.tags.isEmpty)
-        #expect(model.showsMergeRequestLine == false)
+        #expect(model.showsPullRequestLine == false)
         #expect(model.webBranch == nil)
         #expect(disabled(model) == [.pull, .push, .forcePush, .rebase])
     }
 
-    @Test func withoutWebURLThereIsNoMergeRequestLine() {
+    @Test func withoutWebURLThereIsNoPullRequestLine() {
         var snapshot = GitSnapshotFixture.clean
         snapshot.webURL = nil
 
         let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticket: .standard)
 
-        #expect(model.showsMergeRequestLine == false)
+        #expect(model.showsPullRequestLine == false)
         #expect(model.webBranch == nil)
     }
 

@@ -7,7 +7,7 @@ struct RemoteBranchRowModel: Identifiable, Equatable {
     var remoteName: String
     var localName: String
     var tags: [TagModel]
-    var mergeRequest: BranchMergeRequestModel?
+    var pullRequest: BranchPullRequestModel?
     var ticket: TicketModel?
     var dateText: String?
     var author: String
@@ -22,7 +22,7 @@ struct RemoteBranchRowModel: Identifiable, Equatable {
         remoteName: "origin/feature/ABC-2401-gifts",
         localName: "feature/ABC-2401-gifts",
         tags: [TagModel("local", tint: .blue)],
-        mergeRequest: .preview,
+        pullRequest: .preview,
         ticket: .preview,
         dateText: "3 days ago",
         author: "sam",

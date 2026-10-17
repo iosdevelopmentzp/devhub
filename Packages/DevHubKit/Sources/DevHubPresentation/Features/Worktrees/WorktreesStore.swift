@@ -65,7 +65,7 @@ final class WorktreesStore: WorktreeLookup {
             case .configChanged:
                 guard gitSettings != loadedSettings else { return }
                 Task { await self.refresh() }
-            case .worktreesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .mockSetChanged, .mergeRequestsChanged, .refreshRequested:
+            case .worktreesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .mockSetChanged, .pullRequestsChanged, .refreshRequested:
                 break
             }
         }

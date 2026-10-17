@@ -2,7 +2,7 @@ import Foundation
 import DevHubDomain
 
 enum CodeHostErrorMapper {
-    static func error(tool: String, exitCode: Int32, message: String, host: String) -> MergeRequestError {
+    static func error(tool: String, exitCode: Int32, message: String, host: String) -> PullRequestError {
         if exitCode == 127 || message.contains("command not found") || message.contains("No such file") {
             return .notInstalled(tool: tool)
         }

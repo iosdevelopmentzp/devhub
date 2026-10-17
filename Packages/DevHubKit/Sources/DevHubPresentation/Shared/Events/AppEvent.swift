@@ -14,7 +14,7 @@ enum AppEvent {
     case worktreeCheckoutPrepared
     case worktreeBootstrapping(path: String, isRunning: Bool)
     case mockSetChanged(id: MockSet.ID)
-    case mergeRequestsChanged
+    case pullRequestsChanged
     case configChanged
     case refreshRequested(RefreshTarget)
 }

@@ -31,7 +31,7 @@ import Testing
         #expect(GitHeaderActionModel.preview.id == .fetch)
         #expect(GitHeaderModel.preview.actions == [.preview])
         #expect(LocalBranchRowModel.preview.canSwitch)
-        #expect(MergeRequestLineModel.preview.canRefresh)
+        #expect(PullRequestLineModel.preview.canRefresh)
         #expect(RemoteBranchRowModel.preview.localName == "feature/ABC-2401-gifts")
     }
 

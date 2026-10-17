@@ -7,16 +7,16 @@ struct GitView: View {
     @Environment(GitStore.self) private var git
     @Environment(CommitHistoryStore.self) private var history
     @Environment(BuildStore.self) private var build
-    @Environment(OpenMergeRequestsStore.self) private var openMergeRequests
+    @Environment(OpenPullRequestsStore.self) private var openPullRequests
     @Environment(SettingsStore.self) private var settings
-    @Environment(NewMergeRequestStore.self) private var newMergeRequest
+    @Environment(NewPullRequestStore.self) private var newPullRequest
     @Environment(AppActions.self) private var appActions
     @Environment(ConfigActionsStore.self) private var configActions
     @Environment(\.panelOpenCount) private var openCount
 
     @State private var confirmingDeleteName: String?
     @State private var confirmingSwitchName: String?
-    @State private var mergeRequestBranchName: String?
+    @State private var pullRequestBranchName: String?
     @State private var launchBranchName: String?
 
     var body: some View {
@@ -66,7 +66,7 @@ struct GitView: View {
         }
         .background(Theme.surface)
         .animation(.snappy(duration: 0.18), value: confirmingDeleteName)
-        .animation(.snappy(duration: 0.18), value: mergeRequestBranchName)
+        .animation(.snappy(duration: 0.18), value: pullRequestBranchName)
         .onChange(of: git.stashes.isEmpty) { _, isEmpty in
             guard isEmpty, git.section == .stash else { return }
             git.section = .local
@@ -76,7 +76,7 @@ struct GitView: View {
             git.fetchIfStale(everyMinutes: settings.values.autoFetchMinutes, now: .now)
         }
         .task(id: openCount) {
-            await openMergeRequests.refreshIfStale()
+            await openPullRequests.refreshIfStale()
         }
     }
 
@@ -90,7 +90,7 @@ struct GitView: View {
                 for: branch,
                 currentBranch: git.currentBranch,
                 worktree: git.worktree(atPath: branch.worktreePath),
-                openMergeRequest: openMergeRequests.request(forBranch: branch.name),
+                openPullRequest: openPullRequests.request(forBranch: branch.name),
                 baseName: git.baseName,
                 changedFiles: git.snapshot?.changedFiles ?? 0,
                 ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate),
@@ -124,7 +124,7 @@ struct GitView: View {
                     for: branch,
                     remote: git.remote,
                     localBranchNames: localNames,
-                    openMergeRequest: openMergeRequests.request(forBranch: branch.name),
+                    openPullRequest: openPullRequests.request(forBranch: branch.name),
                     ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate),
                     checkoutPath: git.checkoutPath(forBranch:),
                     isBuildRunning: build.isRunning,
@@ -218,8 +218,8 @@ struct GitView: View {
                         .padding(.horizontal, 14)
                         .padding(.bottom, 8)
                 }
-                if newMergeRequest.draft?.origin == .branch(model.name) {
-                    NewMergeRequestForm()
+                if newPullRequest.draft?.origin == .branch(model.name) {
+                    NewPullRequestForm()
                         .padding(.horizontal, 14)
                         .padding(.bottom, 8)
                 }
@@ -234,11 +234,11 @@ struct GitView: View {
             isConfirmingDelete: confirmingDeleteName == model.name,
             isConfirmingSwitch: confirmingSwitchName == model.name,
             isPickingLaunch: launchBranchName == model.name,
-            isShowingExistingMergeRequest: mergeRequestBranchName == model.name,
+            isShowingExistingPullRequest: pullRequestBranchName == model.name,
             onSwitch: { git.switchTo(model.name, plan: $0) },
             onRequestSwitch: {
                 confirmingDeleteName = nil
-                mergeRequestBranchName = nil
+                pullRequestBranchName = nil
                 launchBranchName = nil
                 confirmingSwitchName = model.name
             },
@@ -246,25 +246,25 @@ struct GitView: View {
             onUpdate: { update(model.id) },
             onSelectCheckout: { git.selectCheckout($0) },
             onRequestDelete: {
-                mergeRequestBranchName = nil
+                pullRequestBranchName = nil
                 launchBranchName = nil
                 confirmingDeleteName = model.name
             },
             onCancelDelete: { confirmingDeleteName = nil },
             onDelete: { force in delete(model.id, force: force) },
-            onRequestMergeRequest: {
+            onRequestPullRequest: {
                 confirmingDeleteName = nil
                 launchBranchName = nil
-                guard model.existingMergeRequest != nil else {
-                    appActions.startMergeRequest(branch: model.name, origin: .branch(model.name))
+                guard model.existingPullRequest != nil else {
+                    appActions.startPullRequest(branch: model.name, origin: .branch(model.name))
                     return
                 }
-                mergeRequestBranchName = model.name
+                pullRequestBranchName = model.name
             },
-            onCancelMergeRequest: { mergeRequestBranchName = nil },
+            onCancelPullRequest: { pullRequestBranchName = nil },
             onRequestLaunch: {
                 confirmingDeleteName = nil
-                mergeRequestBranchName = nil
+                pullRequestBranchName = nil
                 launchBranchName = model.name
             },
             onCancelLaunch: { launchBranchName = nil },

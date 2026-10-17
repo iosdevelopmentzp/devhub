@@ -10,7 +10,7 @@ struct LocalBranchRow: View {
     let isConfirmingDelete: Bool
     let isConfirmingSwitch: Bool
     let isPickingLaunch: Bool
-    let isShowingExistingMergeRequest: Bool
+    let isShowingExistingPullRequest: Bool
     let onSwitch: (SwitchBranchUseCase.Plan) -> Void
     let onRequestSwitch: () -> Void
     let onCancelSwitch: () -> Void
@@ -19,8 +19,8 @@ struct LocalBranchRow: View {
     let onRequestDelete: () -> Void
     let onCancelDelete: () -> Void
     let onDelete: (_ force: Bool) -> Void
-    let onRequestMergeRequest: () -> Void
-    let onCancelMergeRequest: () -> Void
+    let onRequestPullRequest: () -> Void
+    let onCancelPullRequest: () -> Void
     let onRequestLaunch: () -> Void
     let onCancelLaunch: () -> Void
     let onConfigAction: (ConfigActionItemModel.ID) -> Void
@@ -52,8 +52,8 @@ struct LocalBranchRow: View {
                         ForEach(model.tags, id: \.self) { tag in
                             ModelTag(model: tag)
                         }
-                        if let mergeRequest = model.mergeRequest {
-                            BranchMergeRequestTags(model: mergeRequest)
+                        if let pullRequest = model.pullRequest {
+                            BranchPullRequestTags(model: pullRequest)
                         }
                         if let ticket = model.ticket {
                             TicketChip(model: ticket)
@@ -99,16 +99,16 @@ struct LocalBranchRow: View {
             if isPickingLaunch {
                 LaunchPicker(subject: model.name, onCancel: onCancelLaunch, onRun: { appActions.buildAndRun(branch: model.name, on: $0) })
             }
-            if isShowingExistingMergeRequest, let existing = model.existingMergeRequest {
+            if isShowingExistingPullRequest, let existing = model.existingPullRequest {
                 InlineConfirmation(
                     existing.message,
                     confirmTitle: existing.openTitle,
                     confirmRole: nil,
                     systemImage: "arrow.triangle.pull",
                     tint: .blue,
-                    onCancel: onCancelMergeRequest,
+                    onCancel: onCancelPullRequest,
                     onConfirm: {
-                        onCancelMergeRequest()
+                        onCancelPullRequest()
                         appActions.open(existing.url)
                     }
                 )
@@ -134,10 +134,10 @@ struct LocalBranchRow: View {
                 appActions.createWorktree(branch: model.name)
             }
             .disabled(model.canCreateWorktree == false)
-            IconButton(systemImage: "arrow.triangle.pull", help: model.mergeRequestHint, tint: model.mergeRequestIconTint?.color ?? .primary) {
-                onRequestMergeRequest()
+            IconButton(systemImage: "arrow.triangle.pull", help: model.pullRequestHint, tint: model.pullRequestIconTint?.color ?? .primary) {
+                onRequestPullRequest()
             }
-            .disabled(model.canOpenMergeRequest == false)
+            .disabled(model.canOpenPullRequest == false)
             IconButton(systemImage: "trash", help: "Delete the local branch", tint: .red) {
                 onRequestDelete()
             }
@@ -147,7 +147,7 @@ struct LocalBranchRow: View {
     }
 
     private var isShowingInlinePanel: Bool {
-        isConfirmingDelete || isConfirmingSwitch || isPickingLaunch || isShowingExistingMergeRequest
+        isConfirmingDelete || isConfirmingSwitch || isPickingLaunch || isShowingExistingPullRequest
     }
 
     private func requestSwitch() {
@@ -196,11 +196,11 @@ struct LocalBranchRow: View {
         Divider()
         Button("Copy Name", systemImage: "doc.on.doc") { toaster.copy(model.name) }
         Button("Open on Web", systemImage: "globe") { appActions.openBranchOnWeb(model.name) }
-        Button(model.mergeRequestMenuTitle, systemImage: "arrow.triangle.pull") { onRequestMergeRequest() }
-            .disabled(model.canOpenMergeRequest == false)
-        if let mergeRequest = model.mergeRequest {
-            Button("Open Merge Request in GitLab", systemImage: "globe") { appActions.open(mergeRequest.webURL) }
-            Button("Copy Link with Title", systemImage: "text.bubble") { toaster.copy(mergeRequest.linkText, label: "Link with title") }
+        Button(model.pullRequestMenuTitle, systemImage: "arrow.triangle.pull") { onRequestPullRequest() }
+            .disabled(model.canOpenPullRequest == false)
+        if let pullRequest = model.pullRequest {
+            Button("Open Merge Request in GitLab", systemImage: "globe") { appActions.open(pullRequest.webURL) }
+            Button("Copy Link with Title", systemImage: "text.bubble") { toaster.copy(pullRequest.linkText, label: "Link with title") }
         }
         Divider()
         ConfigActionMenuItems(items: model.configActions, onRun: onConfigAction)
@@ -216,7 +216,7 @@ struct LocalBranchRow: View {
         isConfirmingDelete: false,
         isConfirmingSwitch: false,
         isPickingLaunch: false,
-        isShowingExistingMergeRequest: false,
+        isShowingExistingPullRequest: false,
         onSwitch: { _ in },
         onRequestSwitch: {},
         onCancelSwitch: {},
@@ -225,8 +225,8 @@ struct LocalBranchRow: View {
         onRequestDelete: {},
         onCancelDelete: {},
         onDelete: { _ in },
-        onRequestMergeRequest: {},
-        onCancelMergeRequest: {},
+        onRequestPullRequest: {},
+        onCancelPullRequest: {},
         onRequestLaunch: {},
         onCancelLaunch: {},
         onConfigAction: { _ in }

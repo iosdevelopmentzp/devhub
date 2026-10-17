@@ -12,7 +12,7 @@ import Testing
         #expect(list.hasNextPage == false)
         #expect(list.endCursor == "Y3Vyc29yOjM=")
         #expect(list.requests.map(\.iid) == [3, 1, 2])
-        #expect(list.requests[1] == MergeRequestSummary(
+        #expect(list.requests[1] == PullRequestSummary(
             iid: 1,
             title: "ABC-101: Login screen",
             state: .opened,
@@ -49,7 +49,7 @@ import Testing
             removesSourceBranch: false,
             headSHA: "aaa111",
             isAutoMergeEnabled: false,
-            permissions: MergeRequestPermissions(canMerge: true, canApprove: false)
+            permissions: PullRequestPermissions(canMerge: true, canApprove: false)
         ))
     }
 
@@ -74,7 +74,7 @@ import Testing
 
     @Test func statusTakesTheOpenRequestAndTheBranchChecks() throws {
         let status = try GhPullRequestParser.status(from: GhFixture.status)
-        let request = try #require(status.mergeRequest)
+        let request = try #require(status.pullRequest)
 
         #expect(request.iid == 3)
         #expect(request.state == .opened)
@@ -88,7 +88,7 @@ import Testing
 
         #expect(details.description == "Adds the login notes.")
         #expect(details.threads == [
-            MergeRequestThread(id: "PRRT_thread1", noteID: 4301, author: "alex", body: "Please rename this line.", filePath: "notes.txt", line: 2, isOnOldLine: false, replies: []),
+            PullRequestThread(id: "PRRT_thread1", noteID: 4301, author: "alex", body: "Please rename this line.", filePath: "notes.txt", line: 2, isOnOldLine: false, replies: []),
         ])
         #expect(details.failedJobs.isEmpty)
         #expect(details.pipelineDuration == 5)
@@ -110,14 +110,14 @@ import Testing
     }
 
     @Test func aMutationErrorThrowsItsMessage() throws {
-        #expect(throws: MergeRequestError.command("Could not resolve to a node with the global id of 'x'")) {
+        #expect(throws: PullRequestError.command("Could not resolve to a node with the global id of 'x'")) {
             try GhPullRequestParser.mutation(from: GhFixture.mutationFailed)
         }
         try GhPullRequestParser.mutation(from: GhFixture.mutationDone)
     }
 
     @Test func aMissingRepositoryIsACommandError() {
-        #expect(throws: MergeRequestError.command("GitHub did not find the repository")) {
+        #expect(throws: PullRequestError.command("GitHub did not find the repository")) {
             try GhPullRequestParser.status(from: Data(#"{"data":{"repository":null}}"#.utf8))
         }
     }

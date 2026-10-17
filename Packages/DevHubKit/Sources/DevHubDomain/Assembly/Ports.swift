@@ -12,7 +12,7 @@ package struct Ports: Sendable {
     package let mockServer: any MockServerRepository
     package let mockSets: any MockSetRepository
     package let messaging: any SimulatorMessagingRepository
-    package let mergeRequests: any MergeRequestRepository
+    package let codeHost: any CodeHostRepository
     package let claudeSessions: any ClaudeSessionRepository
     package let derivedData: any DerivedDataRepository
     package let opener: any WorkspaceOpening
@@ -35,7 +35,7 @@ package struct Ports: Sendable {
         mockServer: any MockServerRepository,
         mockSets: any MockSetRepository,
         messaging: any SimulatorMessagingRepository,
-        mergeRequests: any MergeRequestRepository,
+        codeHost: any CodeHostRepository,
         claudeSessions: any ClaudeSessionRepository,
         derivedData: any DerivedDataRepository,
         opener: any WorkspaceOpening,
@@ -57,7 +57,7 @@ package struct Ports: Sendable {
         self.mockServer = mockServer
         self.mockSets = mockSets
         self.messaging = messaging
-        self.mergeRequests = mergeRequests
+        self.codeHost = codeHost
         self.claudeSessions = claudeSessions
         self.derivedData = derivedData
         self.opener = opener

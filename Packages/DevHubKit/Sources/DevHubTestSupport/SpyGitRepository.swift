@@ -7,7 +7,7 @@ package final class SpyGitRepository: GitRepository, @unchecked Sendable {
         case perform(GitCommand, path: String)
         case webURL(checkoutPath: String)
         case commitSubjects(base: String, head: String, path: String)
-        case mergeRequestTemplate(path: String)
+        case pullRequestTemplate(path: String)
     }
 
     private static let emptyState = GitRepositoryState(
@@ -77,8 +77,8 @@ package final class SpyGitRepository: GitRepository, @unchecked Sendable {
         record(.commitSubjects(base: base, head: head, path: path)) { _subjectsResult }
     }
 
-    package func mergeRequestTemplate(in path: String) async -> String? {
-        record(.mergeRequestTemplate(path: path)) { _templateResult }
+    package func pullRequestTemplate(in path: String) async -> String? {
+        record(.pullRequestTemplate(path: path)) { _templateResult }
     }
 
     package var settings: [GitSettings] {

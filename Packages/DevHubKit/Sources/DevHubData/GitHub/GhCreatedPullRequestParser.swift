@@ -29,9 +29,9 @@ enum GhCreatedPullRequestParser {
         let labels: [Label]?
     }
 
-    static func summary(from data: Data, labels: [String]) throws -> MergeRequestSummary {
+    static func summary(from data: Data, labels: [String]) throws -> PullRequestSummary {
         let dto: CreatedDTO = try GhPullRequestParser.decodeREST(data)
-        return MergeRequestSummary(
+        return PullRequestSummary(
             iid: dto.number,
             title: dto.title,
             state: dto.state == "open" ? .opened : .closed,

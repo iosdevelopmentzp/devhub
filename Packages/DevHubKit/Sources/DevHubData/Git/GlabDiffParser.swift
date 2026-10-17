@@ -14,15 +14,15 @@ enum GlabDiffParser {
         let diff: String?
     }
 
-    static func files(from data: Data) throws -> [MergeRequestFileDiff] {
-        let files: [FileDTO] = try GlabMergeRequestParser.decode(data)
+    static func files(from data: Data) throws -> [PullRequestFileDiff] {
+        let files: [FileDTO] = try GlabPullRequestParser.decode(data)
         return files.map(file)
     }
 
-    private static func file(_ dto: FileDTO) -> MergeRequestFileDiff {
+    private static func file(_ dto: FileDTO) -> PullRequestFileDiff {
         let text = dto.diff ?? ""
         let lines = text.isEmpty ? [] : text.components(separatedBy: "\n").dropLastIfEmpty()
-        return MergeRequestFileDiff(
+        return PullRequestFileDiff(
             oldPath: dto.oldPath,
             path: dto.newPath,
             kind: kind(dto),
@@ -37,7 +37,7 @@ enum GlabDiffParser {
         )
     }
 
-    private static func kind(_ dto: FileDTO) -> MergeRequestFileDiff.Kind {
+    private static func kind(_ dto: FileDTO) -> PullRequestFileDiff.Kind {
         if dto.newFile == true { return .added }
         if dto.deletedFile == true { return .deleted }
         if dto.renamedFile == true { return .renamed }

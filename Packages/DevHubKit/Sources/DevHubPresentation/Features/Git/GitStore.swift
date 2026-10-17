@@ -94,7 +94,7 @@ final class GitStore: CheckoutContext {
             case .refreshRequested(.git):
                 guard state != nil, isBusy == false else { return }
                 Task { await self.refresh() }
-            case .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .mergeRequestsChanged, .configChanged, .refreshRequested:
+            case .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .configChanged, .refreshRequested:
                 break
             }
         }
@@ -348,21 +348,21 @@ final class GitStore: CheckoutContext {
         return RepositoryWebLinks.branchURL(base: base, branch: branch, remote: remote)
     }
 
-    func newMergeRequestURL(_ branch: String) -> URL? {
-        newMergeRequestURL(branch, target: baseName)
+    func newPullRequestURL(_ branch: String) -> URL? {
+        newPullRequestURL(branch, target: baseName)
     }
 
-    func newMergeRequestURL(_ branch: String, target: String) -> URL? {
+    func newPullRequestURL(_ branch: String, target: String) -> URL? {
         guard let base = snapshot?.webURL else { return nil }
-        return RepositoryWebLinks.newMergeRequestURL(base: base, branch: branch, baseName: target, remote: remote)
+        return RepositoryWebLinks.newPullRequestURL(base: base, branch: branch, baseName: target, remote: remote)
     }
 
     func localBranch(named name: String) -> GitBranch? {
         state?.localBranches.first { $0.name == name }
     }
 
-    func mergeRequestTargets(for branch: String) -> [String] {
-        MergeRequestTargetPolicy.targets(
+    func pullRequestTargets(for branch: String) -> [String] {
+        PullRequestTargetPolicy.targets(
             remoteBranches: (state?.remoteBranches ?? []).map(\.name),
             source: branch,
             baseName: baseName,

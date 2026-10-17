@@ -23,11 +23,11 @@ import Testing
         #expect(model.canBuild)
         #expect(model.canCreateWorktree)
         #expect(model.canDelete)
-        #expect(model.canOpenMergeRequest)
-        #expect(model.mergeRequestHint == "New merge request: title, description and labels in DevHub")
-        #expect(model.mergeRequestIconTint == nil)
-        #expect(model.mergeRequestMenuTitle == "New Merge Request…")
-        #expect(model.existingMergeRequest == nil)
+        #expect(model.canOpenPullRequest)
+        #expect(model.pullRequestHint == "New merge request: title, description and labels in DevHub")
+        #expect(model.pullRequestIconTint == nil)
+        #expect(model.pullRequestMenuTitle == "New Merge Request…")
+        #expect(model.existingPullRequest == nil)
         #expect(model.areActionsEnabled)
         #expect(model.deleteMessage == "Delete feature/login? It is not merged into dev; without force git refuses.")
         #expect(model.showsForceToggle)
@@ -91,7 +91,7 @@ import Testing
             TagModel("merged", tint: .purple, systemImage: "arrow.triangle.merge", hint: "All its commits are in dev. Safe to delete.")
         ])
         #expect(model.canUpdate == false)
-        #expect(model.canOpenMergeRequest == false)
+        #expect(model.canOpenPullRequest == false)
         #expect(model.deleteMessage == "Delete local branch feature/login?")
         #expect(model.showsForceToggle == false)
     }
@@ -120,24 +120,24 @@ import Testing
             TagModel("↓1", tint: .orange, hint: "Behind its remote. Update fast-forwards it without switching.")
         ])
         #expect(model.canUpdate == false)
-        #expect(model.canOpenMergeRequest == false)
-        #expect(model.mergeRequestHint == "Push the branch first: a merge request needs it on the remote")
+        #expect(model.canOpenPullRequest == false)
+        #expect(model.pullRequestHint == "Push the branch first: a merge request needs it on the remote")
     }
 
-    @Test func branchWithAnOpenMergeRequest() {
+    @Test func branchWithAnOpenPullRequest() {
         var branch = GitBranchFixture.feature
         branch.upstream = nil
-        let request = MergeRequestSummaryFixture.open
+        let request = PullRequestSummaryFixture.open
 
-        let model = row(branch, current: nil, worktree: nil, openMergeRequest: request)
+        let model = row(branch, current: nil, worktree: nil, openPullRequest: request)
 
-        #expect(model.mergeRequest == BranchMergeRequestMapper.model(for: request))
+        #expect(model.pullRequest == BranchPullRequestMapper.model(for: request))
         #expect(model.tags.contains { $0.text == "!21" } == false)
-        #expect(model.canOpenMergeRequest)
-        #expect(model.mergeRequestHint == "Merge request !21 into dev is open")
-        #expect(model.mergeRequestIconTint == .blue)
-        #expect(model.mergeRequestMenuTitle == "Show Merge Request…")
-        #expect(model.existingMergeRequest == ExistingMergeRequestModel(
+        #expect(model.canOpenPullRequest)
+        #expect(model.pullRequestHint == "Merge request !21 into dev is open")
+        #expect(model.pullRequestIconTint == .blue)
+        #expect(model.pullRequestMenuTitle == "Show Merge Request…")
+        #expect(model.existingPullRequest == ExistingPullRequestModel(
             message: "Merge request !21 into dev already exists: ABC-5: Login",
             openTitle: "Open !21",
             url: request.webURL
@@ -179,7 +179,7 @@ import Testing
             for: GitBranchFixture.feature,
             currentBranch: nil,
             worktree: nil,
-            openMergeRequest: nil,
+            openPullRequest: nil,
             baseName: "dev",
             changedFiles: 0,
             ticket: .standard,
@@ -206,12 +206,12 @@ import Testing
         #expect(row(GitBranchFixture.feature, current: "dev", worktree: nil, changedFiles: 1).switchConfirmation?.hasPrefix("You have 1 changed file.") == true)
     }
 
-    private func row(_ branch: GitBranch, current: String?, worktree: Worktree?, openMergeRequest: MergeRequestSummary? = nil, changedFiles: Int = 0, configActions: [ConfigActionItemModel] = []) -> LocalBranchRowModel {
+    private func row(_ branch: GitBranch, current: String?, worktree: Worktree?, openPullRequest: PullRequestSummary? = nil, changedFiles: Int = 0, configActions: [ConfigActionItemModel] = []) -> LocalBranchRowModel {
         LocalBranchRowMapper.model(
             for: branch,
             currentBranch: current,
             worktree: worktree,
-            openMergeRequest: openMergeRequest,
+            openPullRequest: openPullRequest,
             baseName: "dev",
             changedFiles: changedFiles,
             ticket: .standard,

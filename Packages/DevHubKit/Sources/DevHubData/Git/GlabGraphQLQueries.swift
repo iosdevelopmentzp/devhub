@@ -14,7 +14,7 @@ enum GlabGraphQLQueries {
 
     private static let connection = "(state: $state, sort: UPDATED_DESC, first: 100, after: $after) { \(fields) }"
 
-    static func list(_ scope: MergeRequestScope) -> String {
+    static func list(_ scope: PullRequestScope) -> String {
         switch scope {
         case .mine:
             "query($projectPath: String!, $state: MergeRequestState, $after: String) { currentUser { username authoredMergeRequests(projectPath: $projectPath, \(connection.dropFirst()) } }"
@@ -46,10 +46,10 @@ enum GlabGraphQLQueries {
 
     static let toggleResolve = "mutation($id: DiscussionID!, $resolve: Boolean!) { discussionToggleResolve(input: { id: $id, resolve: $resolve }) { errors } }"
 
-    static func listVariables(_ query: MergeRequestQuery, after cursor: String?, projectPath: String) -> [(name: String, value: String)] {
+    static func listVariables(_ query: PullRequestQuery, after cursor: String?, projectPath: String) -> [(name: String, value: String)] {
         let pathName = query.scope == .mine || query.scope == .assigned ? "projectPath" : "path"
         var variables = [(name: pathName, value: projectPath)]
-        let state: MergeRequestStateFilter = query.scope == .reviewing ? .opened : query.state
+        let state: PullRequestStateFilter = query.scope == .reviewing ? .opened : query.state
         if state != .all {
             variables.append((name: "state", value: state.rawValue))
         }

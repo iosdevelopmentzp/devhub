@@ -31,7 +31,7 @@ final class CodeHostRemote: CodeHostLookup {
         let settings = worktrees.gitSettings
         guard let url = await git.webURL(checkoutPath: worktrees.mainCheckoutPath, remote: settings.remote),
               let host = CodeHostPolicy.codeHost(webURL: url, kind: settings.hostKind, name: settings.hostName)
-        else { throw MergeRequestError.noCodeHost }
+        else { throw PullRequestError.noCodeHost }
         cached = host
         return host
     }

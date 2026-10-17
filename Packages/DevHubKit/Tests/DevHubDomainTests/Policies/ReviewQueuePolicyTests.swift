@@ -3,24 +3,24 @@ import Testing
 
 @Suite struct ReviewQueuePolicyTests {
     @Test func anOpenRequestByAnotherPersonNeedsMyReview() {
-        #expect(ReviewQueuePolicy.needsMyReview(MergeRequestSummaryFixture.request(iid: 1, source: "a", state: .opened), username: "me"))
+        #expect(ReviewQueuePolicy.needsMyReview(PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened), username: "me"))
     }
 
     @Test(arguments: [
-        MergeRequestSummaryFixture.request(iid: 1, source: "a", state: .opened, author: "me"),
-        MergeRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, isDraft: true),
-        MergeRequestSummaryFixture.request(iid: 3, source: "c", state: .merged),
-        MergeRequestSummaryFixture.request(iid: 4, source: "d", state: .opened, approvedBy: ["kim", "me"]),
+        PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened, author: "me"),
+        PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, isDraft: true),
+        PullRequestSummaryFixture.request(iid: 3, source: "c", state: .merged),
+        PullRequestSummaryFixture.request(iid: 4, source: "d", state: .opened, approvedBy: ["kim", "me"]),
     ])
-    func otherRequestsDoNot(request: MergeRequestSummary) {
+    func otherRequestsDoNot(request: PullRequestSummary) {
         #expect(ReviewQueuePolicy.needsMyReview(request, username: "me") == false)
     }
 
     @Test func countCountsOnlyTheQueue() {
         let requests = [
-            MergeRequestSummaryFixture.request(iid: 1, source: "a", state: .opened),
-            MergeRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, approvedBy: ["kim"]),
-            MergeRequestSummaryFixture.request(iid: 3, source: "c", state: .opened, author: "me"),
+            PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened),
+            PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, approvedBy: ["kim"]),
+            PullRequestSummaryFixture.request(iid: 3, source: "c", state: .opened, author: "me"),
         ]
 
         #expect(ReviewQueuePolicy.count(in: requests, username: "me") == 2)

@@ -16,7 +16,7 @@ paths:
   need from outside: `Ports.live(shell:)`, `ShellRunner.init(recorder:)`, `UserDefaultsKeyValueStore.init(defaults:)`,
   `GlobalHotKey`. Tests reach the rest with `@testable import DevHubData`.
 - Named by technology: `Shell<Thing>Repository` (git, files), `Simctl<Thing>Repository`, `Xcode<Thing>Repository`,
-  `Glab<Thing>Repository`, `Anthropic<Thing>Repository`, `File<Thing>Repository`.
+  `Gh<Thing>Repository`, `Glab<Thing>Repository`, `Anthropic<Thing>Repository`, `File<Thing>Repository`.
 - Everything a repository needs comes through `init`, including file roots. No repository builds another
   repository. No `.shared`. `Ports.live(shell:)` (`Assembly/Ports+Live.swift`) builds every repository once.
 
@@ -36,7 +36,7 @@ struct FileMockSetRepository: MockSetRepository {
 
 - Every process goes through `ShellRunner`. Never `Process` elsewhere. Never on the main actor.
 - Use the shared runners instead of private wrappers: `GitCommandRunner`, `SimctlRunner`, `PlistReader`, `ISO8601`.
-- Parsers are pure types in their own file: text in, values out (`Git/Parsers/GitLogParser`, `GlabMergeRequestParser`,
+- Parsers are pure types in their own file: text in, values out (`Git/Parsers/GitLogParser`, `GlabPullRequestParser`,
   `HTTPRequestParser`, …). A parser that needs the clock takes it as a parameter. DTOs are `private` to the parser.
   A Domain model is never `Decodable` for an external format; map DTO → model explicitly.
 - Raw stderr becomes the `.command(String)` case of the domain error, trimmed. Tolerated exit codes are explicit

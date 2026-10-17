@@ -17,6 +17,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- The merge request types, stores and views use pull request names (`PullRequestSummary`, `CodeHostRepository`, `PullRequestsStore`). The tab id is `pullRequests` (`DEVHUB_TAB=pullRequests`).
 - The merge request features work with a code host value instead of a GitLab URL: the kind (GitHub or GitLab), the host name and the repository path. `git.host.kind` and `git.host.name` in `.devhub/project.json` set them for a custom host. Error messages name the tool (`gh` or `glab`) and its login command.
 - The `build-and-run` skill describes the package scripts, headless snapshots and the current debug switches.
 - "Open in Xcode" on changed file rows is now "Open in Editor": the file opens in the editor chosen in Settings (`xed` for Xcode, `code --goto` for VS Code, `cursor --goto` for Cursor, `zed` for Zed, else `open -a`), at the line when the editor supports it. Merge request files and threads open the same way.
@@ -32,6 +33,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- The Build feature sources and tests are in the repository: the `build/` line of `.gitignore` also matched the `Build/` folders on macOS. A fresh clone builds again.
 - The base branch no longer shows a "merged" tag and no longer lands in the "Merged · safe to delete" section.
 - Releasing a store whose event handler held another store no longer crashes: `AppEvents` released a handler while it changed the handler list.
 

@@ -20,12 +20,12 @@ struct RemoteBranchRow: View {
             Divider()
             Button("Copy Name", systemImage: "doc.on.doc") { toaster.copy(model.localName) }
             Button("Open on Web", systemImage: "globe") { appActions.openBranchOnWeb(model.remoteName) }
-            if let mergeRequest = model.mergeRequest {
-                Button("Show Merge Request", systemImage: "arrow.triangle.pull") { appActions.showMergeRequest(iid: mergeRequest.iid) }
-                Button("Open Merge Request in GitLab", systemImage: "globe") { appActions.open(mergeRequest.webURL) }
-                Button("Copy Link with Title", systemImage: "text.bubble") { toaster.copy(mergeRequest.linkText, label: "Link with title") }
+            if let pullRequest = model.pullRequest {
+                Button("Show Merge Request", systemImage: "arrow.triangle.pull") { appActions.showPullRequest(iid: pullRequest.iid) }
+                Button("Open Merge Request in GitLab", systemImage: "globe") { appActions.open(pullRequest.webURL) }
+                Button("Copy Link with Title", systemImage: "text.bubble") { toaster.copy(pullRequest.linkText, label: "Link with title") }
             } else {
-                Button("New Merge Request", systemImage: "arrow.triangle.pull") { appActions.openNewMergeRequest(for: model.remoteName) }
+                Button("New Merge Request", systemImage: "arrow.triangle.pull") { appActions.openNewPullRequest(for: model.remoteName) }
             }
         }
     }
@@ -47,8 +47,8 @@ struct RemoteBranchRow: View {
                     ForEach(model.tags, id: \.self) { tag in
                         ModelTag(model: tag)
                     }
-                    if let mergeRequest = model.mergeRequest {
-                        BranchMergeRequestTags(model: mergeRequest)
+                    if let pullRequest = model.pullRequest {
+                        BranchPullRequestTags(model: pullRequest)
                     }
                     if let ticket = model.ticket {
                         TicketChip(model: ticket)

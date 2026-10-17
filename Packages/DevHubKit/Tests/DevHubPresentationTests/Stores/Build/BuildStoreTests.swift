@@ -1,0 +1,355 @@
+import Foundation
+import Testing
+import DevHubDomain
+import DevHubTestSupport
+@testable import DevHubMocks
+@testable import DevHubPresentation
+
+@Suite struct BuildStoreTests {
+    private let harness = StoreHarness()
+    private let simulator = SimulatorSample.shutdown
+    private let product = BuildProduct(appPath: "/tmp/DevHubTests/App.app", bundleID: "com.example.app")
+
+    init() {
+        harness.simulators.groups = SimulatorSample.shutdownOnly
+        harness.spies.build.locateProductResult = .success(product)
+    }
+
+    private var store: BuildStore {
+        harness.build
+    }
+
+    private var savedRunOptions: [String: SimulatorRunOptions]? {
+        harness.store.decode([String: SimulatorRunOptions].self, forKey: "simulators.runOptions")
+    }
+
+    private var hasFinished: Bool {
+        harness.postedLabels.contains { $0.hasPrefix("buildFinished") }
+    }
+
+    private func request(path: String, attachDebugger: Bool) -> BuildRequest {
+        BuildRequest(
+            projectPath: path,
+            scheme: "App",
+            configuration: "Debug",
+            incremental: true,
+            simulatorUDID: simulator.id,
+            simulatorName: simulator.name,
+            identity: nil,
+            cleanInstall: false,
+            attachDebugger: attachDebugger
+        )
+    }
+
+    // MARK: Persistence
+
+    @Test func defaultsComeFromTheProject() {
+        #expect(store.state.scheme == "App")
+        #expect(store.state.configuration == "Debug")
+        #expect(store.state.targetSimulatorID == nil)
+        #expect(store.source == .main)
+        #expect(store.target == simulator)
+    }
+
+    @Test func targetAndRunOptionsAreRestored() {
+        let saved = InMemoryKeyValueStore()
+        let options = SimulatorRunOptions(scheme: "Saved", configuration: "Release", incremental: false, cleanInstall: true, source: .branch("feature/x"))
+        saved.set(simulator.id, forKey: "simulators.target")
+        saved.encode([simulator.id: options], forKey: "simulators.runOptions")
+
+        let store = StoreHarness(store: saved).build
+
+        #expect(store.state.targetSimulatorID == simulator.id)
+        #expect(store.state.scheme == "Saved")
+        #expect(store.state.configuration == "Release")
+        #expect(store.state.incremental == false)
+        #expect(store.state.cleanInstall)
+        #expect(store.source == .branch("feature/x"))
+    }
+
+    @Test func optionsAreWrittenForTheSelectedTarget() {
+        store.selectTarget(id: simulator.id)
+        store.setScheme("Other")
+        store.setConfiguration("Release")
+        store.setIncremental(false)
+        store.setCleanInstall(true)
+
+        #expect(harness.store.string(forKey: "simulators.target") == simulator.id)
+        #expect(savedRunOptions == [simulator.id: SimulatorRunOptions(scheme: "Other", configuration: "Release", incremental: false, cleanInstall: true, source: .main)])
+        #expect(store.willCleanInstall(on: simulator.id))
+    }
+
+    @Test func optionsAreNotWrittenWithoutATarget() {
+        store.setScheme("Other")
+
+        #expect(store.state.scheme == "Other")
+        #expect(harness.store.data(forKey: "simulators.runOptions") == nil)
+    }
+
+    @Test func selectTargetLoadsThatTargetsOptions() {
+        let saved = InMemoryKeyValueStore()
+        let options = SimulatorRunOptions(scheme: "App", configuration: "Release", incremental: true, cleanInstall: false, source: .main)
+        saved.encode([SimulatorSample.booted.id: options], forKey: "simulators.runOptions")
+        let harness = StoreHarness(store: saved)
+        harness.simulators.groups = SimulatorSample.groups
+
+        harness.build.selectTarget(id: SimulatorSample.booted.id)
+
+        #expect(harness.build.state.configuration == "Release")
+        #expect(harness.build.target == SimulatorSample.booted)
+        #expect(harness.build.isTarget(SimulatorSample.booted.id))
+    }
+
+    @Test func targetFallsBackToABootedSimulator() {
+        harness.simulators.groups = SimulatorSample.groups
+
+        #expect(store.target == SimulatorSample.booted)
+
+        store.selectTarget(id: SimulatorSample.pad.id)
+
+        #expect(store.target == SimulatorSample.pad)
+    }
+
+    // MARK: Source
+
+    @Test func useSourcePicksALinkedWorktree() {
+        harness.worktrees.worktrees = [WorktreeSample.main, WorktreeSample.feature]
+
+        store.useSource(worktreeID: WorktreeSample.feature.id)
+
+        #expect(store.source == .worktree(WorktreeSample.feature.path))
+        #expect(store.sourceWorktreeID == WorktreeSample.feature.id)
+        #expect(store.sourcePath == WorktreeSample.feature.path)
+        #expect(store.sourceLabel == "feature/login")
+    }
+
+    @Test func useSourceWithTheMainWorktreeUsesMain() {
+        harness.worktrees.worktrees = [WorktreeSample.main, WorktreeSample.feature]
+
+        store.useSource(worktreeID: WorktreeSample.main.id)
+
+        #expect(store.source == .main)
+        #expect(store.sourcePath == WorktreeSample.main.path)
+        #expect(store.sourceLabel == "dev · main checkout")
+    }
+
+    @Test func useSourceBranchPrefersAnExistingWorktree() {
+        harness.worktrees.worktrees = [WorktreeSample.main, WorktreeSample.feature]
+
+        store.useSource(branch: "origin/feature/login")
+
+        #expect(store.source == .worktree(WorktreeSample.feature.path))
+    }
+
+    @Test func useSourceBranchWithoutAWorktreeWaitsForTheRun() {
+        store.useSource(branch: "origin/feature/new")
+
+        #expect(store.source == .branch("feature/new"))
+        #expect(store.sourcePath == ProjectSample.path)
+        #expect(store.sourceLabel == "feature/new · new worktree on run")
+    }
+
+    // MARK: Events
+
+    @Test func projectChangedResetsTheSourceAndRefreshesSchemes() async throws {
+        harness.spies.build.schemesResult = ["App", "AppTests"]
+        store.useSource(branch: "feature/new")
+
+        harness.events.post(.projectChanged)
+
+        #expect(store.source == .main)
+        try await waitUntil { store.schemes == ["App", "AppTests"] }
+        #expect(harness.spies.build.calls.contains(.schemes(projectPath: ProjectSample.path)))
+        #expect(store.state.scheme == "App")
+        #expect(store.schemeOptions == ["App", "AppTests"])
+    }
+
+    @Test func refreshSchemesReplacesAMissingScheme() async {
+        harness.spies.build.schemesResult = ["App", "AppTests"]
+        store.setScheme("Gone")
+
+        await store.refreshSchemes()
+
+        #expect(store.state.scheme == "App")
+    }
+
+    @Test func schemeOptionsFallBackToTheCurrentScheme() {
+        #expect(store.schemeOptions == ["App"])
+    }
+
+    @Test func worktreesChangedDropsAMissingWorktreeSource() {
+        harness.worktrees.worktrees = [WorktreeSample.main, WorktreeSample.feature]
+        store.useSource(worktreeID: WorktreeSample.feature.id)
+        harness.worktrees.worktrees = [WorktreeSample.main]
+
+        harness.events.post(.worktreesChanged)
+
+        #expect(store.source == .main)
+    }
+
+    // MARK: Run
+
+    @Test func runBuildsInstallsAndLaunches() async throws {
+        harness.spies.build.buildEvents = [.step("Compiling", progress: 0.5), .output("line 1")]
+
+        store.run()
+
+        #expect(store.state.phase == .running(step: "Preparing", progress: nil))
+        #expect(store.isRunning)
+        #expect(harness.postedLabels.first == "buildStarted(sim-off)")
+        #expect(harness.store.string(forKey: "simulators.target") == simulator.id)
+        try await waitUntil { hasFinished }
+        guard case .succeeded = store.state.phase else {
+            Issue.record("Expected a succeeded phase, got \(store.state.phase)")
+            return
+        }
+        #expect(store.log == ["line 1", "App: \(product.appPath)"])
+        #expect(harness.postedLabels.contains("buildFinished(sim-off, none)"))
+        #expect(harness.spies.build.calls == [
+            .build(request(path: ProjectSample.path, attachDebugger: false)),
+            .locateProduct(request(path: ProjectSample.path, attachDebugger: false), hints: []),
+        ])
+        #expect(harness.spies.simulators.calls.prefix(4) == [
+            .boot(udid: simulator.id),
+            .install(udid: simulator.id, appPath: product.appPath),
+            .openInSimulatorApp(udid: simulator.id),
+            .launch(udid: simulator.id, bundleID: product.bundleID, waitForDebugger: false, environment: [:]),
+        ])
+        #expect(harness.lastActivity?.title == "Launched App")
+        #expect(harness.lastActivity?.outcome == .success)
+    }
+
+    @Test func hasLogIsSetByTheFirstOutputLineAndResetByTheNextRun() async throws {
+        harness.spies.build.buildEvents = [.output("line 1")]
+        #expect(store.hasLog == false)
+
+        store.run()
+
+        #expect(store.hasLog == false)
+        try await waitUntil { hasFinished }
+        #expect(store.hasLog)
+    }
+
+    @Test func aSecondRunWhileRunningIsIgnored() async throws {
+        store.run()
+        store.run()
+
+        try await waitUntil { hasFinished }
+        #expect(harness.postCount("buildStarted(sim-off)") == 1)
+        #expect(harness.spies.build.calls.filter { if case .build = $0 { true } else { false } }.count == 1)
+    }
+
+    @Test func runWithoutASimulatorDoesNothing() {
+        harness.simulators.groups = []
+
+        store.run()
+
+        #expect(store.isRunning == false)
+        #expect(harness.postedLabels.isEmpty)
+    }
+
+    @Test func aBuildErrorFailsTheRun() async throws {
+        harness.spies.build.buildError = BuildError.failed("Compile error")
+
+        store.run()
+
+        try await waitUntil { hasFinished }
+        #expect(store.state.phase == .failed("Compile error"))
+        #expect(harness.lastActivity?.title == "Build failed")
+        #expect(harness.lastActivity?.detail == "Compile error")
+        #expect(harness.lastActivity?.outcome == .failure)
+    }
+
+    @Test func cancelReturnsToIdle() async throws {
+        store.run()
+        store.cancel()
+
+        try await waitUntil { hasFinished }
+        #expect(store.state.phase == .idle)
+        #expect(harness.lastActivity?.title == "Build cancelled")
+        #expect(harness.lastActivity?.outcome == .info)
+        #expect(harness.postedLabels.contains("buildFinished(sim-off, none)"))
+        #expect(harness.spies.build.calls.isEmpty)
+    }
+
+    @Test func runAndAttachAttachesXcode() async throws {
+        harness.spies.simulators.launchResult = .success(42)
+
+        store.runAndAttach()
+
+        try await waitUntil { hasFinished }
+        #expect(harness.spies.build.calls.first == .build(request(path: ProjectSample.path, attachDebugger: true)))
+        #expect(harness.spies.attacher.calls == [.attach(pid: 42, simulatorUDID: simulator.id, projectPath: ProjectSample.path)])
+        #expect(harness.lastActivity?.title == "Launched App, Xcode attached")
+    }
+
+    @Test func runAndAttachAsksForAccessibilityFirst() {
+        harness.spies.attacher.isTrusted = false
+
+        store.runAndAttach()
+
+        #expect(store.isRunning == false)
+        #expect(harness.spies.attacher.calls == [.requestTrust])
+        #expect(harness.lastActivity?.title == "Allow DevHub in Accessibility")
+    }
+
+    @Test func runBranchCreatesAWorktreeFirst() async throws {
+        harness.spies.worktrees.createResult = .success(NewWorktree(path: WorktreeSample.created.path, branch: "feature/created"))
+        harness.spies.worktrees.listResult = .success([WorktreeSample.main, WorktreeSample.created])
+
+        store.run(branch: "origin/feature/created")
+
+        try await waitUntil { hasFinished }
+        #expect(harness.spies.worktrees.calls.prefix(2) == [
+            .create(branch: "feature/created", base: "origin/main", projectPath: ProjectSample.path),
+            .list(projectPath: ProjectSample.path),
+        ])
+        #expect(harness.postedLabels.contains("worktreeCheckoutPrepared"))
+        #expect(harness.activityTitles.contains("Created worktree"))
+        #expect(harness.spies.build.calls.first == .build(request(path: WorktreeSample.created.path, attachDebugger: false)))
+    }
+
+    @Test func aFailedWorktreeCreationFailsTheRun() async throws {
+        harness.spies.worktrees.createResult = .failure(TestError.scripted("exists"))
+
+        store.run(branch: "feature/created")
+
+        try await waitUntil { hasFinished }
+        #expect(Array(harness.activityTitles.prefix(2)) == ["Build failed", "Could not create worktree"])
+        guard case .failed = store.state.phase else {
+            Issue.record("Expected a failed phase, got \(store.state.phase)")
+            return
+        }
+    }
+
+    @Test func runWorktreeBuildsThatCheckout() async throws {
+        harness.worktrees.worktrees = [WorktreeSample.main, WorktreeSample.feature]
+
+        store.run(worktreeID: WorktreeSample.feature.id)
+
+        try await waitUntil { hasFinished }
+        #expect(store.source == .worktree(WorktreeSample.feature.path))
+        #expect(harness.spies.build.calls.first == .build(request(path: WorktreeSample.feature.path, attachDebugger: false)))
+    }
+
+    @Test func runWithAnIdentityReportsTheLaunchedDeviceID() async throws {
+        let harness = StoreHarness(projects: [ProjectSample.identified])
+        harness.simulators.groups = SimulatorSample.shutdownOnly
+        harness.spies.build.locateProductResult = .success(product)
+        harness.identity.setDesiredDeviceID("device-1", for: simulator.id)
+
+        harness.build.run()
+
+        try await waitUntil { harness.postedLabels.contains("buildFinished(sim-off, device-1)") }
+        #expect(harness.spies.identity.calls.contains(.launch(udid: simulator.id, config: .example, deviceID: "device-1", waitForDebugger: false, environment: [:])))
+        #expect(harness.identity.savedDeviceIDs == ["device-1"])
+        #expect(harness.identity.settings(for: simulator.id).appliedDeviceID == "device-1")
+    }
+
+    @Test func lastBuiltAppPathAsksForTheSource() {
+        harness.spies.build.lastBuiltAppPathResult = product.appPath
+
+        #expect(store.lastBuiltAppPath() == product.appPath)
+        #expect(harness.spies.build.calls == [.lastBuiltAppPath(projectPath: ProjectSample.path, scheme: "App", configuration: "Debug")])
+    }
+}

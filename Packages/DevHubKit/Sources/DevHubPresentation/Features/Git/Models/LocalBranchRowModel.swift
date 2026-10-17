@@ -9,7 +9,7 @@ struct LocalBranchRowModel: Identifiable, Equatable {
     var iconHint: String
     var usesAccentIcon: Bool
     var tags: [TagModel]
-    var mergeRequest: BranchMergeRequestModel?
+    var pullRequest: BranchPullRequestModel?
     var ticket: TicketModel?
     var dateText: String?
     var subject: String
@@ -21,11 +21,11 @@ struct LocalBranchRowModel: Identifiable, Equatable {
     var canBuild: Bool
     var canCreateWorktree: Bool
     var canDelete: Bool
-    var canOpenMergeRequest: Bool
-    var mergeRequestHint: String
-    var mergeRequestIconTint: Tint?
-    var mergeRequestMenuTitle: String
-    var existingMergeRequest: ExistingMergeRequestModel?
+    var canOpenPullRequest: Bool
+    var pullRequestHint: String
+    var pullRequestIconTint: Tint?
+    var pullRequestMenuTitle: String
+    var existingPullRequest: ExistingPullRequestModel?
     var areActionsEnabled: Bool
     var deleteMessage: String
     var showsForceToggle: Bool
@@ -41,7 +41,7 @@ struct LocalBranchRowModel: Identifiable, Equatable {
             TagModel("local only", tint: .orange, systemImage: "icloud.slash", hint: "Never pushed: the commits exist only on this Mac"),
             TagModel("↑2", tint: .blue, hint: "2 commits not pushed")
         ],
-        mergeRequest: .preview,
+        pullRequest: .preview,
         ticket: .preview,
         dateText: "visited 2 hr. ago · committed 3 days ago by kim",
         subject: "ABC-2324: Paid call payment",
@@ -53,11 +53,11 @@ struct LocalBranchRowModel: Identifiable, Equatable {
         canBuild: true,
         canCreateWorktree: true,
         canDelete: true,
-        canOpenMergeRequest: false,
-        mergeRequestHint: "Push the branch first: a merge request needs it on the remote",
-        mergeRequestIconTint: nil,
-        mergeRequestMenuTitle: "New Merge Request…",
-        existingMergeRequest: nil,
+        canOpenPullRequest: false,
+        pullRequestHint: "Push the branch first: a merge request needs it on the remote",
+        pullRequestIconTint: nil,
+        pullRequestMenuTitle: "New Merge Request…",
+        existingPullRequest: nil,
         areActionsEnabled: true,
         deleteMessage: "Delete feature/ABC-2324-paid-call? It is not merged into dev; without force git refuses.",
         showsForceToggle: true,

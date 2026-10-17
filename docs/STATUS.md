@@ -54,6 +54,8 @@ Numbered. What, then why. A later session must not undo these without a new numb
 17. A config action in a row placement shows its inputs and confirmation under that row. The screen draws the prompt (`ConfigActionsStore.pending(in:)` with the slot `<placement>:<row id>`), the row gets only `configActions` in its model and an `onConfigAction` closure. Why: a row reads no store but `Toaster` and `AppActions`.
 18. A remote whose host name contains neither `github` nor `gitlab` counts as GitLab unless `git.host.kind` says `github`. Why: a self-hosted GitLab on a company domain is the common case; GitHub Enterprise users set the kind once. The ADR idea to ask `gh auth status` was dropped: it would make the choice depend on the machine.
 
+19. The code host types use pull request words: `PullRequestSummary`, `CodeHostRepository`, `PullRequestsStore`, the tab id `pullRequests`. The fields keep their names (`iid`, `pipeline`, `detailedStatus`), and the GitLab GraphQL strings keep the GitLab names (`MergeRequestState`, `mergeRequests`). Why: a field rename touches every mapper and test for no change in behaviour, and the GraphQL names belong to GitLab.
+20. `.gitignore` ignores only the top-level `/build/` folder. Why: on the case-insensitive macOS file system `build/` also matched every `Build/` source folder, and the Build feature was missing from the commits.
 ## Next steps
 
 1. M4 (ADR 001 sections 6 and 7.4): a code host protocol, `gh` for GitHub and `glab` for GitLab, the Pull Requests tab instead of the GitLab tab, `git.host.*` and `git.pullRequests.*`, checks on the playground repository.
