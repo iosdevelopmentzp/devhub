@@ -15,10 +15,12 @@ package final class SpySimulatorRepository: SimulatorRepository, @unchecked Send
         case uninstallQuietly(udid: String, bundleID: String)
         case resetKeychain(udid: String)
         case launch(udid: String, bundleID: String, waitForDebugger: Bool, environment: [String: String])
+        case writeDefaults(udid: String, bundleID: String, defaults: [ProfileDefault])
     }
 
     private let lock = NSLock()
     private var _calls: [Call] = []
+    private var _launchArguments: [[String]] = []
     private var _listResult: Result<[SimulatorGroup], any Error> = .success([])
     private var _bootError: (any Error)? = nil
     private var _shutdownError: (any Error)? = nil
@@ -143,8 +145,17 @@ package final class SpySimulatorRepository: SimulatorRepository, @unchecked Send
         if let error { throw error }
     }
 
-    package func launch(udid: String, bundleID: String, waitForDebugger: Bool, environment: [String: String]) async throws -> Int32? {
-        try record(.launch(udid: udid, bundleID: bundleID, waitForDebugger: waitForDebugger, environment: environment)) { try _launchResult.get() }
+    package func launch(udid: String, bundleID: String, waitForDebugger: Bool, environment: [String: String], arguments: [String]) async throws -> Int32? {
+        lock.withLock { _launchArguments.append(arguments) }
+        return try record(.launch(udid: udid, bundleID: bundleID, waitForDebugger: waitForDebugger, environment: environment)) { try _launchResult.get() }
+    }
+
+    package func writeDefaults(udid: String, bundleID: String, defaults: [ProfileDefault]) async throws {
+        record(.writeDefaults(udid: udid, bundleID: bundleID, defaults: defaults)) {}
+    }
+
+    package var launchArguments: [[String]] {
+        lock.withLock { _launchArguments }
     }
 
     private func record<Value>(_ call: Call, _ value: () throws -> Value) rethrows -> Value {

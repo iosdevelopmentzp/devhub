@@ -15,7 +15,7 @@ import Testing
             simulatorUDID: "sim",
             simulatorName: "iPhone 17",
             identity: nil,
-            cleanInstall: false,
+            cleanInstall: false, launch: .none,
             attachDebugger: false
         )
 

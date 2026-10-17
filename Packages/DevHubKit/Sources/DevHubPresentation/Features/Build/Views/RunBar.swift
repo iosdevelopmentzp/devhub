@@ -14,6 +14,9 @@ struct RunBar: View {
         PanelCard {
             VStack(alignment: .leading, spacing: 10) {
                 options(model)
+                if let profile = LaunchProfileMapper.model(profiles: build.profiles, selected: build.profile) {
+                    LaunchProfilePicker(model: profile) { build.setProfile($0) }
+                }
 
                 HStack(spacing: 12) {
                     targetColumn(model)
@@ -83,8 +86,9 @@ struct RunBar: View {
             .labelsHidden()
             .frame(width: 140)
             Picker("Configuration", selection: Binding(get: { build.state.configuration }, set: { build.setConfiguration($0) })) {
-                Text("Debug").tag("Debug")
-                Text("Release").tag("Release")
+                ForEach(build.configurationOptions, id: \.self) { configuration in
+                    Text(configuration).tag(configuration)
+                }
             }
             .labelsHidden()
             .frame(width: 90)

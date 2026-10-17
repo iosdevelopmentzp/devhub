@@ -32,10 +32,10 @@ package struct RelaunchWithMocksUseCase: Sendable {
 
     private func launch(_ request: MockRelaunchRequest, environment: [String: String]) async throws {
         if let config = request.identity {
-            _ = try await identity.launch(udid: request.udid, config: config, deviceID: request.deviceID, waitForDebugger: false, environment: environment)
+            _ = try await identity.launch(udid: request.udid, config: config, deviceID: request.deviceID, waitForDebugger: false, environment: environment, arguments: [])
             return
         }
         try await simulators.openInSimulatorApp(udid: request.udid)
-        _ = try await simulators.launch(udid: request.udid, bundleID: request.bundleID, waitForDebugger: false, environment: environment)
+        _ = try await simulators.launch(udid: request.udid, bundleID: request.bundleID, waitForDebugger: false, environment: environment, arguments: [])
     }
 }

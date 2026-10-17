@@ -64,11 +64,22 @@ struct SimctlSimulatorRepository: SimulatorRepository {
         try await simctl.run(["keychain", udid, "reset"], failure: SimulatorError.command)
     }
 
-    func launch(udid: String, bundleID: String, waitForDebugger: Bool, environment: [String: String]) async throws -> Int32? {
-        let arguments = ["simctl", "launch", "--terminate-running-process"] + (waitForDebugger ? ["--wait-for-debugger"] : []) + [udid, bundleID]
-        let result = try await shell.run("xcrun", arguments, cwd: nil, environment: environment.childEnvironment)
+    func launch(udid: String, bundleID: String, waitForDebugger: Bool, environment: [String: String], arguments: [String]) async throws -> Int32? {
+        let command = ["simctl", "launch", "--terminate-running-process"] + (waitForDebugger ? ["--wait-for-debugger"] : []) + [udid, bundleID] + arguments
+        let result = try await shell.run("xcrun", command, cwd: nil, environment: environment.childEnvironment)
         guard result.exitCode == 0 else { throw SimulatorError.command(result.failureMessage) }
         return LaunchOutput.pid(from: result.stdout)
+    }
+
+    func writeDefaults(udid: String, bundleID: String, defaults: [ProfileDefault]) async throws {
+        for (container, items) in Dictionary(grouping: defaults, by: { ProfileDefaultsPlan.containerKind(for: $0, bundleID: bundleID) }) {
+            let root = try await simctl.run(["get_app_container", udid, bundleID, container], failure: SimulatorError.command).stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+            let folder = (root as NSString).appendingPathComponent("Library/Preferences")
+            try FileManager.default.createDirectory(atPath: folder, withIntermediateDirectories: true)
+            for item in items {
+                try await simctl.run(ProfileDefaultsPlan.writeArguments(item, udid: udid, folder: folder), failure: SimulatorError.command)
+            }
+        }
     }
 
     func installedAppCounts(udids: [String]) async -> [String: Int] {

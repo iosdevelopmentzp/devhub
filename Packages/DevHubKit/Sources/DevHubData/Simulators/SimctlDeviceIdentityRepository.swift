@@ -75,7 +75,7 @@ struct SimctlDeviceIdentityRepository: DeviceIdentityRepository {
         try await simctl.run(["install", udid, source], failure: DeviceIdentityError.command)
     }
 
-    func launch(udid: String, config: DeviceIdentityConfig, deviceID: String?, waitForDebugger: Bool, environment: [String: String]) async throws -> Int32? {
+    func launch(udid: String, config: DeviceIdentityConfig, deviceID: String?, waitForDebugger: Bool, environment: [String: String], arguments: [String]) async throws -> Int32? {
         try await ensureBooted(udid)
         try? await simulators.openInSimulatorApp(udid: udid)
         var variables = environment
@@ -87,7 +87,7 @@ struct SimctlDeviceIdentityRepository: DeviceIdentityRepository {
         }
         let result = try await shell.run(
             "xcrun",
-            ["simctl", "launch", "--terminate-running-process"] + (waitForDebugger ? ["--wait-for-debugger"] : []) + [udid, config.bundleID] + config.launchArguments,
+            ["simctl", "launch", "--terminate-running-process"] + (waitForDebugger ? ["--wait-for-debugger"] : []) + [udid, config.bundleID] + config.launchArguments + arguments,
             cwd: nil,
             environment: variables.childEnvironment
         )

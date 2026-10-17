@@ -605,3 +605,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `e31cddf` | M4 | `pullRequests.row` placement with `DEVHUB_PR_NUMBER` and `DEVHUB_PR_URL`, `when.host`, the `pullRequests` refresh target, `builtin.pullRequests`; "Fix Threads with AI"; an example action. |
 | `9dc8549` | M4 | M4 closed: ADR 003, `GhIntegrationTests` (runs with `DEVHUB_PLAYGROUND`), STATUS and the testing skill. |
 | `4ad41c0` | M4 | Renames from section 7.4 (`MergeReadiness`, `CheckStatus`, `ReviewThread`); `PullRequestsStore` split to 300 lines. |
+| `98c7d9d` | M5 | Step 5.1: `xcode.scheme`, `schemes`, `configuration` and `container` reach the run bar and `xcodebuild` (`SchemeChoicePolicy` gets `configured`, `XcodeContainer.locate(preferred:)`). |

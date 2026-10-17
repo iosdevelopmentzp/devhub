@@ -7,6 +7,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Launch profiles from `launch.profiles` in `.devhub/project.json`: the run bar has a profile picker with a summary. Build & Run passes the environment and the arguments of the profile to the app, writes its `defaults` into the app container (or the app group container) after install, and does a clean install when the profile says so. The choice is saved per simulator.
+- The configuration picker of the run bar also lists the configuration of `xcode.configuration` when it is not Debug or Release.
 - Config actions in pull request rows: the `pullRequests.row` placement puts an action into the menu of each open request, with `DEVHUB_PR_NUMBER`, `DEVHUB_PR_URL` and `DEVHUB_BRANCH`. `refresh: ["pullRequests"]` reads the requests again after an action, and `when: {"host": "github"}` shows an action only for that code host.
 - `builtin.pullRequests` in `home.quickActions` opens the pull request tab.
 - `git.pullRequests` in `.devhub/project.json`: the order of the target branches, the description template, the days until the `stale` tag and the defaults of the new request form. Without a template setting, GitHub projects read `.github/pull_request_template.md`.
@@ -53,6 +55,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- `DEVHUB_BUILD_RUN`, `DEVHUB_BUILD_PROFILE` and `DEVHUB_BUILD_BRANCH` run Build & Run headless in Debug builds.
 - `MergeDetail`, `PipelineStatus` and `PullRequestThread` are `MergeReadiness`, `CheckStatus` and `ReviewThread`. `PullRequestsStore` is split into the store, `PullRequestsStore+Filter`, `PullRequestListCache`, `PullRequestActionTexts` and `PullRequestsPreferenceKeys`.
 - `GhIntegrationTests` reads a GitHub test repository through `gh` when `DEVHUB_PLAYGROUND=owner/repo` is set.
 - ADR 003 describes the code host port and the GitHub mapping.

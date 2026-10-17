@@ -11,6 +11,7 @@ package final class SpyDeviceIdentityRepository: DeviceIdentityRepository, @unch
 
     private let lock = NSLock()
     private var _calls: [Call] = []
+    private var _launchArguments: [[String]] = []
     private var _readResult: AppIdentity = .notInstalled
     private var _setEnvironmentError: (any Error)? = nil
     private var _cleanInstallError: (any Error)? = nil
@@ -56,8 +57,13 @@ package final class SpyDeviceIdentityRepository: DeviceIdentityRepository, @unch
         if let error { throw error }
     }
 
-    package func launch(udid: String, config: DeviceIdentityConfig, deviceID: String?, waitForDebugger: Bool, environment: [String: String]) async throws -> Int32? {
-        try record(.launch(udid: udid, config: config, deviceID: deviceID, waitForDebugger: waitForDebugger, environment: environment)) { try _launchResult.get() }
+    package func launch(udid: String, config: DeviceIdentityConfig, deviceID: String?, waitForDebugger: Bool, environment: [String: String], arguments: [String]) async throws -> Int32? {
+        lock.withLock { _launchArguments.append(arguments) }
+        return try record(.launch(udid: udid, config: config, deviceID: deviceID, waitForDebugger: waitForDebugger, environment: environment)) { try _launchResult.get() }
+    }
+
+    package var launchArguments: [[String]] {
+        lock.withLock { _launchArguments }
     }
 
     private func record<Value>(_ call: Call, _ value: () throws -> Value) rethrows -> Value {

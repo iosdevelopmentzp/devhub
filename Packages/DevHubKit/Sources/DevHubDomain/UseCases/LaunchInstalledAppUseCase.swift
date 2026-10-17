@@ -14,7 +14,7 @@ package struct LaunchInstalledAppUseCase: Sendable {
             try await identity.setEnvironment(environment, udid: udid, config: config)
         }
         let environment = await MockLaunchPreparation(identity: identity, mockServer: mockServer).prepare(udid: udid, config: config, environment: request.environment).environment
-        let pid = try await identity.launch(udid: udid, config: config, deviceID: request.deviceID, waitForDebugger: request.attachDebugger, environment: environment)
+        let pid = try await identity.launch(udid: udid, config: config, deviceID: request.deviceID, waitForDebugger: request.attachDebugger, environment: environment, arguments: [])
         guard request.attachDebugger else { return }
         guard let pid else { throw XcodeAttachError.script("simctl launch did not report a process ID.") }
         try await attacher.attach(pid: pid, simulatorUDID: udid, projectPath: request.projectPath)

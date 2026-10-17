@@ -52,6 +52,7 @@ Debug builds only. `DevHubComposition/Debug/DebugLaunch.swift` reads them and ca
 | `DEVHUB_RUN_ACTION=<id>[,<id>]` | runs config actions with their default inputs |
 | `DEVHUB_REQUEST_ACTION=<id>` | opens the input prompt of one action on Home |
 | `DEVHUB_GIT_OPS=<step>,<step>` | runs git and worktree steps and waits until the stores are idle after each one: `fetch`, `pull`, `push`, `forcepush`, `rebase`, `continueop`, `abortop`, `updatebase`, `stash:<msg>`, `popstash`, `switch:<b>`, `switchstash:<b>`, `update:<b>`, `delete-branch:<b>`, `checkout-remote:<remote/b>`, `select:<path>\|main`, `stage:<path>`, `unstage:<path>`, `discard:<path>`, `stageall`, `unstageall`, `commit:<msg>`, `commitpush:<msg>`, `amend:<msg>`, `action:<id>`, `wt-create:<b>`, `wt-delete:<b>`, `wt-prune`, `wt-fetch`, `sleep:<s>`. It writes to the repository: use a throwaway one |
+| `DEVHUB_BUILD_RUN=<udid or name>` | runs Build & Run on that simulator and waits until it ends; `DEVHUB_BUILD_PROFILE=<id>` picks a launch profile, `DEVHUB_BUILD_BRANCH=<branch>` builds that branch (a worktree is created when it has no checkout) |
 | `DEVHUB_OPEN_PANEL=1` | opens the panel at launch |
 | `DEVHUB_TAB=<id>` | selects a tab (saved) |
 | `DEVHUB_SHOW_OUTPUT=1` | opens the Output panel (saved) |

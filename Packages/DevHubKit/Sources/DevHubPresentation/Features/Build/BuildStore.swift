@@ -93,6 +93,14 @@ final class BuildStore: BuildLookup {
         return visible.isEmpty ? [state.scheme] : visible
     }
 
+    var configurationOptions: [String] {
+        var options = ["Debug", "Release"]
+        for extra in [effective.configuration, state.configuration] where options.contains(extra) == false {
+            options.append(extra)
+        }
+        return options
+    }
+
     var effective: EffectiveProject {
         config.effective(detectedSchemes: schemes, detectedBaseBranch: worktrees.baseBranch)
     }
@@ -121,7 +129,20 @@ final class BuildStore: BuildLookup {
     }
 
     func willCleanInstall(on id: Simulator.ID) -> Bool {
-        state.cleanInstall || identity.needsCleanInstall(id: id)
+        state.cleanInstall || profile?.cleanInstall == true || identity.needsCleanInstall(id: id)
+    }
+
+    var profiles: [LaunchProfile] {
+        config.resolved.project.launch?.profiles ?? []
+    }
+
+    var profile: LaunchProfile? {
+        profiles.first { $0.id == state.profileID } ?? profiles.first
+    }
+
+    func setProfile(_ id: LaunchProfile.ID) {
+        state.profileID = id
+        saveRunOptions()
     }
 
     // MARK: Options
@@ -275,6 +296,8 @@ final class BuildStore: BuildLookup {
         let configuration = state.configuration
         let incremental = state.incremental
         let container = container
+        let launch = LaunchSettings(profile: profile)
+        let profileTitle = profile.map { " · \($0.title)" } ?? ""
         events.post(.buildStarted(simulatorID: simulator.id))
         buildLog.removeAll()
         hasLog = false
@@ -297,6 +320,7 @@ final class BuildStore: BuildLookup {
                     simulatorName: simulator.name,
                     identity: buildIdentity,
                     cleanInstall: cleanInstall,
+                    launch: launch,
                     attachDebugger: attachDebugger
                 )
                 for try await event in buildAndRun.run(request) {
@@ -308,7 +332,7 @@ final class BuildStore: BuildLookup {
                     launchedDeviceID = .some(buildIdentity.deviceID)
                 }
                 let sourceName = prepared.worktreeName ?? prepared.path.abbreviatingHome
-                activity.log(attachDebugger ? "Launched \(scheme), Xcode attached" : "Launched \(scheme)", detail: "\(simulator.name) · \(configuration) · \(sourceName)", outcome: .success)
+                activity.log(attachDebugger ? "Launched \(scheme), Xcode attached" : "Launched \(scheme)", detail: "\(simulator.name) · \(configuration) · \(sourceName)\(profileTitle)", outcome: .success)
             } catch is CancellationError {
                 state.phase = .idle
                 activity.log("Build cancelled", detail: scheme, outcome: .info)
@@ -413,7 +437,8 @@ final class BuildStore: BuildLookup {
             configuration: state.configuration,
             incremental: state.incremental,
             cleanInstall: state.cleanInstall,
-            source: source
+            source: source,
+            profileID: state.profileID
         )
         guard runOptions[target] != options else { return }
         runOptions[target] = options
@@ -428,6 +453,7 @@ final class BuildStore: BuildLookup {
         state.configuration = options.configuration
         state.incremental = options.incremental
         state.cleanInstall = options.cleanInstall
+        state.profileID = options.profileID
         source = options.source
     }
 }

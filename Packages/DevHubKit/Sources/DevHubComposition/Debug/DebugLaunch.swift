@@ -21,6 +21,11 @@ enum DebugLaunch {
                 }
             }
         }
+        if let target = environment["DEVHUB_BUILD_RUN"] {
+            Task {
+                await assembly.debugBuildRun(target: target, profile: environment["DEVHUB_BUILD_PROFILE"], branch: environment["DEVHUB_BUILD_BRANCH"])
+            }
+        }
         if let script = environment["DEVHUB_GIT_OPS"] {
             Task {
                 await assembly.debugRunGitOps(script)

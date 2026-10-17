@@ -12,5 +12,6 @@ package protocol SimulatorRepository: Sendable {
     func install(udid: String, appPath: String) async throws
     func uninstallQuietly(udid: String, bundleID: String) async
     func resetKeychain(udid: String) async throws
-    func launch(udid: String, bundleID: String, waitForDebugger: Bool, environment: [String: String]) async throws -> Int32?
+    func launch(udid: String, bundleID: String, waitForDebugger: Bool, environment: [String: String], arguments: [String]) async throws -> Int32?
+    func writeDefaults(udid: String, bundleID: String, defaults: [ProfileDefault]) async throws
 }

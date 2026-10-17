@@ -37,7 +37,7 @@ import DevHubTestSupport
             simulatorUDID: simulator.id,
             simulatorName: simulator.name,
             identity: nil,
-            cleanInstall: false,
+            cleanInstall: false, launch: .none,
             attachDebugger: attachDebugger
         )
     }
@@ -54,7 +54,7 @@ import DevHubTestSupport
 
     @Test func targetAndRunOptionsAreRestored() {
         let saved = InMemoryKeyValueStore()
-        let options = SimulatorRunOptions(scheme: "Saved", configuration: "Release", incremental: false, cleanInstall: true, source: .branch("feature/x"))
+        let options = SimulatorRunOptions(scheme: "Saved", configuration: "Release", incremental: false, cleanInstall: true, source: .branch("feature/x"), profileID: nil)
         saved.set(simulator.id, forKey: "simulators.target")
         saved.encode([simulator.id: options], forKey: "simulators.runOptions")
 
@@ -76,7 +76,7 @@ import DevHubTestSupport
         store.setCleanInstall(true)
 
         #expect(harness.store.string(forKey: "simulators.target") == simulator.id)
-        #expect(savedRunOptions == [simulator.id: SimulatorRunOptions(scheme: "Other", configuration: "Release", incremental: false, cleanInstall: true, source: .main)])
+        #expect(savedRunOptions == [simulator.id: SimulatorRunOptions(scheme: "Other", configuration: "Release", incremental: false, cleanInstall: true, source: .main, profileID: nil)])
         #expect(store.willCleanInstall(on: simulator.id))
     }
 
@@ -89,7 +89,7 @@ import DevHubTestSupport
 
     @Test func selectTargetLoadsThatTargetsOptions() {
         let saved = InMemoryKeyValueStore()
-        let options = SimulatorRunOptions(scheme: "App", configuration: "Release", incremental: true, cleanInstall: false, source: .main)
+        let options = SimulatorRunOptions(scheme: "App", configuration: "Release", incremental: true, cleanInstall: false, source: .main, profileID: nil)
         saved.encode([SimulatorSample.booted.id: options], forKey: "simulators.runOptions")
         let harness = StoreHarness(store: saved)
         harness.simulators.groups = SimulatorSample.groups
@@ -375,5 +375,27 @@ import DevHubTestSupport
         #expect(request.container == "App.xcworkspace")
         #expect(request.scheme == "Tools")
         #expect(request.configuration == "Release")
+    }
+
+    @Test func theChosenLaunchProfileRunsAndIsSavedPerSimulator() async throws {
+        let staging = LaunchProfile(id: "staging", title: "Staging", env: ["API_ENV": "staging"], args: ["-Debug"])
+        let production = LaunchProfile(id: "production", title: "Production", cleanInstall: true)
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(launch: LaunchConfig(profiles: [staging, production])), actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+        #expect(store.profile == staging)
+
+        store.selectTarget(id: simulator.id)
+        store.setProfile("production")
+        store.run()
+        try await waitUntil { hasFinished }
+
+        #expect(savedRunOptions?[simulator.id]?.profileID == "production")
+        let build = harness.spies.build.calls.first { if case .build = $0 { true } else { false } }
+        guard case .build(let request) = build else {
+            Issue.record("Expected a build call")
+            return
+        }
+        #expect(request.cleanInstall)
+        #expect(request.launch == LaunchSettings(profile: production))
     }
 }

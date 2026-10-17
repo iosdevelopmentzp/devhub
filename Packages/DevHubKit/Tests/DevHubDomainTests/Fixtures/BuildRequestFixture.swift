@@ -15,7 +15,7 @@ enum BuildRequestFixture {
         simulatorUDID: udid,
         simulatorName: simulatorName,
         identity: nil,
-        cleanInstall: false,
+        cleanInstall: false, launch: .none,
         attachDebugger: false
     )
 

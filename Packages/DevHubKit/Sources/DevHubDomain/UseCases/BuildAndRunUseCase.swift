@@ -49,6 +49,11 @@ package struct BuildAndRunUseCase: Sendable {
         continuation.yield(.step("Installing on \(request.simulatorName)", progress: nil))
         try await simulators.install(udid: request.simulatorUDID, appPath: product.appPath)
 
+        if request.launch.defaults.isEmpty == false {
+            continuation.yield(.step("Writing \(request.launch.defaults.count == 1 ? "1 default" : "\(request.launch.defaults.count) defaults") of the launch profile", progress: nil))
+            try await simulators.writeDefaults(udid: request.simulatorUDID, bundleID: product.bundleID, defaults: request.launch.defaults)
+        }
+
         let pid = try await launch(product, request: request, continuation: continuation)
 
         guard request.attachDebugger else { return }
@@ -68,14 +73,14 @@ package struct BuildAndRunUseCase: Sendable {
             config: request.identity?.config,
             environment: request.identity?.environment
         )
-        let environment = mocks.environment
+        let environment = request.launch.environment.merging(mocks.environment) { _, mock in mock }
         if let note = mocks.note {
             continuation.yield(.output(note))
         }
         guard let buildIdentity = request.identity else {
             continuation.yield(.step("Launching \(product.bundleID)", progress: nil))
             try await simulators.openInSimulatorApp(udid: request.simulatorUDID)
-            return try await simulators.launch(udid: request.simulatorUDID, bundleID: product.bundleID, waitForDebugger: request.attachDebugger, environment: environment)
+            return try await simulators.launch(udid: request.simulatorUDID, bundleID: product.bundleID, waitForDebugger: request.attachDebugger, environment: environment, arguments: request.launch.arguments)
         }
         if let environment = buildIdentity.environment {
             continuation.yield(.step("Setting environment \(environment)", progress: nil))
@@ -87,7 +92,8 @@ package struct BuildAndRunUseCase: Sendable {
             config: buildIdentity.config,
             deviceID: buildIdentity.deviceID,
             waitForDebugger: request.attachDebugger,
-            environment: environment
+            environment: environment,
+            arguments: request.launch.arguments
         )
     }
 }

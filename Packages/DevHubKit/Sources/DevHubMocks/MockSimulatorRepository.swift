@@ -42,7 +42,9 @@ struct MockSimulatorRepository: SimulatorRepository {
 
     func resetKeychain(udid: String) async throws {}
 
-    func launch(udid: String, bundleID: String, waitForDebugger: Bool, environment: [String: String]) async throws -> Int32? {
+    func writeDefaults(udid: String, bundleID: String, defaults: [ProfileDefault]) async throws {}
+
+    func launch(udid: String, bundleID: String, waitForDebugger: Bool, environment: [String: String], arguments: [String]) async throws -> Int32? {
         try await Task.sleep(for: .milliseconds(300))
         return 4242
     }

@@ -59,7 +59,11 @@ final class GatedSimulatorRepository: SimulatorRepository {
         record("resetKeychain")
     }
 
-    func launch(udid: String, bundleID: String, waitForDebugger: Bool, environment: [String: String]) async throws -> Int32? {
+    func writeDefaults(udid: String, bundleID: String, defaults: [ProfileDefault]) async throws {
+        record("writeDefaults")
+    }
+
+    func launch(udid: String, bundleID: String, waitForDebugger: Bool, environment: [String: String], arguments: [String]) async throws -> Int32? {
         record("launch")
         return nil
     }

@@ -15,6 +15,7 @@ struct BuildState: Hashable {
     var configuration = "Debug"
     var incremental = true
     var cleanInstall = false
+    var profileID: String?
     var targetSimulatorID: Simulator.ID?
 
     var isRunning: Bool {

@@ -188,10 +188,10 @@ Any executable under `scripts/` is an action without a JSON file. Header lines, 
 |---|---|
 | `env` | passed to the app process through `SIMCTL_CHILD_<NAME>` on `simctl launch` |
 | `args` | appended after the bundle ID on `simctl launch` |
-| `defaults[]` | written into the app's data container before launch: `Library/Preferences/<suite>.plist`; `value` may be a string, a number or true or false; `type` is `string` (default), `bool`, `int` |
+| `defaults[]` | written after install and before launch into `Library/Preferences/<suite>.plist` of the app's data container, or of the app group container when `suite` starts with `group.`; `value` may be a string, a number or true or false; `type` is `string` (default), `bool`, `int`, `float` |
 | `cleanInstall` | when true the profile always deletes the app and resets the simulator keychain before install |
 
-The selected profile is saved per simulator. Launches from Xcode or the home screen do not get these values; the run bar says so.
+The selected profile is saved per simulator. The run bar shows a picker when the project has profiles. Launches from Xcode or the home screen do not get these values; the hint of the profile summary says so. A clean install also removes the defaults that an earlier profile wrote.
 
 ## 6. Simulator status script
 

@@ -224,6 +224,25 @@ import Testing
         return (ports, spies)
     }
 
+
+    @Test func aLaunchProfileWritesDefaultsAndPassesItsEnvironmentAndArguments() async {
+        let (ports, spies) = scriptedPorts()
+        var request = BuildRequestFixture.incremental
+        let item = ProfileDefault(suite: "com.example.app", key: "environment", value: "staging")
+        request.launch = LaunchSettings(environment: ["API_ENV": "staging"], arguments: ["-UITests", "YES"], defaults: [item])
+
+        let result = await collect(useCase(ports).run(request))
+
+        #expect(result.error == nil)
+        #expect(result.events.contains("step: Writing 1 default of the launch profile"))
+        #expect(spies.simulators.calls.suffix(3) == [
+            .writeDefaults(udid: udid, bundleID: product.bundleID, defaults: [item]),
+            .openInSimulatorApp(udid: udid),
+            .launch(udid: udid, bundleID: product.bundleID, waitForDebugger: false, environment: ["API_ENV": "staging"]),
+        ])
+        #expect(spies.simulators.launchArguments == [["-UITests", "YES"]])
+    }
+
     private func useCase(_ ports: Ports) -> BuildAndRunUseCase {
         BuildAndRunUseCase(build: ports.build, simulators: ports.simulators, identity: ports.identity, attacher: ports.attacher, mockServer: ports.mockServer)
     }
