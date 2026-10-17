@@ -1,0 +1,47 @@
+import Testing
+@testable import DevHubDomain
+
+@Suite struct ScriptDirectiveParserTests {
+    @Test func aPlainLineIsPlain() {
+        #expect(ScriptDirectiveParser.parse("hello") == .plain)
+    }
+
+    @Test func readsEveryDirective() {
+        let line = #"@devhub {"progress": "Step", "fraction": 0.5, "toast": "Done", "copy": "abc", "open": "https://example.com", "notify": "Built", "body": "ok", "refresh": ["git", "nope"], "error": "bad", "app": "/tmp/App.app"}"#
+
+        #expect(ScriptDirectiveParser.parse(line) == .directives([
+            .progress(text: "Step", fraction: 0.5),
+            .toast("Done"),
+            .copy("abc"),
+            .open("https://example.com"),
+            .notify(title: "Built", body: "ok"),
+            .refresh([.git]),
+            .error("bad"),
+            .app("/tmp/App.app"),
+        ]))
+    }
+
+    @Test func aViewIsDecoded() {
+        let line = #"@devhub {"view": {"keyValues": [["Env", "staging"]], "rows": [{"id": "1", "title": "Row", "tags": [{"text": "ok", "tint": "green"}]}]}}"#
+
+        guard case let .directives(directives) = ScriptDirectiveParser.parse(line), case let .view(view) = directives.first else {
+            Issue.record("no view")
+            return
+        }
+        #expect(view.pairs.map(\.0) == ["Env"])
+        #expect(view.rows?.first?.tags?.first?.tint == .green)
+        #expect(view.isEmpty == false)
+    }
+
+    @Test func badJSONAndBadViewsAreInvalid() {
+        #expect(ScriptDirectiveParser.parse("@devhub {nope") == .invalid("The directive is not one JSON object."))
+        guard case .invalid = ScriptDirectiveParser.parse(#"@devhub {"view": {"rows": [{"title": "no id"}]}}"#) else {
+            Issue.record("expected invalid")
+            return
+        }
+    }
+
+    @Test func anUnknownKeyIsUnknown() {
+        #expect(ScriptDirectiveParser.parse(#"@devhub {"other": 1}"#) == .unknown)
+    }
+}

@@ -1,0 +1,64 @@
+import Foundation
+
+package struct ActionContext: Hashable, Sendable {
+    package var projectPath = ""
+    package var projectName = ""
+    package var checkoutPath = ""
+    package var mainPath = ""
+    package var branch = ""
+    package var baseBranch = ""
+    package var scheme = ""
+    package var configuration = ""
+    package var bundleID = ""
+    package var simulatorUDID = ""
+    package var simulatorName = ""
+    package var appPath = ""
+    package var worktreePath = ""
+    package var configDir = ""
+    package var rowID = ""
+    package var version = ""
+    package var inputs: [String: String] = [:]
+
+    package init() {}
+
+    package var variables: [String: String] {
+        var values = [
+            "PROJECT_PATH": projectPath,
+            "PROJECT_NAME": projectName,
+            "CHECKOUT_PATH": checkoutPath,
+            "MAIN_PATH": mainPath,
+            "BRANCH": branch,
+            "BASE_BRANCH": baseBranch,
+            "SCHEME": scheme,
+            "CONFIGURATION": configuration,
+            "BUNDLE_ID": bundleID,
+            "SIMULATOR_UDID": simulatorUDID,
+            "SIMULATOR_NAME": simulatorName,
+            "APP_PATH": appPath,
+            "WORKTREE_PATH": worktreePath,
+            "CONFIG_DIR": configDir,
+            "ROW_ID": rowID,
+            "VERSION": version
+        ]
+        for (key, value) in inputs {
+            values["INPUT_" + Self.environmentKey(key)] = value
+        }
+        return values
+    }
+
+    package var environment: [String: String] {
+        Dictionary(uniqueKeysWithValues: variables.map { ("DEVHUB_" + $0.key, $0.value) })
+    }
+
+    package var placeholders: [String: String] {
+        var values = Dictionary(uniqueKeysWithValues: variables.map { ($0.key.lowercased(), $0.value) })
+        for (key, value) in inputs {
+            values[key] = value
+        }
+        return values
+    }
+
+    private static func environmentKey(_ key: String) -> String {
+        String(key.uppercased().map { $0.isLetter || $0.isNumber ? $0 : "_" })
+    }
+}

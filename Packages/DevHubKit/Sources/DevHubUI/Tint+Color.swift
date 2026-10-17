@@ -6,6 +6,7 @@ package extension Tint {
         switch self {
         case .green: .green
         case .orange: .orange
+        case .yellow: .yellow
         case .red: .red
         case .blue: .blue
         case .purple: .purple

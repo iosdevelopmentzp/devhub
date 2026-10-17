@@ -293,7 +293,7 @@ Sections: General (launch at login, Dock icon, global shortcut, usage strip, men
 
 ## 8. Milestones
 
-Every milestone ends with: `Scripts/build.sh` prints `layers: ok`, `anonymous: ok` and the app path; `Scripts/test.sh` passes; `Scripts/smoke.sh` prints `alive`; `CHANGELOG.md`, `docs/STATUS.md` and the ADR step log updated; a commit and a push. Inside a milestone every finished step is a commit. Commits are conventional (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`) with a plain English body and the attribution lines of the session. Never force-push.
+Every milestone ends with: `Scripts/build.sh` prints `layers: ok`, `anonymous: ok` and the app path; `Scripts/test.sh` passes; `Scripts/smoke.sh` prints `alive`; `CHANGELOG.md`, `docs/STATUS.md` and the ADR step log updated; a commit. (Changed 2026-10-17: the owner decided that the code is never pushed, so there is no push step; see STATUS decision 1.) Inside a milestone every finished step is a commit. Commits are conventional (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`) with a plain English body and the attribution lines of the session. Never force-push.
 
 | # | Milestone | Done when |
 |---|---|---|
@@ -581,4 +581,6 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 
 | Commit | Milestone | What it did |
 |---|---|---|
-| `51fae01` | M0 | Baseline of the generic MVP, pushed to `origin` (private repository `devhub`). Playground repository `devhub-playground` created. |
+| `51fae01` | M0 | Baseline of the generic MVP. It was pushed once to a private GitHub repository; then the owner decided that the code is never pushed (STATUS decision 1), the remote was removed and the repository is to be deleted. The playground repository for pull request checks stays. |
+| `e7106c6` | M0 | `Scripts/check-anonymous.sh` (denylist outside the repository plus built-in patterns), wired into `build.sh`; this plan saved as ADR 001 with a step log. |
+| `0cb12ff` | M1 | Package import: `Packages/DevHubKit` is the app, sample vocabulary renamed, Slack and the session log removed, no default project (`NoProjectState`), Network over mock server exchanges only, debug snapshot switches, scripts stop only this build, `waitUntil` 10 s, `legacy/` holds the first app; AGENTS, README, STATUS, CHANGELOG rewritten. |

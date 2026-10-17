@@ -47,6 +47,8 @@ Numbered. What, then why. A later session must not undo these without a new numb
 12. The app keeps the bundle ID `devteams.DevHub` of the first generic app, so it reads and writes the same preferences domain.
 13. "Copy for Slack" is "Copy Link with Title" (`RequestLinkText`): the reference, the title and the link.
 14. `waitUntil` waits 10 s by default, not 2 s. Why: right after a build, about 25 store tests timed out on the busy main actor while the same tests passed alone.
+15. The `.devhub/` config models are `Codable` Domain types (`Models/Config/`), the one exception to "no `Decodable` Domain model" (`docs/ARCHITECTURE.md` section 5). `ExampleConfig.files` is generated from `docs/examples/devhub/` by `Scripts/generate-example-config.sh`; run it after every change there.
+16. After a change to an enum in a lower module (for example a new `Tint` case), remove `Packages/DevHubKit/.build` before `Scripts/test.sh`. Why: the incremental test build once kept old object files, and the tests read wrong enum values.
 
 ## Next steps
 

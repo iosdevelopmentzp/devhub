@@ -1,0 +1,66 @@
+import Testing
+@testable import DevHubDomain
+
+@Suite struct ActionContextPolicyTests {
+    private let effective = EffectiveProject(name: "Example App", kind: .xcode, schemes: ["ExampleApp"], scheme: "ExampleApp", configuration: "Debug", baseBranch: "origin/main", bundleID: "com.example.app")
+
+    private func inputs(item: ActionItemContext = .none) -> ActionContextInputs {
+        ActionContextInputs(
+            projectPath: "/repo",
+            projectName: "repo",
+            checkoutPath: "/repo-wt",
+            branch: "main",
+            effective: effective,
+            simulatorUDID: "SIM",
+            simulatorName: "iPhone",
+            appPath: "/tmp/App.app",
+            configDir: "/repo/.devhub",
+            item: item,
+            inputs: ["target-name": "app"],
+            version: "1.0"
+        )
+    }
+
+    @Test func fillsEveryVariable() {
+        let context = ActionContextPolicy.make(inputs())
+
+        #expect(context.environment["DEVHUB_PROJECT_NAME"] == "Example App")
+        #expect(context.environment["DEVHUB_CHECKOUT_PATH"] == "/repo-wt")
+        #expect(context.environment["DEVHUB_MAIN_PATH"] == "/repo")
+        #expect(context.environment["DEVHUB_BUNDLE_ID"] == "com.example.app")
+        #expect(context.environment["DEVHUB_INPUT_TARGET_NAME"] == "app")
+        #expect(context.placeholders["target-name"] == "app")
+        #expect(context.placeholders["branch"] == "main")
+    }
+
+    @Test func theRowItemWins() {
+        let context = ActionContextPolicy.make(inputs(item: ActionItemContext(branch: "feature/ABC-1", worktreePath: "/wt", simulatorUDID: "ROW", simulatorName: "iPad", rowID: "r1")))
+
+        #expect(context.branch == "feature/ABC-1")
+        #expect(context.worktreePath == "/wt")
+        #expect(context.simulatorUDID == "ROW")
+        #expect(context.rowID == "r1")
+    }
+
+    @Test func defaultsResolveSpecialValues() {
+        func value(_ type: InputType, _ defaultValue: String?, options: [InputOption]? = nil) -> String {
+            ActionContextPolicy.defaultValue(for: ActionInput(key: "k", title: "K", type: type, options: options, defaultValue: defaultValue), branch: "main", simulatorUDID: "SIM", scheme: "ExampleApp")
+        }
+
+        #expect(value(.branch, "current") == "main")
+        #expect(value(.simulator, "target") == "SIM")
+        #expect(value(.toggle, nil) == "false")
+        #expect(value(.scheme, nil) == "ExampleApp")
+        #expect(value(.choice, nil, options: [InputOption(value: "a")]) == "a")
+        #expect(value(.text, "x") == "x")
+    }
+
+    @Test func workingFolderNamesAndPaths() {
+        let context = ActionContextPolicy.make(inputs())
+
+        #expect(ActionContextPolicy.workingFolder(nil, context: context, home: "/Users/alex") == "/repo-wt")
+        #expect(ActionContextPolicy.workingFolder("main", context: context, home: "/Users/alex") == "/repo")
+        #expect(ActionContextPolicy.workingFolder("Tools/{branch}", context: context, home: "/Users/alex") == "/repo/Tools/main")
+        #expect(ActionContextPolicy.workingFolder("~/tmp", context: context, home: "/Users/alex") == "/Users/alex/tmp")
+    }
+}

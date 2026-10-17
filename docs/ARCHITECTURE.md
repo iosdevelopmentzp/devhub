@@ -121,7 +121,10 @@ Packages/DevHubKit/
   outside `ShellRunner.swift`. Shared runners: `GitCommandRunner`, `SimctlRunner`, `PlistReader`, `ISO8601`.
 - Parsers are pure types in their own file: text in, values out (`GitStatusParser`, `Git/Parsers/GitLogParser`,
   `GlabMergeRequestParser`, `ClaudeTranscriptParser`, `HTTPRequestParser`, …). DTOs are `private`. A Domain model
-  is never `Decodable` for an external format. A parser that needs the clock takes it (`ClaudeUsageParser
+  is never `Decodable` for an external format. One exception: the `.devhub/` config models in
+  `DevHubDomain/Models/Config/` are `Codable`, because the user writes that JSON for DevHub and `docs/extensions.md`
+  defines it. About 35 DTOs that mirror them one to one would add nothing. The decoding and the layer merge are pure
+  policies (`ConfigDecoding`, `ConfigMergePolicy`). A parser that needs the clock takes it (`ClaudeUsageParser
   .parse(_:plan:now:)`).
 - `UserDefaults` only in `UserDefaultsKeyValueStore.swift`. AppKit only in `DevHubData/Workspace/`.
 - Mocks live in `DevHubMocks`: `Mock<Thing>Repository` (internal, one per file) return `MockData`; `Ports.mock()`
