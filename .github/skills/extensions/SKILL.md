@@ -1,11 +1,11 @@
 ---
 name: extensions
-description: "Add or change anything the user configures through .devhub/ files: quick actions, git pills, scripts with inputs, launch profiles, simulator status script, custom tabs, the script line protocol; and how to extend the schema in code (Core/Config types, decoder, merge, ActionCatalog, placements, docs/extensions.md). Load for any request like 'add an action', 'add a script', 'add a profile', 'custom tab', 'new config field', 'new placement'."
+description: "Add or change anything the user configures through .devhub/ files: quick actions, git pills, scripts with inputs, launch profiles, simulator status script, custom tabs, the script line protocol; and how to extend the schema in code (Domain config models, ConfigDecoding, ConfigMergePolicy, ActionCatalogPolicy, ConfigActionsStore, placements, docs/extensions.md). Load for any request like 'add an action', 'add a script', 'add a profile', 'custom tab', 'new config field', 'new placement'."
 ---
 
 # Extensions
 
-The schema is `docs/extensions.md`. It is normative: the decoder in `DevHub/Core/Config/` must match it, and a change to one is a change to both in the same commit. Examples live in `docs/examples/devhub/`.
+The schema is `docs/extensions.md`. It is normative: the decoder (`Packages/DevHubKit/Sources/DevHubDomain/Models/Config/` and `Policies/`) must match it, and a change to one is a change to both in the same commit. Examples live in `docs/examples/devhub/`. After a change there, run `Scripts/generate-example-config.sh`: it rewrites `DevHubDomain/Policies/ExampleConfig.swift`.
 
 ## Add an item for a project (no code)
 
@@ -38,34 +38,36 @@ Rules for scripts: `chmod +x`; use the `DEVHUB_*` variables instead of hardcodin
 
 ## Extend the schema (code)
 
-The pieces, in dependency order:
+Paths are under `Packages/DevHubKit/Sources/`. The pieces, in dependency order:
 
 | Piece | File | Role |
 |---|---|---|
-| Schema types | `Core/Config/ProjectConfig.swift` (project.json), `Core/Config/ActionConfig.swift` (`Placement`, `ActionRun`, `ActionInput`, `ActionConfig`, `TabConfig`) | `Codable`, `Hashable`, `Sendable`; every field optional or with a default; tolerant decoding (unknown keys ignored) |
-| Helpers | `Core/Config/ProjectConfig+Helpers.swift` | `bundleID(scheme:configuration:detected:)`, `visibleSchemes(detected:)`, `EffectiveProject` (name, kind, container, schemes, scheme, configuration, base branch, bundle ID) |
-| Models | `Core/Config/ConfigModels.swift`, `Core/Models/CatalogAction.swift`, `ActionContext.swift`, `ActionResult.swift`, `ScriptView.swift` | layers, origins, issues, `ResolvedConfig`, `CatalogAction`, `ActionContext`, `PendingRun`, the `view` directive shapes |
-| Script header parser | `Core/Parsers/ScriptHeaderParser.swift` | `# devhub: key = value` lines to `ActionConfig` plus problems |
-| Directive parser | `Core/Parsers/ScriptDirectiveParser.swift` | `@devhub {...}` to `ScriptLine` (`plain`, `directives`, `unknown`, `invalid`) |
-| Placeholders | `Core/Parsers/PlaceholderExpander.swift` | `{name}` expansion, optional percent-encoding for URLs |
-| Decode and merge | `Core/Config/ConfigDecoding.swift`, `ConfigMerge.swift` | error text with key path; three layers to one `ResolvedConfig`; `project.json` merges deep, actions and tabs by `id` |
-| Example | `Core/Config/ExampleConfig.swift`, `ExampleScripts.swift` | the content of `docs/examples/devhub/` as Swift raw strings, used by "Create .devhub example" and by `MockConfigProvider`; regenerate them when the docs example changes |
-| Provider and watcher | `Services/Config/ConfigProvider.swift`, `LiveConfigProvider.swift`, `ConfigWatcher.swift` | read the folders off the main actor, watch directories (`DispatchSource`) plus a 2 s fingerprint check for in-place edits and folders that appear later, debounce 300 ms |
-| Stores | `Shared/ConfigStore.swift` (`resolved`, `config`, `effective`, `issues`, `reload()`), `Shared/ActionCatalog.swift`, `Shared/ActionRunner.swift` (+`+Execution`, `+Directives`), `Shared/ProjectActions.swift`, `Shared/ActionContextBuilder.swift` | catalog: `actions(for: Placement)`; runner: `request(_:item:slot:)`, `run(_:item:inputs:)`, `pending(in:)`, results, progress |
-| Views | `Features/Actions/` (`ActionPrompt`, `ActionInputField`, `ActionResultView`, `ScriptViewRowView`), `Features/Home/` (`QuickActionsSection`, `ScriptsSection`, `ScriptRow`) | prompt with inputs and confirm, result area, rows |
+| Schema types | `DevHubDomain/Models/Config/` (`ProjectConfig`, `XcodeConfig`, `GitConfig`, `LaunchProfile`, `ActionConfig`, `ActionRun`, `ActionInput`, `ActionCondition`, `Placement`, `TabConfig`, …) | `Codable`, `Hashable`, `Sendable`, one type per file; every field optional; unknown keys ignored |
+| Resolved models | `DevHubDomain/Models/Config/` (`ConfigLayer`, `ActionOrigin`, `ResolvedAction`, `ResolvedConfig`, `ConfigIssue`, `CatalogAction`, `ActionContext`, `ActionItemContext`, `EffectiveProject`, `ScriptView`) | three layers merged to one config; built-in and config actions in one catalog |
+| Pure rules | `DevHubDomain/Policies/` (`ConfigDecoding`, `ConfigMergePolicy`, `ScriptHeaderParser`, `ScriptDirectiveParser`, `PlaceholderExpander`, `ActionCatalogPolicy`, `ActionContextPolicy`, `EffectiveProjectPolicy`) | error text with the key path; `project.json` merges deep, actions and tabs by `id`; `actions(for: Placement)`; context variables |
+| Ports | `DevHubDomain/Repositories/` (`ConfigRepository`, `ScriptRunning`, `ToolLocating`) | load, watch, create the example; run a script as a stream; check a tool |
+| Live adapters | `DevHubData/Config/` (`FileConfigRepository`, `ConfigFolderReader`, `ConfigWatcher`, `ExampleConfigWriter`, `ShellScriptRunner`), `DevHubData/Workspace/PathToolLocator` | read folders off the main actor, poll for changes, stream through `ShellRunner` |
+| Mocks and spies | `DevHubMocks` (`MockConfigRepository`, `MockScriptRunner`, `MockToolLocator`), `DevHubTestSupport` (`SpyConfigRepository`, `SpyScriptRunner`, `SpyToolLocator`) | previews and tests |
+| Stores | `DevHubPresentation/Shared/ConfigStore.swift` (`resolved`, `reload()`, `effective(…)`), `Features/ConfigActions/ConfigActionsStore.swift` (+`Execution`, `+Directives`) | `actions(for:)`, `request(_:item:slot:)`, `request(id:item:slot:)`, `pending(in:)`, `runs`, `progress` |
+| Views | `Features/ConfigActions/Views/` (`ConfigActionBar`, `ConfigActionMenuItems`, `ConfigActionPrompt`, `ConfigActionPromptSlot`, `ConfigActionInputField`, `ConfigActionResults`, `ConfigActionResultView`, `ScriptViewRowView`), `Features/Home/` and `Features/Scripts/` | prompt with inputs and confirm, result area, tiles and rows |
 
-Render an action at a new place: ask the catalog (`catalog.actions(for: .worktreesRow)`), call `runner.request(action, item: ActionItemContext(worktreePath: path), slot: "worktrees.row:\(path)")`, and show `ActionPrompt(pending:)` in the row when `runner.pending(in: slot)` is not nil. The item fields reach the script as `DEVHUB_WORKTREE_PATH`, `DEVHUB_BRANCH`, `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME`, `DEVHUB_ROW_ID`.
+Render actions at a new place:
+
+- A bar or a toolbar: `ConfigActionBar(placement: .logsToolbar, item: ActionItemContext(simulatorUDID: udid))`. It shows the buttons, the prompt and the result area.
+- A row: the screen builds `ConfigActionItemMapper.models(for: configActions.actions(for: .worktreesRow), isRunning: configActions.isRunning)` and passes them to the row mapper as `configActions:`. The row puts `ConfigActionMenuItems(items: model.configActions, onRun: onConfigAction)` in its menu. The screen calls `configActions.request(id:item:slot:)` with `ActionItemContext(branch:worktreePath:rowID:)` and the slot `Placement.worktreesRow.slot(for: path)`, and draws `ConfigActionPrompt` under the row while `configActions.pending(in: slot)` is not nil.
+
+The item fields reach the script as `DEVHUB_WORKTREE_PATH`, `DEVHUB_BRANCH`, `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME`, `DEVHUB_ROW_ID`.
 
 Steps for a new field or placement:
 
-1. Add the field to the schema type with a default. Keep decoding tolerant: unknown keys are ignored, a wrong type is an error with the key path in the message.
-2. Add it to `docs/extensions.md` with type, default and effect, and to an example under `docs/examples/devhub/`.
-3. Render it: a new `Placement` case gets one call site in the view that owns that slot, through `ActionCatalog`.
-4. Run `Scripts/build.sh`, then load the example folder in the app and check the item appears. Add a changelog line.
+1. Add the field to the schema type, optional. Keep decoding tolerant: unknown keys are ignored, a wrong type is an error with the key path in the message. Add a Domain test in `Tests/DevHubDomainTests/`.
+2. Add it to `docs/extensions.md` with type, default and effect, and to an example under `docs/examples/devhub/`; run `Scripts/generate-example-config.sh`.
+3. Render it: a new `Placement` constant gets one call site in the screen that owns that slot. Add a mapper test that the items reach the row model.
+4. Run `Scripts/build.sh` and `Scripts/test.sh`, then load the example folder in the app (`DEVHUB_PROJECT=<repo> DEVHUB_OPEN_PANEL=1 DEVHUB_TAB=<tab> DEVHUB_SNAPSHOT=<file>.png`, see `build-and-run`). Add a changelog line.
 
 ## Picker inputs
 
-`branch` and `worktree` inputs are searchable pickers over live data (`GitStore.branchNames`, `WorktreesStore.worktrees`), `choice` and `scheme` use `SearchablePicker` over the options or the schemes. The picker falls back to a text field while its list is empty. `branch` with `default: "current"` starts with the branch of the checkout chosen in the Git tab (`session.activeBranch`); `cwd: checkout` and `DEVHUB_CHECKOUT_PATH` follow the same checkout. `simulator` is still a text field until M4. The code is `Features/Actions/ActionInputField.swift` and `Shared/ActionContextBuilder.swift`.
+`branch`, `worktree` and `simulator` inputs are searchable pickers over live data (`GitStore.localBranchNames`, `WorktreesStore.worktrees`, `SimulatorsStore.all` with booted simulators first), `choice` and `scheme` use `SearchablePicker` over the options or the schemes. The picker falls back to a text field while its list is empty. `branch` with `default: "current"` starts with the branch of the checkout chosen in the Git tab; `cwd: checkout` and `DEVHUB_CHECKOUT_PATH` follow the same checkout. `simulator` with `default: "target"` starts with the target simulator. The code is `Features/ConfigActions/Views/ConfigActionInputField.swift` and `DevHubDomain/Policies/ActionContextPolicy.swift`.
 
 ## Context variables
 
@@ -77,6 +79,6 @@ Every run gets `DEVHUB_PROJECT_PATH`, `DEVHUB_PROJECT_NAME`, `DEVHUB_CHECKOUT_PA
 
 ## Rules
 
-- The app never writes into `.devhub/` except "Create example" from Settings, which writes the content of `docs/examples/devhub/` (embedded as Swift strings in `Core/Config/ExampleConfig.swift`) into `<repo>/.devhub` and refuses when the folder exists.
+- The app never writes into `.devhub/` except "Create .devhub Example" from Settings, which writes the content of `docs/examples/devhub/` (embedded as Swift strings in `DevHubDomain/Policies/ExampleConfig.swift`, generated by `Scripts/generate-example-config.sh`) into `<repo>/.devhub` and refuses when the folder exists.
 - A built-in action and a config action look the same in the UI. Built-ins have ids `builtin.<name>` and can be hidden or reordered through `home.quickActions`.
 - Nothing project-specific goes into Swift. When a request sounds project-specific ("add a button that resets the staging account"), the answer is a script or an action file, plus a schema change only when the schema cannot express it.

@@ -1,6 +1,6 @@
 # DevHub extensions: the `.devhub/` folder
 
-This file is the normative schema. The decoder in `DevHub/Core/Config/` must match it. Every field here is documented with its type, default and effect. When a field changes in code, change it here in the same commit.
+This file is the normative schema. The decoder (`Packages/DevHubKit/Sources/DevHubDomain/Models/Config/`, `Policies/ConfigDecoding.swift`, `Policies/ScriptHeaderParser.swift`) must match it. Every field here is documented with its type, default and effect. When a field changes in code, change it here in the same commit.
 
 ## 1. Where files live
 
@@ -82,7 +82,7 @@ All fields optional. Missing values are detected (see "default").
 | `inputs` | [input] | `[]` | section 3.2 |
 | `confirm` | string | — | inline confirmation text; the action runs after the user confirms |
 | `refresh` | [`git` `worktrees` `simulators` `scripts` `logs`] | `[]` | stores refreshed after success; `logs` does nothing yet |
-| `when` | object | — | visibility: `{"git": "clean"\|"dirty"}`, `{"simulator": "booted"}` (hidden until the Simulators tab is live), `{"tool": "<executable>"}`, `{"kind": "xcode"\|"command"}` |
+| `when` | object | — | visibility: `{"git": "clean"\|"dirty"}`, `{"simulator": "booted"}` (the target simulator is booted), `{"tool": "<executable>"}`, `{"kind": "xcode"\|"command"}` |
 
 ### 3.1 `run`
 
@@ -107,11 +107,11 @@ All fields optional. Missing values are detected (see "default").
 | `choice` | searchable picker over `options` | the option value |
 | `branch` | searchable picker over the live branches of the Git tab (local first, then remote branches that have no local copy) | branch name; `default: "current"` means the branch of the checkout chosen in the Git tab |
 | `worktree` | searchable picker over the live worktrees (missing ones are left out) | path |
-| `simulator` | text field until M4, then a searchable picker (booted first) | UDID; `default: "target"` means the target simulator |
+| `simulator` | searchable picker over the simulators (booted first) | UDID; `default: "target"` means the target simulator |
 | `scheme` | searchable picker over the schemes of the project | scheme name |
 | `file` / `folder` | file or folder picker | path |
 
-`remember: true` stores the last value per project and action. `title` defaults to `key`; `default` may be a string, a number or true or false; `placeholder` is the hint text of an empty field. The `branch`, `worktree`, `choice` and `scheme` pickers fall back to a text field while their list is empty. Until the Simulators tab is live, the `simulator` input is a text field, and `default: "target"` starts empty. Values reach a script as `DEVHUB_INPUT_<KEY uppercased>` and all `run` strings as `{key}`.
+`remember: true` stores the last value per project and action. `title` defaults to `key`; `default` may be a string, a number or true or false; `placeholder` is the hint text of an empty field. The `branch`, `worktree`, `choice` and `scheme` pickers fall back to a text field while their list is empty. Values reach a script as `DEVHUB_INPUT_<KEY uppercased>` and all `run` strings as `{key}`.
 
 ### 3.3 Placements
 
@@ -120,13 +120,15 @@ All fields optional. Missing values are detected (see "default").
 | `home.quickActions` | tile in the grid | — |
 | `home.scripts` | row in the Scripts list with inputs | — |
 | `git.pills` | button in the Git header action bar | — |
-| `git.branchRow` | item in a branch row's overflow menu | `DEVHUB_BRANCH` of the row |
-| `worktrees.row` | item in a worktree row's overflow menu | `DEVHUB_WORKTREE_PATH`, `DEVHUB_BRANCH` of the row |
-| `simulators.runBar` | button next to Build & Run | target simulator |
-| `simulators.row` | item in a simulator row's overflow menu | `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME` of the row |
-| `logs.toolbar` | button in the Logs toolbar | the chip's simulator |
+| `git.branchRow` | item in a branch row's context menu (right-click) | `DEVHUB_BRANCH`, `DEVHUB_WORKTREE_PATH` (when checked out), `DEVHUB_ROW_ID` = the branch name |
+| `worktrees.row` | item in a worktree row's context menu (right-click) | `DEVHUB_WORKTREE_PATH`, `DEVHUB_BRANCH` of the row, `DEVHUB_ROW_ID` = the path |
+| `simulators.runBar` | button in the run bar, under the target | the target simulator |
+| `simulators.row` | item in a simulator row's overflow menu | `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME` of the row, `DEVHUB_ROW_ID` = the UDID |
+| `logs.toolbar` | button in the Logs toolbar | the simulator of the stream, else the target simulator |
 | `palette` | command palette entry | — |
 | `tab.<id>` | row in a custom tab section | — |
+
+In a row placement, the inputs and the confirmation of an action open under that row. In a bar or a toolbar, they open under the bar, with the result area of the action.
 
 ### 3.4 Context variables
 

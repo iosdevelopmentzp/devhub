@@ -58,7 +58,7 @@ struct ConfigActionInputField: View {
         case .scheme: build.schemeOptions
         case .branch: git.localBranchNames.sorted()
         case .worktree: worktrees.worktrees.map(\.path)
-        case .simulator: simulators.all.map(\.id)
+        case .simulator: simulators.all.sorted { $0.state == .booted && $1.state != .booted }.map(\.id)
         case .toggle, .text, .number, .file, .folder: []
         }
     }

@@ -12,6 +12,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Editing a file in `.devhub/` reloads the config while the panel is open.
 - Settings has a "Project config" section: the three config folders, "Create .devhub Example" and "Reveal .devhub Folder".
 - Config actions appear in every placement: buttons in the Git header (`git.pills`), the Simulators run bar (`simulators.runBar`) and the Logs toolbar (`logs.toolbar`); menu items in branch rows (`git.branchRow`), worktree rows (`worktrees.row`) and simulator rows (`simulators.row`). A row action gets the branch, worktree path or simulator of its row. Its inputs and confirmation open under the row.
+- A `simulator` input lists booted simulators first.
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed

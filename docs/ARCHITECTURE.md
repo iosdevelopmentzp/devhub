@@ -62,13 +62,15 @@ Packages/DevHubKit/
     DevHubPresentation/
       Shared/                    ProjectSession, Navigator, ActivityLog, Toaster, PasteboardWriter, OutputPanelState,
                                  SettingsStore, WindowLayout, CommandLog, CommandLogRecorder, ActionRunner, RefreshTask,
-                                 AppActions, WorkspaceActions, PreferenceKeys, lookup protocols,
+                                 AppActions, WorkspaceActions, PreferenceKeys, ConfigStore, lookup protocols (BuildLookup, …),
                                  PresentationAssembly (+Preview), View+Inject, View+PreviewEnvironment
       Shared/Events/             AppEvent, AppEvents, SubscriptionToken
       Shell/                     AppWindows, RootView, HeaderView, FooterView, MenuBarPanel, Feature, FeatureID,
                                  FeatureRegistry, drag and resize
       Features/<Name>/           <Name>Store.swift, Models/ (<Row>Model, <Row>Mapper), Views/ (one view per file)
-    DevHubComposition/           AppContainer
+      Features/ConfigActions/    ConfigActionsStore (+Execution, +Directives): runs `.devhub` actions for every placement;
+                                 shared views ConfigActionBar, ConfigActionMenuItems, ConfigActionPrompt, ConfigActionResults
+    DevHubComposition/           AppContainer, Debug/DebugLaunch (Debug builds only)
     DevHubTestSupport/           Spy<Port> for every port, PortSpies, Ports+Spies, TemporaryDirectory, WaitUntil, TestError, CallbackRecorder
   Tests/
     DevHubDomainTests/ DevHubDataTests/ DevHubUITests/ DevHubPresentationTests/
@@ -160,6 +162,11 @@ a second store needs to react. A refresh posts only when the data changed. A sto
   grouping live in the store or the mapper.
 - One view per file under `Views/`. A row takes a model plus closures; it reads `Toaster` and `AppActions` at
   most. Cross-feature actions are methods on `AppActions`.
+- `.devhub` actions in a row: the screen builds `ConfigActionItemMapper.models(for: configActions.actions(for: placement), isRunning:)`
+  and passes them to the row mapper (`configActions:`). The row shows `ConfigActionMenuItems(items:onRun:)` in its
+  menu and calls `onConfigAction(id)`. The screen calls `ConfigActionsStore.request(id:item:slot:)` with the row
+  context and draws `ConfigActionPrompt` under the row for the slot `<placement>:<row id>`. A bar or a toolbar uses
+  `ConfigActionBar(placement:item:)`.
 - Copy: `Toaster.copy(_:label:)` writes through `PasteboardWriter` (the only file with `NSPasteboard`).
   `CopyOnClick` in DevHubUI calls `\.copyToPasteboard`, which `inject` sets to `toaster.copy`.
 
@@ -181,11 +188,11 @@ The UI rules are in `/ui-components`.
 | `Ports.live(shell:)` | Data `Assembly/Ports+Live.swift` | builds every live repository once, passes file roots |
 | `Ports.mock()` | Mocks `Ports+Mock.swift` | builds every mock |
 | `UseCases(ports:)` | Domain `Assembly/UseCases.swift` | builds the 16 use cases |
-| `PresentationAssembly(ports:useCases:store:commandLog:projects:selectedProjectID:settings:recentEvents:scripts:)` | Presentation `Shared/` | builds every shared object and store, in order |
+| `PresentationAssembly(ports:useCases:store:commandLog:projects:selectedProjectID:settings:recentEvents:)` | Presentation `Shared/` | builds every shared object and store, in order |
 | `PresentationAssembly.preview()` | Presentation `Shared/PresentationAssembly+Preview.swift` | mocks, `InMemoryKeyValueStore`, `MockData` sample state |
 | `View.inject(_:)`, `View.previewEnvironment()` | Presentation `Shared/` | put the assembly into the environment; previews call `.previewEnvironment()` |
 | `AppWindows(assembly:)` | Presentation `Shell/` | status item, panel, pinned window; hosts `RootView().inject(assembly)` |
-| `AppContainer.live()` | Composition | `CommandLog`, `CommandLogRecorder`, `ShellRunner(recorder:)`, `Ports.live`, `UseCases`, `UserDefaultsKeyValueStore(defaults: .standard)`, saved projects and settings, `PresentationAssembly(… scripts: MockData.scripts)`, then `AppWindows` and `GlobalHotKey` |
+| `AppContainer.live()` | Composition | `CommandLog`, `CommandLogRecorder`, `ShellRunner(recorder:)`, `Ports.live`, `UseCases`, `UserDefaultsKeyValueStore(defaults: .standard)`, saved projects and settings, `PresentationAssembly`, then `AppWindows` and `GlobalHotKey`; in Debug builds `DebugLaunch` reads the `DEVHUB_*` switches |
 
 Factories live next to the concrete types, so the concrete inits stay internal to their module. Adding a
 repository, a use case or a store is one line in the matching factory. There are no singletons.
@@ -193,7 +200,7 @@ repository, a use case or a store is one line in the matching factory. There are
 ## 8. Tests
 
 - Swift Testing in four targets: `DevHubDomainTests`, `DevHubDataTests` (with integration suites),
-  `DevHubUITests`, `DevHubPresentationTests` (shared objects, mappers, stores). About 1,480 tests, about 3 s.
+  `DevHubUITests`, `DevHubPresentationTests` (shared objects, mappers, stores). About 1,570 tests, about 3 s.
 - `Scripts/test.sh` runs `swift test -q` on the package and prints one summary line; the exit code is forwarded.
   `Scripts/test.sh --skip integration` skips the process suites; `Scripts/test.sh --filter <Suite>` runs one suite.
 - `DevHubTestSupport`: one `Spy<Port>` per port (calls in order, scripted `*Result` and `*Error` properties),

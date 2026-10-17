@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-17 (rewrite, milestone M1)
+Last updated: 2026-10-17 (rewrite, milestone M2)
 
 ## Stage
 
@@ -8,7 +8,8 @@ The app is being rewritten on the package architecture of the main DevHub. The p
 
 - M0 done: local git repository, anonymity check, the plan as ADR 001.
 - M1 done: the package `Packages/DevHubKit` (seven modules, about 1,480 tests) is the app. Slack commands and the session log reader are gone. The first generic app is in `legacy/` as the port source and is not built.
-- Next: M2, the `.devhub/` config system inside the modules.
+- M2 done: the `.devhub/` config system inside the modules (ADR 002): Home quick actions and scripts, config problems, hot reload, placements in the Git header, branch, worktree and simulator rows, the run bar and the Logs toolbar. About 1,570 tests.
+- Next: M3, Git from config (ADR 001 section 7.3): the remote name, the base branch, protected branches, the ticket pattern, the worktree folder, include list and bootstrap.
 
 ## Screens
 
@@ -53,8 +54,8 @@ Numbered. What, then why. A later session must not undo these without a new numb
 
 ## Next steps
 
-1. M2: the config system (Appendix B of ADR 001, steps 1 to 5): Domain config models, `ConfigMergePolicy`, `FileConfigRepository` with the watcher, `ConfigStore`, `ConfigActionsStore`, placements, the example writer, scripts from `.devhub/scripts` on Home instead of `MockData.scripts`.
-2. Rewrite the skills that still describe the first generic app (`add-feature`, `extensions`, `providers-and-shell`, `build-and-run`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`) when the milestone that touches their area lands.
+1. M3 (ADR 001 section 7.3): `git.remote` instead of the literal `origin`, `git.baseBranch`, protected branch lists, `git.commitPrefix` for the ticket chip and the commit box, `git.worktrees.*` instead of `init.sh`, `.worktreeinclude` and `.claude/worktrees`, "Open in Editor" on file rows, the `DEVHUB_GIT_OPS` debug script.
+2. Rewrite the skills that still describe the first generic app (`add-feature`, `providers-and-shell`, `build-and-run`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`) when the milestone that touches their area lands.
 3. `docs/SPEC.md` still describes the first generic app; M8 refreshes it.
 
 ## Known gaps

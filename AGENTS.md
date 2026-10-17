@@ -2,7 +2,7 @@
 
 Personal macOS menu bar panel for daily development work across many repositories: git, worktrees, pull requests, simulators, builds, logs, network mocks, AI sessions, quick actions and scripts. The core is generic. Project knowledge lives in `.devhub/` config files.
 
-Read first, in this order: this file, `docs/STATUS.md` (where the project stands), `docs/adr/001-port-from-main-devhub.md` (the plan of the current rewrite and its step log), `docs/ARCHITECTURE.md` (the module contract), `docs/extensions.md` (the config schema). Skills under `.github/skills/` explain how to do common tasks; load the matching one before the task.
+Read first, in this order: this file, `docs/STATUS.md` (where the project stands), `docs/adr/001-port-from-main-devhub.md` (the plan of the current rewrite and its step log), `docs/adr/002-config-system.md` (how the config system sits in the modules), `docs/ARCHITECTURE.md` (the module contract), `docs/extensions.md` (the config schema). Skills under `.github/skills/` explain how to do common tasks; load the matching one before the task.
 
 ## Project
 
@@ -116,4 +116,4 @@ Documentation, UI text, hints, commit messages and the changelog use short sente
 - `build-and-run`: build scripts, smoke check, debug launch switches, common failures.
 - `update-docs`: end-of-session pass over changelog, status, ADR step log, this file and the skills.
 
-Skills not yet rewritten for the package (`add-feature`, `extensions`, `providers-and-shell`, `build-and-run`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`) still describe the first generic app in places. `docs/STATUS.md` lists what is stale; the milestone that touches the area updates the skill.
+Skills not yet rewritten for the package (`add-feature`, `providers-and-shell`, `build-and-run`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`) still describe the first generic app in places. `docs/STATUS.md` lists what is stale; the milestone that touches the area updates the skill.
