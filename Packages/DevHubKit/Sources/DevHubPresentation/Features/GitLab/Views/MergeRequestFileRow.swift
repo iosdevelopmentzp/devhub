@@ -71,7 +71,7 @@ struct MergeRequestFileRow: View {
                 .font(.caption)
                 .fixedSize()
                 .hint("Mark the file as viewed: it folds and its name turns grey. DevHub keeps the mark until it quits.")
-            IconButton(systemImage: "arrow.up.forward.app", help: "Open in Xcode, from the branch's checkout or the main checkout. Double-click a diff line to open it at that line.") {
+            IconButton(systemImage: "arrow.up.forward.app", help: "Open in the editor chosen in Settings, from the branch's checkout or the main checkout. Double-click a diff line to open it at that line.") {
                 actions.openFile(model.path, nil)
             }
         }

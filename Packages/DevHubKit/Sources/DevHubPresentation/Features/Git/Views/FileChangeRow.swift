@@ -71,8 +71,8 @@ struct FileChangeRow: View {
                     onStage()
                 }
             }
-            IconButton(systemImage: "hammer", help: "Open the file in Xcode") {
-                appActions.openInXcode(path: model.fullPath)
+            IconButton(systemImage: "square.and.pencil", help: "Open the file in the editor chosen in Settings") {
+                appActions.openFile(path: model.fullPath)
             }
             IconButton(systemImage: "arrow.uturn.backward", help: model.discardHint, tint: .red) {
                 isConfirmingDiscard = true
@@ -97,7 +97,7 @@ struct FileChangeRow: View {
     @ViewBuilder
     private var menu: some View {
         Button("Show Diff", systemImage: "text.alignleft") { onToggleDiff() }
-        Button("Open in Xcode", systemImage: "hammer") { appActions.openInXcode(path: model.fullPath) }
+        Button("Open in Editor", systemImage: "square.and.pencil") { appActions.openFile(path: model.fullPath) }
         Button("Reveal in Finder", systemImage: "folder") { appActions.openInFinder(path: model.folderPath) }
         Divider()
         Button("Copy Path", systemImage: "doc.on.doc") { toaster.copy(model.path) }

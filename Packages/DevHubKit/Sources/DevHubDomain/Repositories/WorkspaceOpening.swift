@@ -5,5 +5,5 @@ package protocol WorkspaceOpening: Sendable {
     func runInTerminal(_ app: String, at path: String, command: String) async -> String?
     func openInEditor(_ editor: String, path: String) async -> String?
     func openInXcode(_ path: String) async -> String?
-    func openFile(_ path: String, line: Int?) async -> String?
+    func openFile(_ path: String, line: Int?, editor: String) async -> String?
 }

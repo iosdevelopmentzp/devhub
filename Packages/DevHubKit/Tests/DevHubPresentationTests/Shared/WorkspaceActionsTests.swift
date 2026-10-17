@@ -64,7 +64,7 @@ import Testing
         let actions = makeActions()
 
         actions.openFile(path: "/tmp/a.swift", line: 12)
-        try await waitUntil { opener.calls.contains(.openFile("/tmp/a.swift", line: 12)) }
+        try await waitUntil { opener.calls.contains(.openFile("/tmp/a.swift", line: 12, editor: "Xcode")) }
         #expect(activity.events.isEmpty)
 
         opener.openFileResult = "xed: not found"

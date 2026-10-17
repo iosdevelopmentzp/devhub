@@ -57,19 +57,23 @@ struct ShellWorkspaceOpener: WorkspaceOpening {
     }
 
     func openInEditor(_ editor: String, path: String) async -> String? {
-        let app = editor == "VS Code" ? "Visual Studio Code" : editor
         do {
-            let result = try await shell.run("open", ["-a", app, (path as NSString).expandingTildeInPath], cwd: nil)
+            let result = try await shell.run("open", ["-a", EditorCommandPolicy.appName(editor), (path as NSString).expandingTildeInPath], cwd: nil)
             return result.exitCode == 0 ? nil : result.failureMessage
         } catch {
             return error.localizedDescription
         }
     }
 
-    func openFile(_ path: String, line: Int?) async -> String? {
-        let arguments = (line.map { ["--line", String($0)] } ?? []) + [(path as NSString).expandingTildeInPath]
+    func openFile(_ path: String, line: Int?, editor: String) async -> String? {
+        let file = (path as NSString).expandingTildeInPath
+        let command = EditorCommandPolicy.openFile(file, line: line, editor: editor)
+        if let result = try? await shell.run(command.executable, command.arguments, cwd: nil), result.exitCode == 0 {
+            return nil
+        }
+        let fallback = EditorCommandPolicy.fallback(file, editor: editor)
         do {
-            let result = try await shell.run("xed", arguments, cwd: nil)
+            let result = try await shell.run(fallback.executable, fallback.arguments, cwd: nil)
             return result.exitCode == 0 ? nil : result.failureMessage
         } catch {
             return error.localizedDescription

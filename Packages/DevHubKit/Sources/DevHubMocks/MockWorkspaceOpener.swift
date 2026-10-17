@@ -19,7 +19,7 @@ struct MockWorkspaceOpener: WorkspaceOpening {
         nil
     }
 
-    func openFile(_ path: String, line: Int?) async -> String? {
+    func openFile(_ path: String, line: Int?, editor: String) async -> String? {
         nil
     }
 }

@@ -56,9 +56,10 @@ final class WorkspaceActions {
 
     func openFile(path: String, line: Int?) {
         Task { [weak self, opener] in
-            let failure = await opener.openFile(path, line: line)
-            guard let self, let failure else { return }
-            activity.log("Could not open the file in Xcode", detail: failure, outcome: .failure)
+            guard let self else { return }
+            let editor = settings.values.editor
+            guard let failure = await opener.openFile(path, line: line, editor: editor) else { return }
+            activity.log("Could not open the file in \(editor)", detail: failure, outcome: .failure)
         }
     }
 

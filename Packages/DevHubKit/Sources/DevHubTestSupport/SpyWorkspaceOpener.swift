@@ -7,7 +7,7 @@ package final class SpyWorkspaceOpener: WorkspaceOpening, @unchecked Sendable {
         case runInTerminal(String, path: String, command: String)
         case openInEditor(String, path: String)
         case openInXcode(String)
-        case openFile(String, line: Int?)
+        case openFile(String, line: Int?, editor: String)
     }
 
     private let lock = NSLock()
@@ -65,8 +65,8 @@ package final class SpyWorkspaceOpener: WorkspaceOpening, @unchecked Sendable {
         set { lock.withLock { _openFileResult = newValue } }
     }
 
-    package func openFile(_ path: String, line: Int?) async -> String? {
-        record(.openFile(path, line: line)) { _openFileResult }
+    package func openFile(_ path: String, line: Int?, editor: String) async -> String? {
+        record(.openFile(path, line: line, editor: editor)) { _openFileResult }
     }
 
     private func record<Value>(_ call: Call, _ value: () throws -> Value) rethrows -> Value {
