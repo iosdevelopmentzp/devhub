@@ -183,6 +183,7 @@ final class GitChangesStore {
         let isAmend = amend
         let branch = checkout.currentBranch
         let upstream = checkout.currentUpstream
+        let remote = checkout.gitSettings.remote
         var pushResult = CommitUseCase.PushResult.skipped
         perform(isAmend ? "Amend commit" : "Commit") { [commitChanges] path in
             pushResult = try await commitChanges.execute(
@@ -191,6 +192,7 @@ final class GitChangesStore {
                 thenPush: thenPush,
                 branch: branch,
                 upstream: upstream,
+                remote: remote,
                 checkoutPath: path
             )
         } onSuccess: { [weak self] path in

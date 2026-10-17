@@ -35,7 +35,7 @@ enum NewMergeRequestMapper {
         case .none:
             "Create the merge request into \(draft.targetBranch) on GitLab"
         case .push(let setUpstream):
-            "Push the branch first (\(setUpstream ? "git push -u origin \(draft.sourceBranch)" : "git push")), then create the merge request into \(draft.targetBranch)"
+            "Push the branch first (\(setUpstream ? "git push -u <remote> \(draft.sourceBranch)" : "git push")), then create the merge request into \(draft.targetBranch)"
         }
     }
 }

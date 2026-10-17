@@ -5,18 +5,18 @@ enum GitCommandEncoder {
 
     static func arguments(for command: GitCommand) -> [String] {
         switch command {
-        case .fetchPrune:
-            return ["fetch", "--prune", "origin"]
+        case .fetchPrune(let remote):
+            return ["fetch", "--prune", remote]
         case .pullFastForward:
             return ["pull", "--ff-only"]
-        case .push(let branch, let setUpstream):
-            return setUpstream ? ["push", "-u", "origin", branch] : ["push"]
-        case .forcePushWithLease(let branch):
-            return ["push", "--force-with-lease", "-u", "origin", branch]
-        case .fetchBranch(let remote, let local):
-            return ["fetch", "origin", "\(remote):\(local)"]
-        case .fetchRef(let ref):
-            return ["fetch", "origin", ref]
+        case .push(let branch, let setUpstream, let remote):
+            return setUpstream ? ["push", "-u", remote, branch] : ["push"]
+        case .forcePushWithLease(let branch, let remote):
+            return ["push", "--force-with-lease", "-u", remote, branch]
+        case .fetchBranch(let source, let local, let remote):
+            return ["fetch", remote, "\(source):\(local)"]
+        case .fetchRef(let ref, let remote):
+            return ["fetch", remote, ref]
         case .rebase(let onto, let autostash):
             return autostash ? ["rebase", "--autostash", onto] : ["rebase", onto]
         case .continueRebase:

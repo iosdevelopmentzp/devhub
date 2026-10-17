@@ -36,7 +36,7 @@ struct RemoteBranchRow: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 16)
                 .padding(.top, 2)
-                .hint("Branch on origin")
+                .hint("Branch on the remote")
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     Text(model.localName)

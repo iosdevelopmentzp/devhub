@@ -124,12 +124,20 @@ final class GitStore: CheckoutContext {
         snapshot?.webURL
     }
 
-    var baseName: String {
-        snapshot.map { BranchName($0.baseBranch).local } ?? BranchName(BranchName.defaultBaseRef).local
+    var gitSettings: GitSettings {
+        worktrees.gitSettings
+    }
+
+    var remote: String {
+        gitSettings.remote
     }
 
     var baseRef: String {
-        snapshot?.baseBranch ?? BranchName.defaultBaseRef
+        snapshot?.baseBranch ?? gitSettings.baseBranch ?? GitSettingsPolicy.baseRef(remote: remote)
+    }
+
+    var baseName: String {
+        BranchName(baseRef, remote: remote).local
     }
 
     var isBusy: Bool {
@@ -163,7 +171,7 @@ final class GitStore: CheckoutContext {
                 }
             }
             do {
-                let loaded = try await repository.state(checkoutPath: checkoutPath, mainPath: worktrees.mainCheckoutPath)
+                let loaded = try await repository.state(checkoutPath: checkoutPath, mainPath: worktrees.mainCheckoutPath, settings: gitSettings)
                 try Task.checkCancellation()
                 if loaded != state {
                     state = loaded
@@ -187,7 +195,7 @@ final class GitStore: CheckoutContext {
     // MARK: Remote
 
     func fetch() {
-        run("Fetch", .fetchPrune)
+        run("Fetch", .fetchPrune(remote: remote))
     }
 
     func fetchIfStale(everyMinutes minutes: Int, now: Date) {
@@ -204,22 +212,24 @@ final class GitStore: CheckoutContext {
         guard let branch = currentBranch else { return }
         let upstream = currentUpstream
         let path = checkoutPath
+        let remote = remote
         perform("Push \(branch)", in: path) { [pushCurrentBranch] in
-            try await pushCurrentBranch.execute(branch: branch, upstream: upstream, checkoutPath: path)
+            try await pushCurrentBranch.execute(branch: branch, upstream: upstream, remote: remote, checkoutPath: path)
         }
     }
 
     func forcePush() {
         guard let branch = currentBranch else { return }
-        run("Force push \(branch)", .forcePushWithLease(branch: branch))
+        run("Force push \(branch)", .forcePushWithLease(branch: branch, remote: remote))
     }
 
     func rebaseOnBase() {
-        let base = snapshot?.baseBranch ?? BranchName.defaultBaseRef
+        let base = baseRef
         let name = baseName
         let path = checkoutPath
+        let remote = remote
         perform("Rebase on \(base)", in: path) { [rebaseOnBaseBranch] in
-            try await rebaseOnBaseBranch.execute(baseName: name, baseRef: base, checkoutPath: path)
+            try await rebaseOnBaseBranch.execute(baseName: name, baseRef: base, remote: remote, checkoutPath: path)
         }
     }
 
@@ -235,10 +245,11 @@ final class GitStore: CheckoutContext {
     // MARK: Branches
 
     func update(_ branch: GitBranch) {
-        let plan = UpdateBranchUseCase.plan(branch: branch, currentBranch: currentBranch)
+        let remote = remote
+        let plan = UpdateBranchUseCase.plan(branch: branch, currentBranch: currentBranch, remote: remote)
         let path = checkoutPath
         perform(updateTitle(plan, branch: branch), in: directory(for: plan)) { [updateBranch] in
-            try await updateBranch.execute(plan, branch: branch, checkoutPath: path)
+            try await updateBranch.execute(plan, branch: branch, remote: remote, checkoutPath: path)
         }
     }
 
@@ -246,9 +257,11 @@ final class GitStore: CheckoutContext {
         let plan = UpdateBaseBranchUseCase.plan(
             baseName: baseName,
             localBranches: state?.localBranches ?? [],
-            currentBranch: currentBranch
+            currentBranch: currentBranch,
+            remote: remote
         )
         let path = checkoutPath
+        let remote = remote
         let title: String
         let directory: String
         switch plan {
@@ -260,7 +273,7 @@ final class GitStore: CheckoutContext {
             directory = path
         }
         perform(title, in: directory) { [updateBaseBranch] in
-            try await updateBaseBranch.execute(plan, checkoutPath: path)
+            try await updateBaseBranch.execute(plan, remote: remote, checkoutPath: path)
         }
     }
 
@@ -279,7 +292,7 @@ final class GitStore: CheckoutContext {
     }
 
     func checkOut(_ remote: RemoteBranch) {
-        let plan = CheckOutRemoteBranchUseCase.plan(remote: remote, localBranches: state?.localBranches ?? [])
+        let plan = CheckOutRemoteBranchUseCase.plan(remote: remote, localBranches: state?.localBranches ?? [], remoteName: self.remote)
         let title: String
         switch plan {
         case .switchExisting(let local):
@@ -327,12 +340,12 @@ final class GitStore: CheckoutContext {
         if let url = snapshot?.webURL {
             return url
         }
-        return await repository.webURL(checkoutPath: checkoutPath)
+        return await repository.webURL(checkoutPath: checkoutPath, remote: remote)
     }
 
     func branchURL(_ branch: String) -> URL? {
         guard let base = snapshot?.webURL else { return nil }
-        return RepositoryWebLinks.branchURL(base: base, branch: branch)
+        return RepositoryWebLinks.branchURL(base: base, branch: branch, remote: remote)
     }
 
     func newMergeRequestURL(_ branch: String) -> URL? {
@@ -341,7 +354,7 @@ final class GitStore: CheckoutContext {
 
     func newMergeRequestURL(_ branch: String, target: String) -> URL? {
         guard let base = snapshot?.webURL else { return nil }
-        return RepositoryWebLinks.newMergeRequestURL(base: base, branch: branch, baseName: target)
+        return RepositoryWebLinks.newMergeRequestURL(base: base, branch: branch, baseName: target, remote: remote)
     }
 
     func localBranch(named name: String) -> GitBranch? {
@@ -352,7 +365,8 @@ final class GitStore: CheckoutContext {
         MergeRequestTargetPolicy.targets(
             remoteBranches: (state?.remoteBranches ?? []).map(\.name),
             source: branch,
-            baseName: baseName
+            baseName: baseName,
+            remote: remote
         )
     }
 

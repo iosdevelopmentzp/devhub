@@ -3,11 +3,11 @@ import DevHubDomain
 
 struct MockGitRepository: GitRepository {
 
-    func webURL(checkoutPath: String) async -> URL? {
+    func webURL(checkoutPath: String, remote: String) async -> URL? {
         URL(string: "https://gitlab.com/example/app")
     }
 
-    func state(checkoutPath: String, mainPath: String) async throws -> GitRepositoryState {
+    func state(checkoutPath: String, mainPath: String, settings: GitSettings) async throws -> GitRepositoryState {
         let now = Date()
         return GitRepositoryState(
             snapshot: GitSnapshot(

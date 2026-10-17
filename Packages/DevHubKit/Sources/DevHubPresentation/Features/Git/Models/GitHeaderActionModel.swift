@@ -14,7 +14,7 @@ struct GitHeaderActionModel: Identifiable, Equatable {
         id: .fetch,
         title: "Fetch",
         systemImage: "arrow.down.circle",
-        hint: "Download new commits and branches from origin. git fetch --prune origin",
+        hint: "Download new commits and branches from the remote. git fetch --prune <remote>",
         priority: 3,
         isDisabled: false
     )

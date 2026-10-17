@@ -101,7 +101,7 @@ import Testing
         let model = GitHeaderMapper.model(for: snapshot, baseName: "dev", ticketURLTemplate: "")
 
         #expect(model.tags == [TagModel("not pushed", tint: .orange, systemImage: "icloud.slash", hint: "The branch has no remote branch yet. Push creates it.")])
-        #expect(action(.push, in: model)?.hint == "Publish this branch. git push -u origin <branch>")
+        #expect(action(.push, in: model)?.hint == "Publish this branch. git push -u <remote> <branch>")
         #expect(action(.pull, in: model)?.isDisabled == true)
     }
 
@@ -115,7 +115,7 @@ import Testing
         ])
         #expect(model.actions.map(\.priority) == [3, 5, 6, 2, 4, 1])
         #expect(disabled(model).isEmpty)
-        #expect(action(.fetch, in: model)?.hint == "Download new commits and branches from origin. git fetch --prune origin")
+        #expect(action(.fetch, in: model)?.hint == "Download new commits and branches from the remote. git fetch --prune <remote>")
         #expect(action(.pull, in: model)?.hint == "Fast-forward this branch from its remote. git pull --ff-only")
         #expect(action(.push, in: model)?.hint == "Send your commits. git push")
         #expect(action(.forcePush, in: model)?.hint == "Replace the remote branch with yours. Asks first. git push --force-with-lease")

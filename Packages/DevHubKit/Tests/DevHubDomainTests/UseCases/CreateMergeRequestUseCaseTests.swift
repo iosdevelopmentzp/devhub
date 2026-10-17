@@ -17,17 +17,17 @@ import Testing
     @Test func pushesFirstThenCreates() async throws {
         let (ports, spies) = Ports.spies()
 
-        let created = try await CreateMergeRequestUseCase(git: ports.git, mergeRequests: ports.mergeRequests).execute(request, push: .push(setUpstream: true), checkoutPath: "/repo", repository: remote)
+        let created = try await CreateMergeRequestUseCase(git: ports.git, mergeRequests: ports.mergeRequests).execute(request, push: .push(setUpstream: true), remote: "origin", checkoutPath: "/repo", repository: remote)
 
         #expect(created.sourceBranch == "feature/a")
-        #expect(spies.git.calls == [.perform(.push(branch: "feature/a", setUpstream: true), path: "/repo")])
+        #expect(spies.git.calls == [.perform(.push(branch: "feature/a", setUpstream: true, remote: "origin"), path: "/repo")])
         #expect(spies.mergeRequests.calls == [.create(request, repository: remote)])
     }
 
     @Test func withoutPushOnlyCreates() async throws {
         let (ports, spies) = Ports.spies()
 
-        _ = try await CreateMergeRequestUseCase(git: ports.git, mergeRequests: ports.mergeRequests).execute(request, push: .none, checkoutPath: "/repo", repository: remote)
+        _ = try await CreateMergeRequestUseCase(git: ports.git, mergeRequests: ports.mergeRequests).execute(request, push: .none, remote: "origin", checkoutPath: "/repo", repository: remote)
 
         #expect(spies.git.calls.isEmpty)
         #expect(spies.mergeRequests.calls == [.create(request, repository: remote)])
@@ -38,7 +38,7 @@ import Testing
         spies.git.performError = TestError.scripted("rejected")
 
         await #expect(throws: TestError.scripted("rejected")) {
-            try await CreateMergeRequestUseCase(git: ports.git, mergeRequests: ports.mergeRequests).execute(request, push: .push(setUpstream: false), checkoutPath: "/repo", repository: remote)
+            try await CreateMergeRequestUseCase(git: ports.git, mergeRequests: ports.mergeRequests).execute(request, push: .push(setUpstream: false), remote: "origin", checkoutPath: "/repo", repository: remote)
         }
         #expect(spies.mergeRequests.calls.isEmpty)
     }

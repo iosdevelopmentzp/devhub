@@ -9,24 +9,24 @@ package struct UpdateBranchUseCase: Sendable {
 
     package let git: any GitRepository
 
-    package static func plan(branch: GitBranch, currentBranch: String?) -> Plan {
+    package static func plan(branch: GitBranch, currentBranch: String?, remote: String) -> Plan {
         if branch.name == currentBranch {
             return .pullHere
         }
         if let worktree = branch.worktreePath {
             return .pullInWorktree(path: worktree)
         }
-        return .fastForward(remote: branch.upstream.map { BranchName($0).local } ?? branch.name)
+        return .fastForward(remote: branch.upstream.map { BranchName($0, remote: remote).local } ?? branch.name)
     }
 
-    package func execute(_ plan: Plan, branch: GitBranch, checkoutPath: String) async throws {
+    package func execute(_ plan: Plan, branch: GitBranch, remote: String, checkoutPath: String) async throws {
         switch plan {
         case .pullHere:
             try await git.perform(.pullFastForward, in: checkoutPath)
         case .pullInWorktree(let path):
             try await git.perform(.pullFastForward, in: path)
-        case .fastForward(let remote):
-            try await git.perform(.fetchBranch(remote: remote, local: branch.name), in: checkoutPath)
+        case .fastForward(let source):
+            try await git.perform(.fetchBranch(source: source, local: branch.name, remote: remote), in: checkoutPath)
         }
     }
 }

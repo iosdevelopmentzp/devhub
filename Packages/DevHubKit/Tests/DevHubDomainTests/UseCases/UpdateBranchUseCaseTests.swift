@@ -7,34 +7,34 @@ import Testing
         var branch = GitBranchFixture.local("feature")
         branch.worktreePath = "/worktrees/feature"
 
-        #expect(UpdateBranchUseCase.plan(branch: branch, currentBranch: "feature") == .pullHere)
+        #expect(UpdateBranchUseCase.plan(branch: branch, currentBranch: "feature", remote: "origin") == .pullHere)
     }
 
     @Test func pullsInTheWorktreeThatHasTheBranch() {
         var branch = GitBranchFixture.local("feature")
         branch.worktreePath = "/worktrees/feature"
 
-        #expect(UpdateBranchUseCase.plan(branch: branch, currentBranch: "dev") == .pullInWorktree(path: "/worktrees/feature"))
+        #expect(UpdateBranchUseCase.plan(branch: branch, currentBranch: "dev", remote: "origin") == .pullInWorktree(path: "/worktrees/feature"))
     }
 
     @Test func fastForwardsFromTheUpstreamName() {
         var branch = GitBranchFixture.local("feature")
         branch.upstream = "origin/feature-renamed"
 
-        #expect(UpdateBranchUseCase.plan(branch: branch, currentBranch: "dev") == .fastForward(remote: "feature-renamed"))
+        #expect(UpdateBranchUseCase.plan(branch: branch, currentBranch: "dev", remote: "origin") == .fastForward(remote: "feature-renamed"))
     }
 
     @Test func fastForwardsFromTheSameNameWithoutUpstream() {
         var branch = GitBranchFixture.local("feature")
         branch.upstream = nil
 
-        #expect(UpdateBranchUseCase.plan(branch: branch, currentBranch: nil) == .fastForward(remote: "feature"))
+        #expect(UpdateBranchUseCase.plan(branch: branch, currentBranch: nil, remote: "origin") == .fastForward(remote: "feature"))
     }
 
     @Test func pullHereRunsAFastForwardPullInTheCheckout() async throws {
         let (ports, spies) = Ports.spies()
 
-        try await UpdateBranchUseCase(git: ports.git).execute(.pullHere, branch: GitBranchFixture.local("dev"), checkoutPath: "/repo")
+        try await UpdateBranchUseCase(git: ports.git).execute(.pullHere, branch: GitBranchFixture.local("dev"), remote: "origin", checkoutPath: "/repo")
 
         #expect(spies.git.calls == [.perform(.pullFastForward, path: "/repo")])
     }
@@ -45,6 +45,7 @@ import Testing
         try await UpdateBranchUseCase(git: ports.git).execute(
             .pullInWorktree(path: "/worktrees/feature"),
             branch: GitBranchFixture.local("feature"),
+            remote: "origin",
             checkoutPath: "/repo"
         )
 
@@ -57,10 +58,11 @@ import Testing
         try await UpdateBranchUseCase(git: ports.git).execute(
             .fastForward(remote: "feature-renamed"),
             branch: GitBranchFixture.local("feature"),
+            remote: "origin",
             checkoutPath: "/repo"
         )
 
-        #expect(spies.git.calls == [.perform(.fetchBranch(remote: "feature-renamed", local: "feature"), path: "/repo")])
+        #expect(spies.git.calls == [.perform(.fetchBranch(source: "feature-renamed", local: "feature", remote: "origin"), path: "/repo")])
     }
 
     @Test func gitFailureIsThrown() async {
@@ -68,7 +70,7 @@ import Testing
         spies.git.performError = TestError.scripted("not a fast-forward")
 
         await #expect(throws: TestError.scripted("not a fast-forward")) {
-            try await UpdateBranchUseCase(git: ports.git).execute(.pullHere, branch: GitBranchFixture.local("dev"), checkoutPath: "/repo")
+            try await UpdateBranchUseCase(git: ports.git).execute(.pullHere, branch: GitBranchFixture.local("dev"), remote: "origin", checkoutPath: "/repo")
         }
     }
 }

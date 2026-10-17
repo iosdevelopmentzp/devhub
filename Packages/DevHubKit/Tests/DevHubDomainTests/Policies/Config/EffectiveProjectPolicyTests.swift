@@ -39,6 +39,7 @@ import Testing
 
         #expect(effective.kind == .command)
         #expect(effective.bundleID == nil)
-        #expect(effective.baseBranch == BranchName.defaultBaseRef)
+        #expect(effective.baseBranch == "origin/main")
+        #expect(EffectiveProjectPolicy.resolve(config: ProjectConfig(git: GitConfig(remote: "upstream")), project: plain, detectedSchemes: [], detectedBaseBranch: nil).baseBranch == "upstream/main")
     }
 }

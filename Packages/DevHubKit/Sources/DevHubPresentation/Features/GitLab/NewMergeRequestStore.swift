@@ -61,7 +61,8 @@ final class NewMergeRequestStore {
             error: nil
         )
         let path = checkout.checkoutPath
-        async let subjects = try? git.commitSubjects(from: BranchName(target).remoteRef, to: branch, in: path)
+        let targetRef = BranchName(target, remote: remote.remoteName).remoteRef
+        async let subjects = try? git.commitSubjects(from: targetRef, to: branch, in: path)
         async let template = git.mergeRequestTemplate(in: path)
         async let labels = loadLabels()
         let (loadedSubjects, loadedTemplate, loadedLabels) = await (subjects ?? [], template, labels)
@@ -96,7 +97,7 @@ final class NewMergeRequestStore {
         draft?.error = nil
         do {
             let url = try await remote.gitLabURL()
-            let created = try await createMergeRequest.execute(current.request, push: current.pushPlan, checkoutPath: checkout.checkoutPath, repository: url)
+            let created = try await createMergeRequest.execute(current.request, push: current.pushPlan, remote: remote.remoteName, checkoutPath: checkout.checkoutPath, repository: url)
             activity.log("Created !\(created.iid)", detail: created.title, outcome: .success)
             if current.pushPlan != .none {
                 events.post(.branchesChanged)

@@ -92,7 +92,7 @@ final class WorktreesStore: WorktreeLookup {
     }
 
     func checkoutPath(forBranch name: String) -> String? {
-        BuildSourceResolver.checkoutPath(forBranch: name, in: worktrees)
+        BuildSourceResolver.checkoutPath(forBranch: name, in: worktrees, remote: gitSettings.remote)
     }
 
     func finishedWorktrees(excluding path: String?) -> [Worktree] {

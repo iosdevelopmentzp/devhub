@@ -75,7 +75,7 @@ import Testing
     @Test func branchCommitsAreTheCommitsMissingInTheBase() async throws {
         try await repo.git("switch", "feature")
 
-        let commits = try await repository.branchCommits(base: "main", in: repo.path)
+        let commits = try await repository.branchCommits(base: "main", remote: "origin", in: repo.path)
 
         #expect(commits.map(\.subject) == ["Add feature"])
         #expect(commits.first?.refs == [GitCommitRef(kind: .head, name: "HEAD"), GitCommitRef(kind: .localBranch, name: "feature")])

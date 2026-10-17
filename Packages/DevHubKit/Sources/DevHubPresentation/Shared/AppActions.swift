@@ -86,6 +86,10 @@ final class AppActions {
         build.run(worktreeID: worktreeID)
     }
 
+    func remoteRef(for branch: String) -> String {
+        BranchName(branch, remote: worktrees.gitSettings.remote).remoteRef
+    }
+
     func buildAndRun(branch: String) {
         navigator.show(.simulators)
         build.run(branch: branch)
@@ -210,7 +214,7 @@ final class AppActions {
         if let path = worktrees.checkoutPath(forBranch: branch) {
             return path
         }
-        guard await worktrees.createAndBootstrap(branch: BranchName(branch).remoteRef) else { return nil }
+        guard await worktrees.createAndBootstrap(branch: BranchName(branch, remote: worktrees.gitSettings.remote).remoteRef) else { return nil }
         return worktrees.checkoutPath(forBranch: branch)
     }
 

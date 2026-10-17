@@ -1,21 +1,20 @@
 import Foundation
 
 package struct BranchName: Hashable, Sendable {
-    package static let defaultBaseRef = "origin/main"
-
-    private static let remotePrefix = "origin/"
-
     package let ref: String
+    package let remote: String
 
-    package init(_ ref: String) {
+    package init(_ ref: String, remote: String) {
         self.ref = ref
+        self.remote = remote
     }
 
     package var local: String {
-        ref.hasPrefix(Self.remotePrefix) ? String(ref.dropFirst(Self.remotePrefix.count)) : ref
+        let prefix = remote + "/"
+        return ref.hasPrefix(prefix) ? String(ref.dropFirst(prefix.count)) : ref
     }
 
     package var remoteRef: String {
-        Self.remotePrefix + local
+        "\(remote)/\(local)"
     }
 }

@@ -14,7 +14,7 @@ package enum EffectiveProjectPolicy {
             schemes: schemes,
             scheme: scheme,
             configuration: configuration,
-            baseBranch: config.git?.baseBranch ?? detectedBaseBranch ?? BranchName.defaultBaseRef,
+            baseBranch: config.git?.baseBranch ?? detectedBaseBranch ?? GitSettingsPolicy.baseRef(remote: GitSettingsPolicy.settings(for: config).remote),
             bundleID: config.bundleID(scheme: scheme, configuration: configuration, detected: meaningful(project.bundleID))
         )
     }

@@ -7,7 +7,7 @@ import Testing
     private let repository = MockGitRepository()
 
     @Test func answersCannedState() async throws {
-        let state = try await repository.state(checkoutPath: "~/App", mainPath: "~/App")
+        let state = try await repository.state(checkoutPath: "~/App", mainPath: "~/App", settings: .standard)
 
         #expect(state.snapshot.branch == "ABC-2489-leaderboardFollowStatusReset")
         #expect(state.snapshot.baseBranch == "origin/dev")
@@ -18,6 +18,6 @@ import Testing
     }
 
     @Test func answersWebURL() async {
-        #expect(await repository.webURL(checkoutPath: "~/App") == URL(string: "https://gitlab.com/example/app"))
+        #expect(await repository.webURL(checkoutPath: "~/App", remote: "origin") == URL(string: "https://gitlab.com/example/app"))
     }
 }

@@ -8,8 +8,8 @@ package struct CheckOutRemoteBranchUseCase: Sendable {
 
     package let git: any GitRepository
 
-    package static func plan(remote: RemoteBranch, localBranches: [GitBranch]) -> Plan {
-        let local = BranchName(remote.name).local
+    package static func plan(remote: RemoteBranch, localBranches: [GitBranch], remoteName: String) -> Plan {
+        let local = BranchName(remote.name, remote: remoteName).local
         guard localBranches.contains(where: { $0.name == local }) else {
             return .createTracking(local: local, remote: remote.name)
         }

@@ -6,6 +6,7 @@ enum RemoteBranchRowMapper {
 
     static func model(
         for branch: RemoteBranch,
+        remote: String,
         localBranchNames: Set<String>,
         openMergeRequest: MergeRequestSummary?,
         ticketURLTemplate: String,
@@ -13,7 +14,7 @@ enum RemoteBranchRowMapper {
         isBuildRunning: Bool,
         isBusy: Bool
     ) -> RemoteBranchRowModel {
-        let localName = BranchName(branch.name).local
+        let localName = BranchName(branch.name, remote: remote).local
         let hasLocal = localBranchNames.contains(localName)
         return RemoteBranchRowModel(
             id: branch.id,

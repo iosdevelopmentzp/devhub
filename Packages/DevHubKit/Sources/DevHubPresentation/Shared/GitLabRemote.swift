@@ -13,14 +13,22 @@ final class GitLabRemote: GitLabRemoteLookup {
         self.worktrees = worktrees
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
-            guard case .projectChanged = event else { return }
-            cached = nil
+            switch event {
+            case .projectChanged, .configChanged:
+                cached = nil
+            default:
+                break
+            }
         }
+    }
+
+    var remoteName: String {
+        worktrees.gitSettings.remote
     }
 
     func gitLabURL() async throws -> URL {
         if let cached { return cached }
-        guard let url = await git.webURL(checkoutPath: worktrees.mainCheckoutPath) else { throw MergeRequestError.notGitLab }
+        guard let url = await git.webURL(checkoutPath: worktrees.mainCheckoutPath, remote: remoteName) else { throw MergeRequestError.notGitLab }
         cached = url
         return url
     }

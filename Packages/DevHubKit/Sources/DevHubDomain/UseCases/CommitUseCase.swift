@@ -15,12 +15,13 @@ package struct CommitUseCase: Sendable {
         thenPush: Bool,
         branch: String?,
         upstream: String?,
+        remote: String,
         checkoutPath: String
     ) async throws -> PushResult {
         try await git.perform(.commit(message: message, amend: amend), in: checkoutPath)
         guard thenPush, let branch else { return .skipped }
         do {
-            try await PushCurrentBranchUseCase(git: git).execute(branch: branch, upstream: upstream, checkoutPath: checkoutPath)
+            try await PushCurrentBranchUseCase(git: git).execute(branch: branch, upstream: upstream, remote: remote, checkoutPath: checkoutPath)
             return .pushed(branch: branch)
         } catch {
             return .failed(branch: branch, error: error)

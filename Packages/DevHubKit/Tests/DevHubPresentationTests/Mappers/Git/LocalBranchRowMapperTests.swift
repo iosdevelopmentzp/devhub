@@ -87,7 +87,7 @@ import Testing
         let model = row(branch, current: nil, worktree: nil)
 
         #expect(model.tags == [
-            TagModel("remote deleted", tint: .purple, systemImage: "icloud.slash", hint: "Its branch on origin was deleted, usually after the merge request was merged"),
+            TagModel("remote deleted", tint: .purple, systemImage: "icloud.slash", hint: "Its branch on the remote was deleted, usually after the merge request was merged"),
             TagModel("merged", tint: .purple, systemImage: "arrow.triangle.merge", hint: "All its commits are in dev. Safe to delete.")
         ])
         #expect(model.canUpdate == false)
@@ -121,7 +121,7 @@ import Testing
         ])
         #expect(model.canUpdate == false)
         #expect(model.canOpenMergeRequest == false)
-        #expect(model.mergeRequestHint == "Push the branch first: a merge request needs it on origin")
+        #expect(model.mergeRequestHint == "Push the branch first: a merge request needs it on the remote")
     }
 
     @Test func branchWithAnOpenMergeRequest() {

@@ -23,7 +23,7 @@ final class StoreHarness {
         self.store = store
         useCases = UseCases(ports: ports)
         session = ProjectSession(projects: projects, selectedProjectID: nil, store: store, events: events, detector: ports.projectDetector)
-        spies.worktrees.baseBranchResult = BranchName.defaultBaseRef
+        spies.worktrees.baseBranchResult = "origin/main"
         recording = events.subscribe { [weak self] event in
             guard let self else { return }
             posted.append(event)

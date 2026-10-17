@@ -281,7 +281,7 @@ import DevHubTestSupport
 
         #expect(performed == [
             .perform(.commit(message: "APP-12: Fix", amend: false), path: path),
-            .perform(.push(branch: "APP-12-login", setUpstream: false), path: path),
+            .perform(.push(branch: "APP-12-login", setUpstream: false, remote: "origin"), path: path),
         ])
         #expect(Array(harness.activityTitles.prefix(2)) == ["Push APP-12-login", "Commit"])
         #expect(harness.lastActivity?.outcome == .success)
@@ -361,7 +361,7 @@ import DevHubTestSupport
 }
 
 private nonisolated final class PushRejectingGitRepository: GitRepository {
-    func state(checkoutPath: String, mainPath: String) async throws -> GitRepositoryState {
+    func state(checkoutPath: String, mainPath: String, settings: GitSettings) async throws -> GitRepositoryState {
         throw TestError.scripted("unused")
     }
 
@@ -370,7 +370,7 @@ private nonisolated final class PushRejectingGitRepository: GitRepository {
         throw TestError.scripted("rejected")
     }
 
-    func webURL(checkoutPath: String) async -> URL? {
+    func webURL(checkoutPath: String, remote: String) async -> URL? {
         nil
     }
 

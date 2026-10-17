@@ -8,19 +8,19 @@ package struct UpdateBaseBranchUseCase: Sendable {
 
     package let git: any GitRepository
 
-    package static func plan(baseName: String, localBranches: [GitBranch], currentBranch: String?) -> Plan {
+    package static func plan(baseName: String, localBranches: [GitBranch], currentBranch: String?, remote: String) -> Plan {
         guard let branch = localBranches.first(where: { $0.name == baseName }) else {
             return .fetchMissing(baseName)
         }
-        return .updateLocal(branch, UpdateBranchUseCase.plan(branch: branch, currentBranch: currentBranch))
+        return .updateLocal(branch, UpdateBranchUseCase.plan(branch: branch, currentBranch: currentBranch, remote: remote))
     }
 
-    package func execute(_ plan: Plan, checkoutPath: String) async throws {
+    package func execute(_ plan: Plan, remote: String, checkoutPath: String) async throws {
         switch plan {
         case .updateLocal(let branch, let branchPlan):
-            try await UpdateBranchUseCase(git: git).execute(branchPlan, branch: branch, checkoutPath: checkoutPath)
+            try await UpdateBranchUseCase(git: git).execute(branchPlan, branch: branch, remote: remote, checkoutPath: checkoutPath)
         case .fetchMissing(let base):
-            try await git.perform(.fetchBranch(remote: base, local: base), in: checkoutPath)
+            try await git.perform(.fetchBranch(source: base, local: base, remote: remote), in: checkoutPath)
         }
     }
 }

@@ -268,7 +268,7 @@ struct MergeRequestRow: View {
     }
 
     private var remoteBranch: String {
-        BranchName(model.sourceBranch).remoteRef
+        appActions.remoteRef(for: model.sourceBranch)
     }
 }
 

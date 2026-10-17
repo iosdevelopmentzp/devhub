@@ -61,7 +61,7 @@ enum LocalBranchRowMapper {
         }
         return isOnRemote
             ? "New merge request: title, description and labels in DevHub"
-            : "Push the branch first: a merge request needs it on origin"
+            : "Push the branch first: a merge request needs it on the remote"
     }
 
     private static func existingModel(_ request: MergeRequestSummary) -> ExistingMergeRequestModel {
@@ -94,7 +94,7 @@ enum LocalBranchRowMapper {
                     "remote deleted",
                     tint: .purple,
                     systemImage: "icloud.slash",
-                    hint: "Its branch on origin was deleted, usually after the merge request was merged"
+                    hint: "Its branch on the remote was deleted, usually after the merge request was merged"
                 )
             )
         } else if branch.upstream == nil {

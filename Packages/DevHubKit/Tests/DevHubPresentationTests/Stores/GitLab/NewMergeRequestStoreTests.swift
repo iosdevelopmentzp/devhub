@@ -76,7 +76,7 @@ import Testing
 
         #expect(iid == 1)
         #expect(store.draft == nil)
-        #expect(harness.spies.git.calls.contains(.perform(.push(branch: "APP-12-login", setUpstream: true), path: harness.git.checkoutPath)))
+        #expect(harness.spies.git.calls.contains(.perform(.push(branch: "APP-12-login", setUpstream: true, remote: "origin"), path: harness.git.checkoutPath)))
         #expect(harness.spies.mergeRequests.calls.contains(.create(
             NewMergeRequest(sourceBranch: "APP-12-login", targetBranch: "dev", title: "APP-12: Second step", description: "Ticket: APP-12\n\n- First step\n- Second step", labels: ["tech"], isDraft: true, removeSourceBranch: true, squash: false),
             repository: remote

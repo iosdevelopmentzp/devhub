@@ -3,26 +3,28 @@ import Testing
 
 @Suite struct BranchNameTests {
     @Test func localDropsRemotePrefix() {
-        #expect(BranchName("origin/dev").local == "dev")
+        #expect(BranchName("origin/dev", remote: "origin").local == "dev")
     }
 
     @Test func localKeepsALocalName() {
-        #expect(BranchName("feature/login").local == "feature/login")
+        #expect(BranchName("feature/login", remote: "origin").local == "feature/login")
     }
 
     @Test func localKeepsOtherRemotes() {
-        #expect(BranchName("upstream/dev").local == "upstream/dev")
+        #expect(BranchName("upstream/dev", remote: "origin").local == "upstream/dev")
     }
 
     @Test func remoteRefAddsTheOriginPrefix() {
-        #expect(BranchName("feature/login").remoteRef == "origin/feature/login")
+        #expect(BranchName("feature/login", remote: "origin").remoteRef == "origin/feature/login")
     }
 
     @Test func remoteRefDoesNotDoubleThePrefix() {
-        #expect(BranchName("origin/dev").remoteRef == "origin/dev")
+        #expect(BranchName("origin/dev", remote: "origin").remoteRef == "origin/dev")
     }
 
-    @Test func defaultBaseRefIsOriginMain() {
-        #expect(BranchName.defaultBaseRef == "origin/main")
+    @Test func anotherRemoteUsesItsOwnPrefix() {
+        #expect(BranchName("upstream/dev", remote: "upstream").local == "dev")
+        #expect(BranchName("origin/dev", remote: "upstream").local == "origin/dev")
+        #expect(BranchName("feature/login", remote: "upstream").remoteRef == "upstream/feature/login")
     }
 }

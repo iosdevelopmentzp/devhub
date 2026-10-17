@@ -15,9 +15,9 @@ package struct CreateMergeRequestUseCase: Sendable {
         return .push(setUpstream: isCurrent == false)
     }
 
-    package func execute(_ request: NewMergeRequest, push: PushPlan, checkoutPath: String, repository: URL) async throws -> MergeRequestSummary {
+    package func execute(_ request: NewMergeRequest, push: PushPlan, remote: String, checkoutPath: String, repository: URL) async throws -> MergeRequestSummary {
         if case .push(let setUpstream) = push {
-            try await git.perform(.push(branch: request.sourceBranch, setUpstream: setUpstream), in: checkoutPath)
+            try await git.perform(.push(branch: request.sourceBranch, setUpstream: setUpstream, remote: remote), in: checkoutPath)
         }
         return try await mergeRequests.create(request, repository: repository)
     }

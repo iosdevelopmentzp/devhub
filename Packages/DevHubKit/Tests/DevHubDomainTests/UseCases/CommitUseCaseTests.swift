@@ -38,7 +38,7 @@ import Testing
 
         #expect(spies.git.calls == [
             .perform(.commit(message: "Fix login", amend: false), path: "/repo"),
-            .perform(.push(branch: "feature", setUpstream: true), path: "/repo"),
+            .perform(.push(branch: "feature", setUpstream: true, remote: "origin"), path: "/repo"),
         ])
         guard case .pushed(let branch) = result else {
             Issue.record("Expected .pushed, got \(result)")
@@ -52,7 +52,7 @@ import Testing
 
         _ = try await commit(git: ports.git, amend: false, thenPush: true, branch: "feature", upstream: "origin/feature")
 
-        #expect(spies.git.calls.last == .perform(.push(branch: "feature", setUpstream: false), path: "/repo"))
+        #expect(spies.git.calls.last == .perform(.push(branch: "feature", setUpstream: false, remote: "origin"), path: "/repo"))
     }
 
     @Test func failedPushAfterACommitIsReportedNotThrown() async throws {
@@ -60,7 +60,7 @@ import Testing
 
         let result = try await commit(git: git, amend: false, thenPush: true, branch: "feature", upstream: "origin/feature")
 
-        #expect(git.commands == [.commit(message: "Fix login", amend: false), .push(branch: "feature", setUpstream: false)])
+        #expect(git.commands == [.commit(message: "Fix login", amend: false), .push(branch: "feature", setUpstream: false, remote: "origin")])
         guard case .failed(let branch, let error) = result else {
             Issue.record("Expected .failed, got \(result)")
             return
@@ -86,6 +86,7 @@ import Testing
             thenPush: thenPush,
             branch: branch,
             upstream: upstream,
+            remote: "origin",
             checkoutPath: "/repo"
         )
     }
@@ -103,7 +104,7 @@ private final class PushFailingGitRepository: GitRepository {
         recorded.withLock { $0 }
     }
 
-    func state(checkoutPath: String, mainPath: String) async throws -> GitRepositoryState {
+    func state(checkoutPath: String, mainPath: String, settings: GitSettings) async throws -> GitRepositoryState {
         throw TestError.scripted("state")
     }
 
@@ -113,7 +114,7 @@ private final class PushFailingGitRepository: GitRepository {
         throw TestError.scripted("push rejected")
     }
 
-    func webURL(checkoutPath: String) async -> URL? {
+    func webURL(checkoutPath: String, remote: String) async -> URL? {
         nil
     }
 

@@ -26,8 +26,8 @@ struct ShellGitChangesRepository: GitChangesRepository {
         }
     }
 
-    func branchCommits(base: String, in path: String) async throws -> [GitCommit] {
-        try await GitLogQuery(git: git).commits(range: "\(base)..HEAD", in: path)
+    func branchCommits(base: String, remote: String, in path: String) async throws -> [GitCommit] {
+        try await GitLogQuery(git: git).commits(range: "\(base)..HEAD", remote: remote, in: path)
     }
 
     func commitFiles(hash: String, in path: String) async throws -> [GitCommitFile] {

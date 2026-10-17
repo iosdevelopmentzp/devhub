@@ -14,15 +14,17 @@ struct ShellGitRepository: GitRepository {
         self.worktrees = worktrees
     }
 
-    func state(checkoutPath: String, mainPath: String) async throws -> GitRepositoryState {
+    func state(checkoutPath: String, mainPath: String, settings: GitSettings) async throws -> GitRepositoryState {
         let path = (checkoutPath as NSString).expandingTildeInPath
         let main = (mainPath as NSString).expandingTildeInPath
-        let base = await worktrees.baseBranch(projectPath: main, remote: GitSettingsPolicy.defaultRemote)
+        let remote = settings.remote
+        let detected = await worktrees.baseBranch(projectPath: main, remote: remote)
+        let base = settings.baseBranch ?? detected
 
-        async let snapshot = snapshot(in: path, base: base)
-        async let locals = localBranches(in: path, main: main, base: base)
-        async let remotes = remoteBranches(in: path)
-        async let history = history(in: path)
+        async let snapshot = snapshot(in: path, base: base, remote: remote)
+        async let locals = localBranches(in: path, main: main, base: base, remote: remote)
+        async let remotes = remoteBranches(in: path, remote: remote)
+        async let history = history(in: path, remote: remote)
         async let stashes = stashes(in: path)
         var state = try await GitRepositoryState(snapshot: snapshot, localBranches: locals, remoteBranches: remotes, history: history, stashes: stashes)
         state.snapshot.stashCount = state.stashes.count
@@ -39,14 +41,14 @@ struct ShellGitRepository: GitRepository {
 
     // MARK: Snapshot
 
-    private func snapshot(in path: String, base: String) async throws -> GitSnapshot {
+    private func snapshot(in path: String, base: String, remote: String) async throws -> GitSnapshot {
         let status = try await git.run(["status", "--porcelain=v2", "--branch"], in: path)
         var snapshot = GitBranchHeaderParser.parse(status, base: base)
 
         async let counts = try? git.run(["rev-list", "--left-right", "--count", "HEAD...\(base)"], in: path)
         async let operation = operation(in: path)
         async let commonDir = try? git.run(["rev-parse", "--git-common-dir"], in: path)
-        async let remoteURL = try? git.run(["remote", "get-url", "origin"], in: path)
+        async let remoteURL = try? git.run(["remote", "get-url", remote], in: path)
 
         let numbers = (await counts)?.split(whereSeparator: { $0 == "\t" || $0 == " " || $0 == "\n" }).compactMap { Int($0) } ?? []
         if numbers.count == 2 {
@@ -74,9 +76,9 @@ struct ShellGitRepository: GitRepository {
         return nil
     }
 
-    func webURL(checkoutPath: String) async -> URL? {
-        guard let remote = try? await git.run(["remote", "get-url", "origin"], in: checkoutPath) else { return nil }
-        return Self.webURL(fromRemote: remote.trimmed)
+    func webURL(checkoutPath: String, remote: String) async -> URL? {
+        guard let url = try? await git.run(["remote", "get-url", remote], in: checkoutPath) else { return nil }
+        return Self.webURL(fromRemote: url.trimmed)
     }
 
     func commitSubjects(from base: String, to head: String, in path: String) async throws -> [String] {
@@ -105,7 +107,7 @@ struct ShellGitRepository: GitRepository {
 
     // MARK: Branches
 
-    private func localBranches(in path: String, main: String, base: String) async throws -> [GitBranch] {
+    private func localBranches(in path: String, main: String, base: String, remote: String) async throws -> [GitBranch] {
         let format = ["%(refname:short)", "%(upstream:short)", "%(upstream:track,nobracket)", "%(committerdate:unix)", "%(worktreepath)", "%(authorname)", "%(contents:subject)"].joined(separator: Self.field)
         async let refs = git.run(["for-each-ref", "refs/heads", "--format=\(format)"], in: path)
         async let merged = mergedBranches.branches(mergedInto: base, in: path)
@@ -113,7 +115,7 @@ struct ShellGitRepository: GitRepository {
         let mergedSet = await merged
         let visitMap = await visits
 
-        return try await LocalBranchParser.parse(refs, merged: mergedSet, visits: visitMap)
+        return try await LocalBranchParser.parse(refs, merged: mergedSet, visits: visitMap, remote: remote)
     }
 
     private func visitTimes(in path: String) async -> [String: Date] {
@@ -127,13 +129,13 @@ struct ShellGitRepository: GitRepository {
         return GitStashParser.parse(output)
     }
 
-    private func remoteBranches(in path: String) async throws -> [RemoteBranch] {
+    private func remoteBranches(in path: String, remote: String) async throws -> [RemoteBranch] {
         let format = ["%(refname:short)", "%(committerdate:unix)", "%(authorname)", "%(contents:subject)"].joined(separator: Self.field)
-        let output = try await git.run(["for-each-ref", "refs/remotes/origin", "--sort=-committerdate", "--format=\(format)"], in: path)
-        return RemoteBranchParser.parse(output)
+        let output = try await git.run(["for-each-ref", "refs/remotes/\(remote)", "--sort=-committerdate", "--format=\(format)"], in: path)
+        return RemoteBranchParser.parse(output, remote: remote)
     }
 
-    private func history(in path: String) async throws -> [GitCommit] {
-        try await GitLogQuery(git: git).commits(range: nil, in: path)
+    private func history(in path: String, remote: String) async throws -> [GitCommit] {
+        try await GitLogQuery(git: git).commits(range: nil, remote: remote, in: path)
     }
 }

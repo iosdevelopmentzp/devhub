@@ -6,7 +6,8 @@ import Testing
         let targets = MergeRequestTargetPolicy.targets(
             remoteBranches: ["origin/release/2.0", "origin/main", "origin/feature/x", "origin/dev", "origin/staging"],
             source: "feature/x",
-            baseName: "staging"
+            baseName: "staging",
+            remote: "origin"
         )
 
         #expect(targets == ["dev", "staging", "main", "release/2.0"])
@@ -16,14 +17,15 @@ import Testing
         let targets = MergeRequestTargetPolicy.targets(
             remoteBranches: ["origin/HEAD", "origin/dev", "origin/feature/x"],
             source: "origin/feature/x",
-            baseName: "dev"
+            baseName: "dev",
+            remote: "origin"
         )
 
         #expect(targets == ["dev"])
     }
 
     @Test func withoutRemoteBranchesTheBaseIsTheOnlyTarget() {
-        #expect(MergeRequestTargetPolicy.targets(remoteBranches: [], source: "feature/x", baseName: "dev") == ["dev"])
-        #expect(MergeRequestTargetPolicy.targets(remoteBranches: [], source: "dev", baseName: "dev").isEmpty)
+        #expect(MergeRequestTargetPolicy.targets(remoteBranches: [], source: "feature/x", baseName: "dev", remote: "origin") == ["dev"])
+        #expect(MergeRequestTargetPolicy.targets(remoteBranches: [], source: "dev", baseName: "dev", remote: "origin").isEmpty)
     }
 }

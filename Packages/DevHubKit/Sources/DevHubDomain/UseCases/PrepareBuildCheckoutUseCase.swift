@@ -24,7 +24,7 @@ package struct PrepareBuildCheckoutUseCase: Sendable {
     ) async throws -> Prepared {
         var current = known
         var createdWorktree = false
-        if case .branch(let name) = source, BuildSourceResolver.checkoutPath(forBranch: name, in: current) == nil {
+        if case .branch(let name) = source, BuildSourceResolver.checkoutPath(forBranch: name, in: current, remote: settings.remote) == nil {
             onStep("Creating a worktree for \(name)")
             current = try await create(branch: name, baseBranch: baseBranch, projectPath: projectPath, settings: settings)
             createdWorktree = true
@@ -33,7 +33,8 @@ package struct PrepareBuildCheckoutUseCase: Sendable {
             source: source,
             worktrees: current,
             mainCheckoutPath: mainCheckoutPath,
-            projectName: projectName
+            projectName: projectName,
+            remote: settings.remote
         ).path
         let worktree = current.first { $0.path == path }
         guard let worktree, let script = settings.worktrees.bootstrap, needsBootstrap(worktree, created: createdWorktree, settings: settings.worktrees) else {

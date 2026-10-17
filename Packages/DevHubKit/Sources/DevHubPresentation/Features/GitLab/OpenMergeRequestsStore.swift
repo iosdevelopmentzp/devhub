@@ -44,7 +44,7 @@ final class OpenMergeRequestsStore {
     }
 
     func request(forBranch branch: String) -> MergeRequestSummary? {
-        requestsByBranch[BranchName(branch).local]
+        requestsByBranch[BranchName(branch, remote: remote.remoteName).local]
     }
 
     func startPolling() {

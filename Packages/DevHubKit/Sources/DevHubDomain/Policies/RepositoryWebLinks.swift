@@ -2,14 +2,14 @@ import Foundation
 
 package enum RepositoryWebLinks {
 
-    package static func branchURL(base: URL, branch: String) -> URL? {
-        let local = BranchName(branch).local
+    package static func branchURL(base: URL, branch: String, remote: String) -> URL? {
+        let local = BranchName(branch, remote: remote).local
         let path = isGitHub(base) ? "/tree/\(local)" : "/-/tree/\(local)"
         return URL(string: base.absoluteString + path)
     }
 
-    package static func newMergeRequestURL(base: URL, branch: String, baseName: String) -> URL? {
-        let local = BranchName(branch).local
+    package static func newMergeRequestURL(base: URL, branch: String, baseName: String, remote: String) -> URL? {
+        let local = BranchName(branch, remote: remote).local
         let encoded = local.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? local
         let suffix = isGitHub(base)
             ? "/compare/\(baseName)...\(encoded)?expand=1"

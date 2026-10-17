@@ -33,6 +33,8 @@ package final class SpyGitRepository: GitRepository, @unchecked Sendable {
 
     private let lock = NSLock()
     private var _calls: [Call] = []
+    private var _settings: [GitSettings] = []
+    private var _remotes: [String] = []
     private var _stateResult: Result<GitRepositoryState, any Error> = .success(SpyGitRepository.emptyState)
     private var _performError: (any Error)? = nil
     private var _commandErrors: [GitCommand: any Error] = [:]
@@ -79,13 +81,24 @@ package final class SpyGitRepository: GitRepository, @unchecked Sendable {
         record(.mergeRequestTemplate(path: path)) { _templateResult }
     }
 
+    package var settings: [GitSettings] {
+        lock.withLock { _settings }
+    }
+
+    package var remotes: [String] {
+        lock.withLock { _remotes }
+    }
+
     package var webURLResult: URL? {
         get { lock.withLock { _webURLResult } }
         set { lock.withLock { _webURLResult = newValue } }
     }
 
-    package func state(checkoutPath: String, mainPath: String) async throws -> GitRepositoryState {
-        try record(.state(checkoutPath: checkoutPath, mainPath: mainPath)) { try _stateResult.get() }
+    package func state(checkoutPath: String, mainPath: String, settings: GitSettings) async throws -> GitRepositoryState {
+        try record(.state(checkoutPath: checkoutPath, mainPath: mainPath)) {
+            _settings.append(settings)
+            return try _stateResult.get()
+        }
     }
 
     package func perform(_ command: GitCommand, in path: String) async throws {
@@ -93,8 +106,11 @@ package final class SpyGitRepository: GitRepository, @unchecked Sendable {
         if let error { throw error }
     }
 
-    package func webURL(checkoutPath: String) async -> URL? {
-        record(.webURL(checkoutPath: checkoutPath)) { _webURLResult }
+    package func webURL(checkoutPath: String, remote: String) async -> URL? {
+        record(.webURL(checkoutPath: checkoutPath)) {
+            _remotes.append(remote)
+            return _webURLResult
+        }
     }
 
     private func record<Value>(_ call: Call, _ value: () throws -> Value) rethrows -> Value {

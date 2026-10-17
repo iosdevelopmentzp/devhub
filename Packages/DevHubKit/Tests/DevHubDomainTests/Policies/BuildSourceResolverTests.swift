@@ -5,7 +5,7 @@ import Testing
     private let feature = WorktreeFixture.linked(branch: "feature")
 
     @Test func checkoutPathFindsTheWorktreeOfTheLocalBranch() {
-        let path = BuildSourceResolver.checkoutPath(forBranch: "origin/feature", in: [WorktreeFixture.main, feature])
+        let path = BuildSourceResolver.checkoutPath(forBranch: "origin/feature", in: [WorktreeFixture.main, feature], remote: "origin")
 
         #expect(path == feature.path)
     }
@@ -14,11 +14,11 @@ import Testing
         var missing = feature
         missing.isMissing = true
 
-        #expect(BuildSourceResolver.checkoutPath(forBranch: "feature", in: [missing]) == nil)
+        #expect(BuildSourceResolver.checkoutPath(forBranch: "feature", in: [missing], remote: "origin") == nil)
     }
 
     @Test func checkoutPathIsNilWhenNoWorktreeHasTheBranch() {
-        #expect(BuildSourceResolver.checkoutPath(forBranch: "other", in: [WorktreeFixture.main, feature]) == nil)
+        #expect(BuildSourceResolver.checkoutPath(forBranch: "other", in: [WorktreeFixture.main, feature], remote: "origin") == nil)
     }
 
     @Test func mainUsesTheMainCheckoutAndTheMainWorktreeName() {
@@ -73,6 +73,6 @@ import Testing
     }
 
     private func resolve(_ source: BuildSourceChoice, worktrees: [Worktree]) -> BuildSourceResolver.BuildSourceResolution {
-        BuildSourceResolver.resolve(source: source, worktrees: worktrees, mainCheckoutPath: "/main", projectName: "App")
+        BuildSourceResolver.resolve(source: source, worktrees: worktrees, mainCheckoutPath: "/main", projectName: "App", remote: "origin")
     }
 }

@@ -122,6 +122,7 @@ struct GitView: View {
             .map { branch in
                 RemoteBranchRowMapper.model(
                     for: branch,
+                    remote: git.remote,
                     localBranchNames: localNames,
                     openMergeRequest: openMergeRequests.request(forBranch: branch.name),
                     ticketURLTemplate: settings.values.ticketURLTemplate,

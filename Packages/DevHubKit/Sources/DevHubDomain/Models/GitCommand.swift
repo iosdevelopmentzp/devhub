@@ -1,12 +1,12 @@
 import Foundation
 
 package enum GitCommand: Hashable, Sendable {
-    case fetchPrune
+    case fetchPrune(remote: String)
     case pullFastForward
-    case push(branch: String, setUpstream: Bool)
-    case forcePushWithLease(branch: String)
-    case fetchBranch(remote: String, local: String)
-    case fetchRef(String)
+    case push(branch: String, setUpstream: Bool, remote: String)
+    case forcePushWithLease(branch: String, remote: String)
+    case fetchBranch(source: String, local: String, remote: String)
+    case fetchRef(String, remote: String)
     case rebase(onto: String, autostash: Bool)
     case continueRebase
     case abort(operation: String)

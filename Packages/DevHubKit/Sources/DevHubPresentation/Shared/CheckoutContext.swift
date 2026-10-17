@@ -9,6 +9,7 @@ protocol CheckoutContext: AnyObject {
     var currentUpstream: String? { get }
     var baseName: String { get }
     var baseRef: String { get }
+    var gitSettings: GitSettings { get }
     var webURL: URL? { get }
     var localBranchNames: Set<String> { get }
     var isMainCheckoutClean: Bool { get }

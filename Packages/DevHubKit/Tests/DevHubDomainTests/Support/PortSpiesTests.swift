@@ -13,19 +13,20 @@ import Testing
         spies.git.stateResult = .failure(TestError.scripted("x"))
 
         await #expect(throws: TestError.scripted("x")) {
-            try await ports.git.state(checkoutPath: "a", mainPath: "b")
+            try await ports.git.state(checkoutPath: "a", mainPath: "b", settings: .standard)
         }
         #expect(spies.git.calls == [.state(checkoutPath: "a", mainPath: "b")])
+        #expect(spies.git.settings == [.standard])
     }
 
     @Test func spiesWorkWithoutSetup() async throws {
         let (ports, spies) = Ports.spies()
 
-        try await ports.git.perform(.fetchPrune, in: "repo")
+        try await ports.git.perform(.fetchPrune(remote: "origin"), in: "repo")
         let worktrees = try await ports.worktrees.list(projectPath: "repo", settings: .standard)
 
         #expect(worktrees.isEmpty)
-        #expect(spies.git.calls == [.perform(.fetchPrune, path: "repo")])
+        #expect(spies.git.calls == [.perform(.fetchPrune(remote: "origin"), path: "repo")])
         #expect(spies.worktrees.calls == [.list(projectPath: "repo")])
     }
 }

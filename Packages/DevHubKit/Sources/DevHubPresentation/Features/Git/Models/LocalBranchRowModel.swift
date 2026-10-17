@@ -54,7 +54,7 @@ struct LocalBranchRowModel: Identifiable, Equatable {
         canCreateWorktree: true,
         canDelete: true,
         canOpenMergeRequest: false,
-        mergeRequestHint: "Push the branch first: a merge request needs it on origin",
+        mergeRequestHint: "Push the branch first: a merge request needs it on the remote",
         mergeRequestIconTint: nil,
         mergeRequestMenuTitle: "New Merge Request…",
         existingMergeRequest: nil,

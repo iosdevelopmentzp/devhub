@@ -76,7 +76,7 @@ final class CommitHistoryStore {
         await refreshTask.run { [weak self] in
             guard let self else { return }
             do {
-                let loaded = try await repository.branchCommits(base: checkout.baseRef, in: checkout.checkoutPath)
+                let loaded = try await repository.branchCommits(base: checkout.baseRef, remote: checkout.gitSettings.remote, in: checkout.checkoutPath)
                 try Task.checkCancellation()
                 if branchCommits != loaded {
                     branchCommits = loaded

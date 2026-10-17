@@ -16,7 +16,8 @@ import Testing
     private let branches = LocalBranchParser.parse(
         refs,
         merged: ["main", "feature", "visited", "old"],
-        visits: ["visited": Date(timeIntervalSince1970: 5000)]
+        visits: ["visited": Date(timeIntervalSince1970: 5000)],
+        remote: "origin"
     )
 
     @Test func sortsByLastVisitedThenCommitDate() {

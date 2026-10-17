@@ -49,7 +49,7 @@ struct WorktreesToolbar: View {
             Button("Fetch", systemImage: "arrow.down.circle") {
                 worktrees.fetchAndRefresh()
             }
-            .hint("git fetch --prune origin, then re-read merged and remote-deleted branches")
+            .hint("git fetch --prune \(worktrees.gitSettings.remote), then re-read merged and remote-deleted branches")
             .disabled(worktrees.isFetching)
             if worktrees.missingCount > 0 {
                 Button("Prune \(worktrees.missingCount)", systemImage: "scissors") {

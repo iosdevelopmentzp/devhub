@@ -226,7 +226,7 @@ import DevHubTestSupport
             store.pull()
         }
 
-        #expect(performed == [.perform(.fetchPrune, path: path)])
+        #expect(performed == [.perform(.fetchPrune(remote: "origin"), path: path)])
     }
 
     @Test func aFailingCommandLogsAFailureAndPostsCommandFailed() async throws {
@@ -245,7 +245,19 @@ import DevHubTestSupport
     @Test func fetchRunsFetchPrune() async throws {
         try await finish { store.fetch() }
 
-        #expect(performed == [.perform(.fetchPrune, path: path)])
+        #expect(performed == [.perform(.fetchPrune(remote: "origin"), path: path)])
+    }
+
+    @Test func theRemoteComesFromTheConfig() async throws {
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(git: GitConfig(remote: "upstream")), actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+
+        try await finish { store.fetch() }
+        await store.refresh()
+
+        #expect(performed == [.perform(.fetchPrune(remote: "upstream"), path: path)])
+        #expect(harness.spies.git.settings.last?.remote == "upstream")
+        #expect(store.remote == "upstream")
     }
 
     @Test func fetchIfStaleFetchesAnOldCheckoutOnce() async throws {
@@ -255,7 +267,7 @@ import DevHubTestSupport
 
         try await finish { store.fetchIfStale(everyMinutes: 15, now: Date(timeIntervalSince1970: 1_700_000_000 + 20 * 60)) }
 
-        #expect(performed == [.perform(.fetchPrune, path: path)])
+        #expect(performed == [.perform(.fetchPrune(remote: "origin"), path: path)])
     }
 
     @Test func fetchIfStaleSkipsAFreshCheckoutOrWhenOff() async {
@@ -287,7 +299,7 @@ import DevHubTestSupport
 
         try await finish { store.push() }
 
-        #expect(performed == [.perform(.push(branch: "APP-12-login", setUpstream: false), path: path)])
+        #expect(performed == [.perform(.push(branch: "APP-12-login", setUpstream: false, remote: "origin"), path: path)])
         #expect(harness.lastActivity?.title == "Push APP-12-login")
     }
 
@@ -296,7 +308,7 @@ import DevHubTestSupport
 
         try await finish { store.push() }
 
-        #expect(performed == [.perform(.push(branch: "APP-12-login", setUpstream: true), path: path)])
+        #expect(performed == [.perform(.push(branch: "APP-12-login", setUpstream: true, remote: "origin"), path: path)])
     }
 
     @Test func pushWithoutABranchDoesNothing() {
@@ -310,7 +322,7 @@ import DevHubTestSupport
 
         try await finish { store.forcePush() }
 
-        #expect(performed == [.perform(.forcePushWithLease(branch: "APP-12-login"), path: path)])
+        #expect(performed == [.perform(.forcePushWithLease(branch: "APP-12-login", remote: "origin"), path: path)])
     }
 
     @Test func rebaseOnBaseFetchesTheBaseThenRebases() async throws {
@@ -319,7 +331,7 @@ import DevHubTestSupport
         try await finish { store.rebaseOnBase() }
 
         #expect(performed == [
-            .perform(.fetchRef("dev"), path: path),
+            .perform(.fetchRef("dev", remote: "origin"), path: path),
             .perform(.rebase(onto: "origin/dev", autostash: true), path: path),
         ])
         #expect(harness.lastActivity?.title == "Rebase on origin/dev")
@@ -408,7 +420,7 @@ import DevHubTestSupport
 
         try await finish { store.update(GitStateSample.dev) }
 
-        #expect(performed == [.perform(.fetchBranch(remote: "dev", local: "dev"), path: path)])
+        #expect(performed == [.perform(.fetchBranch(source: "dev", local: "dev", remote: "origin"), path: path)])
         #expect(harness.lastActivity?.title == "Fast-forward dev")
     }
 
@@ -417,7 +429,7 @@ import DevHubTestSupport
 
         try await finish { store.updateBase() }
 
-        #expect(performed == [.perform(.fetchBranch(remote: "dev", local: "dev"), path: path)])
+        #expect(performed == [.perform(.fetchBranch(source: "dev", local: "dev", remote: "origin"), path: path)])
         #expect(harness.lastActivity?.title == "Fast-forward dev")
     }
 
@@ -426,7 +438,7 @@ import DevHubTestSupport
 
         try await finish { store.updateBase() }
 
-        #expect(performed == [.perform(.fetchBranch(remote: "dev", local: "dev"), path: path)])
+        #expect(performed == [.perform(.fetchBranch(source: "dev", local: "dev", remote: "origin"), path: path)])
         #expect(harness.lastActivity?.title == "Fetch dev")
     }
 
@@ -495,7 +507,7 @@ import DevHubTestSupport
 
         try await finish { store.fetch() }
 
-        #expect(performed == [.perform(.fetchPrune, path: WorktreeSample.feature.path)])
+        #expect(performed == [.perform(.fetchPrune(remote: "origin"), path: WorktreeSample.feature.path)])
     }
 
     // MARK: Web

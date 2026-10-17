@@ -13,7 +13,7 @@ enum WorktreeRowMapper {
         isBootstrapping: Bool,
         isBuildSource: Bool,
         buildIsRunning: Bool,
-        bootstrap: WorktreeSettings,
+        git: GitSettings,
         configActions: [ConfigActionItemModel]
     ) -> WorktreeRowModel {
         WorktreeRowModel(
@@ -32,12 +32,12 @@ enum WorktreeRowMapper {
             iconTint: iconTint(for: worktree),
             isHighlighted: isBuildSource,
             titleTags: titleTags(for: worktree, isBuildSource: isBuildSource),
-            statusTags: statusTags(for: worktree, baseBranch: baseBranch, derivedDataSize: derivedDataSize),
+            statusTags: statusTags(for: worktree, baseBranch: baseBranch, remote: git.remote, derivedDataSize: derivedDataSize),
             isBootstrapping: isBootstrapping,
-            bootstrapTag: isBootstrapping || worktree.needsBootstrap == false ? nil : bootstrapTag(bootstrap),
-            canRunBootstrap: bootstrap.bootstrap != nil && worktree.isMain == false && worktree.isMissing == false,
-            bootstrapTitle: "Run \(bootstrap.bootstrap ?? "Bootstrap")",
-            bootstrapRunningText: "Running \(bootstrap.bootstrap ?? "bootstrap")…",
+            bootstrapTag: isBootstrapping || worktree.needsBootstrap == false ? nil : bootstrapTag(git.worktrees),
+            canRunBootstrap: git.worktrees.bootstrap != nil && worktree.isMain == false && worktree.isMissing == false,
+            bootstrapTitle: "Run \(git.worktrees.bootstrap ?? "Bootstrap")",
+            bootstrapRunningText: "Running \(git.worktrees.bootstrap ?? "bootstrap")…",
             isBusy: isBusy,
             isBuildSource: isBuildSource,
             canBuildAndRun: worktree.isMissing == false && buildIsRunning == false,
@@ -119,9 +119,9 @@ enum WorktreeRowMapper {
         return tags
     }
 
-    private static func statusTags(for worktree: Worktree, baseBranch: String, derivedDataSize: Int64?) -> [TagModel] {
+    private static func statusTags(for worktree: Worktree, baseBranch: String, remote: String, derivedDataSize: Int64?) -> [TagModel] {
         var tags = [changesTag(for: worktree)]
-        if let branchTag = branchTag(for: worktree, baseBranch: baseBranch) {
+        if let branchTag = branchTag(for: worktree, baseBranch: baseBranch, remote: remote) {
             tags.append(branchTag)
         }
         if worktree.ahead > 0 || worktree.behind > 0 {
@@ -151,9 +151,9 @@ enum WorktreeRowMapper {
         return TagModel("clean", tint: .green, systemImage: "checkmark")
     }
 
-    private static func branchTag(for worktree: Worktree, baseBranch: String) -> TagModel? {
+    private static func branchTag(for worktree: Worktree, baseBranch: String, remote: String) -> TagModel? {
         if worktree.isMerged {
-            return TagModel("merged into \(BranchName(baseBranch).local)", tint: .purple, systemImage: "arrow.triangle.merge")
+            return TagModel("merged into \(BranchName(baseBranch, remote: remote).local)", tint: .purple, systemImage: "arrow.triangle.merge")
         }
         if worktree.isUpstreamGone {
             return TagModel("remote branch deleted", tint: .purple, systemImage: "icloud.slash")

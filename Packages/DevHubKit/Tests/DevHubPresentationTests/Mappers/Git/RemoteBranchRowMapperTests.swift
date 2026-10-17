@@ -8,6 +8,7 @@ import Testing
     @Test func remoteWithoutLocalBranch() {
         let model = RemoteBranchRowMapper.model(
             for: GitBranchFixture.remote,
+            remote: "origin",
             localBranchNames: ["dev"],
             openMergeRequest: nil,
             ticketURLTemplate: "",
@@ -35,6 +36,7 @@ import Testing
 
         let model = RemoteBranchRowMapper.model(
             for: branch,
+            remote: "origin",
             localBranchNames: ["feature/gifts"],
             openMergeRequest: nil,
             ticketURLTemplate: "",

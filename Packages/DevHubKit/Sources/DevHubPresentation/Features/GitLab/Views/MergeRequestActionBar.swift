@@ -66,7 +66,7 @@ struct MergeRequestActionBar: View {
     }
 
     private var remoteBranch: String {
-        BranchName(model.sourceBranch).remoteRef
+        appActions.remoteRef(for: model.sourceBranch)
     }
 
     private func perform(_ kind: MergeRequestActionModel.Kind) {

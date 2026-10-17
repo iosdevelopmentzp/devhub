@@ -113,7 +113,7 @@ enum GitHeaderMapper {
                 id: .fetch,
                 title: "Fetch",
                 systemImage: "arrow.down.circle",
-                hint: "Download new commits and branches from origin. git fetch --prune origin",
+                hint: "Download new commits and branches from the remote. git fetch --prune <remote>",
                 priority: 3,
                 isDisabled: false
             ),
@@ -129,7 +129,7 @@ enum GitHeaderMapper {
                 id: .push,
                 title: "Push",
                 systemImage: "arrow.up",
-                hint: snapshot.upstream == nil ? "Publish this branch. git push -u origin <branch>" : "Send your commits. git push",
+                hint: snapshot.upstream == nil ? "Publish this branch. git push -u <remote> <branch>" : "Send your commits. git push",
                 priority: 6,
                 isDisabled: hasBranch == false
             ),

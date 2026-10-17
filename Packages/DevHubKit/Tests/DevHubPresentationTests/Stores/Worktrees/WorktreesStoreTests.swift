@@ -303,7 +303,7 @@ import DevHubTestSupport
         let created = await store.create(branch: " origin/feature/created ")
 
         #expect(created == WorktreeSample.created)
-        #expect(harness.spies.worktrees.calls.first == .create(branch: "feature/created", base: BranchName.defaultBaseRef, projectPath: ProjectSample.path))
+        #expect(harness.spies.worktrees.calls.first == .create(branch: "feature/created", base: "origin/main", projectPath: ProjectSample.path))
         #expect(harness.lastActivity?.title == "Created worktree")
         #expect(harness.lastActivity?.outcome == .success)
     }

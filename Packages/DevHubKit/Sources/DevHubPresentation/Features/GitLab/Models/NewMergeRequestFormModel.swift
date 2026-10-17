@@ -11,7 +11,7 @@ struct NewMergeRequestFormModel: Equatable {
     static let preview = NewMergeRequestFormModel(
         heading: "New merge request from feature/ABC-2324-paid-call",
         createTitle: "Push & Create",
-        createHint: "Push the branch with git push -u origin feature/ABC-2324-paid-call, then create the merge request",
+        createHint: "Push the branch with git push -u <remote> feature/ABC-2324-paid-call, then create the merge request",
         canCreate: true,
         isBusy: false,
         busyText: nil

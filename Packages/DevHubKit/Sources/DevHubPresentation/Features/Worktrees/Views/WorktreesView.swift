@@ -100,7 +100,7 @@ struct WorktreesView: View {
             isBootstrapping: worktrees.bootstrappingIDs.contains(worktree.id),
             isBuildSource: build.sourceWorktreeID == worktree.id,
             buildIsRunning: build.isRunning,
-            bootstrap: worktrees.gitSettings.worktrees,
+            git: worktrees.gitSettings,
             configActions: rowActions
         )
     }

@@ -13,8 +13,8 @@ package enum BuildSourceResolver {
         }
     }
 
-    package static func checkoutPath(forBranch name: String, in worktrees: [Worktree]) -> String? {
-        let local = BranchName(name).local
+    package static func checkoutPath(forBranch name: String, in worktrees: [Worktree], remote: String) -> String? {
+        let local = BranchName(name, remote: remote).local
         return worktrees.first { $0.branch == local && $0.isMissing == false }?.path
     }
 
@@ -22,7 +22,8 @@ package enum BuildSourceResolver {
         source: BuildSourceChoice,
         worktrees: [Worktree],
         mainCheckoutPath: String,
-        projectName: String
+        projectName: String,
+        remote: String
     ) -> BuildSourceResolution {
         switch source {
         case .main:
@@ -36,7 +37,7 @@ package enum BuildSourceResolver {
                 label: worktrees.first { $0.path == path }?.displayName ?? (path as NSString).lastPathComponent
             )
         case .branch(let name):
-            let checkout = checkoutPath(forBranch: name, in: worktrees)
+            let checkout = checkoutPath(forBranch: name, in: worktrees, remote: remote)
             let linkedCheckout = checkout.flatMap { path in
                 worktrees.first { $0.path == path }?.isMain == false ? path : nil
             }

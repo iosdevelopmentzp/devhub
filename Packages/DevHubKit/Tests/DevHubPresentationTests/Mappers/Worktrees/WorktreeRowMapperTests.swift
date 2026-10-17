@@ -81,7 +81,7 @@ import Testing
             isBootstrapping: false,
             isBuildSource: false,
             buildIsRunning: false,
-            bootstrap: .standard,
+            git: .standard,
             configActions: []
         )
 
@@ -202,7 +202,7 @@ import Testing
             isBootstrapping: false,
             isBuildSource: false,
             buildIsRunning: false,
-            bootstrap: GitSettings.withBootstrap.worktrees,
+            git: .withBootstrap,
             configActions: [.preview]
         )
 
@@ -224,7 +224,7 @@ import Testing
             isBootstrapping: true,
             isBuildSource: false,
             buildIsRunning: false,
-            bootstrap: GitSettings.withBootstrap.worktrees,
+            git: .withBootstrap,
             configActions: []
         )
 
@@ -249,7 +249,7 @@ import Testing
             isBootstrapping: false,
             isBuildSource: true,
             buildIsRunning: true,
-            bootstrap: GitSettings.withBootstrap.worktrees,
+            git: .withBootstrap,
             configActions: []
         )
 
@@ -282,7 +282,7 @@ import Testing
             isBootstrapping: false,
             isBuildSource: false,
             buildIsRunning: false,
-            bootstrap: GitSettings.withBootstrap.worktrees,
+            git: .withBootstrap,
             configActions: []
         )
 
@@ -299,7 +299,7 @@ import Testing
             isBootstrapping: false,
             isBuildSource: false,
             buildIsRunning: false,
-            bootstrap: GitSettings.withBootstrap.worktrees,
+            git: .withBootstrap,
             configActions: []
         )
     }

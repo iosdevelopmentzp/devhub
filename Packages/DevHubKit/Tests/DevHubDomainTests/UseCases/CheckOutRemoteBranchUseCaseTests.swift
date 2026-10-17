@@ -4,13 +4,13 @@ import Testing
 
 @Suite struct CheckOutRemoteBranchUseCaseTests {
     @Test func existingLocalBranchIsSwitchedTo() {
-        let plan = CheckOutRemoteBranchUseCase.plan(remote: GitBranchFixture.remote("origin/feature"), localBranches: [GitBranchFixture.local("feature")])
+        let plan = CheckOutRemoteBranchUseCase.plan(remote: GitBranchFixture.remote("origin/feature"), localBranches: [GitBranchFixture.local("feature")], remoteName: "origin")
 
         #expect(plan == .switchExisting(local: "feature"))
     }
 
     @Test func missingLocalBranchIsCreatedTracking() {
-        let plan = CheckOutRemoteBranchUseCase.plan(remote: GitBranchFixture.remote("origin/feature"), localBranches: [GitBranchFixture.local("dev")])
+        let plan = CheckOutRemoteBranchUseCase.plan(remote: GitBranchFixture.remote("origin/feature"), localBranches: [GitBranchFixture.local("dev")], remoteName: "origin")
 
         #expect(plan == .createTracking(local: "feature", remote: "origin/feature"))
     }

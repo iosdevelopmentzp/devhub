@@ -2,7 +2,7 @@ import Foundation
 import DevHubDomain
 
 enum LocalBranchParser {
-    static func parse(_ refs: String, merged: Set<String>, visits: [String: Date]) -> [GitBranch] {
+    static func parse(_ refs: String, merged: Set<String>, visits: [String: Date], remote: String) -> [GitBranch] {
         refs.split(separator: "\n").compactMap { line -> GitBranch? in
             let fields = line.split(separator: "\t", maxSplits: 6, omittingEmptySubsequences: false).map(String.init)
             guard fields.count >= 5 else { return nil }
@@ -17,7 +17,8 @@ enum LocalBranchParser {
                     branch: fields[0],
                     upstream: tracking.upstream,
                     ahead: tracking.ahead,
-                    mergedBranches: merged
+                    mergedBranches: merged,
+                    remote: remote
                 ),
                 subject: fields.count > 6 ? fields[6] : "",
                 commitDate: TimeInterval(fields[3]).map { Date(timeIntervalSince1970: $0) },

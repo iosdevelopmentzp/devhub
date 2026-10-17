@@ -28,7 +28,7 @@ struct MockGitChangesRepository: GitChangesRepository {
         )
     }
 
-    func branchCommits(base: String, in path: String) async throws -> [GitCommit] {
+    func branchCommits(base: String, remote: String, in path: String) async throws -> [GitCommit] {
         [
             GitCommit(hash: "0362516c73ac02ae16961be5dce11137392a397a", shortHash: "0362516c7", author: "Alex", date: Date().addingTimeInterval(-7_200), subject: "ABC-2489: Reset a Leaderboard follow status", isPushed: false)
         ]

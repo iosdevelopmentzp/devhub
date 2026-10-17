@@ -591,3 +591,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `e38c6bd` | M2 | The example helper scripts get a title and `placements = palette`, so Home does not list them twice. |
 | `d20e938` | M2 | Appendix B step 5: config actions in the Git header, branch, worktree and simulator rows, the run bar and the Logs toolbar; `ConfigActionBar`, `ConfigActionPromptSlot`, `request(id:)`, row models carry `configActions`; mapper and store tests. |
 | `89e6680` | M2 | ADR 002, `docs/extensions.md` checked against the decoder, ARCHITECTURE, STATUS, AGENTS and the `extensions` skill for the package; booted simulators first in a `simulator` input. |
+| `81460a9` | M3 | `git.worktrees` from config (folder, include, bootstrap with or without a marker), `GitSettings` and `GitSettingsPolicy`, `WorktreePathPolicy`; `init.sh`, `.worktreeinclude`, `.claude/worktrees` and the agent kind removed; fix for a re-entrant unsubscribe in `AppEvents`. |

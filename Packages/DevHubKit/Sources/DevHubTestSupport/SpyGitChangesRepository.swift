@@ -68,7 +68,7 @@ package final class SpyGitChangesRepository: GitChangesRepository, @unchecked Se
         try record(.diff(change, path: path)) { try _diffResult.get() }
     }
 
-    package func branchCommits(base: String, in path: String) async throws -> [GitCommit] {
+    package func branchCommits(base: String, remote: String, in path: String) async throws -> [GitCommit] {
         try record(.branchCommits(base: base, path: path)) { try _branchCommitsResult.get() }
     }
 

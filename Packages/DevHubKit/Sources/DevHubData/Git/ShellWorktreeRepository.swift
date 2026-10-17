@@ -25,7 +25,7 @@ struct ShellWorktreeRepository: WorktreeRepository {
         return await withTaskGroup(of: (Int, Worktree).self) { group in
             for (index, entry) in entries.enumerated() {
                 group.addTask {
-                    (index, await details(for: entry, index: index, mainPath: mainPath, merged: mergedSet, tracking: trackingMap, settings: settings.worktrees))
+                    (index, await details(for: entry, index: index, mainPath: mainPath, merged: mergedSet, tracking: trackingMap, settings: settings.worktrees, remote: settings.remote))
                 }
             }
             var result: [(Int, Worktree)] = []
@@ -102,7 +102,8 @@ struct ShellWorktreeRepository: WorktreeRepository {
         mainPath: String,
         merged: Set<String>,
         tracking: [String: TrackingInfoParser.Tracking],
-        settings: WorktreeSettings
+        settings: WorktreeSettings,
+        remote: String
     ) async -> Worktree {
         let exists = FileManager.default.fileExists(atPath: entry.path)
         var worktree = Worktree(
@@ -135,7 +136,8 @@ struct ShellWorktreeRepository: WorktreeRepository {
                 branch: branch,
                 upstream: info?.upstream,
                 ahead: info?.ahead ?? 0,
-                mergedBranches: merged
+                mergedBranches: merged,
+                remote: remote
             )
         }
 

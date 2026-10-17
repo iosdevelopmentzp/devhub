@@ -4,13 +4,13 @@ import Testing
 
 @Suite struct GitCommandEncoderTests {
     static let table: [(GitCommand, [String])] = [
-        (.fetchPrune, ["fetch", "--prune", "origin"]),
+        (.fetchPrune(remote: "origin"), ["fetch", "--prune", "origin"]),
         (.pullFastForward, ["pull", "--ff-only"]),
-        (.push(branch: "feature", setUpstream: true), ["push", "-u", "origin", "feature"]),
-        (.push(branch: "feature", setUpstream: false), ["push"]),
-        (.forcePushWithLease(branch: "feature"), ["push", "--force-with-lease", "-u", "origin", "feature"]),
-        (.fetchBranch(remote: "dev", local: "dev"), ["fetch", "origin", "dev:dev"]),
-        (.fetchRef("dev"), ["fetch", "origin", "dev"]),
+        (.push(branch: "feature", setUpstream: true, remote: "origin"), ["push", "-u", "origin", "feature"]),
+        (.push(branch: "feature", setUpstream: false, remote: "origin"), ["push"]),
+        (.forcePushWithLease(branch: "feature", remote: "origin"), ["push", "--force-with-lease", "-u", "origin", "feature"]),
+        (.fetchBranch(source: "dev", local: "dev", remote: "origin"), ["fetch", "origin", "dev:dev"]),
+        (.fetchRef("dev", remote: "origin"), ["fetch", "origin", "dev"]),
         (.rebase(onto: "origin/dev", autostash: true), ["rebase", "--autostash", "origin/dev"]),
         (.rebase(onto: "origin/dev", autostash: false), ["rebase", "origin/dev"]),
         (.continueRebase, ["rebase", "--continue"]),
@@ -47,6 +47,14 @@ import Testing
     func environmentSetsEditorOnlyForContinueRebase(command: GitCommand) {
         let expected = command == .continueRebase ? ["GIT_EDITOR": "true"] : [:]
         #expect(GitCommandEncoder.environment(for: command) == expected)
+    }
+
+    @Test func theRemoteNameReachesEveryRemoteCommand() {
+        #expect(GitCommandEncoder.arguments(for: .fetchPrune(remote: "upstream")) == ["fetch", "--prune", "upstream"])
+        #expect(GitCommandEncoder.arguments(for: .push(branch: "x", setUpstream: true, remote: "upstream")) == ["push", "-u", "upstream", "x"])
+        #expect(GitCommandEncoder.arguments(for: .forcePushWithLease(branch: "x", remote: "upstream")) == ["push", "--force-with-lease", "-u", "upstream", "x"])
+        #expect(GitCommandEncoder.arguments(for: .fetchBranch(source: "a", local: "b", remote: "upstream")) == ["fetch", "upstream", "a:b"])
+        #expect(GitCommandEncoder.arguments(for: .fetchRef("main", remote: "upstream")) == ["fetch", "upstream", "main"])
     }
 
     @Test func tableCoversEveryCase() {

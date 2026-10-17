@@ -27,7 +27,7 @@ import Testing
     @Test func theButtonSaysWhenItPushes() {
         var draft = NewMergeRequestDraft.preview
         #expect(NewMergeRequestMapper.model(for: draft).createTitle == "Push & Create")
-        #expect(NewMergeRequestMapper.model(for: draft).createHint.contains("git push -u origin feature/ABC-2324-paid-call"))
+        #expect(NewMergeRequestMapper.model(for: draft).createHint.contains("git push -u <remote> feature/ABC-2324-paid-call"))
 
         draft.pushPlan = .none
         #expect(NewMergeRequestMapper.model(for: draft).createTitle == "Create")

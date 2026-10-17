@@ -6,16 +6,16 @@ import Testing
     @Test func setsUpstreamWhenThereIsNone() async throws {
         let (ports, spies) = Ports.spies()
 
-        try await PushCurrentBranchUseCase(git: ports.git).execute(branch: "feature", upstream: nil, checkoutPath: "/repo")
+        try await PushCurrentBranchUseCase(git: ports.git).execute(branch: "feature", upstream: nil, remote: "origin", checkoutPath: "/repo")
 
-        #expect(spies.git.calls == [.perform(.push(branch: "feature", setUpstream: true), path: "/repo")])
+        #expect(spies.git.calls == [.perform(.push(branch: "feature", setUpstream: true, remote: "origin"), path: "/repo")])
     }
 
     @Test func plainPushWhenUpstreamExists() async throws {
         let (ports, spies) = Ports.spies()
 
-        try await PushCurrentBranchUseCase(git: ports.git).execute(branch: "feature", upstream: "origin/feature", checkoutPath: "/repo")
+        try await PushCurrentBranchUseCase(git: ports.git).execute(branch: "feature", upstream: "origin/feature", remote: "origin", checkoutPath: "/repo")
 
-        #expect(spies.git.calls == [.perform(.push(branch: "feature", setUpstream: false), path: "/repo")])
+        #expect(spies.git.calls == [.perform(.push(branch: "feature", setUpstream: false, remote: "origin"), path: "/repo")])
     }
 }
