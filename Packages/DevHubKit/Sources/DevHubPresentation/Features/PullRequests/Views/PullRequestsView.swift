@@ -14,6 +14,7 @@ struct PullRequestsView: View {
     @Environment(WorktreesStore.self) private var worktrees
     @Environment(SettingsStore.self) private var settings
     @Environment(NewPullRequestStore.self) private var newPullRequest
+    @Environment(ConfigActionsStore.self) private var configActions
     @Environment(\.codeHostWords) private var words
 
     @State private var launchID: PullRequestSummary.ID?
@@ -62,7 +63,11 @@ struct PullRequestsView: View {
     private var visible: [PullRequestRowModel] {
         pullRequests.visible
             .filter { session.matchesSearch($0.title, words.reference($0.iid), $0.author, $0.sourceBranch, $0.targetBranch, $0.labels.joined(separator: " ")) }
-            .map { styled(PullRequestRowMapper.model(for: $0, context: context, local: localState($0.sourceBranch), isBusy: pullRequests.isBusy($0.id), isExpanded: $0.id == pullRequests.expandedID)) }
+            .map { styled(PullRequestRowMapper.model(for: $0, context: context, local: localState($0.sourceBranch), isBusy: pullRequests.isBusy($0.id), isExpanded: $0.id == pullRequests.expandedID, configActions: rowActions)) }
+    }
+
+    private var rowActions: [ConfigActionItemModel] {
+        ConfigActionItemMapper.models(for: configActions.actions(for: .pullRequestsRow), isRunning: configActions.isRunning)
     }
 
     private func styled(_ model: PullRequestRowModel) -> PullRequestRowModel {
@@ -122,6 +127,11 @@ struct PullRequestsView: View {
                     LazyVStack(alignment: .leading, spacing: 0) {
                         ForEach(visible) { model in
                             row(model, isSplit: layout.isSplit)
+                            if let pending = configActions.pending(in: Placement.pullRequestsRow.slot(for: String(model.id))) {
+                                ConfigActionPrompt(pending: pending)
+                                    .padding(.horizontal, 14)
+                                    .padding(.bottom, 8)
+                            }
                             Divider()
                                 .padding(.leading, 40)
                         }
@@ -151,7 +161,7 @@ struct PullRequestsView: View {
     private var detailsPane: some View {
         let summary = pullRequests.expandedID.flatMap(pullRequests.request(id:))
         return PullRequestDetailsPane(
-            model: summary.map { styled(PullRequestRowMapper.model(for: $0, context: context, local: localState($0.sourceBranch), isBusy: pullRequests.isBusy($0.id), isExpanded: true)) },
+            model: summary.map { styled(PullRequestRowMapper.model(for: $0, context: context, local: localState($0.sourceBranch), isBusy: pullRequests.isBusy($0.id), isExpanded: true, configActions: rowActions)) },
             details: summary.map(details(for:)),
             isPickingLaunch: summary.map { launchID == $0.id } ?? false,
             detailActions: summary.map(detailActions(for:)) ?? .preview,
@@ -225,7 +235,7 @@ struct PullRequestsView: View {
     }
 
     private func detailActions(for summary: PullRequestSummary) -> PullRequestDetailActions {
-        PullRequestDetailActions.live(for: summary, detailStore: detailStore, pullRequests: pullRequests, appActions: appActions, openWindow: openPullRequestWindow)
+        PullRequestDetailActions.live(for: summary, detailStore: detailStore, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: openPullRequestWindow)
     }
 
     private func details(for summary: PullRequestSummary) -> PullRequestDetailsModel {

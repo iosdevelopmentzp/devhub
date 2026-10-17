@@ -89,15 +89,21 @@ final class PullRequestsStore {
         listFraction = store.decode(Double.self, forKey: Self.listFractionKey) ?? Double(PullRequestsLayout.defaultListFraction)
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
-            guard case .projectChanged = event else { return }
-            requests = []
-            username = nil
-            error = nil
-            loadedQuery = nil
-            loadedAt = nil
-            expandedID = nil
-            pages = [:]
-            nextCursor = nil
+            switch event {
+            case .projectChanged:
+                requests = []
+                username = nil
+                error = nil
+                loadedQuery = nil
+                loadedAt = nil
+                expandedID = nil
+                pages = [:]
+                nextCursor = nil
+            case .refreshRequested(.pullRequests):
+                Task { await self.refresh() }
+            default:
+                break
+            }
         }
     }
 

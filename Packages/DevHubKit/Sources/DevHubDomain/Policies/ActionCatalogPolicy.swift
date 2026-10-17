@@ -35,6 +35,9 @@ package enum ActionCatalogPolicy {
         if let kind = condition.kind, kind != facts.kind {
             return false
         }
+        if let host = condition.host, host != facts.hostKind {
+            return false
+        }
         return true
     }
 
@@ -49,6 +52,6 @@ package enum ActionCatalogPolicy {
         let placed = resolved.actions.filter { action in
             action.config.effectivePlacements.contains(.homeQuickActions) && isVisible(action.config, facts: facts)
         }
-        return BuiltinAction.allCases.map(CatalogAction.builtin) + placed.map(CatalogAction.config)
+        return BuiltinAction.homeDefaults.map(CatalogAction.builtin) + placed.map(CatalogAction.config)
     }
 }

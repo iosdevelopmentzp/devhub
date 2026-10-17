@@ -17,6 +17,7 @@ final class ConfigActionsStore {
     @ObservationIgnored let session: ProjectSession
     @ObservationIgnored let checkout: any CheckoutContext
     @ObservationIgnored let worktrees: any WorktreeLookup
+    @ObservationIgnored let codeHosts: any CodeHostLookup
     @ObservationIgnored let build: any BuildLookup
     @ObservationIgnored let workspace: WorkspaceActions
     @ObservationIgnored let toaster: Toaster
@@ -34,6 +35,7 @@ final class ConfigActionsStore {
         session: ProjectSession,
         checkout: any CheckoutContext,
         worktrees: any WorktreeLookup,
+        codeHosts: any CodeHostLookup,
         build: any BuildLookup,
         workspace: WorkspaceActions,
         toaster: Toaster,
@@ -49,6 +51,7 @@ final class ConfigActionsStore {
         self.session = session
         self.checkout = checkout
         self.worktrees = worktrees
+        self.codeHosts = codeHosts
         self.build = build
         self.workspace = workspace
         self.toaster = toaster
@@ -161,7 +164,8 @@ final class ConfigActionsStore {
             isGitClean: checkout.currentBranch == nil ? worktrees.mainWorktree.map { $0.changedFiles == 0 } : checkout.isMainCheckoutClean,
             isTargetBooted: build.target?.state == .booted,
             installedTools: Set(config.resolved.actions.compactMap(\.config.when?.tool).filter(tools.isInstalled)),
-            kind: effective.kind
+            kind: effective.kind,
+            hostKind: codeHosts.kind
         )
     }
 

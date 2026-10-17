@@ -16,6 +16,7 @@ struct PullRequestDetailActions {
     let reply: (_ threadID: PullRequestThread.ID, _ body: String) -> Void
     let cancelPipeline: () -> Void
     let fixThreads: () -> Void
+    let runConfigAction: (_ actionID: ConfigActionItemModel.ID) -> Void
     let openWindow: (() -> Void)?
     let retry: () -> Void
 
@@ -34,6 +35,7 @@ struct PullRequestDetailActions {
         reply: { _, _ in },
         cancelPipeline: {},
         fixThreads: {},
+        runConfigAction: { _ in },
         openWindow: {},
         retry: {}
     )
@@ -54,6 +56,7 @@ struct PullRequestDetailActions {
             reply: reply,
             cancelPipeline: cancelPipeline,
             fixThreads: fixThreads,
+            runConfigAction: runConfigAction,
             openWindow: nil,
             retry: retry
         )
@@ -67,6 +70,7 @@ extension PullRequestDetailActions {
         detailStore: PullRequestDetailStore,
         pullRequests: PullRequestsStore,
         appActions: AppActions,
+        configActions: ConfigActionsStore,
         openWindow: ((PullRequestSummary) -> Void)?
     ) -> PullRequestDetailActions {
         let id = summary.id
@@ -85,6 +89,13 @@ extension PullRequestDetailActions {
             reply: { detailStore.reply($1, to: $0, of: id) },
             cancelPipeline: { pullRequests.perform(.cancelPipeline, on: id) },
             fixThreads: { appActions.fixThreadsWithClaude(summary) },
+            runConfigAction: { actionID in
+                configActions.request(
+                    id: actionID,
+                    item: ActionItemContext(branch: summary.sourceBranch, rowID: String(id), pullRequestNumber: id, pullRequestURL: summary.webURL),
+                    slot: Placement.pullRequestsRow.slot(for: String(id))
+                )
+            },
             openWindow: openWindow.map { open in { open(summary) } },
             retry: { Task { await detailStore.reload(id) } }
         )

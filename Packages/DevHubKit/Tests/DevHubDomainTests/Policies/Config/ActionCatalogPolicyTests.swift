@@ -2,7 +2,7 @@ import Testing
 @testable import DevHubDomain
 
 @Suite struct ActionCatalogPolicyTests {
-    private let facts = ActionConditionFacts(isGitClean: true, isTargetBooted: false, installedTools: ["gh"], kind: .xcode)
+    private let facts = ActionConditionFacts(isGitClean: true, isTargetBooted: false, installedTools: ["gh"], kind: .xcode, hostKind: nil)
 
     private func resolved(_ actions: [ActionConfig], quickActions: [String]? = nil) -> ResolvedConfig {
         let origin = ActionOrigin(layer: .project, directory: "/p/.devhub", fileName: "actions/a.json", isHeaderScript: false, isExecutable: true)
@@ -45,7 +45,7 @@ import Testing
     }
 
     @Test func anUnknownGitStateHidesGitConditions() {
-        let unknown = ActionConditionFacts(isGitClean: nil, isTargetBooted: false, installedTools: [], kind: nil)
+        let unknown = ActionConditionFacts(isGitClean: nil, isTargetBooted: false, installedTools: [], kind: nil, hostKind: nil)
 
         #expect(ActionCatalogPolicy.isVisible(action("x", when: ActionCondition(git: "clean")), facts: unknown) == false)
     }
@@ -61,7 +61,8 @@ import Testing
 
         let ids = ActionCatalogPolicy.actions(for: .homeQuickActions, resolved: config, facts: facts).map(\.id)
 
-        #expect(ids == BuiltinAction.allCases.map(\.id) + ["pinned"])
+        #expect(ids == BuiltinAction.homeDefaults.map(\.id) + ["pinned"])
+        #expect(ids.contains("builtin.pullRequests") == false)
     }
 
     @Test func aBlockedHeaderScriptStaysOnHome() {
@@ -81,5 +82,13 @@ import Testing
         #expect(ActionCatalogPolicy.action(id: "builtin.buildRun", resolved: config) == .builtin(.buildRun))
         #expect(ActionCatalogPolicy.action(id: "a", resolved: config)?.id == "a")
         #expect(ActionCatalogPolicy.action(id: "none", resolved: config) == nil)
+    }
+
+    @Test func aHostConditionNeedsThatHost() {
+        let gitHub = ActionConditionFacts(isGitClean: true, isTargetBooted: false, installedTools: [], kind: .xcode, hostKind: .github)
+        let onlyGitHub = action("x", when: ActionCondition(host: .github))
+
+        #expect(ActionCatalogPolicy.isVisible(onlyGitHub, facts: gitHub))
+        #expect(ActionCatalogPolicy.isVisible(onlyGitHub, facts: facts) == false)
     }
 }

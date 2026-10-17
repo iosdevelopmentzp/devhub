@@ -39,6 +39,7 @@ struct PullRequestRowModel: Identifiable, Equatable {
     var removeSourceBranchByDefault: Bool
     var isBusy: Bool
     var isExpanded: Bool
+    var configActions: [ConfigActionItemModel]
 
     var hasTags: Bool {
         ticket != nil || pipelineTag != nil || tags.isEmpty == false || labelTags.isEmpty == false
@@ -83,6 +84,7 @@ struct PullRequestRowModel: Identifiable, Equatable {
         squashByDefault: true,
         removeSourceBranchByDefault: true,
         isBusy: false,
-        isExpanded: false
+        isExpanded: false,
+        configActions: [.preview]
     )
 }

@@ -96,4 +96,13 @@ import DevHubTestSupport
         #expect(store.reviewCount == 0)
         try await waitUntil { harness.spies.codeHost.calls.count == 2 }
     }
+
+    @Test func aConfigActionCanAskForARefresh() async throws {
+        script([PullRequestSummaryFixture.open])
+        await store.refresh()
+
+        harness.events.post(.refreshRequested(.pullRequests))
+
+        try await waitUntil { harness.spies.codeHost.calls.count == 2 }
+    }
 }

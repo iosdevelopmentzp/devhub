@@ -13,6 +13,7 @@ struct PullRequestActionBar: View {
     let onAction: (PullRequestActionModel.Kind) -> Void
     let onMerge: (_ kind: PullRequestActionModel.Kind, _ squash: Bool, _ removeSourceBranch: Bool) -> Void
     let onFixThreads: () -> Void
+    let onConfigAction: (ConfigActionItemModel.ID) -> Void
 
     @State private var confirmingMerge: PullRequestActionModel.Kind?
 
@@ -27,7 +28,7 @@ struct PullRequestActionBar: View {
                     .disabled(model.isBusy)
                 Spacer(minLength: 0)
                 OverflowMenu {
-                    PullRequestMenuItems(model: model, actions: model.actions, onPerform: perform, onFixThreads: onFixThreads)
+                    PullRequestMenuItems(model: model, actions: model.actions, onPerform: perform, onFixThreads: onFixThreads, onConfigAction: onConfigAction)
                 }
             }
             .controlSize(.regular)
@@ -80,7 +81,7 @@ struct PullRequestActionBar: View {
 }
 
 #Preview {
-    PullRequestActionBar(model: .preview, isPickingLaunch: false, onRequestLaunch: {}, onCancelLaunch: {}, onAction: { _ in }, onMerge: { _, _, _ in }, onFixThreads: {})
+    PullRequestActionBar(model: .preview, isPickingLaunch: false, onRequestLaunch: {}, onCancelLaunch: {}, onAction: { _ in }, onMerge: { _, _, _ in }, onFixThreads: {}, onConfigAction: { _ in })
         .previewEnvironment()
         .padding()
         .frame(width: 560)

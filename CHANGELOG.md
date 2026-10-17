@@ -7,6 +7,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Config actions in pull request rows: the `pullRequests.row` placement puts an action into the menu of each open request, with `DEVHUB_PR_NUMBER`, `DEVHUB_PR_URL` and `DEVHUB_BRANCH`. `refresh: ["pullRequests"]` reads the requests again after an action, and `when: {"host": "github"}` shows an action only for that code host.
+- `builtin.pullRequests` in `home.quickActions` opens the pull request tab.
 - `git.pullRequests` in `.devhub/project.json`: the order of the target branches, the description template, the days until the `stale` tag and the defaults of the new request form. Without a template setting, GitHub projects read `.github/pull_request_template.md`.
 - `ai.reviewCommand` in `.devhub/project.json` sets the command that "Fix threads with AI" runs (default `claude "$(cat {prompt})"`).
 - Pull requests from GitHub: when the remote is on `github.com` (or `git.host.kind` is `github`), the merge request tab and the Git status line read pull requests through `gh`: the four scopes, the state filter, checks, review threads, files with their diff, labels. Approve, take back an approval, draft and ready, update branch, merge, auto-merge, re-run and cancel a check run, create, reply and resolve go through `gh` as well.
@@ -19,6 +21,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- "Fix Threads with Claude" is "Fix Threads with AI": it runs `ai.reviewCommand`.
 - The tab, the Git header, branch rows, Home and Settings use the words of the code host: "Pull Requests", `#12`, "checks" and "Open in GitHub" for GitHub; "Merge Requests", `!12`, "pipeline" and "Open in GitLab" for GitLab. On GitHub the rebase action is "Update Branch from <target>" and the retry action is "Re-run Failed Checks".
 - "Revoke Approval" and "Merge When Checks Pass" are hidden when the host does not allow them for you (on GitHub: without write access, or when the repository does not allow auto-merge).
 - The toolbar of the pull request tab moves its menus to a second line when the panel is narrow, so the count and the refresh button stay visible.

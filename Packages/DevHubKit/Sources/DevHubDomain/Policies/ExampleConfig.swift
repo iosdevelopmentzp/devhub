@@ -31,6 +31,11 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
       "include": ["Config/Local.xcconfig"],
       "bootstrap": "Scripts/bootstrap.sh",
       "bootstrapMarker": "Pods"
+    },
+    "pullRequests": {
+      "targets": ["main", "release"],
+      "staleDays": 10,
+      "defaults": { "draft": true, "deleteSourceBranch": true, "squash": false }
     }
   },
   "launch": {
@@ -81,6 +86,18 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
     "when": { "git": "dirty" }
   }
 ]
+"""#, isExecutable: false),
+        ExampleFile(path: "actions/open-pr-files.json", text: #"""
+{
+  "id": "open-pr-files",
+  "title": "Open Changed Files",
+  "subtitle": "The files page of this pull request on GitHub",
+  "icon": "doc.text.magnifyingglass",
+  "tint": "indigo",
+  "placements": ["pullRequests.row"],
+  "run": { "open": "{pr_url}/files" },
+  "when": { "host": "github" }
+}
 """#, isExecutable: false),
         ExampleFile(path: "scripts/clean-derived-data.sh", text: #"""
 #!/bin/zsh

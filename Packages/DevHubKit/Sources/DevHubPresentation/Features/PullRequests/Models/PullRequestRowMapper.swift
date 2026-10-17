@@ -4,7 +4,7 @@ import DevHubUI
 
 enum PullRequestRowMapper {
 
-    static func model(for request: PullRequestSummary, context: PullRequestRowContext, local: PullRequestLocalState, isBusy: Bool, isExpanded: Bool) -> PullRequestRowModel {
+    static func model(for request: PullRequestSummary, context: PullRequestRowContext, local: PullRequestLocalState, isBusy: Bool, isExpanded: Bool, configActions: [ConfigActionItemModel]) -> PullRequestRowModel {
         let username = context.username
         let words = context.words
         let isOpen = request.state == .opened
@@ -44,7 +44,8 @@ enum PullRequestRowMapper {
             squashByDefault: request.squashOnMerge,
             removeSourceBranchByDefault: request.removesSourceBranch ?? true,
             isBusy: isBusy,
-            isExpanded: isExpanded
+            isExpanded: isExpanded,
+            configActions: request.state == .opened ? configActions : []
         )
     }
 

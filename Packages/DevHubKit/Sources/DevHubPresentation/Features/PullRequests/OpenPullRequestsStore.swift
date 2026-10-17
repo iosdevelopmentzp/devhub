@@ -39,7 +39,7 @@ final class OpenPullRequestsStore {
                 loadedAt = nil
                 hasReportedCap = false
                 Task { await self.refresh() }
-            case .pullRequestsChanged:
+            case .pullRequestsChanged, .refreshRequested(.pullRequests):
                 Task { await self.refresh() }
             default:
                 break

@@ -19,6 +19,8 @@ package enum ActionContextPolicy {
         context.configDir = inputs.configDir
         context.rowID = inputs.item.rowID ?? ""
         context.version = inputs.version
+        context.pullRequestNumber = inputs.item.pullRequestNumber.map(String.init) ?? ""
+        context.pullRequestURL = inputs.item.pullRequestURL?.absoluteString ?? ""
         context.inputs = inputs.inputs
         return context
     }

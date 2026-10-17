@@ -16,6 +16,11 @@
       "include": ["Config/Local.xcconfig"],
       "bootstrap": "Scripts/bootstrap.sh",
       "bootstrapMarker": "Pods"
+    },
+    "pullRequests": {
+      "targets": ["main", "release"],
+      "staleDays": 10,
+      "defaults": { "draft": true, "deleteSourceBranch": true, "squash": false }
     }
   },
   "launch": {

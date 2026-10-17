@@ -9,6 +9,7 @@ struct PullRequestWindowView: View {
     @Environment(GitStore.self) private var git
     @Environment(WorktreesStore.self) private var worktrees
     @Environment(SettingsStore.self) private var settings
+    @Environment(ConfigActionsStore.self) private var configActions
     @Environment(\.codeHostWords) private var words
 
     let summary: PullRequestSummary
@@ -24,13 +25,14 @@ struct PullRequestWindowView: View {
                         context: PullRequestRowContext(username: pullRequests.username, scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate), words: words, staleDays: git.gitSettings.pullRequests.staleDays),
                         local: PullRequestLocalStateMapper.state(for: summary.sourceBranch, checkout: git, worktrees: worktrees),
                         isBusy: pullRequests.isBusy(summary.id),
-                        isExpanded: true
+                        isExpanded: true,
+                        configActions: []
                     ),
                     details: details,
                     isSelected: false,
                     isNarrow: false,
                     isPickingLaunch: isPickingLaunch,
-                    detailActions: PullRequestDetailActions.live(for: summary, detailStore: detailStore, pullRequests: pullRequests, appActions: appActions, openWindow: nil),
+                    detailActions: PullRequestDetailActions.live(for: summary, detailStore: detailStore, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: nil),
                     onToggle: {},
                     onRequestLaunch: { isPickingLaunch = true },
                     onCancelLaunch: { isPickingLaunch = false },

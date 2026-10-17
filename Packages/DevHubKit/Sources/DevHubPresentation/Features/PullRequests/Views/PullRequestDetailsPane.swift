@@ -54,7 +54,8 @@ struct PullRequestDetailsPane: View {
                 onCancelLaunch: onCancelLaunch,
                 onAction: onAction,
                 onMerge: onMerge,
-                onFixThreads: detailActions.fixThreads
+                onFixThreads: detailActions.fixThreads,
+                onConfigAction: detailActions.runConfigAction
             )
         }
         .padding(.horizontal, 14)

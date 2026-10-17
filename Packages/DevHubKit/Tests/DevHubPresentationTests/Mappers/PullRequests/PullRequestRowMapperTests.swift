@@ -279,6 +279,14 @@ import DevHubTestSupport
         #expect(map(PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened)).ticket?.key == "ABC-5")
     }
 
+    @Test func configActionsReachOpenRowsOnly() {
+        let open = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened)
+        let merged = PullRequestSummaryFixture.request(iid: 8, source: "y", state: .merged)
+
+        #expect(map(open, configActions: [.preview]).configActions == [.preview])
+        #expect(map(merged, configActions: [.preview]).configActions.isEmpty)
+    }
+
     private func map(
         _ request: PullRequestSummary,
         username: String? = "me",
@@ -287,14 +295,16 @@ import DevHubTestSupport
         local: PullRequestLocalState = .none,
         isMainCheckoutClean: Bool = true,
         isBusy: Bool = false,
-        isExpanded: Bool = false
+        isExpanded: Bool = false,
+        configActions: [ConfigActionItemModel] = []
     ) -> PullRequestRowModel {
         PullRequestRowMapper.model(
             for: request,
             context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}"), words: .gitLab, staleDays: 14),
             local: local,
             isBusy: isBusy,
-            isExpanded: isExpanded
+            isExpanded: isExpanded,
+            configActions: configActions
         )
     }
 }

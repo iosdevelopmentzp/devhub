@@ -40,6 +40,7 @@ enum QuickActionTileMapper {
         case .copyBranch: "doc.on.doc.fill"
         case .repository: "globe"
         case .newPullRequest: "arrow.triangle.pull"
+        case .pullRequests: "arrow.triangle.merge"
         }
     }
 
@@ -53,6 +54,7 @@ enum QuickActionTileMapper {
         case .copyBranch: .teal
         case .repository: .purple
         case .newPullRequest: .pink
+        case .pullRequests: .blue
         }
     }
 
@@ -66,6 +68,7 @@ enum QuickActionTileMapper {
         case .copyBranch: ("Copy branch", branch ?? "No branch")
         case .repository: ("Repository", "Open the web page")
         case .newPullRequest: (words.requestSentence, "New request for this branch")
+        case .pullRequests: (words.requestsTitle, "Open the tab")
         }
     }
 }

@@ -9,6 +9,9 @@ package enum BuiltinAction: String, CaseIterable, Hashable, Sendable {
     case copyBranch
     case repository
     case newPullRequest
+    case pullRequests
+
+    package static let homeDefaults = allCases.filter { $0 != .pullRequests }
 
     package var id: String {
         "builtin.\(rawValue)"

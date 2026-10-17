@@ -141,6 +141,7 @@ package final class PresentationAssembly {
             session: session,
             checkout: git,
             worktrees: worktrees,
+            codeHosts: codeHostRemote,
             build: build,
             workspace: workspace,
             toaster: toaster,

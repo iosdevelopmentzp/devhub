@@ -71,6 +71,8 @@ final class AppActions {
         case .newPullRequest:
             guard let branch else { return }
             openNewPullRequest(for: branch)
+        case .pullRequests:
+            navigator.show(.pullRequests)
         }
     }
 
@@ -206,7 +208,7 @@ final class AppActions {
             guard let self else { return }
             guard let promptPath = await pullRequestDetails.writeReviewPrompt(for: summary) else { return }
             guard let path = await checkoutPath(creatingWorktreeFor: summary.sourceBranch) else { return }
-            workspace.runInTerminal(ReviewPromptBuilder.command(promptPath: promptPath, template: git.gitSettings.pullRequests.reviewCommand), at: path, title: "Started Claude on the threads of \(pullRequests.words.reference(summary.iid))")
+            workspace.runInTerminal(ReviewPromptBuilder.command(promptPath: promptPath, template: git.gitSettings.pullRequests.reviewCommand), at: path, title: "Started the AI command on the threads of \(pullRequests.words.reference(summary.iid))")
         }
     }
 

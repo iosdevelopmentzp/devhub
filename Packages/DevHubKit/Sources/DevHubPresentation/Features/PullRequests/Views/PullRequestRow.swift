@@ -41,7 +41,8 @@ struct PullRequestRow: View {
                     onCancelLaunch: onCancelLaunch,
                     onAction: onAction,
                     onMerge: onMerge,
-                    onFixThreads: detailActions.fixThreads
+                    onFixThreads: detailActions.fixThreads,
+                    onConfigAction: detailActions.runConfigAction
                 )
                 .padding(.leading, 26)
             } else {
@@ -232,7 +233,7 @@ struct PullRequestRow: View {
             }
             .disabled(model.webURL == nil)
             OverflowMenu {
-                PullRequestMenuItems(model: model, actions: model.actions, onPerform: perform, onFixThreads: detailActions.fixThreads)
+                PullRequestMenuItems(model: model, actions: model.actions, onPerform: perform, onFixThreads: detailActions.fixThreads, onConfigAction: detailActions.runConfigAction)
             }
         }
     }
@@ -265,7 +266,7 @@ struct PullRequestRow: View {
         Button("Create Worktree", systemImage: "plus.rectangle.on.folder") { appActions.createWorktree(branch: remoteBranch) }
             .disabled(model.canCreateWorktree == false)
         Divider()
-        PullRequestMenuItems(model: model, actions: model.actions, onPerform: perform, onFixThreads: detailActions.fixThreads)
+        PullRequestMenuItems(model: model, actions: model.actions, onPerform: perform, onFixThreads: detailActions.fixThreads, onConfigAction: detailActions.runConfigAction)
     }
 
     private var remoteBranch: String {

@@ -1,0 +1,10 @@
+{
+  "id": "open-pr-files",
+  "title": "Open Changed Files",
+  "subtitle": "The files page of this pull request on GitHub",
+  "icon": "doc.text.magnifyingglass",
+  "tint": "indigo",
+  "placements": ["pullRequests.row"],
+  "run": { "open": "{pr_url}/files" },
+  "when": { "host": "github" }
+}

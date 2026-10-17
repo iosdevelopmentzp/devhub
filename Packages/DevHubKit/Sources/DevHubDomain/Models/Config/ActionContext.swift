@@ -17,6 +17,8 @@ package struct ActionContext: Hashable, Sendable {
     package var configDir = ""
     package var rowID = ""
     package var version = ""
+    package var pullRequestNumber = ""
+    package var pullRequestURL = ""
     package var inputs: [String: String] = [:]
 
     package init() {}
@@ -38,7 +40,9 @@ package struct ActionContext: Hashable, Sendable {
             "WORKTREE_PATH": worktreePath,
             "CONFIG_DIR": configDir,
             "ROW_ID": rowID,
-            "VERSION": version
+            "VERSION": version,
+            "PR_NUMBER": pullRequestNumber,
+            "PR_URL": pullRequestURL
         ]
         for (key, value) in inputs {
             values["INPUT_" + Self.environmentKey(key)] = value

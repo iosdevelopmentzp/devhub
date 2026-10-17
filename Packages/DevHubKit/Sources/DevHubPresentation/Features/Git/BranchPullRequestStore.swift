@@ -22,11 +22,17 @@ final class BranchPullRequestStore {
         self.checkout = checkout
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
-            guard case .projectChanged = event else { return }
-            status = nil
-            error = nil
-            loadedBranch = nil
-            loadedAt = [:]
+            switch event {
+            case .projectChanged:
+                status = nil
+                error = nil
+                loadedBranch = nil
+                loadedAt = [:]
+            case .refreshRequested(.pullRequests):
+                Task { await self.refresh() }
+            default:
+                break
+            }
         }
     }
 

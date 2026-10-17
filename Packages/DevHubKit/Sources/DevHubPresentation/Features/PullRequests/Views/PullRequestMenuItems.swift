@@ -10,6 +10,7 @@ struct PullRequestMenuItems: View {
     let actions: [PullRequestActionModel]
     let onPerform: (PullRequestActionModel.Kind) -> Void
     let onFixThreads: () -> Void
+    let onConfigAction: (ConfigActionItemModel.ID) -> Void
 
     var body: some View {
         if model.canSwitchBranch {
@@ -30,7 +31,11 @@ struct PullRequestMenuItems: View {
         Button("Copy Link with Title", systemImage: "text.bubble") { toaster.copy(model.linkText, label: "Link with title") }
         Button("Copy Branch Name", systemImage: "doc.on.doc") { toaster.copy(model.sourceBranch) }
         if model.canFixThreads {
-            Button("Fix Threads with Claude…", systemImage: "sparkles", action: onFixThreads)
+            Button("Fix Threads with AI…", systemImage: "sparkles", action: onFixThreads)
+        }
+        if model.configActions.isEmpty == false {
+            Divider()
+            ConfigActionMenuItems(items: model.configActions, onRun: onConfigAction)
         }
     }
 }

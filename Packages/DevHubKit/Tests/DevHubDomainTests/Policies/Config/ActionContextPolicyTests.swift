@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import DevHubDomain
 
@@ -62,5 +63,16 @@ import Testing
         #expect(ActionContextPolicy.workingFolder("main", context: context, home: "/Users/alex") == "/repo")
         #expect(ActionContextPolicy.workingFolder("Tools/{branch}", context: context, home: "/Users/alex") == "/repo/Tools/main")
         #expect(ActionContextPolicy.workingFolder("~/tmp", context: context, home: "/Users/alex") == "/Users/alex/tmp")
+    }
+
+    @Test func aPullRequestRowFillsItsNumberAndLink() {
+        let item = ActionItemContext(branch: "feature/ABC-1", rowID: "7", pullRequestNumber: 7, pullRequestURL: URL(string: "https://github.com/example/app/pull/7"))
+
+        let context = ActionContextPolicy.make(inputs(item: item))
+
+        #expect(context.environment["DEVHUB_PR_NUMBER"] == "7")
+        #expect(context.environment["DEVHUB_PR_URL"] == "https://github.com/example/app/pull/7")
+        #expect(context.environment["DEVHUB_BRANCH"] == "feature/ABC-1")
+        #expect(ActionContextPolicy.make(inputs()).environment["DEVHUB_PR_NUMBER"] == "")
     }
 }

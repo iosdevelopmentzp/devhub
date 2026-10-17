@@ -60,6 +60,7 @@ final class StoreHarness {
         session: session,
         checkout: git,
         worktrees: worktrees,
+        codeHosts: codeHostRemote,
         build: build,
         workspace: workspace,
         toaster: toaster,
