@@ -46,7 +46,17 @@ package actor ShellRunner {
         cwd: String?,
         onLine: @escaping @Sendable (String) -> Void
     ) async throws -> Int32 {
-        let process = Self.makeProcess(executable, arguments, cwd: cwd, environment: [:])
+        try await stream(executable, arguments, cwd: cwd, environment: [:], onLine: onLine)
+    }
+
+    func stream(
+        _ executable: String,
+        _ arguments: [String],
+        cwd: String?,
+        environment: [String: String],
+        onLine: @escaping @Sendable (String) -> Void
+    ) async throws -> Int32 {
+        let process = Self.makeProcess(executable, arguments, cwd: cwd, environment: environment)
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe

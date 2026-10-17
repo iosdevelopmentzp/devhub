@@ -22,7 +22,10 @@ extension Ports {
             opener: MockWorkspaceOpener(),
             attacher: MockXcodeAttacher(),
             projectDetector: MockProjectDetector(),
-            reviewPrompts: MockReviewPromptRepository()
+            reviewPrompts: MockReviewPromptRepository(),
+            config: MockConfigRepository(),
+            scripts: MockScriptRunner(),
+            tools: MockToolLocator()
         )
     }
 }

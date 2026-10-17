@@ -48,11 +48,11 @@ Packages/DevHubKit/
   Sources/
     DevHubDomain/
       Models/ Values/ Repositories/ Policies/ UseCases/ Errors/
-      Assembly/                  Ports (the 18 ports), UseCases (the 16 use cases)
+      Assembly/                  Ports (the 21 ports), UseCases (the 16 use cases)
     DevHubData/
       Shell/                     ShellRunner, ShellResult, LineBatcher, CommandFormatter, ISO8601
       Persistence/               UserDefaultsKeyValueStore
-      Git/ (+ Parsers/) Simulators/ Build/ Claude/ Logs/ Network/ (+ MockServer/ MockSets/)
+      Git/ (+ Parsers/) Simulators/ Build/ Claude/ Logs/ Network/ (+ MockServer/ MockSets/) Config/
                                  live repositories, runners, parsers, private DTOs
       Workspace/                 NSWorkspace, Accessibility, Carbon (AppKit allowed here only), GlobalHotKey
       Assembly/                  Ports+Live
@@ -177,7 +177,7 @@ The UI rules are in `/ui-components`.
 
 | Piece | Module | What it does |
 |---|---|---|
-| `Ports` | Domain `Assembly/Ports.swift` | struct with the 18 ports |
+| `Ports` | Domain `Assembly/Ports.swift` | struct with the 21 ports |
 | `Ports.live(shell:)` | Data `Assembly/Ports+Live.swift` | builds every live repository once, passes file roots |
 | `Ports.mock()` | Mocks `Ports+Mock.swift` | builds every mock |
 | `UseCases(ports:)` | Domain `Assembly/UseCases.swift` | builds the 16 use cases |

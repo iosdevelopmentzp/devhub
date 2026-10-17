@@ -31,7 +31,10 @@ extension Ports {
             opener: ShellWorkspaceOpener(shell: shell),
             attacher: attacher,
             projectDetector: XcodeProjectDetector(),
-            reviewPrompts: FileReviewPromptRepository(root: home.appendingPathComponent(".devhub/prompts", isDirectory: true))
+            reviewPrompts: FileReviewPromptRepository(root: home.appendingPathComponent(".devhub/prompts", isDirectory: true)),
+            config: FileConfigRepository(home: home, pollInterval: .seconds(2)),
+            scripts: ShellScriptRunner(shell: shell),
+            tools: PathToolLocator()
         )
     }
 }

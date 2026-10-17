@@ -19,6 +19,9 @@ package struct Ports: Sendable {
     package let attacher: any XcodeAttaching
     package let projectDetector: any ProjectDetecting
     package let reviewPrompts: any ReviewPromptRepository
+    package let config: any ConfigRepository
+    package let scripts: any ScriptRunning
+    package let tools: any ToolLocating
 
     package init(
         usage: any ClaudeUsageRepository,
@@ -38,7 +41,10 @@ package struct Ports: Sendable {
         opener: any WorkspaceOpening,
         attacher: any XcodeAttaching,
         projectDetector: any ProjectDetecting,
-        reviewPrompts: any ReviewPromptRepository
+        reviewPrompts: any ReviewPromptRepository,
+        config: any ConfigRepository,
+        scripts: any ScriptRunning,
+        tools: any ToolLocating
     ) {
         self.usage = usage
         self.simulators = simulators
@@ -58,5 +64,8 @@ package struct Ports: Sendable {
         self.attacher = attacher
         self.projectDetector = projectDetector
         self.reviewPrompts = reviewPrompts
+        self.config = config
+        self.scripts = scripts
+        self.tools = tools
     }
 }

@@ -14,6 +14,9 @@ import Testing
         #expect(ports.simulators is SimctlSimulatorRepository)
         #expect(ports.mockServer is NWMockServerRepository)
         #expect(ports.mockSets is FileMockSetRepository)
+        #expect(ports.config is FileConfigRepository)
+        #expect(ports.scripts is ShellScriptRunner)
+        #expect(ports.tools is PathToolLocator)
         #expect(recorder.events.isEmpty)
     }
 }

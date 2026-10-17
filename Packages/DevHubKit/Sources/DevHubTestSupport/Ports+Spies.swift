@@ -21,7 +21,10 @@ package extension Ports {
             opener: spies.opener,
             attacher: spies.attacher,
             projectDetector: spies.projectDetector,
-            reviewPrompts: spies.reviewPrompts
+            reviewPrompts: spies.reviewPrompts,
+            config: spies.config,
+            scripts: spies.scripts,
+            tools: spies.tools
         )
         return (ports, spies)
     }

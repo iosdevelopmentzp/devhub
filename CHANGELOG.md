@@ -19,6 +19,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- New ports `ConfigRepository`, `ScriptRunning` and `ToolLocating` with live types (`FileConfigRepository` reads the three `.devhub/` layers and watches them, `ShellScriptRunner` streams a script with an optional timeout, `PathToolLocator`), mocks and spies. `ShellRunner.stream` takes an environment.
 - The `.devhub/` config models, the layer merge, the script header and directive parsers, the action catalog and context rules, and the example folder are now Domain types with tests (not yet wired to the screens). `Scripts/generate-example-config.sh` writes `ExampleConfig.swift` from `docs/examples/devhub/`.
 - `Scripts/check-anonymous.sh` checks the whole tree and the last commit message for names of the owner's projects (from `~/.devhub/anonymity-denylist.txt`, outside the repository) and for bundle IDs, plist suites and hosts that are not sample values. `Scripts/build.sh` runs it after `Scripts/check-layers.sh`.
 - `Scripts/test.sh`, `Scripts/check-layers.sh`, `docs/ARCHITECTURE.md`, `.claude/rules/*` and the skills `add-use-case`, `data-layer`, `testing` come from the package-based DevHub, with sample values renamed. New rule `.claude/rules/anonymity.md`.
