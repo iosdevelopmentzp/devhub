@@ -1,0 +1,37 @@
+import Foundation
+import DevHubDomain
+
+struct MockBuildRepository: BuildRepository {
+
+    func schemes(projectPath: String) async -> [String] {
+        ["ExampleApp", "ExampleApp Staging", "NotificationServiceExtension"]
+    }
+
+    func lastBuiltAppPath(projectPath: String, scheme: String, configuration: String) -> String? {
+        nil
+    }
+
+    func clean(_ request: BuildRequest, onEvent: @escaping @Sendable (BuildEvent) -> Void) async throws {
+        try await Task.sleep(for: .milliseconds(300))
+    }
+
+    func build(_ request: BuildRequest, onEvent: @escaping @Sendable (BuildEvent) -> Void) async throws -> [String] {
+        let steps = [
+            "Resolving packages",
+            "Compiling \(request.scheme)",
+            "Linking",
+            "Installing on \(request.simulatorName)",
+            "Launching"
+        ]
+        for (index, step) in steps.enumerated() {
+            onEvent(.step(step, progress: Double(index) / Double(steps.count)))
+            onEvent(.output(step))
+            try await Task.sleep(for: .milliseconds(650))
+        }
+        return []
+    }
+
+    func locateProduct(_ request: BuildRequest, hints: [String]) async throws -> BuildProduct {
+        BuildProduct(appPath: "/tmp/DerivedData/Build/Products/\(request.configuration)-iphonesimulator/\(request.scheme).app", bundleID: "com.example.app")
+    }
+}

@@ -1,0 +1,49 @@
+import DevHubDomain
+import DevHubUI
+import Foundation
+import Testing
+@testable import DevHubPresentation
+
+@Suite struct LocalBranchSectionsMapperTests {
+    @Test func branchesSplitIntoCheckedOutActiveAndMerged() {
+        let branches = [
+            branch("visited-active"),
+            branch("merged", merged: true),
+            branch("in-worktree", worktree: "/wt/a"),
+            branch("current"),
+            branch("gone", gone: true),
+            branch("older-active"),
+            branch("merged-in-worktree", merged: true, worktree: "/wt/b"),
+        ]
+
+        let sections = LocalBranchSectionsMapper.sections(for: branches, currentBranch: "current", rowModel: model)
+
+        #expect(sections.map(\.id) == [.checkedOut, .active, .merged])
+        #expect(sections.map(\.title) == ["Checked out", "Active", "Merged · safe to delete"])
+        #expect(sections.map(\.detail) == ["3", "2", "2"])
+        #expect(sections[0].rows.map(\.name) == ["current", "in-worktree", "merged-in-worktree"])
+        #expect(sections[1].rows.map(\.name) == ["visited-active", "older-active"])
+        #expect(sections[2].rows.map(\.name) == ["merged", "gone"])
+    }
+
+    @Test func emptySectionsHide() {
+        let sections = LocalBranchSectionsMapper.sections(for: [branch("a"), branch("b")], currentBranch: nil, rowModel: model)
+
+        #expect(sections.map(\.id) == [.active])
+    }
+
+    private func branch(_ name: String, merged: Bool = false, gone: Bool = false, worktree: String? = nil) -> GitBranch {
+        var branch = GitBranchFixture.feature
+        branch.name = name
+        branch.isMerged = merged
+        branch.isGone = gone
+        branch.worktreePath = worktree
+        return branch
+    }
+
+    private func model(_ branch: GitBranch) -> LocalBranchRowModel {
+        var model = LocalBranchRowModel.preview
+        model.name = branch.name
+        return model
+    }
+}

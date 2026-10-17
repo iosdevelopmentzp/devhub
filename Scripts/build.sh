@@ -1,16 +1,22 @@
 #!/bin/zsh
-set -o pipefail
-cd "${0:A:h}/.."
-CONFIGURATION="${1:-Debug}"
-Scripts/check-anonymous.sh || exit 1
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+CONFIG="${1:-Debug}"
+DERIVED="$ROOT/DerivedData"
+
+if [ "${SKIP_LAYER_CHECK:-0}" != "1" ]; then
+    "$ROOT/Scripts/check-layers.sh"
+fi
+"$ROOT/Scripts/check-anonymous.sh"
+
 xcodebuild \
-  -project DevHub.xcodeproj \
-  -scheme DevHub \
-  -configuration "$CONFIGURATION" \
-  -destination 'platform=macOS,arch=arm64' \
-  -derivedDataPath DerivedData \
-  -quiet \
-  build 2>&1 | grep -v -E 'IDERunDestination: Supported platforms|^$'
-STATUS=${pipestatus[1]}
-[[ $STATUS -eq 0 ]] || exit $STATUS
-echo "$PWD/DerivedData/Build/Products/$CONFIGURATION/DevHub.app"
+    -project "$ROOT/DevHub.xcodeproj" \
+    -scheme DevHub \
+    -configuration "$CONFIG" \
+    -destination 'platform=macOS,arch=arm64' \
+    -derivedDataPath "$DERIVED" \
+    -quiet \
+    build 2>&1 | { grep -v -E 'IDERunDestination: Supported platforms|^$' || true; }
+
+echo "$DERIVED/Build/Products/$CONFIG/DevHub.app"

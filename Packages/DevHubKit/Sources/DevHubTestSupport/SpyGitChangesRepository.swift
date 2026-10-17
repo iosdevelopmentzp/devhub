@@ -1,0 +1,89 @@
+import DevHubDomain
+import Foundation
+
+package final class SpyGitChangesRepository: GitChangesRepository, @unchecked Sendable {
+    package enum Call: Hashable {
+        case changes(path: String)
+        case diff(GitFileChange, path: String)
+        case branchCommits(base: String, path: String)
+        case commitFiles(hash: String, path: String)
+        case commitDiff(hash: String, file: GitCommitFile, path: String)
+        case reflog(path: String)
+    }
+
+    private let lock = NSLock()
+    private var _calls: [Call] = []
+    private var _changesResult: Result<[GitFileChange], any Error> = .success([])
+    private var _diffResult: Result<GitDiff, any Error> = .success(GitDiff(lines: [], droppedLines: 0, isBinary: false))
+    private var _branchCommitsResult: Result<[GitCommit], any Error> = .success([])
+    private var _commitFilesResult: Result<[GitCommitFile], any Error> = .success([])
+    private var _reflogResult: Result<[GitReflogEntry], any Error> = .success([])
+    private var _commitDiffResult: Result<GitDiff, any Error> = .success(GitDiff(lines: [], droppedLines: 0, isBinary: false))
+
+    package init() {}
+
+    package var calls: [Call] {
+        lock.withLock { _calls }
+    }
+
+    package var changesResult: Result<[GitFileChange], any Error> {
+        get { lock.withLock { _changesResult } }
+        set { lock.withLock { _changesResult = newValue } }
+    }
+
+    package var diffResult: Result<GitDiff, any Error> {
+        get { lock.withLock { _diffResult } }
+        set { lock.withLock { _diffResult = newValue } }
+    }
+
+    package var branchCommitsResult: Result<[GitCommit], any Error> {
+        get { lock.withLock { _branchCommitsResult } }
+        set { lock.withLock { _branchCommitsResult = newValue } }
+    }
+
+    package var commitFilesResult: Result<[GitCommitFile], any Error> {
+        get { lock.withLock { _commitFilesResult } }
+        set { lock.withLock { _commitFilesResult = newValue } }
+    }
+
+    package var commitDiffResult: Result<GitDiff, any Error> {
+        get { lock.withLock { _commitDiffResult } }
+        set { lock.withLock { _commitDiffResult = newValue } }
+    }
+
+    package var reflogResult: Result<[GitReflogEntry], any Error> {
+        get { lock.withLock { _reflogResult } }
+        set { lock.withLock { _reflogResult = newValue } }
+    }
+
+    package func reflog(in path: String) async throws -> [GitReflogEntry] {
+        try record(.reflog(path: path)) { try _reflogResult.get() }
+    }
+
+    package func changes(in path: String) async throws -> [GitFileChange] {
+        try record(.changes(path: path)) { try _changesResult.get() }
+    }
+
+    package func diff(for change: GitFileChange, in path: String) async throws -> GitDiff {
+        try record(.diff(change, path: path)) { try _diffResult.get() }
+    }
+
+    package func branchCommits(base: String, in path: String) async throws -> [GitCommit] {
+        try record(.branchCommits(base: base, path: path)) { try _branchCommitsResult.get() }
+    }
+
+    package func commitFiles(hash: String, in path: String) async throws -> [GitCommitFile] {
+        try record(.commitFiles(hash: hash, path: path)) { try _commitFilesResult.get() }
+    }
+
+    package func commitDiff(hash: String, file: GitCommitFile, in path: String) async throws -> GitDiff {
+        try record(.commitDiff(hash: hash, file: file, path: path)) { try _commitDiffResult.get() }
+    }
+
+    private func record<Value>(_ call: Call, _ value: () throws -> Value) rethrows -> Value {
+        try lock.withLock {
+            _calls.append(call)
+            return try value()
+        }
+    }
+}

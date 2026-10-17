@@ -3,7 +3,7 @@ set -o pipefail
 cd "${0:A:h}/.."
 
 DENYLIST="${DEVHUB_DENYLIST:-$HOME/.devhub/anonymity-denylist.txt}"
-ALLOWED_HOSTS='^(github\.com|[a-z0-9-]+\.github\.com|gitlab\.com|api\.anthropic\.com|([a-z0-9-]+\.)*example\.(com|org)|([a-z0-9-]+\.)*invalid|localhost|127\.0\.0\.1|keepachangelog\.com|semver\.org|www\.apple\.com|host)$'
+ALLOWED_HOSTS='^(github\.com|[a-z0-9-]+\.github\.com|gitlab\.com|api\.anthropic\.com|claude\.ai|([a-z0-9-]+\.)*example\.(com|org)|([a-z0-9-]+\.)*invalid|localhost|127\.0\.0\.1|keepachangelog\.com|semver\.org|www\.apple\.com|host)$'
 
 FILES=("${(@f)$(git ls-files -co --exclude-standard 2>/dev/null)}")
 if [[ ${#FILES} -eq 0 || -z "${FILES[1]}" ]]; then

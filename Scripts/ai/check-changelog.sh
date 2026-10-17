@@ -13,7 +13,7 @@ allow() {
 }
 
 block() {
-    MESSAGE="DevHub: files under DevHub/, Scripts/ or .github/ changed but CHANGELOG.md did not. Load the update-docs skill: add entries under [Unreleased], refresh docs/STATUS.md if the stage, decisions or next steps changed, then stop."
+    MESSAGE="DevHub: files under DevHub/, Packages/, Scripts/, .github/ or .claude/rules/ changed but CHANGELOG.md did not. Load the update-docs skill: add entries under [Unreleased], refresh docs/STATUS.md if the stage, decisions or next steps changed, then stop."
     if [ "$MODE" = "--copilot" ]; then
         python3 -c 'import json, sys; print(json.dumps({"decision": "block", "reason": sys.argv[1]}))' "$MESSAGE"
         exit 0
@@ -29,7 +29,7 @@ fi
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || allow
 
 CHANGED="$({ git diff --name-only HEAD; git ls-files --others --exclude-standard; } | sort -u)"
-CODE_CHANGED="$(printf '%s\n' "$CHANGED" | grep -E '^(DevHub/|Scripts/|\.github/)' || true)"
+CODE_CHANGED="$(printf '%s\n' "$CHANGED" | grep -E '^(DevHub/|Packages/|Scripts/|\.github/|\.claude/rules/)' || true)"
 [ -z "$CODE_CHANGED" ] && allow
 
 if printf '%s\n' "$CHANGED" | grep -qx 'CHANGELOG.md'; then

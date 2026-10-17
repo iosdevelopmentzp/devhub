@@ -1,0 +1,249 @@
+import DevHubTestSupport
+import Testing
+@testable import DevHubDomain
+
+@Suite struct BuildAndRunUseCaseTests {
+    private let udid = BuildRequestFixture.udid
+    private let product = BuildRequestFixture.product
+
+    @Test func incrementalRunBootsBuildsInstallsAndLaunches() async {
+        let (ports, spies) = scriptedPorts()
+        let request = BuildRequestFixture.incremental
+
+        let result = await collect(useCase(ports).run(request))
+
+        #expect(result.error == nil)
+        #expect(result.events == [
+            "step: Booting iPhone 17",
+            "step: Building App",
+            "output: Compiling Login.swift",
+            "step: Locating app",
+            "output: App: /derived/App.app",
+            "step: Installing on iPhone 17",
+            "step: Launching com.example.app",
+        ])
+        #expect(spies.simulators.calls == [
+            .boot(udid: udid),
+            .install(udid: udid, appPath: product.appPath),
+            .openInSimulatorApp(udid: udid),
+            .launch(udid: udid, bundleID: product.bundleID, waitForDebugger: false, environment: [:]),
+        ])
+        #expect(spies.build.calls == [.build(request), .locateProduct(request, hints: ["/hint/App.app"])])
+        #expect(spies.identity.calls.isEmpty)
+        #expect(spies.attacher.calls.isEmpty)
+    }
+
+    @Test func bootsTheSimulatorBeforeAnythingElseWhateverItsState() async {
+        let (ports, spies) = scriptedPorts()
+
+        let result = await collect(useCase(ports).run(BuildRequestFixture.incremental))
+
+        #expect(result.events.first == "step: Booting iPhone 17")
+        #expect(spies.simulators.calls.first == .boot(udid: udid))
+    }
+
+    @Test func fullRunCleansReinstallsSetsIdentityAndAttaches() async {
+        let (ports, spies) = scriptedPorts()
+        spies.identity.launchResult = .success(77)
+        var request = BuildRequestFixture.incremental
+        request.incremental = false
+        request.cleanInstall = true
+        request.attachDebugger = true
+        request.identity = BuildRequestFixture.identity(deviceID: "QA-DEVICE", environment: "qa")
+
+        let result = await collect(useCase(ports).run(request))
+
+        #expect(result.error == nil)
+        #expect(result.events == [
+            "step: Booting iPhone 17",
+            "step: Cleaning",
+            "output: Removing build folder",
+            "step: Building App",
+            "output: Compiling Login.swift",
+            "step: Locating app",
+            "output: App: /derived/App.app",
+            "step: Clean install: deleting the app and resetting the simulator keychain",
+            "step: Installing on iPhone 17",
+            "step: Setting environment qa",
+            "step: Launching com.example.app · device ID QA-DEVICE",
+            "output: Waiting for debugger, pid 77",
+            "step: Attaching Xcode to pid 77",
+        ])
+        #expect(spies.build.calls == [.clean(request), .build(request), .locateProduct(request, hints: ["/hint/App.app"])])
+        #expect(spies.simulators.calls == [
+            .boot(udid: udid),
+            .uninstallQuietly(udid: udid, bundleID: product.bundleID),
+            .resetKeychain(udid: udid),
+            .install(udid: udid, appPath: product.appPath),
+        ])
+        #expect(spies.identity.calls == [
+            .setEnvironment("qa", udid: udid, config: .example),
+            .launch(udid: udid, config: .example, deviceID: "QA-DEVICE", waitForDebugger: true, environment: [:]),
+        ])
+        #expect(spies.attacher.calls == [.attach(pid: 77, simulatorUDID: udid, projectPath: "/repo")])
+    }
+
+    @Test func cleanBuildCleansBeforeBuilding() async {
+        let (ports, spies) = scriptedPorts()
+        var request = BuildRequestFixture.incremental
+        request.incremental = false
+
+        let result = await collect(useCase(ports).run(request))
+
+        #expect(Array(result.events.prefix(4)) == ["step: Booting iPhone 17", "step: Cleaning", "output: Removing build folder", "step: Building App"])
+        #expect(spies.build.calls == [.clean(request), .build(request), .locateProduct(request, hints: ["/hint/App.app"])])
+    }
+
+    @Test func cleanInstallDeletesTheAppAndKeychainBeforeInstalling() async {
+        let (ports, spies) = scriptedPorts()
+        var request = BuildRequestFixture.incremental
+        request.cleanInstall = true
+
+        _ = await collect(useCase(ports).run(request))
+
+        #expect(spies.simulators.calls == [
+            .boot(udid: udid),
+            .uninstallQuietly(udid: udid, bundleID: product.bundleID),
+            .resetKeychain(udid: udid),
+            .install(udid: udid, appPath: product.appPath),
+            .openInSimulatorApp(udid: udid),
+            .launch(udid: udid, bundleID: product.bundleID, waitForDebugger: false, environment: [:]),
+        ])
+    }
+
+    @Test func identityWithoutEnvironmentOrDeviceIDOnlyLaunches() async {
+        let (ports, spies) = scriptedPorts()
+        var request = BuildRequestFixture.incremental
+        request.identity = BuildRequestFixture.identity(deviceID: nil, environment: nil)
+
+        let result = await collect(useCase(ports).run(request))
+
+        #expect(result.events.last == "step: Launching com.example.app")
+        #expect(result.events.contains { $0.hasPrefix("step: Setting environment") } == false)
+        #expect(spies.identity.calls == [.launch(udid: udid, config: .example, deviceID: nil, waitForDebugger: false, environment: [:])])
+        #expect(spies.simulators.calls.contains(.openInSimulatorApp(udid: udid)) == false)
+    }
+
+    @Test func attachWithoutIdentityLaunchesWaitingForTheDebugger() async {
+        let (ports, spies) = scriptedPorts()
+        spies.simulators.launchResult = .success(55)
+        var request = BuildRequestFixture.incremental
+        request.attachDebugger = true
+
+        let result = await collect(useCase(ports).run(request))
+
+        #expect(result.error == nil)
+        #expect(Array(result.events.suffix(3)) == [
+            "step: Launching com.example.app",
+            "output: Waiting for debugger, pid 55",
+            "step: Attaching Xcode to pid 55",
+        ])
+        #expect(spies.simulators.calls.last == .launch(udid: udid, bundleID: product.bundleID, waitForDebugger: true, environment: [:]))
+        #expect(spies.attacher.calls == [.attach(pid: 55, simulatorUDID: udid, projectPath: "/repo")])
+    }
+
+    @Test func attachWithoutAProcessIDFails() async {
+        let (ports, spies) = scriptedPorts()
+        spies.simulators.launchResult = .success(nil)
+        var request = BuildRequestFixture.incremental
+        request.attachDebugger = true
+
+        let result = await collect(useCase(ports).run(request))
+
+        guard case .failed = result.error as? BuildError else {
+            Issue.record("Expected BuildError.failed, got \(String(describing: result.error))")
+            return
+        }
+        #expect(result.events.last == "step: Launching com.example.app")
+        #expect(spies.attacher.calls.isEmpty)
+    }
+
+    @Test func failedBootStopsTheRun() async {
+        let (ports, spies) = scriptedPorts()
+        spies.simulators.bootError = SimulatorError.command("Unable to boot")
+
+        let result = await collect(useCase(ports).run(BuildRequestFixture.incremental))
+
+        #expect(result.error is SimulatorError)
+        #expect(result.events == ["step: Booting iPhone 17"])
+        #expect(spies.build.calls.isEmpty)
+    }
+
+    @Test func failedBuildStopsBeforeLocatingTheApp() async {
+        let (ports, spies) = scriptedPorts()
+        spies.build.buildError = BuildError.failed("2 errors")
+        let request = BuildRequestFixture.incremental
+
+        let result = await collect(useCase(ports).run(request))
+
+        #expect(result.error is BuildError)
+        #expect(result.events == ["step: Booting iPhone 17", "step: Building App", "output: Compiling Login.swift"])
+        #expect(spies.build.calls == [.build(request)])
+        #expect(spies.simulators.calls == [.boot(udid: udid)])
+    }
+
+    @MainActor
+    @Test func cancellingTheConsumerStopsThePipeline() async throws {
+        let (ports, spies) = scriptedPorts()
+        let simulators = GatedSimulatorRepository()
+        let gated = BuildAndRunUseCase(build: ports.build, simulators: simulators, identity: ports.identity, attacher: ports.attacher, mockServer: ports.mockServer)
+        let received = CallbackRecorder<String>()
+
+        let consumer = Task {
+            for try await event in gated.run(BuildRequestFixture.incremental) {
+                received.append(describe(event))
+            }
+        }
+        try await waitUntil { received.values.isEmpty == false && simulators.calls.contains("boot") }
+        consumer.cancel()
+        try await waitUntil { simulators.calls.contains("boot returned") }
+        _ = await consumer.result
+
+        #expect(received.values == ["step: Booting iPhone 17"])
+        #expect(simulators.calls == ["boot", "boot returned"])
+        #expect(spies.build.calls.isEmpty)
+        #expect(spies.identity.calls.isEmpty)
+    }
+
+    @Test func runningMockServerKeepsTheStubURLOnTheLaunch() async {
+        let (ports, spies) = scriptedPorts()
+        spies.mockServer.ports = [udid: 52001]
+
+        let result = await collect(useCase(ports).run(BuildRequestFixture.incremental))
+
+        #expect(result.events.contains("output: Mock server on: http://127.0.0.1:52001"))
+        #expect(spies.simulators.calls.last == .launch(udid: udid, bundleID: product.bundleID, waitForDebugger: false, environment: ["DEVHUB_BASE_URL": "http://127.0.0.1:52001"]))
+    }
+
+    private func scriptedPorts() -> (ports: Ports, spies: PortSpies) {
+        let (ports, spies) = Ports.spies()
+        spies.build.cleanEvents = [.output("Removing build folder")]
+        spies.build.buildEvents = [.output("Compiling Login.swift")]
+        spies.build.buildHints = ["/hint/App.app"]
+        spies.build.locateProductResult = .success(BuildRequestFixture.product)
+        return (ports, spies)
+    }
+
+    private func useCase(_ ports: Ports) -> BuildAndRunUseCase {
+        BuildAndRunUseCase(build: ports.build, simulators: ports.simulators, identity: ports.identity, attacher: ports.attacher, mockServer: ports.mockServer)
+    }
+}
+
+private func describe(_ event: BuildEvent) -> String {
+    switch event {
+    case .step(let title, _): "step: \(title)"
+    case .output(let line): "output: \(line)"
+    }
+}
+
+private func collect(_ stream: AsyncThrowingStream<BuildEvent, Error>) async -> (events: [String], error: (any Error)?) {
+    var events: [String] = []
+    do {
+        for try await event in stream {
+            events.append(describe(event))
+        }
+        return (events, nil)
+    } catch {
+        return (events, error)
+    }
+}

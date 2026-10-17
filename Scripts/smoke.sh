@@ -1,7 +1,7 @@
 #!/bin/zsh
 cd "${0:A:h}/.."
 APP="${1:-$PWD/DerivedData/Build/Products/Debug/DevHub.app}"
-pkill -x DevHub 2>/dev/null
+pkill -f "^$APP/Contents/MacOS/DevHub" 2>/dev/null
 "$APP/Contents/MacOS/DevHub" >/dev/null 2>&1 &
 PID=$!
 sleep 3
