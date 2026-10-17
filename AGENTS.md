@@ -116,4 +116,4 @@ Documentation, UI text, hints, commit messages and the changelog use short sente
 - `build-and-run`: build scripts, smoke check, debug launch switches, common failures.
 - `update-docs`: end-of-session pass over changelog, status, ADR step log, this file and the skills.
 
-Skills not yet rewritten for the package (`add-feature`, `providers-and-shell`, `build-and-run`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`) still describe the first generic app in places. `docs/STATUS.md` lists what is stale; the milestone that touches the area updates the skill.
+Skills not yet rewritten for the package (`add-feature`, `providers-and-shell`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`) still describe the first generic app in places. `docs/STATUS.md` lists what is stale; the milestone that touches the area updates the skill.

@@ -595,3 +595,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `8d801fb` | M3 | `git.remote` everywhere: `GitCommand` cases carry the remote, `BranchName(_:remote:)`, policies and use cases take it, `GitRepository.state(settings:)` and `webURL(remote:)`, `RemoteBranchParser`, `GitLogQuery`; hints say "the remote". |
 | `77b877e` | M3 | `git.commitPrefix` pattern and format for the ticket chip, commit prefix and merge request title (`TicketSettings`, `NSRegularExpression`), `git.ticketURL` with the Settings link as fallback, `git.protectedBranches` in the cleanup. |
 | `f9bcb7e` | M3 | "Open in Editor" on file rows through `EditorCommandPolicy` (`xed`, `code --goto`, `cursor --goto`, `zed`, fallback `open -a`). |
+| `7be0d81` | M3 | `DEVHUB_GIT_OPS` (`PresentationAssembly+DebugGitOps`), checked on a throwaway repository with a bare remote `upstream`; the base branch is left out of the merged set. |

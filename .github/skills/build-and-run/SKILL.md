@@ -1,6 +1,6 @@
 ---
 name: build-and-run
-description: "Build, smoke-run and install DevHub from the command line: Scripts/build.sh, run.sh, install.sh, make-launcher.sh, the headless launch check, the build settings that matter, and fixes for common xcodebuild and menu bar app problems."
+description: "Build, test, smoke-run and install DevHub from the command line: Scripts/build.sh, test.sh, run.sh, install.sh, smoke.sh, the layer and anonymity checks, headless snapshots, the DEVHUB_* debug launch switches, the build settings that matter, and fixes for common xcodebuild, swift test and menu bar app problems."
 ---
 
 # Build and Run
@@ -9,81 +9,54 @@ description: "Build, smoke-run and install DevHub from the command line: Scripts
 
 | Command | Result |
 |---|---|
-| `Scripts/build.sh` | Debug build into `DerivedData/`, prints the `.app` path. Use after every code change |
-| `Scripts/build.sh Release` | same with Release |
-| `Scripts/run.sh` | Debug build, quits a running DevHub, opens the new one. The icon appears in the menu bar |
+| `Scripts/build.sh [Debug\|Release]` | `check-layers.sh` (`layers: ok`), `check-anonymous.sh` (`anonymous: ok`), then `xcodebuild -quiet` into `DerivedData/`; prints the `.app` path. `SKIP_LAYER_CHECK=1` skips the layer check while you iterate |
+| `Scripts/test.sh [args]` | `swift test -q` on `Packages/DevHubKit`, one summary line. `--skip integration` skips the process suites, `--filter <Suite>` runs one suite |
+| `Scripts/smoke.sh` | starts the Debug build for 3 s and prints `alive` or `dead` |
+| `Scripts/run.sh` | Debug build, quits the running copy of this build, opens the new one |
 | `Scripts/install.sh` | Release build copied to `/Applications/DevHub.app` and opened |
-| `Scripts/make-launcher.sh` | creates `DevHub Launcher.app` (AppleScript, `osacompile`) in the repo root that runs `run.sh` and shows an alert on failure. Not committed |
-| `DevHub.command` | repo root; double-click in Finder runs `Scripts/run.sh` |
+| `Scripts/make-launcher.sh` | creates `DevHub Launcher.app` (AppleScript) in the repo root that runs `run.sh`. Not committed |
+| `Scripts/generate-example-config.sh` | rewrites `DevHubDomain/Policies/ExampleConfig.swift` from `docs/examples/devhub/` |
 
-`build.sh` runs `xcodebuild -quiet`, so a clean build prints only the app path. Any other output is an error or a warning and must be fixed before the next step.
+A clean build prints `layers: ok`, `anonymous: ok` and the app path. Any other line is an error or a warning: fix it before the next step. When a build fails, filter the output: `Scripts/build.sh 2>&1 | grep -E "error:" | sed 's#.*/Sources/##' | sort -u`.
 
-Script skeletons:
+The scripts stop only the build of this repository: `pkill -f "^$APP/Contents/MacOS/DevHub"`. Another app called DevHub on the same machine keeps running.
 
-```sh
-#!/bin/zsh
-set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CONFIG="${1:-Debug}"
-DERIVED="$ROOT/DerivedData"
-xcodebuild -project "$ROOT/DevHub.xcodeproj" -scheme DevHub -configuration "$CONFIG" \
-    -destination 'platform=macOS' -derivedDataPath "$DERIVED" -quiet build
-echo "$DERIVED/Build/Products/$CONFIG/DevHub.app"
-```
+## Before every commit
 
-```sh
-#!/bin/zsh
-set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP="$("$ROOT/Scripts/build.sh" Debug | tail -1)"
-pkill -x DevHub || true
-open "$APP"
-```
-
-## Headless smoke check
-
-Run it before every commit. The remote must always hold an app that builds and launches.
-
-```sh
-APP="$(Scripts/build.sh | tail -1)"
-"$APP/Contents/MacOS/DevHub" & PID=$!
-sleep 3
-kill -0 $PID && echo alive || echo crashed
-kill $PID
-```
+1. `Scripts/build.sh` is clean.
+2. `Scripts/test.sh` prints `Test run with … passed`.
+3. `Scripts/smoke.sh` prints `alive`.
+4. A change to a view: look at it with `Scripts/run.sh` or a headless snapshot.
 
 ## Look at the UI without a screen
 
 ```sh
-DEVHUB_OPEN_PANEL=1 DEVHUB_TAB=home DEVHUB_SNAPSHOT=/tmp/home.png DerivedData/Build/Products/Debug/DevHub.app/Contents/MacOS/DevHub &
-sleep 3.5; pkill -x DevHub
+APP=DerivedData/Build/Products/Debug/DevHub.app
+DEVHUB_PROJECT=/path/to/a/throwaway/repo DEVHUB_OPEN_PANEL=1 DEVHUB_TAB=git \
+DEVHUB_SNAPSHOT=/path/in/scratchpad/git.png DEVHUB_SNAPSHOT_DELAY=3 "$APP/Contents/MacOS/DevHub" &
+for i in $(seq 1 40); do [ -f /path/in/scratchpad/git.png ] && break; sleep 0.25; done
+pkill -f "^$PWD/$APP/Contents/MacOS/DevHub"
 ```
 
-Then read `/tmp/home.png`. `DEVHUB_TAB` is saved as the selected tab, so set it back to `home` afterwards. Filter build output with `Scripts/build.sh 2>&1 | grep -E 'error|warning'` when a build fails: the failure dump is very long.
+Then read the picture. Snapshot trap: SwiftUI does not redraw a panel that is covered by other windows, and `cacheDisplay` does not draw some controls (a prominent button looks empty). Check the result on the command line as well.
+
+Use a throwaway repository for anything that runs actions or git steps: `git init`, one commit, a bare remote (`git init --bare upstream.git`, `git remote add upstream …`, `git push -u upstream main`), and a `.devhub/project.json`.
 
 ## Debug launch switches
 
-Read at launch by `App/DebugLaunch.swift`, `DebugLaunch+Logs.swift` and `DebugGitOps.swift`. Switches with a panel (`DEVHUB_TAB`, `DEVHUB_GIT_SEGMENT`, `DEVHUB_SEARCH`, `DEVHUB_AI_*`, `DEVHUB_USAGE_EXPAND`, `DEVHUB_SHOW_OUTPUT`, `DEVHUB_SNAPSHOT`) need `DEVHUB_OPEN_PANEL=1`.
+Debug builds only. `DevHubComposition/Debug/DebugLaunch.swift` reads them and calls the `debug…` methods in `DevHubPresentation/Shared/PresentationAssembly+Debug.swift` and `+DebugGitOps.swift`. The switches after `DEVHUB_OPEN_PANEL` need `DEVHUB_OPEN_PANEL=1`.
 
 | Switch | Effect |
 |---|---|
-| `DEVHUB_OPEN_PANEL=1` | opens the panel at launch |
-| `DEVHUB_TAB=<id>` | selects a tab (saved, set it back to `home` afterwards) |
-| `DEVHUB_SNAPSHOT=<png path>` | writes a picture of the panel and quits |
-| `DEVHUB_SNAPSHOT_DELAY=<seconds>` | waits longer before the picture (default 1) |
 | `DEVHUB_PROJECT=<path>` | adds and selects a project (saved) |
-| `DEVHUB_RUN_ACTION=<id>[,<id>]` | runs actions with their default inputs |
-| `DEVHUB_REQUEST_ACTION=<id>` | opens the input prompt of a script row |
-| `DEVHUB_SEARCH=<text>` | fills the header search |
-| `DEVHUB_SHOW_OUTPUT=1` | opens the Output panel |
-| `DEVHUB_CREATE_EXAMPLE=1` | creates the `.devhub` example for the current project |
-| `DEVHUB_GIT_SEGMENT=local\|remote\|history\|changes` | selects a Git segment |
-| `DEVHUB_GIT_OPS=<op>,<op>` | runs git operations after 2 seconds (`fetch`, `pull`, `push`, `stash`, `switch:<b>`, `stage:<path>`, `commit:<msg>`, `wt-create:<b>`, `action:<id>`, `sleep:<s>` and more; the full list is in `App/DebugGitOps.swift`). It writes to the repository: use a throwaway one |
-| `DEVHUB_LOG_STREAM=<udid>[:<process>],...` | starts log streams |
-| `DEVHUB_LOG_REDACT_CHECK=1` | prints redaction samples to stderr |
-| `DEVHUB_AI_SCOPE=<scope>` | sets the AI scope: `project` or `all` |
-| `DEVHUB_AI_PROVIDER=<provider>` | sets the AI provider filter: `copilot`, `claude` or `both` |
-| `DEVHUB_USAGE_EXPAND=1` | opens the usage details in the strip |
+| `DEVHUB_RUN_ACTION=<id>[,<id>]` | runs config actions with their default inputs |
+| `DEVHUB_REQUEST_ACTION=<id>` | opens the input prompt of one action on Home |
+| `DEVHUB_GIT_OPS=<step>,<step>` | runs git and worktree steps and waits until the stores are idle after each one: `fetch`, `pull`, `push`, `forcepush`, `rebase`, `continueop`, `abortop`, `updatebase`, `stash:<msg>`, `popstash`, `switch:<b>`, `switchstash:<b>`, `update:<b>`, `delete-branch:<b>`, `checkout-remote:<remote/b>`, `select:<path>\|main`, `stage:<path>`, `unstage:<path>`, `discard:<path>`, `stageall`, `unstageall`, `commit:<msg>`, `commitpush:<msg>`, `amend:<msg>`, `action:<id>`, `wt-create:<b>`, `wt-delete:<b>`, `wt-prune`, `wt-fetch`, `sleep:<s>`. It writes to the repository: use a throwaway one |
+| `DEVHUB_OPEN_PANEL=1` | opens the panel at launch |
+| `DEVHUB_TAB=<id>` | selects a tab (saved) |
+| `DEVHUB_SHOW_OUTPUT=1` | opens the Output panel (saved) |
+| `DEVHUB_SNAPSHOT=<png path>` | writes a picture of the panel |
+| `DEVHUB_SNAPSHOT_DELAY=<seconds>` | waits longer before the picture (default 1) |
 
 ## Build settings that matter (app target)
 
@@ -92,24 +65,22 @@ Read at launch by `App/DebugLaunch.swift`, `DebugLaunch+Logs.swift` and `DebugGi
 | `ENABLE_APP_SANDBOX` | `NO` | shell commands |
 | `CODE_SIGN_STYLE` | `Automatic`, no team | ad-hoc "Sign to Run Locally" |
 | `INFOPLIST_KEY_LSUIElement` | `YES` | no Dock icon |
-| `INFOPLIST_KEY_NSAppleEventsUsageDescription` | a sentence | Run & Attach drives Xcode through Apple Events |
-| `SWIFT_VERSION` | `5.0` | Swift 5 language mode |
-| `SWIFT_DEFAULT_ACTOR_ISOLATION` | `MainActor` | |
-| `SWIFT_APPROACHABLE_CONCURRENCY` | `YES` | |
-| `GENERATE_INFOPLIST_FILE` | `YES` | |
+| `PRODUCT_BUNDLE_IDENTIFIER` | `devteams.DevHub` | keeps the preferences of the first generic app |
+| `SWIFT_VERSION` | `6.0` | Swift 6 language mode |
 
-Change a setting with `sed` or `perl -pi` on the matching lines (Debug and Release). Never touch the file reference sections of `project.pbxproj`; the synchronized folder owns them.
+The package sets its own Swift settings in `Packages/DevHubKit/Package.swift` (tools 6.2, upcoming features `MemberImportVisibility`, `InferIsolatedConformances`, `NonisolatedNonsendingByDefault`). Never touch the file reference sections of `project.pbxproj`.
 
 ## Common problems
 
 | Symptom | Fix |
 |---|---|
-| `does not contain a scheme named "DevHub"` | open the project in Xcode once; the scheme is created on first open |
-| build ok, nothing visible | menu bar app: look for the icon; `pgrep -x DevHub` confirms it runs |
-| two icons | two instances: `pkill -x DevHub`, then `Scripts/run.sh` |
+| tests read wrong enum values or the test process dies with signal 6 right after an enum change | `rm -rf Packages/DevHubKit/.build`, then `Scripts/test.sh` again |
+| `Fatal access conflict detected` in a test run | a closure changed a list that is being changed; look for a `deinit` that unsubscribes while `AppEvents` removes a handler |
+| `… is not available due to missing import of defining module` | `MemberImportVisibility`: import the module that defines the member |
+| a store test times out right after a build | the main actor is busy; `waitUntil` waits 10 s by default, never shorten it |
+| `anonymous: …` lines | a name, bundle ID, suite or host that is not a sample value; see `.claude/rules/anonymity.md` |
+| build ok, nothing visible | menu bar app: look for the icon; `pgrep -f "$PWD/DerivedData"` confirms it runs |
 | `resource fork, Finder information, or similar detritus not allowed` | `xattr -cr DevHub/` |
+| a script is blocked after a copy | `xattr -d com.apple.quarantine <file>` |
 | preview fails to render | the preview needs `.previewEnvironment()` |
-| hover actions flicker | keep the actions in the tree and toggle `opacity` |
-| `Main actor-isolated … cannot be used from a nonisolated context` | the type runs off the main actor: mark it `nonisolated` or make it an `actor`; parsers in Core are `nonisolated enum` |
-| `Sending value of non-Sendable type` | the model needs `Sendable`; closures that cross actors need `@Sendable` |
 | Accessibility prompt again after a rebuild | expected with ad-hoc signing; allow DevHub again in System Settings |
