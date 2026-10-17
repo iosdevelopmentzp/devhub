@@ -597,3 +597,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `f9bcb7e` | M3 | "Open in Editor" on file rows through `EditorCommandPolicy` (`xed`, `code --goto`, `cursor --goto`, `zed`, fallback `open -a`). |
 | `7be0d81` | M3 | `DEVHUB_GIT_OPS` (`PresentationAssembly+DebugGitOps`), checked on a throwaway repository with a bare remote `upstream`; the base branch is left out of the merged set. |
 | `831a25b` | M3 | M3 closed in STATUS; the `build-and-run` skill rewritten for the package. |
+| `37cce37` | M4 | Step 4.1: `CodeHost` (kind, host, path, web URL) and `CodeHostPolicy`; `git.host.kind` and `git.host.name`; every `MergeRequestRepository` method takes the code host; `CodeHostLookup`, `CodeHostRemote`, `CodeHostErrorMapper`; errors name the tool. |

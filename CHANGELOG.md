@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Pull requests from GitHub: when the remote is on `github.com` (or `git.host.kind` is `github`), the merge request tab and the Git status line read pull requests through `gh`: the four scopes, the state filter, checks, review threads, files with their diff, labels. Approve, take back an approval, draft and ready, update branch, merge, auto-merge, re-run and cancel a check run, create, reply and resolve go through `gh` as well.
 - Home reads the `.devhub/` config of the selected project: the quick actions follow `home.quickActions` (built-in and config actions), the Scripts list shows the executable files of `.devhub/scripts` in all three layers with their header, and a red box lists config problems with a Reload button.
 - Running a config action or a script asks for its inputs and confirmation inline, streams its output to the Output panel, shows `progress` in the footer, and handles `toast`, `copy`, `open`, `refresh`, `error` and `view` lines. Remembered inputs come back on the next run.
 - Editing a file in `.devhub/` reloads the config while the panel is open.
