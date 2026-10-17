@@ -1,0 +1,22 @@
+[
+  {
+    "id": "open-ci",
+    "title": "Open CI",
+    "subtitle": "Pipelines of the current branch",
+    "icon": "play.rectangle",
+    "tint": "blue",
+    "placements": ["home.quickActions", "git.pills", "git.branchRow"],
+    "run": { "open": "https://ci.example.com/pipelines?branch={branch}" }
+  },
+  {
+    "id": "lint",
+    "title": "Lint",
+    "subtitle": "Runs the linter in the terminal",
+    "icon": "checkmark.seal",
+    "tint": "green",
+    "placements": ["git.pills"],
+    "run": { "terminal": "make lint" },
+    "cwd": "checkout",
+    "when": { "git": "dirty" }
+  }
+]

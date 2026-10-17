@@ -1,0 +1,30 @@
+{
+  "name": "Example App",
+  "kind": "xcode",
+  "xcode": {
+    "container": "ExampleApp.xcworkspace",
+    "scheme": "ExampleApp",
+    "configuration": "Debug",
+    "schemes": ["ExampleApp", "ExampleWidget"],
+    "bundleIDs": { "ExampleApp": "com.example.app", "ExampleApp/Debug": "com.example.app.dev" }
+  },
+  "git": {
+    "baseBranch": "origin/main",
+    "commitPrefix": { "pattern": "^([A-Z]+-\\d+)", "format": "$1: " },
+    "worktrees": {
+      "folder": ".worktrees",
+      "include": ["Config/Local.xcconfig"],
+      "bootstrap": "Scripts/bootstrap.sh",
+      "bootstrapMarker": "Pods"
+    }
+  },
+  "launch": {
+    "profiles": [
+      { "id": "staging", "title": "Staging", "env": { "API_ENV": "staging" }, "defaults": [ { "suite": "group.com.example.app", "key": "environment", "value": "staging" } ] },
+      { "id": "production", "title": "Production", "env": { "API_ENV": "production" }, "cleanInstall": true }
+    ]
+  },
+  "logs": { "subsystem": "com.example.app" },
+  "simulators": { "statusScript": "scripts/sim-status.sh" },
+  "home": { "quickActions": ["builtin.buildRun", "builtin.runAttach", "clean-derived-data", "open-ci", "builtin.terminal", "builtin.copyBranch"] }
+}

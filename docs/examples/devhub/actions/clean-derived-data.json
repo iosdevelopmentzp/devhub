@@ -1,0 +1,12 @@
+{
+  "id": "clean-derived-data",
+  "title": "Clean DerivedData",
+  "subtitle": "Removes the DerivedData folder of this project",
+  "icon": "trash",
+  "tint": "red",
+  "placements": ["home.quickActions", "git.pills"],
+  "run": { "script": "scripts/clean-derived-data.sh" },
+  "cwd": "checkout",
+  "confirm": "Delete DerivedData for this checkout? The next build takes longer.",
+  "refresh": ["worktrees"]
+}
