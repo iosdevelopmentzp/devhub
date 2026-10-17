@@ -8,6 +8,7 @@ extension View {
         self
             .environment(assembly.commandLog)
             .environment(assembly.session)
+            .environment(assembly.config)
             .environment(assembly.navigator)
             .environment(assembly.activity)
             .environment(assembly.toaster)
@@ -28,6 +29,7 @@ extension View {
             .environment(assembly.identity)
             .environment(assembly.build)
             .environment(assembly.scripts)
+            .environment(assembly.configActions)
             .environment(assembly.logs)
             .environment(assembly.mockSets)
             .environment(assembly.mockServer)

@@ -70,6 +70,20 @@ final class WorkspaceActions {
         }
     }
 
+    func openTarget(_ target: String, relativeTo folder: String) -> Bool {
+        let trimmed = target.trimmed
+        guard trimmed.isEmpty == false else { return false }
+        if let url = URL(string: trimmed), let scheme = url.scheme, scheme.count > 1 {
+            return NSWorkspace.shared.open(url)
+        }
+        let path = trimmed.hasPrefix("/") ? trimmed : trimmed.hasPrefix("~") ? ProjectPath(trimmed).expanded : folder + "/" + trimmed
+        guard FileManager.default.fileExists(atPath: path) else {
+            activity.log("Could not open \(trimmed)", detail: "\(path) does not exist.", outcome: .failure)
+            return false
+        }
+        return NSWorkspace.shared.open(URL(fileURLWithPath: path))
+    }
+
     func open(_ url: URL?) {
         guard let url else { return }
         NSWorkspace.shared.open(url)

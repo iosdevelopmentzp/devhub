@@ -50,7 +50,7 @@ final class WorktreesStore: WorktreeLookup {
             case .projectChanged:
                 worktrees = []
                 Task { await self.refresh() }
-            case .branchesChanged, .worktreeCheckoutPrepared:
+            case .branchesChanged, .worktreeCheckoutPrepared, .refreshRequested(.worktrees):
                 Task { await self.refresh() }
             case .worktreeBootstrapping(let path, let isRunning):
                 if isRunning {
@@ -58,7 +58,7 @@ final class WorktreesStore: WorktreeLookup {
                 } else {
                     bootstrappingIDs.remove(path)
                 }
-            case .worktreesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .mockSetChanged, .mergeRequestsChanged:
+            case .worktreesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .mockSetChanged, .mergeRequestsChanged, .configChanged, .refreshRequested:
                 break
             }
         }

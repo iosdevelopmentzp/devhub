@@ -47,6 +47,33 @@ final class AppActions {
         self.toaster = toaster
     }
 
+    // MARK: Built-in actions
+
+    func perform(_ builtin: BuiltinAction) {
+        let path = worktrees.mainCheckoutPath
+        let branch = worktrees.mainWorktree?.branch
+        switch builtin {
+        case .buildRun:
+            buildAndRun()
+        case .runAttach:
+            runAndAttach()
+        case .openEditor:
+            openInXcode(path: path)
+        case .openFolder:
+            openInFinder(path: path)
+        case .terminal:
+            openTerminal(at: path)
+        case .copyBranch:
+            guard let branch else { return }
+            toaster.copy(branch)
+        case .repository:
+            openRepository()
+        case .newPullRequest:
+            guard let branch else { return }
+            openNewMergeRequest(for: branch)
+        }
+    }
+
     // MARK: Build
 
     func buildAndRun() {

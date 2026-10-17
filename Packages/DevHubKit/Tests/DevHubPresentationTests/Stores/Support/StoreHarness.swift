@@ -51,6 +51,24 @@ final class StoreHarness {
 
     lazy var settings = SettingsStore(values: AppSettings(), store: store)
 
+    lazy var config = ConfigStore(repository: ports.config, session: session, events: events)
+
+    lazy var configActions = ConfigActionsStore(
+        config: config,
+        scripts: ports.scripts,
+        tools: ports.tools,
+        session: session,
+        checkout: git,
+        build: build,
+        workspace: workspace,
+        toaster: toaster,
+        activity: activity,
+        events: events,
+        store: store,
+        appVersion: "1.0",
+        home: "/Users/alex"
+    )
+
     lazy var workspace = WorkspaceActions(settings: settings, activity: activity, opener: ports.opener)
 
     lazy var usage = UsageStore(repository: ports.usage)

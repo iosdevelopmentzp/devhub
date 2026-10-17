@@ -37,14 +37,14 @@ import Testing
     @Test func previewWiresEveryStore() {
         let assembly = PresentationAssembly.preview()
         let stores: [AnyObject] = [
-            assembly.commandLog, assembly.events, assembly.session, assembly.navigator, assembly.activity,
+            assembly.commandLog, assembly.events, assembly.session, assembly.config, assembly.configActions, assembly.navigator, assembly.activity,
             assembly.toaster, assembly.hints, assembly.output, assembly.layout, assembly.settings,
             assembly.workspace, assembly.usage, assembly.worktrees, assembly.git, assembly.changes,
             assembly.mergeRequests, assembly.simulators, assembly.identity, assembly.build, assembly.scripts,
             assembly.logs, assembly.messaging, assembly.claudeSessions, assembly.appActions
         ]
 
-        #expect(Set(stores.map(ObjectIdentifier.init)).count == 24)
+        #expect(Set(stores.map(ObjectIdentifier.init)).count == 26)
     }
 
     @Test func runsOnMainActor() {

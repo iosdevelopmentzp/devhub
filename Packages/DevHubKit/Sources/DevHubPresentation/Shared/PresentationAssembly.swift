@@ -7,6 +7,7 @@ package final class PresentationAssembly {
     let commandLog: CommandLog
     let events: AppEvents
     let session: ProjectSession
+    let config: ConfigStore
     let navigator: Navigator
     let activity: ActivityLog
     let toaster: Toaster
@@ -29,6 +30,7 @@ package final class PresentationAssembly {
     let identity: IdentityStore
     let build: BuildStore
     let scripts: ScriptsStore
+    let configActions: ConfigActionsStore
     let logs: LogsStore
     let mockSets: MockSetsStore
     let mockServer: MockServerStore
@@ -51,6 +53,7 @@ package final class PresentationAssembly {
         self.commandLog = commandLog
         events = AppEvents()
         session = ProjectSession(projects: projects, selectedProjectID: selectedProjectID, store: store, events: events, detector: ports.projectDetector)
+        config = ConfigStore(repository: ports.config, session: session, events: events)
         navigator = Navigator(store: store)
         activity = ActivityLog(events: recentEvents)
         toaster = Toaster(write: PasteboardWriter.write)
@@ -132,6 +135,21 @@ package final class PresentationAssembly {
             store: store
         )
         scripts = ScriptsStore(scripts: initialScripts, activity: activity)
+        configActions = ConfigActionsStore(
+            config: config,
+            scripts: ports.scripts,
+            tools: ports.tools,
+            session: session,
+            checkout: git,
+            build: build,
+            workspace: workspace,
+            toaster: toaster,
+            activity: activity,
+            events: events,
+            store: store,
+            appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "",
+            home: FileManager.default.homeDirectoryForCurrentUser.path
+        )
         logs = LogsStore(repository: ports.logs, session: session, store: store)
         mockSets = MockSetsStore(repository: ports.mockSets, session: session, activity: activity, events: events)
         mockServer = MockServerStore(

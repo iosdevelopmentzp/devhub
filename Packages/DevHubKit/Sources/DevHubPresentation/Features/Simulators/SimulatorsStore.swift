@@ -35,9 +35,9 @@ final class SimulatorsStore: SimulatorLookup {
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             switch event {
-            case .buildFinished, .appLaunched:
+            case .buildFinished, .appLaunched, .refreshRequested(.simulators):
                 Task { await self.refresh() }
-            case .projectChanged, .branchesChanged, .worktreesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .mergeRequestsChanged:
+            case .projectChanged, .branchesChanged, .worktreesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .mergeRequestsChanged, .configChanged, .refreshRequested:
                 break
             }
         }

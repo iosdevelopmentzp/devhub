@@ -1,3 +1,4 @@
+import DevHubDomain
 @testable import DevHubPresentation
 
 extension AppEvent {
@@ -27,6 +28,10 @@ extension AppEvent {
             "mockSetChanged(\(id))"
         case .mergeRequestsChanged:
             "mergeRequestsChanged"
+        case .configChanged:
+            "configChanged"
+        case .refreshRequested(let target):
+            "refreshRequested(\(target.rawValue))"
         }
     }
 

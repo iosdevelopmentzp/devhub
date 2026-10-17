@@ -19,6 +19,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- `ConfigStore` loads and watches the `.devhub/` layers of the selected project and posts `configChanged`. `ConfigActionsStore` runs config actions and scripts: prompt for inputs and confirm, remembered inputs, the context environment, the `@devhub` directives, refresh requests and failures in the activity log. New events `configChanged` and `refreshRequested`. Not on screen yet.
 - New ports `ConfigRepository`, `ScriptRunning` and `ToolLocating` with live types (`FileConfigRepository` reads the three `.devhub/` layers and watches them, `ShellScriptRunner` streams a script with an optional timeout, `PathToolLocator`), mocks and spies. `ShellRunner.stream` takes an environment.
 - The `.devhub/` config models, the layer merge, the script header and directive parsers, the action catalog and context rules, and the example folder are now Domain types with tests (not yet wired to the screens). `Scripts/generate-example-config.sh` writes `ExampleConfig.swift` from `docs/examples/devhub/`.
 - `Scripts/check-anonymous.sh` checks the whole tree and the last commit message for names of the owner's projects (from `~/.devhub/anonymity-denylist.txt`, outside the repository) and for bundle IDs, plist suites and hosts that are not sample values. `Scripts/build.sh` runs it after `Scripts/check-layers.sh`.
