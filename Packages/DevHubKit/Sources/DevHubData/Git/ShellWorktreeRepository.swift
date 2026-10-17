@@ -171,7 +171,8 @@ struct ShellWorktreeRepository: WorktreeRepository {
 
     private func merged(in root: String, remote: String, base configured: String?) async -> Set<String> {
         let detected = await baseBranch(projectPath: root, remote: remote)
-        return await mergedBranches.branches(mergedInto: configured ?? detected, in: root)
+        let base = configured ?? detected
+        return await mergedBranches.branches(mergedInto: base, in: root).subtracting([BranchName(base, remote: remote).local])
     }
 
     // MARK: Create helpers

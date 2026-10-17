@@ -112,7 +112,7 @@ struct ShellGitRepository: GitRepository {
         async let refs = git.run(["for-each-ref", "refs/heads", "--format=\(format)"], in: path)
         async let merged = mergedBranches.branches(mergedInto: base, in: path)
         async let visits = visitTimes(in: main)
-        let mergedSet = await merged
+        let mergedSet = await merged.subtracting([BranchName(base, remote: remote).local])
         let visitMap = await visits
 
         return try await LocalBranchParser.parse(refs, merged: mergedSet, visits: visitMap, remote: remote)

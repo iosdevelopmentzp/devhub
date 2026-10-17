@@ -21,6 +21,11 @@ enum DebugLaunch {
                 }
             }
         }
+        if let script = environment["DEVHUB_GIT_OPS"] {
+            Task {
+                await assembly.debugRunGitOps(script)
+            }
+        }
         guard environment["DEVHUB_OPEN_PANEL"] == "1" else { return }
         if let tab = environment["DEVHUB_TAB"] {
             assembly.debugShowTab(tab)

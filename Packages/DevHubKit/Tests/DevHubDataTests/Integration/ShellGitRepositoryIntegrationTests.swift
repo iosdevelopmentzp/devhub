@@ -112,6 +112,21 @@ import Testing
         #expect(state.snapshot.baseBranch == "upstream/main")
     }
 
+    @Test func theBaseBranchIsNotMergedIntoItself() async throws {
+        let bare = (repo.root as NSString).appendingPathComponent("upstream.git")
+        try await repo.git("init", "-q", "--bare", bare)
+        try await repo.git("remote", "add", "upstream", bare)
+        try await repo.git("push", "-q", "-u", "upstream", "main", "merged-branch")
+        var settings = GitSettings.standard
+        settings.remote = "upstream"
+        settings.baseBranch = "upstream/main"
+
+        let state = try await repository.state(checkoutPath: repo.path, mainPath: repo.path, settings: settings)
+
+        #expect(state.localBranches.first { $0.name == "merged-branch" }?.isMerged == true)
+        #expect(state.localBranches.first { $0.name == "main" }?.isMerged == false)
+    }
+
     @Test func performRunsTheEncodedCommand() async throws {
         try repo.write("new\n", to: "new.txt")
 
