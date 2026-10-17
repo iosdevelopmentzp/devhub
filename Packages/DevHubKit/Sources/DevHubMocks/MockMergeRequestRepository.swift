@@ -3,7 +3,7 @@ import DevHubDomain
 
 struct MockMergeRequestRepository: MergeRequestRepository {
 
-    func status(branch: String, repository: URL) async throws -> MergeRequestStatus {
+    func status(branch: String, repository: CodeHost) async throws -> MergeRequestStatus {
         MergeRequestStatus(
             mergeRequest: MergeRequestInfo(
                 iid: 1842,
@@ -20,7 +20,7 @@ struct MockMergeRequestRepository: MergeRequestRepository {
         )
     }
 
-    func list(_ query: MergeRequestQuery, after cursor: String?, repository: URL) async throws -> MergeRequestList {
+    func list(_ query: MergeRequestQuery, after cursor: String?, repository: CodeHost) async throws -> MergeRequestList {
         try? await Task.sleep(for: .milliseconds(300))
         guard cursor == nil else { return MergeRequestList(username: MockData.gitLabUsername, requests: [], totalCount: 0) }
         let requests = MockData.mergeRequests.filter { request in
@@ -40,70 +40,70 @@ struct MockMergeRequestRepository: MergeRequestRepository {
         return MergeRequestList(username: MockData.gitLabUsername, requests: requests, totalCount: requests.count)
     }
 
-    func openRequests(repository: URL) async throws -> MergeRequestList {
+    func openRequests(repository: CodeHost) async throws -> MergeRequestList {
         try await list(MergeRequestQuery(scope: .all, state: .opened), after: nil, repository: repository)
     }
 
-    func details(iid: Int, repository: URL) async throws -> MergeRequestDetails {
+    func details(iid: Int, repository: CodeHost) async throws -> MergeRequestDetails {
         try? await Task.sleep(for: .milliseconds(300))
         return MockData.mergeRequestDetails
     }
 
-    func diffs(iid: Int, repository: URL) async throws -> [MergeRequestFileDiff] {
+    func diffs(iid: Int, repository: CodeHost) async throws -> [MergeRequestFileDiff] {
         try? await Task.sleep(for: .milliseconds(300))
         return MockData.mergeRequestDiffs
     }
 
-    func approve(iid: Int, repository: URL) async throws {
+    func approve(iid: Int, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
 
-    func unapprove(iid: Int, repository: URL) async throws {
+    func unapprove(iid: Int, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
 
-    func setDraft(iid: Int, isDraft: Bool, repository: URL) async throws {
+    func setDraft(iid: Int, isDraft: Bool, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
 
-    func rebase(iid: Int, repository: URL) async throws {
+    func rebase(iid: Int, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
 
-    func retryPipeline(id: Int, repository: URL) async throws {
+    func retryPipeline(id: Int, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
 
-    func merge(iid: Int, squash: Bool, removeSourceBranch: Bool, repository: URL) async throws {
+    func merge(iid: Int, squash: Bool, removeSourceBranch: Bool, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
 
-    func setAutoMerge(iid: Int, sha: String, squash: Bool, removeSourceBranch: Bool, repository: URL) async throws {
+    func setAutoMerge(iid: Int, sha: String, squash: Bool, removeSourceBranch: Bool, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
 
-    func cancelAutoMerge(iid: Int, repository: URL) async throws {
+    func cancelAutoMerge(iid: Int, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
 
-    func cancelPipeline(id: Int, repository: URL) async throws {
+    func cancelPipeline(id: Int, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
 
-    func create(_ request: NewMergeRequest, repository: URL) async throws -> MergeRequestSummary {
+    func create(_ request: NewMergeRequest, repository: CodeHost) async throws -> MergeRequestSummary {
         try? await Task.sleep(for: .milliseconds(300))
         return MockData.mergeRequests[0]
     }
 
-    func labels(repository: URL) async throws -> [String] {
+    func labels(repository: CodeHost) async throws -> [String] {
         ["bugfix", "feature", "tech", "release"]
     }
 
-    func resolveThread(id: String, repository: URL) async throws {
+    func resolveThread(id: String, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
 
-    func reply(threadID: String, body: String, iid: Int, repository: URL) async throws {
+    func reply(threadID: String, body: String, iid: Int, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
 }

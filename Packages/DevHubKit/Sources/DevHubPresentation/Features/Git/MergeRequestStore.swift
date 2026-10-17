@@ -37,7 +37,11 @@ final class MergeRequestStore {
     }
 
     func refresh() async {
-        guard let branch = checkout.currentBranch, let repository = checkout.webURL else { return }
+        let settings = checkout.gitSettings
+        guard let branch = checkout.currentBranch,
+              let url = checkout.webURL,
+              let repository = CodeHostPolicy.codeHost(webURL: url, kind: settings.hostKind, name: settings.hostName)
+        else { return }
         await refreshTask.run { [weak self] in
             guard let self else { return }
             isLoading = true

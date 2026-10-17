@@ -6,7 +6,7 @@ import Testing
 
 @Suite struct NewMergeRequestStoreTests {
     private let harness = StoreHarness()
-    private let remote = GitStateSample.webURL
+    private let remote = CodeHost.gitLabSample
 
     private var store: NewMergeRequestStore {
         harness.newMergeRequest
@@ -22,7 +22,7 @@ import Testing
             return copy
         }
         harness.spies.git.stateResult = .success(state)
-        harness.spies.git.webURLResult = remote
+        harness.spies.git.webURLResult = remote.webURL
         harness.spies.git.subjectsResult = ["Second step", "First step"]
         harness.spies.mergeRequests.labelsResult = .success(["feature", "tech"])
         await harness.git.refresh()

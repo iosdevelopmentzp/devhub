@@ -1,16 +1,16 @@
 import Foundation
 
 package enum MergeRequestError: LocalizedError, Equatable, Sendable {
-    case notGitLab
-    case notInstalled
-    case notLoggedIn(host: String)
+    case noCodeHost
+    case notInstalled(tool: String)
+    case notLoggedIn(tool: String, host: String)
     case command(String)
 
     package var errorDescription: String? {
         switch self {
-        case .notGitLab: "The remote is not on GitLab"
-        case .notInstalled: "glab is not installed. brew install glab"
-        case .notLoggedIn(let host): "glab is not logged in to \(host)"
+        case .noCodeHost: "The remote has no web address on GitHub or GitLab"
+        case .notInstalled(let tool): "\(tool) is not installed. brew install \(tool)"
+        case .notLoggedIn(let tool, let host): "\(tool) is not logged in to \(host). Run \(tool) auth login --hostname \(host)"
         case .command(let message): message
         }
     }

@@ -3,24 +3,24 @@ import Foundation
 
 package final class SpyMergeRequestRepository: MergeRequestRepository, @unchecked Sendable {
     package enum Call: Hashable {
-        case status(branch: String, repository: URL)
-        case list(MergeRequestQuery, after: String?, repository: URL)
-        case openRequests(repository: URL)
-        case details(iid: Int, repository: URL)
-        case diffs(iid: Int, repository: URL)
-        case approve(iid: Int, repository: URL)
-        case unapprove(iid: Int, repository: URL)
-        case setDraft(iid: Int, isDraft: Bool, repository: URL)
-        case rebase(iid: Int, repository: URL)
-        case retryPipeline(id: Int, repository: URL)
-        case merge(iid: Int, squash: Bool, removeSourceBranch: Bool, repository: URL)
-        case setAutoMerge(iid: Int, sha: String, squash: Bool, removeSourceBranch: Bool, repository: URL)
-        case cancelAutoMerge(iid: Int, repository: URL)
-        case cancelPipeline(id: Int, repository: URL)
-        case create(NewMergeRequest, repository: URL)
-        case labels(repository: URL)
-        case resolveThread(id: String, repository: URL)
-        case reply(threadID: String, body: String, iid: Int, repository: URL)
+        case status(branch: String, repository: CodeHost)
+        case list(MergeRequestQuery, after: String?, repository: CodeHost)
+        case openRequests(repository: CodeHost)
+        case details(iid: Int, repository: CodeHost)
+        case diffs(iid: Int, repository: CodeHost)
+        case approve(iid: Int, repository: CodeHost)
+        case unapprove(iid: Int, repository: CodeHost)
+        case setDraft(iid: Int, isDraft: Bool, repository: CodeHost)
+        case rebase(iid: Int, repository: CodeHost)
+        case retryPipeline(id: Int, repository: CodeHost)
+        case merge(iid: Int, squash: Bool, removeSourceBranch: Bool, repository: CodeHost)
+        case setAutoMerge(iid: Int, sha: String, squash: Bool, removeSourceBranch: Bool, repository: CodeHost)
+        case cancelAutoMerge(iid: Int, repository: CodeHost)
+        case cancelPipeline(id: Int, repository: CodeHost)
+        case create(NewMergeRequest, repository: CodeHost)
+        case labels(repository: CodeHost)
+        case resolveThread(id: String, repository: CodeHost)
+        case reply(threadID: String, body: String, iid: Int, repository: CodeHost)
     }
 
     private let lock = NSLock()
@@ -81,7 +81,7 @@ package final class SpyMergeRequestRepository: MergeRequestRepository, @unchecke
         set { lock.withLock { _labelsResult = newValue } }
     }
 
-    package func create(_ request: NewMergeRequest, repository: URL) async throws -> MergeRequestSummary {
+    package func create(_ request: NewMergeRequest, repository: CodeHost) async throws -> MergeRequestSummary {
         try record(.create(request, repository: repository)) {
             if let result = _createResult { return try result.get() }
             return MergeRequestSummary(
@@ -104,7 +104,7 @@ package final class SpyMergeRequestRepository: MergeRequestRepository, @unchecke
         }
     }
 
-    package func labels(repository: URL) async throws -> [String] {
+    package func labels(repository: CodeHost) async throws -> [String] {
         try record(.labels(repository: repository)) { try _labelsResult.get() }
     }
 
@@ -113,47 +113,47 @@ package final class SpyMergeRequestRepository: MergeRequestRepository, @unchecke
         set { lock.withLock { _actionError = newValue } }
     }
 
-    package func approve(iid: Int, repository: URL) async throws {
+    package func approve(iid: Int, repository: CodeHost) async throws {
         try action(.approve(iid: iid, repository: repository))
     }
 
-    package func unapprove(iid: Int, repository: URL) async throws {
+    package func unapprove(iid: Int, repository: CodeHost) async throws {
         try action(.unapprove(iid: iid, repository: repository))
     }
 
-    package func setDraft(iid: Int, isDraft: Bool, repository: URL) async throws {
+    package func setDraft(iid: Int, isDraft: Bool, repository: CodeHost) async throws {
         try action(.setDraft(iid: iid, isDraft: isDraft, repository: repository))
     }
 
-    package func rebase(iid: Int, repository: URL) async throws {
+    package func rebase(iid: Int, repository: CodeHost) async throws {
         try action(.rebase(iid: iid, repository: repository))
     }
 
-    package func retryPipeline(id: Int, repository: URL) async throws {
+    package func retryPipeline(id: Int, repository: CodeHost) async throws {
         try action(.retryPipeline(id: id, repository: repository))
     }
 
-    package func merge(iid: Int, squash: Bool, removeSourceBranch: Bool, repository: URL) async throws {
+    package func merge(iid: Int, squash: Bool, removeSourceBranch: Bool, repository: CodeHost) async throws {
         try action(.merge(iid: iid, squash: squash, removeSourceBranch: removeSourceBranch, repository: repository))
     }
 
-    package func setAutoMerge(iid: Int, sha: String, squash: Bool, removeSourceBranch: Bool, repository: URL) async throws {
+    package func setAutoMerge(iid: Int, sha: String, squash: Bool, removeSourceBranch: Bool, repository: CodeHost) async throws {
         try action(.setAutoMerge(iid: iid, sha: sha, squash: squash, removeSourceBranch: removeSourceBranch, repository: repository))
     }
 
-    package func cancelAutoMerge(iid: Int, repository: URL) async throws {
+    package func cancelAutoMerge(iid: Int, repository: CodeHost) async throws {
         try action(.cancelAutoMerge(iid: iid, repository: repository))
     }
 
-    package func cancelPipeline(id: Int, repository: URL) async throws {
+    package func cancelPipeline(id: Int, repository: CodeHost) async throws {
         try action(.cancelPipeline(id: id, repository: repository))
     }
 
-    package func resolveThread(id: String, repository: URL) async throws {
+    package func resolveThread(id: String, repository: CodeHost) async throws {
         try action(.resolveThread(id: id, repository: repository))
     }
 
-    package func reply(threadID: String, body: String, iid: Int, repository: URL) async throws {
+    package func reply(threadID: String, body: String, iid: Int, repository: CodeHost) async throws {
         try action(.reply(threadID: threadID, body: body, iid: iid, repository: repository))
     }
 
@@ -163,23 +163,23 @@ package final class SpyMergeRequestRepository: MergeRequestRepository, @unchecke
         }
     }
 
-    package func status(branch: String, repository: URL) async throws -> MergeRequestStatus {
+    package func status(branch: String, repository: CodeHost) async throws -> MergeRequestStatus {
         try record(.status(branch: branch, repository: repository)) { try _statusResult.get() }
     }
 
-    package func list(_ query: MergeRequestQuery, after cursor: String?, repository: URL) async throws -> MergeRequestList {
+    package func list(_ query: MergeRequestQuery, after cursor: String?, repository: CodeHost) async throws -> MergeRequestList {
         try record(.list(query, after: cursor, repository: repository)) { try (cursor == nil ? _listResult : _nextPageResult).get() }
     }
 
-    package func openRequests(repository: URL) async throws -> MergeRequestList {
+    package func openRequests(repository: CodeHost) async throws -> MergeRequestList {
         try record(.openRequests(repository: repository)) { try _openRequestsResult.get() }
     }
 
-    package func details(iid: Int, repository: URL) async throws -> MergeRequestDetails {
+    package func details(iid: Int, repository: CodeHost) async throws -> MergeRequestDetails {
         try record(.details(iid: iid, repository: repository)) { try _detailsResult.get() }
     }
 
-    package func diffs(iid: Int, repository: URL) async throws -> [MergeRequestFileDiff] {
+    package func diffs(iid: Int, repository: CodeHost) async throws -> [MergeRequestFileDiff] {
         try record(.diffs(iid: iid, repository: repository)) { try _diffsResult.get() }
     }
 

@@ -8,13 +8,13 @@ enum MergeRequestLineMapper {
         MergeRequestLineModel(
             content: content(status: status, error: error, openRequest: openRequest, username: username),
             isLoading: isLoading,
-            canRefresh: error != .notGitLab
+            canRefresh: error != .noCodeHost
         )
     }
 
     private static func content(status: MergeRequestStatus?, error: MergeRequestError?, openRequest: MergeRequestSummary?, username: String?) -> MergeRequestLineModel.Content {
-        if case .notLoggedIn(let host) = error {
-            return .notConnected(loginCommand: "glab auth login --hostname \(host)")
+        if case .notLoggedIn(let tool, let host) = error {
+            return .notConnected(loginCommand: "\(tool) auth login --hostname \(host)")
         }
         if let error {
             return .failure(error.localizedDescription)

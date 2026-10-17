@@ -25,13 +25,13 @@ struct GlabClient {
             + variables.flatMap { ["-f", "\($0.name)=\($0.value)"] }
     }
 
-    static func host(of repository: URL) throws -> String {
-        guard let host = repository.host(), host.contains("github") == false else { throw MergeRequestError.notGitLab }
-        return host
+    static func host(of repository: CodeHost) throws -> String {
+        guard repository.kind == .gitlab else { throw MergeRequestError.noCodeHost }
+        return repository.host
     }
 
-    static func projectPath(of repository: URL) -> String {
-        repository.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    static func projectPath(of repository: CodeHost) -> String {
+        repository.path
     }
 
     private func run(_ arguments: [String], host: String) async throws -> Data {
@@ -39,10 +39,10 @@ struct GlabClient {
         do {
             result = try await shell.run("glab", arguments, cwd: nil)
         } catch {
-            throw MergeRequestError.notInstalled
+            throw MergeRequestError.notInstalled(tool: "glab")
         }
         guard result.exitCode == 0 else {
-            throw GlabErrorMapper.error(exitCode: result.exitCode, message: result.failureMessage, host: host)
+            throw CodeHostErrorMapper.error(tool: "glab", exitCode: result.exitCode, message: result.failureMessage, host: host)
         }
         return Data(result.stdout.utf8)
     }

@@ -8,6 +8,8 @@ package struct GitSettings: Hashable, Sendable {
     package var ticketFormat: String
     package var ticketURL: String?
     package var worktrees: WorktreeSettings
+    package var hostKind: CodeHostKind?
+    package var hostName: String?
 
     package static let standard = GitSettingsPolicy.settings(for: ProjectConfig())
 
@@ -18,7 +20,9 @@ package struct GitSettings: Hashable, Sendable {
         ticketPattern: String,
         ticketFormat: String,
         ticketURL: String?,
-        worktrees: WorktreeSettings
+        worktrees: WorktreeSettings,
+        hostKind: CodeHostKind?,
+        hostName: String?
     ) {
         self.remote = remote
         self.baseBranch = baseBranch
@@ -27,5 +31,7 @@ package struct GitSettings: Hashable, Sendable {
         self.ticketFormat = ticketFormat
         self.ticketURL = ticketURL
         self.worktrees = worktrees
+        self.hostKind = hostKind
+        self.hostName = hostName
     }
 }

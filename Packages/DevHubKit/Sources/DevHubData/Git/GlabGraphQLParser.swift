@@ -157,7 +157,7 @@ enum GlabGraphQLParser {
 
     static func list(from data: Data, host: String) throws -> MergeRequestList {
         let payload: ListData = try payload(data)
-        guard let user = payload.currentUser else { throw MergeRequestError.notLoggedIn(host: host) }
+        guard let user = payload.currentUser else { throw MergeRequestError.notLoggedIn(tool: "glab", host: host) }
         let connection = user.authoredMergeRequests ?? user.assignedMergeRequests ?? payload.project?.mergeRequests
         guard let connection else { throw MergeRequestError.command("GitLab did not find the project") }
         return MergeRequestList(

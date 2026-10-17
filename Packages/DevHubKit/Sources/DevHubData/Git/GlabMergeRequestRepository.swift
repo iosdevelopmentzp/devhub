@@ -4,7 +4,7 @@ import DevHubDomain
 struct GlabMergeRequestRepository: MergeRequestRepository {
     let client: GlabClient
 
-    func status(branch: String, repository: URL) async throws -> MergeRequestStatus {
+    func status(branch: String, repository: CodeHost) async throws -> MergeRequestStatus {
         let host = try GlabClient.host(of: repository)
         let project = encoded(GlabClient.projectPath(of: repository))
         let ref = encoded(branch)
@@ -18,7 +18,7 @@ struct GlabMergeRequestRepository: MergeRequestRepository {
         return MergeRequestStatus(mergeRequest: loadedRequest, pipeline: loadedPipeline)
     }
 
-    func list(_ query: MergeRequestQuery, after cursor: String?, repository: URL) async throws -> MergeRequestList {
+    func list(_ query: MergeRequestQuery, after cursor: String?, repository: CodeHost) async throws -> MergeRequestList {
         let host = try GlabClient.host(of: repository)
         let data = try await client.graphql(
             GlabGraphQLQueries.list(query.scope),
@@ -28,11 +28,11 @@ struct GlabMergeRequestRepository: MergeRequestRepository {
         return try GlabGraphQLParser.list(from: data, host: host)
     }
 
-    func openRequests(repository: URL) async throws -> MergeRequestList {
+    func openRequests(repository: CodeHost) async throws -> MergeRequestList {
         try await list(MergeRequestQuery(scope: .all, state: .opened), after: nil, repository: repository)
     }
 
-    func details(iid: Int, repository: URL) async throws -> MergeRequestDetails {
+    func details(iid: Int, repository: CodeHost) async throws -> MergeRequestDetails {
         let host = try GlabClient.host(of: repository)
         let data = try await client.graphql(
             GlabGraphQLQueries.details,
@@ -42,21 +42,21 @@ struct GlabMergeRequestRepository: MergeRequestRepository {
         return try GlabGraphQLParser.details(from: data, host: host)
     }
 
-    func diffs(iid: Int, repository: URL) async throws -> [MergeRequestFileDiff] {
+    func diffs(iid: Int, repository: CodeHost) async throws -> [MergeRequestFileDiff] {
         let host = try GlabClient.host(of: repository)
         let project = encoded(GlabClient.projectPath(of: repository))
         return try await GlabDiffParser.files(from: client.rest("projects/\(project)/merge_requests/\(iid)/diffs?per_page=100", host: host))
     }
 
-    func approve(iid: Int, repository: URL) async throws {
+    func approve(iid: Int, repository: CodeHost) async throws {
         _ = try await client.rest("\(mergeRequest(iid, repository))/approve", method: "POST", fields: [], host: try GlabClient.host(of: repository))
     }
 
-    func unapprove(iid: Int, repository: URL) async throws {
+    func unapprove(iid: Int, repository: CodeHost) async throws {
         _ = try await client.rest("\(mergeRequest(iid, repository))/unapprove", method: "POST", fields: [], host: try GlabClient.host(of: repository))
     }
 
-    func setDraft(iid: Int, isDraft: Bool, repository: URL) async throws {
+    func setDraft(iid: Int, isDraft: Bool, repository: CodeHost) async throws {
         let data = try await client.graphql(
             GlabGraphQLQueries.setDraft,
             variables: [(name: "path", value: GlabClient.projectPath(of: repository)), (name: "iid", value: String(iid)), (name: "draft", value: isDraft ? "true" : "false")],
@@ -65,16 +65,16 @@ struct GlabMergeRequestRepository: MergeRequestRepository {
         try GlabGraphQLParser.mutation(from: data)
     }
 
-    func rebase(iid: Int, repository: URL) async throws {
+    func rebase(iid: Int, repository: CodeHost) async throws {
         _ = try await client.rest("\(mergeRequest(iid, repository))/rebase", method: "PUT", fields: [], host: try GlabClient.host(of: repository))
     }
 
-    func retryPipeline(id: Int, repository: URL) async throws {
+    func retryPipeline(id: Int, repository: CodeHost) async throws {
         let project = encoded(GlabClient.projectPath(of: repository))
         _ = try await client.rest("projects/\(project)/pipelines/\(id)/retry", method: "POST", fields: [], host: try GlabClient.host(of: repository))
     }
 
-    func merge(iid: Int, squash: Bool, removeSourceBranch: Bool, repository: URL) async throws {
+    func merge(iid: Int, squash: Bool, removeSourceBranch: Bool, repository: CodeHost) async throws {
         _ = try await client.rest(
             "\(mergeRequest(iid, repository))/merge",
             method: "PUT",
@@ -83,7 +83,7 @@ struct GlabMergeRequestRepository: MergeRequestRepository {
         )
     }
 
-    func setAutoMerge(iid: Int, sha: String, squash: Bool, removeSourceBranch: Bool, repository: URL) async throws {
+    func setAutoMerge(iid: Int, sha: String, squash: Bool, removeSourceBranch: Bool, repository: CodeHost) async throws {
         let data = try await client.graphql(
             GlabGraphQLQueries.setAutoMerge,
             variables: Self.autoMergeVariables(iid: iid, sha: sha, squash: squash, removeSourceBranch: removeSourceBranch, projectPath: GlabClient.projectPath(of: repository)),
@@ -102,11 +102,11 @@ struct GlabMergeRequestRepository: MergeRequestRepository {
         ]
     }
 
-    func cancelAutoMerge(iid: Int, repository: URL) async throws {
+    func cancelAutoMerge(iid: Int, repository: CodeHost) async throws {
         _ = try await client.rest("\(mergeRequest(iid, repository))/cancel_merge_when_pipeline_succeeds", method: "POST", fields: [], host: try GlabClient.host(of: repository))
     }
 
-    func cancelPipeline(id: Int, repository: URL) async throws {
+    func cancelPipeline(id: Int, repository: CodeHost) async throws {
         let data = try await client.graphql(
             GlabGraphQLQueries.cancelPipeline,
             variables: [(name: "id", value: "gid://gitlab/Ci::Pipeline/\(id)")],
@@ -115,7 +115,7 @@ struct GlabMergeRequestRepository: MergeRequestRepository {
         try GlabGraphQLParser.mutation(from: data)
     }
 
-    func create(_ request: NewMergeRequest, repository: URL) async throws -> MergeRequestSummary {
+    func create(_ request: NewMergeRequest, repository: CodeHost) async throws -> MergeRequestSummary {
         let project = encoded(GlabClient.projectPath(of: repository))
         let data = try await client.rest("projects/\(project)/merge_requests", method: "POST", fields: Self.createFields(request), host: try GlabClient.host(of: repository))
         return try GlabCreatedMergeRequestParser.summary(from: data)
@@ -141,7 +141,7 @@ struct GlabMergeRequestRepository: MergeRequestRepository {
         value.hasPrefix("@") ? " " + value : value
     }
 
-    func labels(repository: URL) async throws -> [String] {
+    func labels(repository: CodeHost) async throws -> [String] {
         let data = try await client.graphql(
             GlabGraphQLQueries.labels,
             variables: [(name: "path", value: GlabClient.projectPath(of: repository))],
@@ -150,7 +150,7 @@ struct GlabMergeRequestRepository: MergeRequestRepository {
         return try GlabGraphQLParser.labels(from: data)
     }
 
-    func resolveThread(id: String, repository: URL) async throws {
+    func resolveThread(id: String, repository: CodeHost) async throws {
         let data = try await client.graphql(
             GlabGraphQLQueries.toggleResolve,
             variables: [(name: "id", value: id), (name: "resolve", value: "true")],
@@ -159,7 +159,7 @@ struct GlabMergeRequestRepository: MergeRequestRepository {
         try GlabGraphQLParser.mutation(from: data)
     }
 
-    func reply(threadID: String, body: String, iid: Int, repository: URL) async throws {
+    func reply(threadID: String, body: String, iid: Int, repository: CodeHost) async throws {
         let discussion = threadID.split(separator: "/").last.map(String.init) ?? threadID
         let text = body.hasPrefix("@") ? " " + body : body
         _ = try await client.rest(
@@ -170,7 +170,7 @@ struct GlabMergeRequestRepository: MergeRequestRepository {
         )
     }
 
-    private func mergeRequest(_ iid: Int, _ repository: URL) -> String {
+    private func mergeRequest(_ iid: Int, _ repository: CodeHost) -> String {
         "projects/\(encoded(GlabClient.projectPath(of: repository)))/merge_requests/\(iid)"
     }
 

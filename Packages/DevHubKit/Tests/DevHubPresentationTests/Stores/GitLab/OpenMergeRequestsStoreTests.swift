@@ -6,14 +6,14 @@ import DevHubTestSupport
 
 @Suite struct OpenMergeRequestsStoreTests {
     private let harness = StoreHarness()
-    private let remote = URL(string: "https://gitlab.example.com/team/app")!
+    private let remote = CodeHost.gitLabSample
 
     private var store: OpenMergeRequestsStore {
         harness.openMergeRequests
     }
 
     private func script(_ requests: [MergeRequestSummary]) {
-        harness.spies.git.webURLResult = remote
+        harness.spies.git.webURLResult = remote.webURL
         harness.spies.mergeRequests.openRequestsResult = .success(MergeRequestList(username: "me", requests: requests, totalCount: requests.count))
     }
 
@@ -44,7 +44,7 @@ import DevHubTestSupport
     @Test func aFailureKeepsTheLastValues() async {
         script([MergeRequestSummaryFixture.open])
         await store.refresh()
-        harness.spies.mergeRequests.openRequestsResult = .failure(MergeRequestError.notInstalled)
+        harness.spies.mergeRequests.openRequestsResult = .failure(MergeRequestError.notInstalled(tool: "glab"))
 
         await store.refresh()
 
@@ -57,7 +57,7 @@ import DevHubTestSupport
         await store.refresh()
         #expect(harness.activityTitles.isEmpty)
 
-        harness.spies.git.webURLResult = remote
+        harness.spies.git.webURLResult = remote.webURL
         harness.spies.mergeRequests.openRequestsResult = .failure(MergeRequestError.command("boom"))
         await store.refresh()
         await store.refresh()
@@ -66,7 +66,7 @@ import DevHubTestSupport
     }
 
     @Test func moreThanTheReadPageIsReportedOnce() async {
-        harness.spies.git.webURLResult = remote
+        harness.spies.git.webURLResult = remote.webURL
         harness.spies.mergeRequests.openRequestsResult = .success(MergeRequestList(username: "me", requests: [MergeRequestSummaryFixture.open], totalCount: 120))
 
         await store.refresh()

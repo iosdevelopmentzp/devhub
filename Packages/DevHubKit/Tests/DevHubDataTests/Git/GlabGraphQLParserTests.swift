@@ -87,7 +87,7 @@ import Testing
     }
 
     @Test func missingUserMeansNotLoggedIn() {
-        #expect(throws: MergeRequestError.notLoggedIn(host: "h")) {
+        #expect(throws: MergeRequestError.notLoggedIn(tool: "glab", host: "h")) {
             try GlabGraphQLParser.list(from: GlabGraphQLFixture.noUser, host: "h")
         }
     }

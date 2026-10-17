@@ -7,6 +7,7 @@ package struct GitConfig: Codable, Hashable, Sendable {
     package var commitPrefix: CommitPrefixConfig? = nil
     package var ticketURL: String? = nil
     package var worktrees: WorktreesConfig? = nil
+    package var host: GitHostConfig? = nil
 
     package init(
         remote: String? = nil,
@@ -14,7 +15,8 @@ package struct GitConfig: Codable, Hashable, Sendable {
         protectedBranches: [String]? = nil,
         commitPrefix: CommitPrefixConfig? = nil,
         ticketURL: String? = nil,
-        worktrees: WorktreesConfig? = nil
+        worktrees: WorktreesConfig? = nil,
+        host: GitHostConfig? = nil
     ) {
         self.remote = remote
         self.baseBranch = baseBranch
@@ -22,5 +24,6 @@ package struct GitConfig: Codable, Hashable, Sendable {
         self.commitPrefix = commitPrefix
         self.ticketURL = ticketURL
         self.worktrees = worktrees
+        self.host = host
     }
 }

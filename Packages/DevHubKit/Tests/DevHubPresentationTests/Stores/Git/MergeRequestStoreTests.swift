@@ -34,16 +34,16 @@ import DevHubTestSupport
         #expect(store.error == nil)
         #expect(store.isLoading == false)
         #expect(store.loadedBranch == "APP-12-login")
-        #expect(harness.spies.mergeRequests.calls == [.status(branch: "APP-12-login", repository: GitStateSample.webURL)])
+        #expect(harness.spies.mergeRequests.calls == [.status(branch: "APP-12-login", repository: .gitLabSample)])
     }
 
     @Test func aMergeRequestErrorIsSurfaced() async {
         await loadBranch(GitStateSample.state)
-        harness.spies.mergeRequests.statusResult = .failure(MergeRequestError.notLoggedIn(host: "gitlab.example.com"))
+        harness.spies.mergeRequests.statusResult = .failure(MergeRequestError.notLoggedIn(tool: "glab", host: "gitlab.example.com"))
 
         await store.refresh()
 
-        #expect(store.error == .notLoggedIn(host: "gitlab.example.com"))
+        #expect(store.error == .notLoggedIn(tool: "glab", host: "gitlab.example.com"))
         #expect(store.loadedBranch == "APP-12-login")
     }
 
@@ -73,13 +73,13 @@ import DevHubTestSupport
 
         await store.refreshIfStale()
 
-        #expect(harness.spies.mergeRequests.calls.last == .status(branch: "APP-99-other", repository: GitStateSample.webURL))
+        #expect(harness.spies.mergeRequests.calls.last == .status(branch: "APP-99-other", repository: .gitLabSample))
         #expect(store.loadedBranch == "APP-99-other")
     }
 
     @Test func projectChangedResetsEverything() async {
         await loadBranch(GitStateSample.state)
-        harness.spies.mergeRequests.statusResult = .failure(MergeRequestError.notGitLab)
+        harness.spies.mergeRequests.statusResult = .failure(MergeRequestError.noCodeHost)
         await store.refresh()
 
         harness.events.post(.projectChanged)

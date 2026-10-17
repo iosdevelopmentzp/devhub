@@ -10,7 +10,7 @@ final class OpenMergeRequestsStore {
     private(set) var username: String?
 
     @ObservationIgnored private let repository: MergeRequestRepository
-    @ObservationIgnored private let remote: any GitLabRemoteLookup
+    @ObservationIgnored private let remote: any CodeHostLookup
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let refreshTask = RefreshTask()
     @ObservationIgnored private var loadedAt: Date?
@@ -22,7 +22,7 @@ final class OpenMergeRequestsStore {
     private static let staleAfter: TimeInterval = 60
     private static let pollInterval: Duration = .seconds(300)
 
-    init(repository: MergeRequestRepository, remote: any GitLabRemoteLookup, activity: ActivityLog, events: AppEvents) {
+    init(repository: MergeRequestRepository, remote: any CodeHostLookup, activity: ActivityLog, events: AppEvents) {
         self.repository = repository
         self.remote = remote
         self.activity = activity
@@ -67,12 +67,12 @@ final class OpenMergeRequestsStore {
         await refreshTask.run { [weak self] in
             guard let self else { return }
             do {
-                let url = try await remote.gitLabURL()
+                let url = try await remote.codeHost()
                 let loaded = try await repository.openRequests(repository: url)
                 try Task.checkCancellation()
                 apply(loaded)
             } catch is CancellationError {
-            } catch MergeRequestError.notGitLab {
+            } catch MergeRequestError.noCodeHost {
             } catch {
                 report(error)
             }

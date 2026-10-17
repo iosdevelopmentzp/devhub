@@ -596,3 +596,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `77b877e` | M3 | `git.commitPrefix` pattern and format for the ticket chip, commit prefix and merge request title (`TicketSettings`, `NSRegularExpression`), `git.ticketURL` with the Settings link as fallback, `git.protectedBranches` in the cleanup. |
 | `f9bcb7e` | M3 | "Open in Editor" on file rows through `EditorCommandPolicy` (`xed`, `code --goto`, `cursor --goto`, `zed`, fallback `open -a`). |
 | `7be0d81` | M3 | `DEVHUB_GIT_OPS` (`PresentationAssembly+DebugGitOps`), checked on a throwaway repository with a bare remote `upstream`; the base branch is left out of the merged set. |
+| `831a25b` | M3 | M3 closed in STATUS; the `build-and-run` skill rewritten for the package. |

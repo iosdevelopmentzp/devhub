@@ -16,6 +16,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- The merge request features work with a code host value instead of a GitLab URL: the kind (GitHub or GitLab), the host name and the repository path. `git.host.kind` and `git.host.name` in `.devhub/project.json` set them for a custom host. Error messages name the tool (`gh` or `glab`) and its login command.
 - The `build-and-run` skill describes the package scripts, headless snapshots and the current debug switches.
 - "Open in Xcode" on changed file rows is now "Open in Editor": the file opens in the editor chosen in Settings (`xed` for Xcode, `code --goto` for VS Code, `cursor --goto` for Cursor, `zed` for Zed, else `open -a`), at the line when the editor supports it. Merge request files and threads open the same way.
 - The ticket chip, the commit box prefix and the new merge request title follow `git.commitPrefix.pattern` and `format`. `git.ticketURL` sets the ticket link per project; the Settings link stays the fallback.

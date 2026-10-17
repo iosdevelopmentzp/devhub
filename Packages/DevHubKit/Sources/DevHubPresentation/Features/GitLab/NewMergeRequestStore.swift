@@ -11,7 +11,7 @@ final class NewMergeRequestStore {
     @ObservationIgnored private let mergeRequests: any MergeRequestRepository
     @ObservationIgnored private let createMergeRequest: CreateMergeRequestUseCase
     @ObservationIgnored private let checkout: any CheckoutContext
-    @ObservationIgnored private let remote: any GitLabRemoteLookup
+    @ObservationIgnored private let remote: any CodeHostLookup
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private var subscription: SubscriptionToken?
@@ -21,7 +21,7 @@ final class NewMergeRequestStore {
         mergeRequests: any MergeRequestRepository,
         createMergeRequest: CreateMergeRequestUseCase,
         checkout: any CheckoutContext,
-        remote: any GitLabRemoteLookup,
+        remote: any CodeHostLookup,
         activity: ActivityLog,
         events: AppEvents
     ) {
@@ -96,7 +96,7 @@ final class NewMergeRequestStore {
         draft?.isCreating = true
         draft?.error = nil
         do {
-            let url = try await remote.gitLabURL()
+            let url = try await remote.codeHost()
             let created = try await createMergeRequest.execute(current.request, push: current.pushPlan, remote: remote.remoteName, checkoutPath: checkout.checkoutPath, repository: url)
             activity.log("Created !\(created.iid)", detail: created.title, outcome: .success)
             if current.pushPlan != .none {
@@ -115,7 +115,7 @@ final class NewMergeRequestStore {
 
     private func loadLabels() async -> Result<[String], any Error> {
         do {
-            return .success(try await mergeRequests.labels(repository: try await remote.gitLabURL()))
+            return .success(try await mergeRequests.labels(repository: try await remote.codeHost()))
         } catch {
             return .failure(error)
         }

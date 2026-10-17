@@ -6,7 +6,7 @@ import DevHubTestSupport
 
 @Suite struct MergeRequestDetailStoreTests {
     private let harness = StoreHarness()
-    private let remote = URL(string: "https://gitlab.example.com/team/app")!
+    private let remote = CodeHost.gitLabSample
     private let details = MergeRequestDetails(
         description: "Adds login",
         threads: [
@@ -31,7 +31,7 @@ import DevHubTestSupport
     }
 
     private func script() {
-        harness.spies.git.webURLResult = remote
+        harness.spies.git.webURLResult = remote.webURL
         harness.spies.mergeRequests.detailsResult = .success(details)
         harness.spies.mergeRequests.diffsResult = .success(files)
     }

@@ -96,16 +96,16 @@ package final class PresentationAssembly {
         )
         history = CommitHistoryStore(repository: ports.changes, checkout: git, activity: activity, events: events, store: store)
         mergeRequests = MergeRequestStore(repository: ports.mergeRequests, checkout: git, events: events)
-        let gitLabRemote = GitLabRemote(git: ports.git, worktrees: worktrees, events: events)
-        gitLab = GitLabStore(repository: ports.mergeRequests, remote: gitLabRemote, activity: activity, events: events, store: store)
-        openMergeRequests = OpenMergeRequestsStore(repository: ports.mergeRequests, remote: gitLabRemote, activity: activity, events: events)
-        mergeRequestDetails = MergeRequestDetailStore(repository: ports.mergeRequests, remote: gitLabRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
+        let codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
+        gitLab = GitLabStore(repository: ports.mergeRequests, remote: codeHostRemote, activity: activity, events: events, store: store)
+        openMergeRequests = OpenMergeRequestsStore(repository: ports.mergeRequests, remote: codeHostRemote, activity: activity, events: events)
+        mergeRequestDetails = MergeRequestDetailStore(repository: ports.mergeRequests, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
         newMergeRequest = NewMergeRequestStore(
             git: ports.git,
             mergeRequests: ports.mergeRequests,
             createMergeRequest: useCases.createMergeRequest,
             checkout: git,
-            remote: gitLabRemote,
+            remote: codeHostRemote,
             activity: activity,
             events: events
         )

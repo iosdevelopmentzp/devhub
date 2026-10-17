@@ -16,13 +16,13 @@ final class MergeRequestDetailStore {
     private(set) var openDiffThreads: Set<MergeRequestThread.ID> = []
 
     @ObservationIgnored private let repository: MergeRequestRepository
-    @ObservationIgnored private let remote: any GitLabRemoteLookup
+    @ObservationIgnored private let remote: any CodeHostLookup
     @ObservationIgnored private let prompts: any ReviewPromptRepository
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private var loading: Set<MergeRequestSummary.ID> = []
     @ObservationIgnored private var subscription: SubscriptionToken?
 
-    init(repository: MergeRequestRepository, remote: any GitLabRemoteLookup, prompts: any ReviewPromptRepository, activity: ActivityLog, events: AppEvents) {
+    init(repository: MergeRequestRepository, remote: any CodeHostLookup, prompts: any ReviewPromptRepository, activity: ActivityLog, events: AppEvents) {
         self.repository = repository
         self.remote = remote
         self.prompts = prompts
@@ -132,7 +132,7 @@ final class MergeRequestDetailStore {
         defer { loading.remove(id) }
         errors[id] = nil
         do {
-            let url = try await remote.gitLabURL()
+            let url = try await remote.codeHost()
             async let loadedDetails = repository.details(iid: id, repository: url)
             async let loadedDiffs = repository.diffs(iid: id, repository: url)
             let (description, files) = try await (loadedDetails, loadedDiffs)
@@ -176,13 +176,13 @@ final class MergeRequestDetailStore {
         }
     }
 
-    private func run(_ threadID: MergeRequestThread.ID, of id: MergeRequestSummary.ID, _ title: String, _ work: @escaping @Sendable (URL) async throws -> Void) {
+    private func run(_ threadID: MergeRequestThread.ID, of id: MergeRequestSummary.ID, _ title: String, _ work: @escaping @Sendable (CodeHost) async throws -> Void) {
         guard busyThreads.contains(threadID) == false else { return }
         busyThreads.insert(threadID)
         Task { [weak self] in
             guard let self else { return }
             do {
-                let url = try await remote.gitLabURL()
+                let url = try await remote.codeHost()
                 try await work(url)
                 activity.log(title, detail: "", outcome: .success)
                 busyThreads.remove(threadID)

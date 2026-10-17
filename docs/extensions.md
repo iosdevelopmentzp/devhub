@@ -38,6 +38,8 @@ All fields optional. Missing values are detected (see "default").
 | `build.command` | path | — | `kind: command` only. Runs before `run.command`. Streams output. |
 | `run.command` | path | — | `kind: command` only. May print `@devhub {"app": "<path>"}`; then DevHub installs and launches that app on the target simulator. Otherwise the script launches by itself. |
 | `git.remote` | string | `origin` | the remote that fetch, pull, push, the remote branch list, the web link and the base branch use |
+| `git.host.kind` | `"github"` \| `"gitlab"` | `github` when the host of the remote contains `github`, else `gitlab` | which CLI (`gh` or `glab`) and which words the merge request features use; set it for GitHub Enterprise on a custom host |
+| `git.host.name` | string | the host of the remote URL | passed to `gh --hostname` / `glab --hostname` |
 | `git.baseBranch` | string | `<remote>/HEAD`, else `<remote>/main` | base for merged, rebase, distance, new worktrees |
 | `git.protectedBranches` | [string] | `["main", "master", "develop", "dev"]` | never offered by "Clean Up" in the merged branches section; the base branch is always protected |
 | `git.commitPrefix.pattern` | regex | `^([A-Z][A-Z0-9]+-\d+)` | applied to the branch name; the same pattern without `^` finds the ticket key for the ticket chip and a new merge request title; group 1 is the key; a pattern that does not compile finds nothing |

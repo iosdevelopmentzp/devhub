@@ -2,10 +2,10 @@ import Foundation
 import DevHubDomain
 
 @MainActor
-final class GitLabRemote: GitLabRemoteLookup {
+final class CodeHostRemote: CodeHostLookup {
     private let git: any GitRepository
     private let worktrees: any WorktreeLookup
-    private var cached: URL?
+    private var cached: CodeHost?
     private var subscription: SubscriptionToken?
 
     init(git: any GitRepository, worktrees: any WorktreeLookup, events: AppEvents) {
@@ -26,10 +26,13 @@ final class GitLabRemote: GitLabRemoteLookup {
         worktrees.gitSettings.remote
     }
 
-    func gitLabURL() async throws -> URL {
+    func codeHost() async throws -> CodeHost {
         if let cached { return cached }
-        guard let url = await git.webURL(checkoutPath: worktrees.mainCheckoutPath, remote: remoteName) else { throw MergeRequestError.notGitLab }
-        cached = url
-        return url
+        let settings = worktrees.gitSettings
+        guard let url = await git.webURL(checkoutPath: worktrees.mainCheckoutPath, remote: settings.remote),
+              let host = CodeHostPolicy.codeHost(webURL: url, kind: settings.hostKind, name: settings.hostName)
+        else { throw MergeRequestError.noCodeHost }
+        cached = host
+        return host
     }
 }

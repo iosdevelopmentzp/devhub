@@ -114,20 +114,20 @@ final class StoreHarness {
 
     lazy var mergeRequests = MergeRequestStore(repository: ports.mergeRequests, checkout: git, events: events)
 
-    lazy var gitLabRemote = GitLabRemote(git: ports.git, worktrees: worktrees, events: events)
+    lazy var codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
 
-    lazy var gitLab = GitLabStore(repository: ports.mergeRequests, remote: gitLabRemote, activity: activity, events: events, store: store)
+    lazy var gitLab = GitLabStore(repository: ports.mergeRequests, remote: codeHostRemote, activity: activity, events: events, store: store)
 
-    lazy var openMergeRequests = OpenMergeRequestsStore(repository: ports.mergeRequests, remote: gitLabRemote, activity: activity, events: events)
+    lazy var openMergeRequests = OpenMergeRequestsStore(repository: ports.mergeRequests, remote: codeHostRemote, activity: activity, events: events)
 
-    lazy var mergeRequestDetails = MergeRequestDetailStore(repository: ports.mergeRequests, remote: gitLabRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
+    lazy var mergeRequestDetails = MergeRequestDetailStore(repository: ports.mergeRequests, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
 
     lazy var newMergeRequest = NewMergeRequestStore(
         git: ports.git,
         mergeRequests: ports.mergeRequests,
         createMergeRequest: useCases.createMergeRequest,
         checkout: git,
-        remote: gitLabRemote,
+        remote: codeHostRemote,
         activity: activity,
         events: events
     )

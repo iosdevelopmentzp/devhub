@@ -6,7 +6,7 @@ import Testing
 
 @Suite struct MergeRequestLineMapperTests {
     @Test func notLoggedInShowsTheLoginCommand() {
-        let model = MergeRequestLineMapper.model(status: nil, error: .notLoggedIn(host: "gitlab.example.com"), isLoading: false, openRequest: nil, username: nil)
+        let model = MergeRequestLineMapper.model(status: nil, error: .notLoggedIn(tool: "glab", host: "gitlab.example.com"), isLoading: false, openRequest: nil, username: nil)
 
         #expect(model.content == .notConnected(loginCommand: "glab auth login --hostname gitlab.example.com"))
         #expect(model.canRefresh)
@@ -14,11 +14,11 @@ import Testing
     }
 
     @Test func otherErrorsShowTheirDescription() {
-        let notGitLab = MergeRequestLineMapper.model(status: nil, error: .notGitLab, isLoading: false, openRequest: nil, username: nil)
-        let notInstalled = MergeRequestLineMapper.model(status: nil, error: .notInstalled, isLoading: true, openRequest: nil, username: nil)
+        let notGitLab = MergeRequestLineMapper.model(status: nil, error: .noCodeHost, isLoading: false, openRequest: nil, username: nil)
+        let notInstalled = MergeRequestLineMapper.model(status: nil, error: .notInstalled(tool: "glab"), isLoading: true, openRequest: nil, username: nil)
         let command = MergeRequestLineMapper.model(status: nil, error: .command("HTTP 500"), isLoading: false, openRequest: nil, username: nil)
 
-        #expect(notGitLab.content == .failure("The remote is not on GitLab"))
+        #expect(notGitLab.content == .failure("The remote has no web address on GitHub or GitLab"))
         #expect(notGitLab.canRefresh == false)
         #expect(notInstalled.content == .failure("glab is not installed. brew install glab"))
         #expect(notInstalled.canRefresh)

@@ -1,13 +1,13 @@
 import Foundation
 import DevHubDomain
 
-enum GlabErrorMapper {
-    static func error(exitCode: Int32, message: String, host: String) -> MergeRequestError {
+enum CodeHostErrorMapper {
+    static func error(tool: String, exitCode: Int32, message: String, host: String) -> MergeRequestError {
         if exitCode == 127 || message.contains("command not found") || message.contains("No such file") {
-            return .notInstalled
+            return .notInstalled(tool: tool)
         }
         if message.contains("401") || message.localizedCaseInsensitiveContains("token") || message.localizedCaseInsensitiveContains("auth") {
-            return .notLoggedIn(host: host)
+            return .notLoggedIn(tool: tool, host: host)
         }
         return .command(message)
     }

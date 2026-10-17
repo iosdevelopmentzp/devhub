@@ -2,7 +2,7 @@ import Foundation
 import DevHubDomain
 
 @MainActor
-protocol GitLabRemoteLookup: AnyObject {
+protocol CodeHostLookup: AnyObject {
     var remoteName: String { get }
-    func gitLabURL() async throws -> URL
+    func codeHost() async throws -> CodeHost
 }

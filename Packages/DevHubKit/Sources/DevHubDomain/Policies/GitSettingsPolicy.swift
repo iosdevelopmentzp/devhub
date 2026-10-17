@@ -21,7 +21,9 @@ package enum GitSettingsPolicy {
                 include: worktrees?.include ?? [],
                 bootstrap: meaningful(worktrees?.bootstrap),
                 bootstrapMarker: meaningful(worktrees?.bootstrapMarker)
-            )
+            ),
+            hostKind: git?.host?.kind,
+            hostName: meaningful(git?.host?.name)
         )
     }
 

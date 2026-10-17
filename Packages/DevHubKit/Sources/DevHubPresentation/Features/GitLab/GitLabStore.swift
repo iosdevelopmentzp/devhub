@@ -50,7 +50,7 @@ final class GitLabStore {
     }
 
     @ObservationIgnored private let repository: MergeRequestRepository
-    @ObservationIgnored private let remote: any GitLabRemoteLookup
+    @ObservationIgnored private let remote: any CodeHostLookup
     @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let events: AppEvents
@@ -72,7 +72,7 @@ final class GitLabStore {
         "gitlab.seenAt.\(scope.rawValue)"
     }
 
-    init(repository: MergeRequestRepository, remote: any GitLabRemoteLookup, activity: ActivityLog, events: AppEvents, store: any KeyValueStore) {
+    init(repository: MergeRequestRepository, remote: any CodeHostLookup, activity: ActivityLog, events: AppEvents, store: any KeyValueStore) {
         self.repository = repository
         self.remote = remote
         self.store = store
@@ -192,14 +192,14 @@ final class GitLabStore {
         }
     }
 
-    private func run(_ id: MergeRequestSummary.ID, done: String, failed: String, _ work: @escaping @Sendable (URL) async throws -> Void) {
+    private func run(_ id: MergeRequestSummary.ID, done: String, failed: String, _ work: @escaping @Sendable (CodeHost) async throws -> Void) {
         guard busyIDs.contains(id) == false else { return }
         busyIDs.insert(id)
         let detail = request(id: id)?.title ?? ""
         Task { [weak self] in
             guard let self else { return }
             do {
-                let url = try await remote.gitLabURL()
+                let url = try await remote.codeHost()
                 try await work(url)
                 activity.log(done, detail: detail, outcome: .success)
                 events.post(.mergeRequestsChanged)
@@ -242,7 +242,7 @@ final class GitLabStore {
         isLoadingMore = true
         defer { isLoadingMore = false }
         do {
-            let url = try await remote.gitLabURL()
+            let url = try await remote.codeHost()
             let page = try await repository.list(query, after: cursor, repository: url)
             guard query == self.query, cursor == nextCursor else { return }
             let known = Set(requests.map(\.id))
@@ -277,7 +277,7 @@ final class GitLabStore {
                 requests = []
             }
             do {
-                let url = try await remote.gitLabURL()
+                let url = try await remote.codeHost()
                 let loaded = try await repository.list(query, after: nil, repository: url)
                 try Task.checkCancellation()
                 if loaded.requests != requests {
@@ -333,7 +333,7 @@ final class GitLabStore {
     private func report(_ failure: MergeRequestError) {
         error = failure
         loadedAt = nil
-        if case .notGitLab = failure { return }
+        if case .noCodeHost = failure { return }
         let message = failure.localizedDescription
         guard message != loggedError else { return }
         loggedError = message

@@ -239,10 +239,10 @@ struct GitLabView: View {
     }
 
     private func failure(_ error: MergeRequestError) -> ListMessage {
-        if case .notLoggedIn(let host) = error {
-            let command = "glab auth login --hostname \(host)"
+        if case .notLoggedIn(let tool, let host) = error {
+            let command = "\(tool) auth login --hostname \(host)"
             return ListMessage.failure(
-                "glab is not logged in",
+                "\(tool) is not logged in",
                 description: "Run \(command) in Terminal, then retry.",
                 actionTitle: "Copy Command"
             ) {

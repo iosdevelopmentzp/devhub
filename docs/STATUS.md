@@ -52,6 +52,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 15. The `.devhub/` config models are `Codable` Domain types (`Models/Config/`), the one exception to "no `Decodable` Domain model" (`docs/ARCHITECTURE.md` section 5). `ExampleConfig.files` is generated from `docs/examples/devhub/` by `Scripts/generate-example-config.sh`; run it after every change there.
 16. After a change to an enum in a lower module (for example a new `Tint` case), remove `Packages/DevHubKit/.build` before `Scripts/test.sh`. Why: the incremental test build once kept old object files, and the tests read wrong enum values.
 17. A config action in a row placement shows its inputs and confirmation under that row. The screen draws the prompt (`ConfigActionsStore.pending(in:)` with the slot `<placement>:<row id>`), the row gets only `configActions` in its model and an `onConfigAction` closure. Why: a row reads no store but `Toaster` and `AppActions`.
+18. A remote whose host name contains neither `github` nor `gitlab` counts as GitLab unless `git.host.kind` says `github`. Why: a self-hosted GitLab on a company domain is the common case; GitHub Enterprise users set the kind once. The ADR idea to ask `gh auth status` was dropped: it would make the choice depend on the machine.
 
 ## Next steps
 

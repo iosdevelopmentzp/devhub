@@ -7,14 +7,14 @@ import DevHubTestSupport
 
 @Suite struct GitLabStoreTests {
     private let harness = StoreHarness()
-    private let remote = URL(string: "https://gitlab.example.com/team/app")!
+    private let remote = CodeHost.gitLabSample
 
     private var store: GitLabStore {
         harness.gitLab
     }
 
     private func script(_ requests: [MergeRequestSummary], username: String = "me") {
-        harness.spies.git.webURLResult = remote
+        harness.spies.git.webURLResult = remote.webURL
         harness.spies.mergeRequests.listResult = .success(MergeRequestList(username: username, requests: requests, totalCount: requests.count))
     }
 
@@ -73,7 +73,7 @@ import DevHubTestSupport
     @Test func withoutARemoteTheErrorIsNotGitLab() async {
         await store.refresh()
 
-        #expect(store.error == .notGitLab)
+        #expect(store.error == .noCodeHost)
         #expect(harness.spies.mergeRequests.calls.isEmpty)
         #expect(harness.activityTitles.isEmpty)
     }
@@ -115,11 +115,11 @@ import DevHubTestSupport
 
         store.stateFilter = .all
         #expect(store.hasLoaded == false)
-        harness.spies.mergeRequests.listResult = .failure(MergeRequestError.notLoggedIn(host: "gitlab.example.com"))
+        harness.spies.mergeRequests.listResult = .failure(MergeRequestError.notLoggedIn(tool: "glab", host: "gitlab.example.com"))
         await store.refresh()
 
         #expect(store.requests.isEmpty)
-        #expect(store.error == .notLoggedIn(host: "gitlab.example.com"))
+        #expect(store.error == .notLoggedIn(tool: "glab", host: "gitlab.example.com"))
         #expect(store.hasLoaded)
     }
 
@@ -291,7 +291,7 @@ import DevHubTestSupport
     }
 
     @Test func loadMoreAppendsTheNextPage() async {
-        harness.spies.git.webURLResult = remote
+        harness.spies.git.webURLResult = remote.webURL
         harness.spies.mergeRequests.listResult = .success(MergeRequestList(username: "me", requests: [MergeRequestSummaryFixture.open], totalCount: 3, endCursor: "c1", hasNextPage: true))
         harness.spies.mergeRequests.nextPageResult = .success(MergeRequestList(
             username: "me",
@@ -311,7 +311,7 @@ import DevHubTestSupport
     }
 
     @Test func aFailedPageIsLoggedAndKeepsTheCursor() async {
-        harness.spies.git.webURLResult = remote
+        harness.spies.git.webURLResult = remote.webURL
         harness.spies.mergeRequests.listResult = .success(MergeRequestList(username: "me", requests: [MergeRequestSummaryFixture.open], totalCount: 3, endCursor: "c1", hasNextPage: true))
         harness.spies.mergeRequests.nextPageResult = .failure(MergeRequestError.command("502"))
         await store.refresh()
@@ -324,7 +324,7 @@ import DevHubTestSupport
     }
 
     @Test func aRefreshStartsFromTheFirstPage() async {
-        harness.spies.git.webURLResult = remote
+        harness.spies.git.webURLResult = remote.webURL
         harness.spies.mergeRequests.listResult = .success(MergeRequestList(username: "me", requests: [MergeRequestSummaryFixture.open], totalCount: 1, endCursor: "c1", hasNextPage: false))
 
         await store.refresh()
@@ -365,7 +365,7 @@ import DevHubTestSupport
     }
 
     @Test func theCacheKeepsLoadedPagesAndClearsOnProjectChange() async {
-        harness.spies.git.webURLResult = remote
+        harness.spies.git.webURLResult = remote.webURL
         harness.spies.mergeRequests.listResult = .success(MergeRequestList(username: "me", requests: [MergeRequestSummaryFixture.open], totalCount: 2, endCursor: "c1", hasNextPage: true))
         harness.spies.mergeRequests.nextPageResult = .success(MergeRequestList(username: "me", requests: [MergeRequestSummaryFixture.request(iid: 5, source: "x", state: .opened)], totalCount: 2))
         await store.refresh()

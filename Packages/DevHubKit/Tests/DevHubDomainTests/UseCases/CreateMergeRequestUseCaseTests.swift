@@ -5,7 +5,7 @@ import Testing
 
 @Suite struct CreateMergeRequestUseCaseTests {
     private let request = NewMergeRequest(sourceBranch: "feature/a", targetBranch: "dev", title: "A", description: "", labels: [], isDraft: false, removeSourceBranch: true, squash: false)
-    private let remote = URL(string: "https://gitlab.example.com/team/app")!
+    private let remote = CodeHost.gitLabSample
 
     @Test func pushPlanFollowsTheUpstream() {
         #expect(CreateMergeRequestUseCase.pushPlan(upstream: nil, ahead: 0, isCurrent: true) == .push(setUpstream: true))

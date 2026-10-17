@@ -1,4 +1,5 @@
 import DevHubDomain
+import DevHubTestSupport
 import Foundation
 import Testing
 @testable import DevHubData
@@ -25,13 +26,11 @@ import Testing
         #expect(arguments == ["api", "--hostname", "gitlab.example.com", "-X", "PUT", "projects/team%2Fapp/merge_requests/7/merge", "-f", "squash=true"])
     }
 
-    @Test func hostAndProjectComeFromTheRemote() throws {
-        let remote = try #require(URL(string: "https://gitlab.example.com/group/sub/app"))
-
-        #expect(try GlabClient.host(of: remote) == "gitlab.example.com")
-        #expect(GlabClient.projectPath(of: remote) == "group/sub/app")
-        #expect(throws: MergeRequestError.notGitLab) {
-            try GlabClient.host(of: try #require(URL(string: "https://github.com/team/app")))
+    @Test func hostAndProjectComeFromTheCodeHost() throws {
+        #expect(try GlabClient.host(of: .gitLabSample) == "gitlab.example.com")
+        #expect(GlabClient.projectPath(of: .gitLabSample) == "team/app")
+        #expect(throws: MergeRequestError.noCodeHost) {
+            try GlabClient.host(of: .gitHubSample)
         }
     }
 }
