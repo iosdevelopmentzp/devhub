@@ -2,13 +2,24 @@ import SwiftUI
 import DevHubDomain
 import DevHubUI
 
-struct ScriptRow: View {
+struct ScriptRow<Details: View>: View {
     let model: ScriptRowModel
-    let run: () -> Void
+    let onRun: () -> Void
+    let onStop: () -> Void
+    let onEdit: (String) -> Void
+    let onReveal: (String) -> Void
+    @ViewBuilder let details: () -> Details
 
     var body: some View {
         RowContainer { isHovered in
-            row(isHovered: isHovered)
+            VStack(alignment: .leading, spacing: 6) {
+                row(isHovered: isHovered)
+                details()
+                    .padding(.leading, 42)
+            }
+        }
+        .contextMenu {
+            menuItems
         }
     }
 
@@ -17,17 +28,31 @@ struct ScriptRow: View {
             IconTile(systemImage: model.icon, tint: model.iconTint.color, size: 32)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(model.title)
-                    .font(.callout.weight(.semibold))
-                Text(model.subtitle)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                HStack(spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(model.title)
+                        .font(.callout.weight(.semibold))
+                        .lineLimit(1)
+                        .hintWhenTruncated(model.title)
+                    ForEach(model.tags, id: \.self) { tag in
+                        ModelTag(model: tag)
+                    }
+                }
+                if model.subtitle.isEmpty == false {
+                    Text(model.subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .hintWhenTruncated(model.subtitle)
+                }
+                FlowLayout(spacing: 6, lineSpacing: 2) {
                     Text(model.fileName)
                         .font(.caption2.monospaced())
                     Text("·")
                     Text(model.lastRunText)
+                    if let blocked = model.blockedTag {
+                        ModelTag(model: blocked)
+                            .copyOnClick(model.chmodCommand, label: "chmod command")
+                    }
                 }
                 .font(.caption2)
                 .foregroundStyle(.secondary)
@@ -37,31 +62,47 @@ struct ScriptRow: View {
 
             Group {
                 if model.isRunning {
-                    ProgressView()
-                        .controlSize(.small)
-                } else {
-                    Button("Run", systemImage: "play.fill") {
-                        run()
+                    HStack(spacing: 6) {
+                        ProgressView()
+                            .controlSize(.small)
+                        IconButton(systemImage: "stop.fill", help: "Stop the script", tint: .red, action: onStop)
                     }
-                    .buttonStyle(.bordered)
+                } else {
+                    Button("Run", systemImage: "play.fill", action: onRun)
+                        .buttonStyle(.bordered)
+                        .disabled(model.isRunnable == false)
+                        .fixedSize()
                 }
             }
             .controlSize(.small)
-            .frame(width: 64)
 
             OverflowMenu {
-                Button(model.editTitle, systemImage: "pencil") {}
-                Button("Reveal in Finder", systemImage: "folder") {}
-                Button("Copy Command", systemImage: "doc.on.doc") {}
-                Divider()
-                Button("Remove", systemImage: "trash", role: .destructive) {}
+                menuItems
             }
             .opacity(isHovered ? 1 : 0)
+        }
+    }
+
+    @ViewBuilder
+    private var menuItems: some View {
+        if let path = model.scriptPath {
+            Button(model.editTitle, systemImage: "pencil") {
+                onEdit(path)
+            }
+            Button("Reveal in Finder", systemImage: "folder") {
+                onReveal(path)
+            }
+        }
+        if model.isRunnable == false {
+            Button("Copy chmod Command", systemImage: "doc.on.doc") {}
+                .copyOnClick(model.chmodCommand, label: "chmod command")
         }
     }
 }
 
 #Preview {
-    ScriptRow(model: .preview) {}
-        .previewEnvironment()
+    ScriptRow(model: .preview, onRun: {}, onStop: {}, onEdit: { _ in }, onReveal: { _ in }) {
+        EmptyView()
+    }
+    .previewEnvironment()
 }

@@ -16,6 +16,7 @@ final class ConfigActionsStore {
     @ObservationIgnored let tools: any ToolLocating
     @ObservationIgnored let session: ProjectSession
     @ObservationIgnored let checkout: any CheckoutContext
+    @ObservationIgnored let worktrees: any WorktreeLookup
     @ObservationIgnored let build: any BuildLookup
     @ObservationIgnored let workspace: WorkspaceActions
     @ObservationIgnored let toaster: Toaster
@@ -32,6 +33,7 @@ final class ConfigActionsStore {
         tools: any ToolLocating,
         session: ProjectSession,
         checkout: any CheckoutContext,
+        worktrees: any WorktreeLookup,
         build: any BuildLookup,
         workspace: WorkspaceActions,
         toaster: Toaster,
@@ -46,6 +48,7 @@ final class ConfigActionsStore {
         self.tools = tools
         self.session = session
         self.checkout = checkout
+        self.worktrees = worktrees
         self.build = build
         self.workspace = workspace
         self.toaster = toaster
@@ -58,7 +61,11 @@ final class ConfigActionsStore {
     }
 
     var effective: EffectiveProject {
-        config.effective(detectedSchemes: build.schemeOptions, detectedBaseBranch: checkout.baseRef)
+        config.effective(detectedSchemes: build.schemeOptions, detectedBaseBranch: worktrees.baseBranch)
+    }
+
+    var currentBranch: String? {
+        checkout.currentBranch ?? worktrees.worktree(atPath: checkout.checkoutPath)?.branch ?? worktrees.mainWorktree?.branch
     }
 
     func actions(for placement: Placement) -> [CatalogAction] {
@@ -143,7 +150,7 @@ final class ConfigActionsStore {
 
     private var facts: ActionConditionFacts {
         ActionConditionFacts(
-            isGitClean: checkout.currentBranch == nil ? nil : checkout.isMainCheckoutClean,
+            isGitClean: checkout.currentBranch == nil ? worktrees.mainWorktree.map { $0.changedFiles == 0 } : checkout.isMainCheckoutClean,
             isTargetBooted: build.target?.state == .booted,
             installedTools: Set(config.resolved.actions.compactMap(\.config.when?.tool).filter(tools.isInstalled)),
             kind: effective.kind
@@ -163,9 +170,9 @@ final class ConfigActionsStore {
             } else {
                 values[input.key] = ActionContextPolicy.defaultValue(
                     for: input,
-                    branch: item.branch ?? checkout.currentBranch ?? "",
+                    branch: item.branch ?? currentBranch ?? "",
                     simulatorUDID: item.simulatorUDID ?? build.target?.id ?? "",
-                    scheme: build.selectedScheme
+                    scheme: effective.scheme ?? build.selectedScheme
                 )
             }
         }

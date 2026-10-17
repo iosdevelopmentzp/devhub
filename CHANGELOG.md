@@ -6,12 +6,19 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 
 ## [Unreleased]
 
+### Added
+- Home reads the `.devhub/` config of the selected project: the quick actions follow `home.quickActions` (built-in and config actions), the Scripts list shows the executable files of `.devhub/scripts` in all three layers with their header, and a red box lists config problems with a Reload button.
+- Running a config action or a script asks for its inputs and confirmation inline, streams its output to the Output panel, shows `progress` in the footer, and handles `toast`, `copy`, `open`, `refresh`, `error` and `view` lines. Remembered inputs come back on the next run.
+- Editing a file in `.devhub/` reloads the config while the panel is open.
+- Settings has a "Project config" section: the three config folders, "Create .devhub Example" and "Reveal .devhub Folder".
+
 ### Changed
 - DevHub now runs on the package architecture of the main DevHub: seven modules in `Packages/DevHubKit`, Swift 6, about 1,480 tests. The tabs are Home, Git, GitLab, Worktrees, Simulators, Logs, Network and Claude, with Settings behind the gear.
 - The first launch has no project. The panel shows "No project yet" with an Add Project button.
 - The Network tab shows only the requests that pass through the DevHub mock server.
 - "Copy for Slack" is now "Copy Link with Title".
 - The base branch falls back to `origin/main`.
+- The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Removed
 - Slack commands (tab, catalog file, history). A config action or a script covers that need.
@@ -24,7 +31,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The `.devhub/` config models, the layer merge, the script header and directive parsers, the action catalog and context rules, and the example folder are now Domain types with tests (not yet wired to the screens). `Scripts/generate-example-config.sh` writes `ExampleConfig.swift` from `docs/examples/devhub/`.
 - `Scripts/check-anonymous.sh` checks the whole tree and the last commit message for names of the owner's projects (from `~/.devhub/anonymity-denylist.txt`, outside the repository) and for bundle IDs, plist suites and hosts that are not sample values. `Scripts/build.sh` runs it after `Scripts/check-layers.sh`.
 - `Scripts/test.sh`, `Scripts/check-layers.sh`, `docs/ARCHITECTURE.md`, `.claude/rules/*` and the skills `add-use-case`, `data-layer`, `testing` come from the package-based DevHub, with sample values renamed. New rule `.claude/rules/anonymity.md`.
-- Debug launch switches `DEVHUB_PROJECT`, `DEVHUB_OPEN_PANEL`, `DEVHUB_TAB`, `DEVHUB_SNAPSHOT`, `DEVHUB_SNAPSHOT_DELAY` in Debug builds.
+- Debug launch switches `DEVHUB_PROJECT`, `DEVHUB_OPEN_PANEL`, `DEVHUB_TAB`, `DEVHUB_SNAPSHOT`, `DEVHUB_SNAPSHOT_DELAY`, `DEVHUB_RUN_ACTION`, `DEVHUB_REQUEST_ACTION`, `DEVHUB_SHOW_OUTPUT` in Debug builds.
 - `Scripts/run.sh`, `smoke.sh` and `install.sh` stop only this build, by its path, not every process called DevHub.
 - The stop hook also watches `Packages/` and `.claude/rules/`.
 - `waitUntil` in tests waits up to 10 s instead of 2 s, so store tests do not fail on a busy machine.

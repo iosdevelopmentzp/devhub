@@ -54,18 +54,12 @@ struct SettingsView: View {
             } header: {
                 Text("Projects")
             } footer: {
-                Text("Scheme and bundle ID are found in the project files. Change them here when the guess is wrong. Device ID and environment tools appear for projects DevHub knows (ExampleApp).")
+                Text("Scheme and bundle ID are found in the project files. Change them here when the guess is wrong, or set them in .devhub/project.json.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            Section("Scripts") {
-                LabeledContent("Folder") {
-                    Text(settings.values.scriptsFolder)
-                        .font(.callout.monospaced())
-                        .foregroundStyle(.secondary)
-                }
-            }
+            ProjectConfigSection()
 
             Section("Tools") {
                 Picker("Editor", selection: $settings.values.editor) {

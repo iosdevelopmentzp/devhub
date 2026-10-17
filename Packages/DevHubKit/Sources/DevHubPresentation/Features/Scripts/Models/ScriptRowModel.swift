@@ -3,25 +3,35 @@ import DevHubDomain
 import DevHubUI
 
 struct ScriptRowModel: Identifiable, Equatable {
-    let id: ScriptAction.ID
+    let id: String
     var title: String
     var subtitle: String
     var fileName: String
     var icon: String
     var iconTint: Tint
     var lastRunText: String
+    var tags: [TagModel]
+    var blockedTag: TagModel?
+    var chmodCommand: String
+    var scriptPath: String?
     var isRunning: Bool
+    var isRunnable: Bool
     var editTitle: String
 
     static let preview = ScriptRowModel(
-        id: "reset-simulators",
+        id: "script:reset-simulators",
         title: "Reset simulators",
-        subtitle: "Erase every shutdown simulator",
+        subtitle: "Erase every shut down simulator",
         fileName: "reset-simulators.sh",
         icon: "arrow.counterclockwise",
         iconTint: .purple,
-        lastRunText: "ran 3 hr. ago",
+        lastRunText: "never run",
+        tags: [TagModel("project", tint: .indigo)],
+        blockedTag: nil,
+        chmodCommand: "chmod +x \"/repo/.devhub/scripts/reset-simulators.sh\"",
+        scriptPath: "/repo/.devhub/scripts/reset-simulators.sh",
         isRunning: false,
+        isRunnable: true,
         editTitle: "Edit in Xcode"
     )
 }

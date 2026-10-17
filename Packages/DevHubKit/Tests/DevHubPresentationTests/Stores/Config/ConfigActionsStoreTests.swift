@@ -37,6 +37,18 @@ import DevHubTestSupport
         #expect(store.lastRun(of: "clean") != nil)
     }
 
+    @Test func theBranchFallsBackToTheMainWorktree() async throws {
+        harness.spies.worktrees.listResult = .success([WorktreeSample.main])
+        await harness.worktrees.refresh()
+        let action = ConfigSample.action("branch")
+        await load([action])
+
+        store.request(action, item: .none, slot: "s")
+        try await finish("branch")
+
+        #expect(harness.spies.scripts.calls.first?.environment["DEVHUB_BRANCH"] == WorktreeSample.main.branch)
+    }
+
     @Test func aCommandExpandsPlaceholders() async throws {
         let action = ConfigSample.action("echo", run: .command(["/bin/echo", "{branch}", "{name}"]), inputs: [ActionInput(key: "name", title: "Name", type: .text, defaultValue: "sam")])
         await load([action])

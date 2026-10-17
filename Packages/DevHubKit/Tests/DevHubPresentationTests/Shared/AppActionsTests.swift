@@ -64,8 +64,7 @@ import Testing
             projects: [ProjectSample.app],
             selectedProjectID: nil,
             settings: AppSettings(),
-            recentEvents: [],
-            scripts: []
+            recentEvents: []
         )
     }
 }

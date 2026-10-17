@@ -9,7 +9,6 @@ import Testing
         #expect(MockData.claudeSessions.isEmpty == false)
         #expect(MockData.identities.isEmpty == false)
         #expect(MockData.projects.isEmpty == false)
-        #expect(MockData.scripts.isEmpty == false)
         #expect(MockData.simulatorGroups.flatMap(\.simulators).isEmpty == false)
         #expect(MockData.usage.limits.isEmpty == false)
         #expect(MockData.worktrees.isEmpty == false)

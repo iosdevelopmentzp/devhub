@@ -34,7 +34,7 @@ extension ConfigActionsStore {
             projectPath: ProjectPath(project.path).expanded,
             projectName: project.name,
             checkoutPath: ProjectPath(checkout.checkoutPath.isEmpty ? project.path : checkout.checkoutPath).expanded,
-            branch: checkout.currentBranch ?? "",
+            branch: currentBranch ?? "",
             effective: effective,
             simulatorUDID: target?.id ?? "",
             simulatorName: target?.name ?? "",

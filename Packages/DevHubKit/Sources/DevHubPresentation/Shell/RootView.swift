@@ -12,6 +12,7 @@ struct RootView: View {
     @Environment(SimulatorsStore.self) private var simulators
     @Environment(BuildStore.self) private var build
     @Environment(WorktreesStore.self) private var worktrees
+    @Environment(ConfigStore.self) private var config
     @Environment(\.hintCenter) private var hintCenter
     @Environment(\.isPinnedWindow) private var isPinnedWindow
     @Environment(WindowLayout.self) private var layout
@@ -60,7 +61,8 @@ struct RootView: View {
             }
             async let schemesRefresh: Void = build.refreshSchemes()
             async let worktreesRefresh: Void = worktrees.refresh()
-            _ = await (usageRefresh, simulatorsRefresh, schemesRefresh, worktreesRefresh)
+            async let configRefresh: Void = config.reload()
+            _ = await (usageRefresh, simulatorsRefresh, schemesRefresh, worktreesRefresh, configRefresh)
         }
     }
 

@@ -1,41 +1,39 @@
-import DevHubDomain
-import DevHubUI
 import Foundation
 import Testing
+import DevHubDomain
+import DevHubUI
 @testable import DevHubPresentation
 
 @Suite struct ScriptRowMapperTests {
-    let script = ScriptAction(
-        id: "reset-simulators",
-        title: "Reset simulators",
-        subtitle: "Erase every shutdown simulator",
-        fileName: "reset-simulators.sh",
-        systemImage: "arrow.counterclockwise",
-        lastRun: nil
-    )
+    @Test func aRunnableScript() {
+        var action = ConfigSample.action("script:hello", run: .script("scripts/hello.sh"), inputs: [ActionInput(key: "a", title: "A", type: .text)])
+        action.config.subtitle = "Says hello"
 
-    @Test func neverRunScript() {
-        let model = ScriptRowMapper.model(for: script, isRunning: false, editor: "Xcode")
+        let model = ScriptRowMapper.model(for: action, isRunning: false, lastRun: nil, editor: "Xcode")
 
-        #expect(model.id == "reset-simulators")
-        #expect(model.title == "Reset simulators")
-        #expect(model.subtitle == "Erase every shutdown simulator")
-        #expect(model.fileName == "reset-simulators.sh")
-        #expect(model.icon == "arrow.counterclockwise")
-        #expect(model.iconTint == .purple)
+        #expect(model.title == "Script:Hello")
+        #expect(model.subtitle == "Says hello")
+        #expect(model.fileName == "script:hello.json")
+        #expect(model.scriptPath == ConfigSample.directory + "/scripts/hello.sh")
+        #expect(model.tags.map(\.text) == ["1 input", "project"])
         #expect(model.lastRunText == "never run")
-        #expect(model.isRunning == false)
+        #expect(model.blockedTag == nil)
+        #expect(model.iconTint == .purple)
         #expect(model.editTitle == "Edit in Xcode")
     }
 
-    @Test func runningScriptWithLastRun() {
-        var ran = script
-        ran.lastRun = Date(timeIntervalSinceNow: -3_600)
+    @Test func aScriptWithoutExecuteBitIsBlockedWithACommand() {
+        let action = ConfigSample.action("x", run: .script("scripts/x.sh"), isExecutable: false)
 
-        let model = ScriptRowMapper.model(for: ran, isRunning: true, editor: "Cursor")
+        let model = ScriptRowMapper.model(for: action, isRunning: false, lastRun: Date(), editor: "Xcode")
 
+        #expect(model.isRunnable == false)
+        #expect(model.blockedTag?.tint == .orange)
+        #expect(model.chmodCommand == "chmod +x \"\(ConfigSample.directory)/scripts/x.sh\"")
         #expect(model.lastRunText.hasPrefix("ran "))
-        #expect(model.isRunning)
-        #expect(model.editTitle == "Edit in Cursor")
+    }
+
+    @Test func aNonScriptActionHasNoPath() {
+        #expect(ScriptRowMapper.model(for: ConfigSample.action("o", run: .open("https://example.com")), isRunning: true, lastRun: nil, editor: "Xcode").scriptPath == nil)
     }
 }

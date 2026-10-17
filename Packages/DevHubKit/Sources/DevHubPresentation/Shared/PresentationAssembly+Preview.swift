@@ -15,8 +15,7 @@ extension PresentationAssembly {
             projects: MockData.projects,
             selectedProjectID: nil,
             settings: AppSettings(),
-            recentEvents: MockData.recentEvents,
-            scripts: MockData.scripts
+            recentEvents: MockData.recentEvents
         )
         assembly.worktrees.worktrees = MockData.worktrees
         assembly.worktrees.derivedDataSizes = MockData.derivedDataSizes

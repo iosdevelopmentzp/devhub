@@ -29,7 +29,6 @@ package final class PresentationAssembly {
     let simulators: SimulatorsStore
     let identity: IdentityStore
     let build: BuildStore
-    let scripts: ScriptsStore
     let configActions: ConfigActionsStore
     let logs: LogsStore
     let mockSets: MockSetsStore
@@ -47,8 +46,7 @@ package final class PresentationAssembly {
         projects: [Project],
         selectedProjectID: Project.ID?,
         settings initialSettings: AppSettings,
-        recentEvents: [ActivityEvent],
-        scripts initialScripts: [ScriptAction]
+        recentEvents: [ActivityEvent]
     ) {
         self.commandLog = commandLog
         events = AppEvents()
@@ -134,13 +132,13 @@ package final class PresentationAssembly {
             events: events,
             store: store
         )
-        scripts = ScriptsStore(scripts: initialScripts, activity: activity)
         configActions = ConfigActionsStore(
             config: config,
             scripts: ports.scripts,
             tools: ports.tools,
             session: session,
             checkout: git,
+            worktrees: worktrees,
             build: build,
             workspace: workspace,
             toaster: toaster,

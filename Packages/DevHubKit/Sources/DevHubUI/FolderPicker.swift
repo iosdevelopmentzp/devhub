@@ -15,4 +15,18 @@ package enum FolderPicker {
         guard panel.runModal() == .OK else { return nil }
         return panel.url
     }
+
+    @MainActor
+    package static func chooseFile(directory: URL, prompt: String, message: String) -> URL? {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = false
+        panel.prompt = prompt
+        panel.message = message
+        panel.directoryURL = directory
+        NSApp.activate()
+        guard panel.runModal() == .OK else { return nil }
+        return panel.url
+    }
 }

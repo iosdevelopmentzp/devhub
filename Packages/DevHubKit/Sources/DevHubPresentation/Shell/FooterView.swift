@@ -4,11 +4,16 @@ import DevHubUI
 
 struct FooterView: View {
     @Environment(BuildStore.self) private var build
+    @Environment(ConfigActionsStore.self) private var configActions
     @Environment(\.isPinnedWindow) private var isPinnedWindow
 
     var body: some View {
         HStack(spacing: 10) {
-            BuildStatusLabel(phase: build.state.phase)
+            if let progress = configActions.progress, build.isRunning == false {
+                ScriptProgressLabel(progress: progress)
+            } else {
+                BuildStatusLabel(phase: build.state.phase)
+            }
             Spacer()
             OutputToggle()
             Text("⌘1–\(FeatureRegistry.tabBarFeatures.count) tabs")

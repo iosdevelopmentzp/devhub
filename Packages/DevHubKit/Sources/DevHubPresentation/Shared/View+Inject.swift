@@ -28,7 +28,6 @@ extension View {
             .environment(assembly.simulators)
             .environment(assembly.identity)
             .environment(assembly.build)
-            .environment(assembly.scripts)
             .environment(assembly.configActions)
             .environment(assembly.logs)
             .environment(assembly.mockSets)

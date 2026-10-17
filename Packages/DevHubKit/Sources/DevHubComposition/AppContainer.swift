@@ -1,7 +1,6 @@
 import Foundation
 import DevHubData
 import DevHubDomain
-import DevHubMocks
 import DevHubPresentation
 
 @MainActor
@@ -31,8 +30,7 @@ public final class AppContainer {
             projects: savedProjects ?? [],
             selectedProjectID: store.string(forKey: PreferenceKeys.selectedProject),
             settings: store.decode(AppSettings.self, forKey: PreferenceKeys.settings) ?? AppSettings(),
-            recentEvents: [],
-            scripts: MockData.scripts
+            recentEvents: []
         )
         let container = AppContainer(shell: shell, assembly: assembly)
         container.startSystemIntegration()

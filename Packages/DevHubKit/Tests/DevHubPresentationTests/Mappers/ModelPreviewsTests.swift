@@ -47,8 +47,10 @@ import Testing
     @Test func homePreviewsBuild() {
         #expect(ActivityRowModel.preview.dotTint == .green)
         #expect(ProjectCardModel.preview.statusTags.count == 3)
-        #expect(QuickAction.all.count == 8)
-        #expect(Set(QuickAction.all.map(\.id)).count == QuickAction.all.count)
+        #expect(QuickActionTileModel.preview.isEnabled)
+        #expect(ConfigIssueRowModel.preview.message.isEmpty == false)
+        #expect(ScriptRowModel.preview.isRunnable)
+        #expect(ConfigActionItemModel.preview.tint == .red)
     }
 
     @Test func otherFeaturePreviewsBuild() {

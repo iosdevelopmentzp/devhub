@@ -59,6 +59,7 @@ final class StoreHarness {
         tools: ports.tools,
         session: session,
         checkout: git,
+        worktrees: worktrees,
         build: build,
         workspace: workspace,
         toaster: toaster,

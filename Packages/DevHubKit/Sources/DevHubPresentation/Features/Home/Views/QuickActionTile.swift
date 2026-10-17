@@ -3,8 +3,7 @@ import DevHubDomain
 import DevHubUI
 
 struct QuickActionTile: View {
-    let action: QuickAction
-    let isRunning: Bool
+    let model: QuickActionTileModel
     let perform: () -> Void
 
     @State private var isHovered = false
@@ -13,21 +12,23 @@ struct QuickActionTile: View {
         Button(action: perform) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    IconTile(systemImage: action.systemImage, tint: action.tint.color, size: 28)
+                    IconTile(systemImage: model.systemImage, tint: model.tint.color, size: 28)
                     Spacer()
-                    if isRunning {
+                    if model.isRunning {
                         ProgressView()
                             .controlSize(.mini)
                     }
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(action.title)
+                    Text(model.title)
                         .font(.callout.weight(.semibold))
                         .lineLimit(1)
-                    Text(action.subtitle)
+                        .hintWhenTruncated(model.title)
+                    Text(model.subtitle)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+                        .hintWhenTruncated(model.subtitle)
                 }
             }
             .padding(10)
@@ -45,12 +46,12 @@ struct QuickActionTile: View {
         }
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }
-        .disabled(isRunning)
+        .disabled(model.isEnabled == false)
     }
 }
 
 #Preview {
-    QuickActionTile(action: QuickAction.all[0], isRunning: false) {}
+    QuickActionTile(model: .preview) {}
         .frame(width: 160)
         .padding()
 }

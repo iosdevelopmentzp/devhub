@@ -15,7 +15,7 @@ The app is being rewritten on the package architecture of the main DevHub. The p
 | Screen | State | Notes |
 |---|---|---|
 | Panel shell (status item, panel, pin, hot key, header, tab bar, footer, Output panel) | real | From the package. Checked with headless snapshots. With no project the panel shows "No project yet" and an Add Project button |
-| Home | partial | Project card and quick actions are real. The Scripts list still shows sample scripts (`MockData.scripts`) until M2 brings the `.devhub/` scripts |
+| Home | real | Project card, quick actions from `home.quickActions`, Scripts from `.devhub/scripts` with inputs, confirm, result area and last run, config problems. Checked with headless snapshots on a throwaway repository with the example `.devhub` folder: a script run, the footer progress, the Output panel and a hot reload of `project.json` |
 | Git | real | Local, Remote, History, Reflog, Changes, stash, commit box, switch with local changes, request line. The base branch falls back to `origin/main`; config comes in M3 |
 | GitLab | real | Merge requests through `glab` only. Becomes the Pull Requests tab with GitHub first in M4 |
 | Worktrees | real | The worktree folder, include list and bootstrap script still follow the old fixed conventions until M3 |
@@ -41,7 +41,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 6. Common branch names (`main`, `master`, `develop`, `dev`) are not project names and may appear in tests and defaults. The base branch fallback is `origin/main` (`BranchName.defaultBaseRef`) until M3 reads `git.baseBranch`.
 7. The first launch has no project. `ProjectSession.selectedProject` falls back to `Project.none` and `RootView` shows `NoProjectState` instead of a tab. Why: the main app had a fixed default project, and a generic app cannot know one.
 8. The Network tab lists only the exchanges of the DevHub mock server. Why: the session log was the log format of one app. `NetworkStore` keeps selection, filter, pause and clear over the server exchanges.
-9. Debug launch switches live in `DevHubComposition/Debug/DebugLaunch.swift` and are compiled in Debug builds only. Today: `DEVHUB_PROJECT`, `DEVHUB_OPEN_PANEL`, `DEVHUB_TAB`, `DEVHUB_SNAPSHOT`, `DEVHUB_SNAPSHOT_DELAY`. `DEVHUB_PROJECT` and `DEVHUB_TAB` change saved preferences. The rest of the switches from `legacy/App/DebugLaunch*.swift` come with the features they drive.
+9. Debug launch switches live in `DevHubComposition/Debug/DebugLaunch.swift` and are compiled in Debug builds only. Today: `DEVHUB_PROJECT`, `DEVHUB_OPEN_PANEL`, `DEVHUB_TAB`, `DEVHUB_SNAPSHOT`, `DEVHUB_SNAPSHOT_DELAY`, `DEVHUB_RUN_ACTION` (comma-separated action ids, run with default inputs), `DEVHUB_REQUEST_ACTION` (one id, opens its prompt), `DEVHUB_SHOW_OUTPUT`. `DEVHUB_PROJECT`, `DEVHUB_TAB` and `DEVHUB_SHOW_OUTPUT` change saved preferences. The rest of the switches from `legacy/App/DebugLaunch*.swift` come with the features they drive.
 10. Snapshot trap: SwiftUI does not redraw a panel that is covered by other windows, and `cacheDisplay` does not draw some controls (a prominent button looks empty). Check results on the command line as well as in the picture.
 11. The scripts stop only the build of this repository, by its executable path. Why: another app with the same name (`DevHub`) can run on the same machine.
 12. The app keeps the bundle ID `devteams.DevHub` of the first generic app, so it reads and writes the same preferences domain.
@@ -59,6 +59,5 @@ Numbered. What, then why. A later session must not undo these without a new numb
 ## Known gaps
 
 - Settings with no project: the Settings tab also shows "No project yet" until a project is added. Adding a project works from that screen and from the header menu.
-- The Home Scripts section shows sample scripts.
 - The identity panel is hidden for every project (no identity config) until M6.
 - The status item click, the global shortcut and the right-click menu were not exercised with real clicks in this session; only headless snapshots.
