@@ -9,6 +9,7 @@ struct NetworkView: View {
     @Environment(BuildStore.self) private var build
     @Environment(SimulatorsStore.self) private var simulators
     @Environment(ProjectSession.self) private var session
+    @Environment(ConfigStore.self) private var config
     @Environment(\.panelOpenCount) private var openCount
 
     var body: some View {
@@ -16,8 +17,10 @@ struct NetworkView: View {
         return VStack(spacing: 0) {
             NetworkToolbar(shownCount: shown.count)
             Divider()
-            MockServerBar()
-            Divider()
+            if hasBaseURLVariable {
+                MockServerBar()
+                Divider()
+            }
             if mockSets.isShowingRules {
                 MockRulesView()
             } else {
@@ -58,22 +61,21 @@ struct NetworkView: View {
         }
     }
 
+    private var hasBaseURLVariable: Bool {
+        config.config.network?.baseURLVariable?.trimmed.isEmpty == false
+    }
+
     private func emptyMessage(shownIsEmpty: Bool) -> ListMessage? {
-        if network.allRequests.isEmpty, network.pendingCount == 0 {
-            guard simulators.all.contains(where: { $0.state == .booted }) else {
-                return ListMessage("No simulator booted", systemImage: "iphone.slash", description: "Boot a simulator and run the app from DevHub.")
-            }
-            guard network.isIntercepting else {
-                return ListMessage("Mock server is off", systemImage: "network", description: "Start the server in Passthrough mode and relaunch the app from DevHub to see its requests. Tokens are masked. Nothing is saved to disk.")
-            }
-            return ListMessage("Waiting for requests…", systemImage: "arrow.left.arrow.right", description: "The mock server is on for this simulator. Use the app; every REST call shows here with exact timing.")
-        }
-        guard shownIsEmpty, session.searchText.trimmed.isEmpty, network.filter != .all else { return nil }
-        return ListMessage(
-            "No \(NetworkToolbarMapper.title(for: network.filter).lowercased()) requests",
-            systemImage: "line.3.horizontal.decrease.circle",
-            description: "Choose All to see every request."
+        let model = NetworkEmptyStateMapper.model(
+            hasBaseURLVariable: hasBaseURLVariable,
+            hasBootedSimulator: simulators.all.contains { $0.state == .booted },
+            isIntercepting: network.isIntercepting,
+            hasRequests: network.allRequests.isEmpty == false || network.pendingCount > 0,
+            shownIsEmpty: shownIsEmpty,
+            isSearching: session.searchText.trimmed.isEmpty == false,
+            filter: network.filter
         )
+        return model.map { ListMessage($0.title, systemImage: $0.systemImage, description: $0.description) }
     }
 }
 

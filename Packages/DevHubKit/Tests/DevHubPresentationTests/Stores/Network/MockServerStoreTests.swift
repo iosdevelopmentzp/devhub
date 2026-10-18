@@ -220,6 +220,8 @@ import DevHubTestSupport
             forKey: "network.mock.settings"
         )
         let restored = StoreHarness(store: saved)
+        restored.spies.config.loadResult = LaunchConfigSample.resolved()
+        await restored.config.reload()
         restored.spies.mockSets.listResult = .success([MockSetSample.vip])
         await restored.mockSets.load()
 
@@ -230,6 +232,30 @@ import DevHubTestSupport
         #expect(restored.mockServer.states[udid] == MockServerState(mode: .mock, setID: MockSetSample.vip.id, upstreamHost: "api-qa.example.com", status: .running(port: 52001)))
         #expect(restored.spies.simulators.calls.isEmpty)
         #expect(restored.lastActivity?.title == "Mock servers restored: 1")
+    }
+
+    @Test func restoreServersSkipsProductionAndProjectsWithoutTheVariable() async throws {
+        let saved = InMemoryKeyValueStore()
+        saved.encode(
+            [
+                udid: MockSimulatorSettings(mode: .passthrough, setID: nil, upstream: "https://api.example.com"),
+                "staging": MockSimulatorSettings(mode: .passthrough, setID: nil, upstream: staging.absoluteString),
+            ],
+            forKey: "network.mock.settings"
+        )
+        let plain = StoreHarness(store: saved)
+        plain.mockServer.restoreServers()
+        await plain.settle()
+        #expect(plain.spies.mockServer.calls.isEmpty)
+
+        let restored = StoreHarness(store: saved)
+        restored.spies.config.loadResult = LaunchConfigSample.resolved()
+        await restored.config.reload()
+
+        restored.mockServer.restoreServers()
+
+        try await waitUntil { restored.mockServer.states["staging"] != nil }
+        #expect(restored.spies.mockServer.calls == [.start(udid: "staging", upstream: staging, rules: [])])
     }
 
     // MARK: Traffic

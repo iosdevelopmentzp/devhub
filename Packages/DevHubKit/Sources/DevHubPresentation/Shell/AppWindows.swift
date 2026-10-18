@@ -42,6 +42,7 @@ package final class AppWindows: NSObject {
         assembly.usage.startPolling()
         assembly.openPullRequests.startPolling()
         Task { [assembly] in
+            await assembly.config.reload()
             await assembly.mockSets.load()
             assembly.mockServer.restoreServers()
         }

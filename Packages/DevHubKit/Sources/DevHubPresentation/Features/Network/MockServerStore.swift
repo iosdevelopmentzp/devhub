@@ -132,8 +132,12 @@ final class MockServerStore: MockTrafficLookup {
     }
 
     func restoreServers() {
+        guard config.config.network?.baseURLVariable?.trimmed.isEmpty == false else { return }
+        let profiles = config.config.launch?.profiles ?? []
         let saved = settings.compactMap { id, setting -> (id: Simulator.ID, setting: MockSimulatorSettings, upstream: URL)? in
             guard setting.mode != .off, let upstream = setting.upstream.flatMap(URL.init(string:)) else { return nil }
+            let profile = upstream.host.flatMap { MockUpstreamPolicy.profile(ofHost: $0, in: profiles) }
+            guard profile?.isProduction != true else { return nil }
             return (id, setting, upstream)
         }
         guard saved.isEmpty == false else { return }
