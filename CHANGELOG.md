@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- DevHub has an app icon: a `</>` sign on an indigo square. It shows in Finder, in the Dock when the Dock icon is on, and in notifications.
 - Settings → Projects: the circle arrows button finds the scheme and bundle ID of a project again in the project files. Settings → Global config folder shows `~/.devhub` with Reveal, or "not created".
 - Settings → Doctor lists git, xcodebuild, simctl, gh, glab, copilot, claude and python3 with the version and path, or "missing" with the install command. It also shows the Accessibility and Notifications permissions. "Check Again" reads them again.
 - macOS notifications while the panel is closed: a finished or failed Build & Run, more requests waiting for your review, and every `notify` line of a script. Settings → Notifications has the switch and asks for the permission once. The menu bar icon shows a circle while a build runs and a red dot after a failed build until the panel opens.
@@ -79,6 +80,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- `Scripts/make-app-icon.swift <folder>` draws the app icon PNGs in every size. Run it on `DevHub/Assets.xcassets/AppIcon.appiconset`.
+- README: a documentation table, the tools that Doctor checks, "First project in two minutes", ⌘K, ⌘9 and notifications.
 - Deleted `legacy/`, the sources of the first generic app. Everything it did now lives in the package.
 - Debug launch switch `DEVHUB_PALETTE=<query>` opens the command palette.
 - Debug launch switches `DEVHUB_LAUNCH_ID=<id>` (the launch identity for `DEVHUB_BUILD_RUN`) and `DEVHUB_MOCK=<simulator>,<mode>[,<set>]` (Apply & Relaunch of the mock server).
