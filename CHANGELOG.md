@@ -70,6 +70,9 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- The hint of "Delete all…" in the merged branches group names the branches that stay: the base branch and `git.protectedBranches`. Before, it always said "dev, main and master".
+- "Copy chmod Command" in the menu of a script that is not executable copies the command. Before, the menu item did nothing.
+- "Clean Finished" counts only the DerivedData that was really removed. A worktree that could not be removed no longer adds its size.
 - The command palette and custom tabs hide a config action whose `when` condition does not match, like Home and the rows do. A custom tab section with only hidden actions is not shown.
 - "Switch to <branch>" in the command palette no longer runs `git switch` over local changes. It opens the Git tab and asks you to choose Switch or Stash & Switch in the branch row.
 - Branch, commit and new request links in the Git tab follow `git.host.kind`. Before, a GitHub Enterprise host without "github" in its name got GitLab paths.

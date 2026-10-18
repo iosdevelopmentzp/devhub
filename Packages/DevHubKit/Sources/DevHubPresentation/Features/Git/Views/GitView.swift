@@ -208,7 +208,7 @@ struct GitView: View {
         LocalBranchSectionHeader(
             model: section,
             isCollapsed: isCollapsed,
-            cleanup: isMerged ? BranchCleanupMapper.model(for: cleanupCandidates) : nil,
+            cleanup: isMerged ? BranchCleanupMapper.model(for: cleanupCandidates, kept: [git.baseName] + git.gitSettings.protectedBranches) : nil,
             progressText: isMerged ? git.bulkDelete.map(BranchCleanupMapper.progressText) : nil,
             onToggle: isMerged ? { git.isMergedCollapsed.toggle() } : nil,
             onCleanUp: { git.deleteBranches(cleanupCandidates, forceGone: $0) }

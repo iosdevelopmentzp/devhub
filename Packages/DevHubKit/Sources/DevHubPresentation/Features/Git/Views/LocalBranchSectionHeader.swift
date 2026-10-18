@@ -68,7 +68,7 @@ struct LocalBranchSectionHeader: View {
             }
             .buttonStyle(LinkButtonStyle(.accent))
             .foregroundStyle(.red)
-            .hint("Delete every merged branch in this list that is not checked out. dev, main and master stay.")
+            .hint(cleanup?.hint ?? "")
         }
     }
 }

@@ -19,7 +19,6 @@ package struct CleanFinishedWorktreesUseCase: Sendable {
         var result = Report(summaries: [], removedCount: 0, failedNames: [], derivedDataBytes: 0)
         for worktree in targets {
             let size = derivedDataSizes[worktree.id] ?? 0
-            result.derivedDataBytes += size
             let summary = await remove.execute(
                 worktree,
                 projectPath: projectPath,
@@ -28,6 +27,7 @@ package struct CleanFinishedWorktreesUseCase: Sendable {
                 derivedDataSize: size
             )
             result.summaries.append(summary)
+            result.derivedDataBytes += summary.reclaimedBytes
             if summary.outcome == .failure {
                 result.failedNames.append(worktree.displayName)
             }

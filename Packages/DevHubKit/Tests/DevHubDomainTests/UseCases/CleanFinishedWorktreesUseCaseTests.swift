@@ -24,8 +24,9 @@ import Testing
         #expect(spies.derivedData.calls == [.folder(checkout: first.path), .folder(checkout: second.path)])
     }
 
-    @Test func sumsTheDerivedDataSizesOfTheTargets() async {
-        let (ports, _) = Ports.spies()
+    @Test func sumsTheDerivedDataThatWasFreed() async {
+        let (ports, spies) = Ports.spies()
+        spies.derivedData.folderResult = URL(fileURLWithPath: "/derived/App-abc")
 
         let report = await clean(ports, sizes: [first.id: 1_000, second.id: 500, "/other": 9_999], onRemoved: { _ in })
 
@@ -41,7 +42,7 @@ import Testing
         #expect(report.removedCount == 0)
         #expect(report.failedNames == ["first", "second"])
         #expect(report.summaries.map(\.outcome) == [.failure, .failure])
-        #expect(report.derivedDataBytes == 1_000)
+        #expect(report.derivedDataBytes == 0)
     }
 
     @Test func callsOnRemovedOncePerTargetInOrder() async {

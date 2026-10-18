@@ -3,6 +3,8 @@ import DevHubDomain
 import DevHubUI
 
 struct ScriptRow<Details: View>: View {
+    @Environment(\.copyToPasteboard) private var copyToPasteboard
+
     let model: ScriptRowModel
     let onRun: () -> Void
     let onStop: () -> Void
@@ -94,8 +96,9 @@ struct ScriptRow<Details: View>: View {
             }
         }
         if model.isRunnable == false {
-            Button("Copy chmod Command", systemImage: "doc.on.doc") {}
-                .copyOnClick(model.chmodCommand, label: "chmod command")
+            Button("Copy chmod Command", systemImage: "doc.on.doc") {
+                copyToPasteboard(model.chmodCommand, "chmod command")
+            }
         }
     }
 }
