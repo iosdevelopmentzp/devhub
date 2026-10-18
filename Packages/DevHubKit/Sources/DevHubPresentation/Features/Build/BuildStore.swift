@@ -12,15 +12,15 @@ final class BuildStore: BuildLookup {
     private(set) var hasLog = false
     @ObservationIgnored private var buildLog = BuildLog(maxLines: 20_000, trimSlack: 2_000)
 
-    @ObservationIgnored private let repository: any BuildRepository
+    @ObservationIgnored let repository: any BuildRepository
     @ObservationIgnored let buildAndRun: BuildAndRunUseCase
     @ObservationIgnored let commandRun: CommandRunUseCase
     @ObservationIgnored private let prepareCheckout: PrepareBuildCheckoutUseCase
     @ObservationIgnored let config: ConfigStore
     @ObservationIgnored let session: ProjectSession
     @ObservationIgnored let worktrees: any WorktreeLookup
-    @ObservationIgnored private let simulators: any SimulatorLookup
-    @ObservationIgnored private let identity: any IdentityLookup
+    @ObservationIgnored let simulators: any SimulatorLookup
+    @ObservationIgnored let identity: any IdentityLookup
     @ObservationIgnored let attacher: any XcodeAttaching
     @ObservationIgnored let activity: ActivityLog
     @ObservationIgnored let events: AppEvents
@@ -83,69 +83,13 @@ final class BuildStore: BuildLookup {
         }
     }
 
-    var log: [String] {
-        buildLog.lines
-    }
-
-    var isRunning: Bool {
-        state.isRunning
-    }
-
-    var schemeOptions: [String] {
-        let visible = effective.schemes
-        return visible.isEmpty ? [state.scheme] : visible
-    }
-
-    var configurationOptions: [String] {
-        var options = ["Debug", "Release"]
-        for extra in [effective.configuration, state.configuration] where options.contains(extra) == false {
-            options.append(extra)
-        }
-        return options
-    }
-
-    var effective: EffectiveProject {
-        config.effective(detectedSchemes: schemes, detectedBaseBranch: worktrees.baseBranch)
-    }
-
-    private var container: String? {
-        config.resolved.project.xcode?.container
-    }
-
-    var selectedScheme: String {
-        state.scheme
-    }
-
-    var selectedConfiguration: String {
-        state.configuration
-    }
-
-    var target: Simulator? {
-        if let id = state.targetSimulatorID, let simulator = simulators.simulator(id: id) {
-            return simulator
-        }
-        return simulators.all.first { $0.state == .booted } ?? simulators.all.first
-    }
-
-    func isTarget(_ id: Simulator.ID) -> Bool {
-        target?.id == id
-    }
-
-    func willCleanInstall(on id: Simulator.ID) -> Bool {
-        state.cleanInstall || profile?.cleanInstall == true || identity.needsCleanInstall(id: id)
-    }
-
-    var profiles: [LaunchProfile] {
-        config.resolved.project.launch?.profiles ?? []
-    }
-
-    var profile: LaunchProfile? {
-        profiles.first { $0.id == state.profileID } ?? profiles.first
-    }
-
     func setProfile(_ id: LaunchProfile.ID) {
         state.profileID = id
         saveRunOptions()
+    }
+
+    var log: [String] {
+        buildLog.lines
     }
 
     // MARK: Options
@@ -171,18 +115,6 @@ final class BuildStore: BuildLookup {
     }
 
     // MARK: Source
-
-    var sourceWorktreeID: Worktree.ID? {
-        sourceResolution.worktreeID
-    }
-
-    var sourcePath: String {
-        sourceResolution.path
-    }
-
-    var sourceLabel: String {
-        sourceResolution.label
-    }
 
     func useSource(worktreeID: Worktree.ID?) {
         guard let worktreeID, worktrees.worktree(atPath: worktreeID)?.isMain == false else {
@@ -237,17 +169,6 @@ final class BuildStore: BuildLookup {
         run(attachDebugger: false)
     }
 
-    var isCommandProject: Bool {
-        effective.kind == .command
-    }
-
-    var commandsSummary: String? {
-        guard isCommandProject else { return nil }
-        let project = config.resolved.project
-        let commands = [project.build?.command, project.run?.command].compactMap { $0 }
-        return commands.isEmpty ? "No build.command or run.command" : commands.joined(separator: " → ")
-    }
-
     func runAndAttach() {
         guard isCommandProject == false else {
             activity.log("Run & Attach needs an Xcode project", detail: "This project builds with build.command and run.command.", outcome: .failure)
@@ -257,40 +178,11 @@ final class BuildStore: BuildLookup {
         run(attachDebugger: true)
     }
 
-    func run(branch: String) {
-        useSource(branch: branch)
-        run()
-    }
-
-    func run(worktreeID: Worktree.ID) {
-        useSource(worktreeID: worktreeID)
-        run()
-    }
-
-    func run(on simulatorID: Simulator.ID) {
-        selectTarget(id: simulatorID)
-        run()
-    }
-
     func cancel() {
         buildTask?.cancel()
     }
 
-    func lastBuiltAppPath() -> String? {
-        repository.lastBuiltAppPath(projectPath: sourcePath, container: container, scheme: state.scheme, configuration: state.configuration)
-    }
-
     // MARK: Private
-
-    private var sourceResolution: BuildSourceResolver.BuildSourceResolution {
-        BuildSourceResolver.resolve(
-            source: source,
-            worktrees: worktrees.worktrees,
-            mainCheckoutPath: worktrees.mainCheckoutPath,
-            projectName: session.selectedProject.name,
-            remote: worktrees.gitSettings.remote
-        )
-    }
 
     private func run(attachDebugger: Bool) {
         guard let simulator = target, isRunning == false else { return }

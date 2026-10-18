@@ -2,6 +2,21 @@ import AppKit
 import DevHubDomain
 
 extension BuildStore {
+    func run(branch: String) {
+        useSource(branch: branch)
+        run()
+    }
+
+    func run(worktreeID: Worktree.ID) {
+        useSource(worktreeID: worktreeID)
+        run()
+    }
+
+    func run(on simulatorID: Simulator.ID) {
+        selectTarget(id: simulatorID)
+        run()
+    }
+
     func showLog() {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("DevHub-build.log")
         do {
