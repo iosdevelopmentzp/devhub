@@ -47,6 +47,14 @@ import DevHubTestSupport
         #expect(model.removeHint == "The last project cannot be removed")
     }
 
+    @Test func redetectMessageNamesWhatWasFound() {
+        var project = ProjectFixture.exampleApp
+        project.scheme = "ExampleApp"
+        project.bundleID = ""
+
+        #expect(ProjectSettingsRowMapper.redetectMessage(for: project) == "\(project.name): scheme ExampleApp, no bundle ID")
+    }
+
     @Test func settingAFieldUpdatesIt() {
         let updated = ProjectSettingsRowMapper.project(ProjectFixture.devHub, setting: \.scheme, to: "DevHub Debug")
 

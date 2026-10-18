@@ -6,6 +6,7 @@ struct ProjectSettingsRow: View {
     let model: ProjectSettingsRowModel
     @Binding var scheme: String
     @Binding var bundleID: String
+    let onRedetect: () -> Void
     let onRemove: () -> Void
 
     @State private var isConfirmingRemove = false
@@ -28,6 +29,9 @@ struct ProjectSettingsRow: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 if let tag = model.deviceToolsTag {
                     ModelTag(model: tag)
+                }
+                IconButton(systemImage: "arrow.triangle.2.circlepath", help: "Find the scheme and bundle ID again in the project files") {
+                    onRedetect()
                 }
                 IconButton(systemImage: "minus.circle", help: model.removeHint, tint: .red) {
                     isConfirmingRemove = true
@@ -68,6 +72,7 @@ struct ProjectSettingsRow: View {
             model: .preview,
             scheme: .constant("ExampleApp"),
             bundleID: .constant("com.example.app"),
+            onRedetect: {},
             onRemove: {}
         )
     }

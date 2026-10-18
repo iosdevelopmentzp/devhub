@@ -74,6 +74,15 @@ final class ProjectSession {
         }
     }
 
+    func redetect(id: Project.ID) -> Project? {
+        guard var project = projects.first(where: { $0.id == id }) else { return nil }
+        let detected = detector.project(at: URL(fileURLWithPath: ProjectPath(project.path).expanded))
+        project.scheme = detected.scheme
+        project.bundleID = detected.bundleID
+        update(project)
+        return project
+    }
+
     func remove(id: Project.ID) {
         guard projects.count > 1 else { return }
         projects.removeAll { $0.id == id }

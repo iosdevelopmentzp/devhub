@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(ProjectSession.self) private var session
     @Environment(ConfigStore.self) private var config
+    @Environment(Toaster.self) private var toaster
     @Environment(\.codeHostWords) private var words
 
     var body: some View {
@@ -50,6 +51,7 @@ struct SettingsView: View {
                         ),
                         scheme: field(\.scheme, of: project),
                         bundleID: field(\.bundleID, of: project),
+                        onRedetect: { redetect(project) },
                         onRemove: { session.remove(id: project.id) }
                     )
                 }
@@ -65,6 +67,8 @@ struct SettingsView: View {
             }
 
             ProjectConfigSection()
+
+            GlobalConfigSection()
 
             Section("Tools") {
                 Picker("Editor", selection: $settings.values.editor) {
@@ -124,6 +128,11 @@ struct SettingsView: View {
             get: { project[keyPath: keyPath] },
             set: { session.update(ProjectSettingsRowMapper.project(project, setting: keyPath, to: $0)) }
         )
+    }
+
+    private func redetect(_ project: Project) {
+        guard let found = session.redetect(id: project.id) else { return }
+        toaster.show(ProjectSettingsRowMapper.redetectMessage(for: found))
     }
 
     private func addProject() {

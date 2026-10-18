@@ -32,4 +32,10 @@ enum ProjectSettingsRowMapper {
         updated[keyPath: keyPath] = value
         return updated
     }
+
+    static func redetectMessage(for project: Project) -> String {
+        let scheme = project.scheme.isEmpty ? "no scheme" : "scheme \(project.scheme)"
+        let bundleID = project.bundleID.isEmpty ? "no bundle ID" : "bundle ID \(project.bundleID)"
+        return "\(project.name): \(scheme), \(bundleID)"
+    }
 }

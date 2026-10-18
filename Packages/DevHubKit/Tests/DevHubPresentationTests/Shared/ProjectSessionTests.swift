@@ -65,6 +65,30 @@ import Testing
         #expect(session.selectedProject.path == "/Users/dev/Projects/New")
     }
 
+    @Test func redetectTakesTheSchemeAndBundleIDFromTheDetector() throws {
+        let session = makeSession(selected: nil)
+        detector.projectResult = { folder in
+            Project(id: "other", name: "Other", path: folder.path, scheme: "ExampleApp Dev", bundleID: "com.example.app.dev")
+        }
+
+        let found = try #require(session.redetect(id: ProjectFixture.exampleApp.id))
+
+        #expect(detector.calls == [.project(URL(fileURLWithPath: ProjectFixture.exampleApp.path))])
+        #expect(found.id == ProjectFixture.exampleApp.id)
+        #expect(found.name == ProjectFixture.exampleApp.name)
+        #expect(found.scheme == "ExampleApp Dev")
+        #expect(found.bundleID == "com.example.app.dev")
+        #expect(session.selectedProject == found)
+        #expect(changes.count == 1)
+    }
+
+    @Test func redetectOfAnUnknownProjectDoesNothing() {
+        let session = makeSession(selected: nil)
+
+        #expect(session.redetect(id: "gone") == nil)
+        #expect(detector.calls.isEmpty)
+    }
+
     @Test func removeKeepsAtLeastOneProject() {
         let session = makeSession(selected: nil, projects: [ProjectFixture.exampleApp])
 

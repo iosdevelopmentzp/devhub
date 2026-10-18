@@ -75,6 +75,23 @@ import DevHubTestSupport
         #expect(harness.spies.config.calls.contains(.load(projectPath: ProjectSample.path)))
     }
 
+    @Test func globalLayerComesFromTheLoadedLayers() async {
+        let global = ConfigLayerInfo(layer: .global, directory: "/home/.devhub", exists: true)
+        harness.spies.config.loadResult = ResolvedConfig(project: .empty, actions: [], tabs: [], issues: [], layers: [global])
+
+        await harness.config.reload()
+
+        #expect(harness.config.globalLayer == global)
+    }
+
+    @Test func withoutLoadedLayersTheGlobalFolderIsTheHomeFolder() {
+        let layer = harness.config.globalLayer
+
+        #expect(layer.layer == .global)
+        #expect(layer.directory == ProjectPath("~/.devhub").expanded)
+        #expect(layer.exists == false)
+    }
+
     @Test func effectiveUsesConfigOverDetection() async {
         harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(name: "Example App", git: GitConfig(baseBranch: "origin/develop")), actions: [], tabs: [], issues: [], layers: [])
         await store.reload()

@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Settings → Projects: the circle arrows button finds the scheme and bundle ID of a project again in the project files. Settings → Global config folder shows `~/.devhub` with Reveal, or "not created".
 - Settings → Doctor lists git, xcodebuild, simctl, gh, glab, copilot, claude and python3 with the version and path, or "missing" with the install command. It also shows the Accessibility and Notifications permissions. "Check Again" reads them again.
 - macOS notifications while the panel is closed: a finished or failed Build & Run, more requests waiting for your review, and every `notify` line of a script. Settings → Notifications has the switch and asks for the permission once. The menu bar icon shows a circle while a build runs and a red dot after a failed build until the panel opens.
 - Command palette (⌘K or the ⌘ button in the header): one search over tabs, built-in and config actions, simulators (Build & Run on, make target), local branches (switch, Build & Run, create worktree), worktrees (open, Build & Run), pull requests and AI sessions (resume). Arrow keys move, Enter runs, Esc closes. An action with inputs asks for them inside the palette.

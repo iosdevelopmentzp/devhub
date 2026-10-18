@@ -46,6 +46,11 @@ final class ConfigStore {
         resolved.tabs
     }
 
+    var globalLayer: ConfigLayerInfo {
+        resolved.layers.first { $0.layer == .global }
+            ?? ConfigLayerInfo(layer: .global, directory: ProjectPath("~/" + ConfigPaths.folderName).expanded, exists: false)
+    }
+
     var git: GitSettings {
         GitSettingsPolicy.settings(for: resolved.project)
     }
