@@ -9,53 +9,69 @@ struct LogsView: View {
     @Environment(ProjectSession.self) private var session
     @Environment(\.panelOpenCount) private var openCount
 
+    private static let printNote = "Lines from os_log and Logger appear here. print() output does not reach the system log."
+
     var body: some View {
-        let lines = searchedLines
-        return VStack(spacing: 0) {
-            LogsToolbar(visibleLines: lines)
+        VStack(spacing: 0) {
+            LogChipsBar()
             Divider()
-            content(lines: lines)
+            if let stream = logs.selected {
+                let lines = searchedLines(stream)
+                LogsToolbar(stream: stream, visibleLines: lines)
+                Divider()
+                content(stream, lines: lines)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ListState(failure: nil, isLoading: false, loadingTitle: "", empty: noStreamMessage, noResultsFor: nil) {
+                    EmptyView()
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
         .background(Theme.surface)
         .task(id: openCount) {
-            await logs.prepare(
-                defaultUDID: LogTargetPolicy.defaultSimulator(target: build.target, simulators: simulators.all)?.id,
-                knownUDIDs: Set(simulators.all.map(\.id))
-            )
+            logs.prepare(defaultUDID: LogTargetPolicy.defaultSimulator(target: build.target, simulators: simulators.all)?.id)
         }
     }
 
-    private var searchedLines: [AppLogLine] {
-        logs.visibleLines.filter { session.matchesSearch($0.message, $0.category) }
+    private func searchedLines(_ stream: LogStream) -> [AppLogLine] {
+        stream.visibleLines.filter { session.matchesSearch($0.message, $0.category) }
     }
 
-    private func content(lines: [AppLogLine]) -> some View {
+    private func content(_ stream: LogStream, lines: [AppLogLine]) -> some View {
         ListState(
-            failure: logs.isStreaming ? nil : logs.error.map { error in
+            failure: stream.isRunning ? nil : stream.error.map { error in
                 ListMessage.failure("Log stream stopped", description: error, actionTitle: "Start Again") {
-                    logs.start()
+                    logs.start(stream.id)
                 }
             },
             isLoading: false,
             loadingTitle: "",
-            empty: logs.lines.isEmpty ? emptyMessage : nil,
-            noResultsFor: nil
+            empty: stream.lines.isEmpty ? emptyMessage(stream) : nil,
+            noResultsFor: lines.isEmpty ? session.searchText : nil
         ) {
             LogLinesList(
                 rows: lines.map { LogLineRowMapper.model(for: $0) },
-                followsTail: logs.isPaused == false
+                followsTail: stream.isPaused == false
             )
         }
     }
 
-    private var emptyMessage: ListMessage {
+    private func emptyMessage(_ stream: LogStream) -> ListMessage {
         ListMessage(
-            logs.isStreaming ? "Waiting for log lines…" : "App logs",
+            stream.isRunning ? "Waiting for log lines…" : "Stream is stopped",
             systemImage: "text.alignleft",
-            description: logs.isStreaming
-                ? "Use the app on the simulator. Lines from os_log and Logger appear here. print() output does not reach the system log."
-                : "Pick a booted simulator and press Start. Tokens and passwords in the lines are masked. Nothing is saved to disk."
+            description: stream.isRunning
+                ? "Use the app on the simulator. \(Self.printNote)"
+                : "Press Start. Tokens and passwords in the lines are masked. Nothing is saved to disk."
+        )
+    }
+
+    private var noStreamMessage: ListMessage {
+        ListMessage(
+            "No log stream",
+            systemImage: "text.alignleft",
+            description: "Boot a simulator and press + to stream its logs. Each simulator gets its own stream. \(Self.printNote)"
         )
     }
 }

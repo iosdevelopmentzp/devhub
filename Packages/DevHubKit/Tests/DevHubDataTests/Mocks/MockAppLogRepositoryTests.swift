@@ -10,7 +10,7 @@ import Testing
     }
 
     @Test func streamYieldsLinesRightAway() async throws {
-        var iterator = repository.stream(udid: "sim", process: "ExampleApp").makeAsyncIterator()
+        var iterator = repository.stream(udid: "sim", filter: AppLogFilter(process: "ExampleApp", subsystem: "")).makeAsyncIterator()
 
         let first = try #require(try await iterator.next())
 

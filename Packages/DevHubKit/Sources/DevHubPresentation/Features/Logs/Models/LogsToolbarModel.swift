@@ -3,14 +3,10 @@ import DevHubDomain
 import DevHubUI
 
 struct LogsToolbarModel: Equatable {
-    struct SimulatorOption: Identifiable, Equatable {
-        let id: Simulator.ID
-        var title: String
-    }
-
-    var simulators: [SimulatorOption]
-    var canStart: Bool
     var pauseTitle: String
     var canCopy: Bool
     var copyLabel: String
+    var canClear: Bool
+    var lineCountText: String
+    var droppedText: String?
 }

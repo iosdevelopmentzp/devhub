@@ -4,13 +4,13 @@ import Foundation
 package final class SpyAppLogRepository: AppLogRepository, @unchecked Sendable {
     package enum Call: Hashable {
         case executableName(udid: String, bundleID: String)
-        case stream(udid: String, process: String)
+        case stream(udid: String, filter: AppLogFilter)
     }
 
     private let lock = NSLock()
     private var _calls: [Call] = []
     private var _executableNameResult: String? = nil
-    private var continuation: AsyncThrowingStream<AppLogLine, Error>.Continuation?
+    private var continuations: [String: AsyncThrowingStream<AppLogLine, Error>.Continuation] = [:]
 
     package init() {}
 
@@ -27,18 +27,18 @@ package final class SpyAppLogRepository: AppLogRepository, @unchecked Sendable {
         record(.executableName(udid: udid, bundleID: bundleID)) { _executableNameResult }
     }
 
-    package func stream(udid: String, process: String) -> AsyncThrowingStream<AppLogLine, Error> {
+    package func stream(udid: String, filter: AppLogFilter) -> AsyncThrowingStream<AppLogLine, Error> {
         let (stream, continuation) = AsyncThrowingStream<AppLogLine, Error>.makeStream()
-        record(.stream(udid: udid, process: process)) { self.continuation = continuation }
+        record(.stream(udid: udid, filter: filter)) { continuations[udid] = continuation }
         return stream
     }
 
-    package func emit(_ line: AppLogLine) {
-        lock.withLock { continuation }?.yield(line)
+    package func emit(_ line: AppLogLine, on udid: String) {
+        lock.withLock { continuations[udid] }?.yield(line)
     }
 
-    package func finish(throwing error: (any Error)?) {
-        lock.withLock { continuation }?.finish(throwing: error)
+    package func finish(_ udid: String, throwing error: (any Error)?) {
+        lock.withLock { continuations[udid] }?.finish(throwing: error)
     }
 
     private func record<Value>(_ call: Call, _ value: () throws -> Value) rethrows -> Value {

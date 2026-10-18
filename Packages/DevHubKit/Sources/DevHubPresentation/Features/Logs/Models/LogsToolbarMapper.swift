@@ -4,23 +4,14 @@ import DevHubUI
 
 enum LogsToolbarMapper {
 
-    static func model(
-        simulators: [Simulator],
-        runtime: (Simulator.ID) -> String?,
-        selectedUDID: Simulator.ID?,
-        process: String,
-        isPaused: Bool,
-        pendingCount: Int,
-        visibleLineCount: Int
-    ) -> LogsToolbarModel {
+    static func model(stream: LogStream, visibleLineCount: Int) -> LogsToolbarModel {
         LogsToolbarModel(
-            simulators: simulators
-                .filter { $0.state == .booted }
-                .map { LogsToolbarModel.SimulatorOption(id: $0.id, title: "\($0.name) · \(runtime($0.id) ?? "")") },
-            canStart: selectedUDID != nil && process.trimmed.isEmpty == false,
-            pauseTitle: isPaused && pendingCount > 0 ? "Paused · \(pendingCount) new" : "Pause",
+            pauseTitle: stream.isPaused && stream.pending.isEmpty == false ? "Paused · \(stream.pending.count) new" : "Pause",
             canCopy: visibleLineCount > 0,
-            copyLabel: CountText.invariant(visibleLineCount, "log lines")
+            copyLabel: CountText.invariant(visibleLineCount, "log lines"),
+            canClear: stream.lines.isEmpty == false || stream.pending.isEmpty == false,
+            lineCountText: "\(visibleLineCount) of \(CountText.count(stream.lines.count, "line"))",
+            droppedText: stream.dropped > 0 ? "\(stream.dropped) dropped" : nil
         )
     }
 

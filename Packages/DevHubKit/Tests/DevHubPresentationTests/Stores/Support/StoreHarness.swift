@@ -164,7 +164,7 @@ final class StoreHarness {
         store: store
     )
 
-    lazy var logs = LogsStore(repository: ports.logs, session: session, store: store)
+    lazy var logs = LogsStore(repository: ports.logs, session: session, config: config, simulators: simulators, activity: activity, store: store)
 
     lazy var mockSets = MockSetsStore(repository: ports.mockSets, session: session, activity: activity, events: events)
 

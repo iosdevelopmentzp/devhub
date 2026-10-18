@@ -9,154 +9,179 @@ import DevHubTestSupport
     private let harness = StoreHarness()
     private let udid = SimulatorSample.booted.id
 
+    init() {
+        harness.simulators.groups = SimulatorSample.groups
+    }
+
     private var store: LogsStore {
         harness.logs
     }
 
+    private var stream: LogStream? {
+        store.streams.first { $0.id == udid }
+    }
+
     private func startStreaming() async throws {
-        store.selectedUDID = udid
-        store.process = "App"
-        store.start()
-        try await waitUntil { harness.spies.logs.calls.contains(.stream(udid: udid, process: "App")) }
+        store.stream(on: udid)
+        store.setProcess("App", for: udid)
+        try await waitUntil { harness.spies.logs.calls.contains { if case .stream = $0 { true } else { false } } }
     }
 
     // MARK: Persistence
 
-    @Test func simulatorAndLevelAreRestored() {
+    @Test func streamsAndSelectionAreRestored() {
         let saved = InMemoryKeyValueStore()
-        saved.set(udid, forKey: "logs.simulator")
-        saved.set(AppLogLine.Level.error.rawValue, forKey: "logs.level")
+        saved.encode([LogStreamSettings(udid: udid, name: "iPhone 17", process: "App", subsystem: "sub", level: AppLogLine.Level.error.rawValue)], forKey: "logs.streams")
+        saved.set(udid, forKey: "logs.selected")
 
         let store = StoreHarness(store: saved).logs
 
-        #expect(store.selectedUDID == udid)
-        #expect(store.minimumLevel == .error)
+        #expect(store.streams.map(\.settings) == [LogStreamSettings(udid: udid, name: "iPhone 17", process: "App", subsystem: "sub", level: AppLogLine.Level.error.rawValue)])
+        #expect(store.selected?.id == udid)
+        #expect(store.selected?.minimumLevel == .error)
     }
 
-    @Test func simulatorAndLevelAreWritten() {
-        store.selectedUDID = udid
-        store.minimumLevel = .notice
+    @Test func filterChangesAreWritten() {
+        store.prepare(defaultUDID: udid)
+        store.setProcess("Other", for: udid)
+        store.setSubsystem("com.example", for: udid)
+        store.setLevel(.notice, for: udid)
 
-        #expect(harness.store.string(forKey: "logs.simulator") == udid)
-        #expect(harness.store.integer(forKey: "logs.level") == AppLogLine.Level.notice.rawValue)
+        let saved = harness.store.decode([LogStreamSettings].self, forKey: "logs.streams")
+        #expect(saved == [LogStreamSettings(udid: udid, name: SimulatorSample.booted.name, process: "Other", subsystem: "com.example", level: AppLogLine.Level.notice.rawValue)])
+        #expect(harness.store.string(forKey: "logs.selected") == udid)
     }
 
     // MARK: Prepare
 
-    @Test func prepareReplacesAnUnknownSelectionAndFindsTheProcess() async {
-        harness.spies.logs.executableNameResult = "AppProcess"
-        store.selectedUDID = "gone"
+    @Test func prepareAddsTheDefaultSimulatorWithTheConfigFilter() async {
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(logs: LogsConfig(process: "Proc", subsystem: "com.example.app")), actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
 
-        await store.prepare(defaultUDID: udid, knownUDIDs: [udid])
+        store.prepare(defaultUDID: udid)
 
-        #expect(store.selectedUDID == udid)
-        #expect(store.process == "AppProcess")
-        #expect(harness.spies.logs.calls == [.executableName(udid: udid, bundleID: "com.example.app")])
-    }
-
-    @Test func prepareKeepsTheSelectionWhenNoSimulatorsAreKnown() async {
-        store.selectedUDID = "kept"
-
-        await store.prepare(defaultUDID: udid, knownUDIDs: [])
-
-        #expect(store.selectedUDID == "kept")
-        #expect(store.process == "App")
-    }
-
-    @Test func prepareKeepsATypedProcess() async {
-        store.process = "Typed"
-
-        await store.prepare(defaultUDID: udid, knownUDIDs: [udid])
-
-        #expect(store.selectedUDID == udid)
-        #expect(store.process == "Typed")
+        #expect(store.streams.map(\.id) == [udid])
+        #expect(stream?.process == "Proc")
+        #expect(stream?.subsystem == "com.example.app")
+        #expect(stream?.isRunning == false)
         #expect(harness.spies.logs.calls.isEmpty)
     }
 
-    @Test func prepareWithoutASimulatorLeavesTheProcessEmpty() async {
-        await store.prepare(defaultUDID: nil, knownUDIDs: [])
+    @Test func prepareKeepsExistingStreams() {
+        store.prepare(defaultUDID: udid)
+        store.prepare(defaultUDID: SimulatorSample.shutdown.id)
 
-        #expect(store.selectedUDID == nil)
-        #expect(store.process.isEmpty)
+        #expect(store.streams.map(\.id) == [udid])
+    }
+
+    @Test func availableSimulatorsAreBootedOnesWithoutAStream() {
+        #expect(store.availableSimulators.map(\.id) == [udid])
+
+        store.prepare(defaultUDID: udid)
+
+        #expect(store.availableSimulators.isEmpty)
     }
 
     // MARK: Streaming
 
     @Test func streamOnFindsTheProcessAndStarts() async throws {
+        harness.spies.logs.executableNameResult = "AppProcess"
+
         store.stream(on: udid)
 
-        #expect(store.selectedUDID == udid)
-        try await waitUntil { harness.spies.logs.calls.contains(.stream(udid: udid, process: "App")) }
-        #expect(store.isStreaming)
-        #expect(store.streamingUDID == udid)
-        #expect(store.streamingProcess == "App")
+        #expect(store.selected?.id == udid)
+        try await waitUntil { harness.spies.logs.calls.contains(.stream(udid: udid, filter: AppLogFilter(process: "AppProcess", subsystem: ""))) }
+        #expect(harness.spies.logs.calls.first == .executableName(udid: udid, bundleID: "com.example.app"))
+        #expect(stream?.isRunning == true)
+        #expect(stream?.process == "AppProcess")
     }
 
-    @Test func emittedLinesBecomeVisible() async throws {
+    @Test func twoSimulatorsStreamAtOnce() async throws {
+        let second = Simulator(id: "sim-second", name: "iPad Pro", kind: .pad, state: .booted, isFavorite: false)
+        harness.simulators.groups = [SimulatorGroup(runtime: "iOS 26.0", simulators: [SimulatorSample.booted, second])]
+        harness.spies.logs.executableNameResult = "App"
+
+        store.stream(on: udid)
+        store.stream(on: second.id)
+        try await waitUntil { harness.spies.logs.calls.filter { if case .stream = $0 { true } else { false } }.count == 2 }
+        harness.spies.logs.emit(AppLogLineSample.debug, on: udid)
+        harness.spies.logs.emit(AppLogLineSample.error, on: second.id)
+
+        try await waitUntil { store.streams.allSatisfy { $0.lines.count == 1 } }
+        #expect(store.streams.map(\.lines) == [[AppLogLineSample.debug], [AppLogLineSample.error]])
+        #expect(store.selected?.id == second.id)
+    }
+
+    @Test func theLevelFiltersVisibleLines() async throws {
         try await startStreaming()
 
-        harness.spies.logs.emit(AppLogLineSample.debug)
-        harness.spies.logs.emit(AppLogLineSample.error)
+        harness.spies.logs.emit(AppLogLineSample.debug, on: udid)
+        harness.spies.logs.emit(AppLogLineSample.error, on: udid)
+        try await waitUntil { stream?.lines.count == 2 }
+        store.setLevel(.error, for: udid)
 
-        try await waitUntil { store.lines.count == 2 }
-        #expect(store.visibleLines == [AppLogLineSample.debug, AppLogLineSample.error])
-
-        store.minimumLevel = .error
-
-        #expect(store.visibleLines == [AppLogLineSample.error])
+        #expect(stream?.visibleLines == [AppLogLineSample.error])
     }
 
     @Test func pauseKeepsLinesPendingUntilResumed() async throws {
         try await startStreaming()
-        store.isPaused = true
+        store.setPaused(true, for: udid)
 
-        harness.spies.logs.emit(AppLogLineSample.debug)
+        harness.spies.logs.emit(AppLogLineSample.debug, on: udid)
+        try await waitUntil { stream?.pending.count == 1 }
+        #expect(stream?.lines.isEmpty == true)
 
-        try await waitUntil { store.pendingCount == 1 }
-        #expect(store.lines.isEmpty)
+        store.setPaused(false, for: udid)
 
-        store.isPaused = false
-
-        #expect(store.lines == [AppLogLineSample.debug])
-        #expect(store.pendingCount == 0)
+        #expect(stream?.lines == [AppLogLineSample.debug])
+        #expect(stream?.pending.isEmpty == true)
     }
 
     @Test func stopEndsTheStream() async throws {
         try await startStreaming()
 
-        store.stop()
+        store.stop(udid)
 
-        #expect(store.isStreaming == false)
-        #expect(store.streamingProcess == nil)
+        #expect(stream?.isRunning == false)
     }
 
     @Test func aFailedStreamShowsTheError() async throws {
         try await startStreaming()
 
-        harness.spies.logs.finish(throwing: AppLogError.streamStopped(1))
+        harness.spies.logs.finish(udid, throwing: AppLogError.streamStopped(1))
 
-        try await waitUntil { store.error != nil }
-        #expect(store.error == AppLogError.streamStopped(1).localizedDescription)
-        #expect(store.isStreaming == false)
+        try await waitUntil { stream?.error != nil }
+        #expect(stream?.error == AppLogError.streamStopped(1).localizedDescription)
+        #expect(stream?.isRunning == false)
+        #expect(harness.lastActivity?.outcome == .failure)
     }
 
-    @Test func startWithoutASimulatorDoesNothing() {
-        store.process = "App"
+    @Test func withoutAnExecutableNameTheSchemeIsTheProcess() async throws {
+        store.stream(on: udid)
 
-        store.start()
+        try await waitUntil { harness.spies.logs.calls.contains(.stream(udid: udid, filter: AppLogFilter(process: "App", subsystem: ""))) }
+        #expect(stream?.process == "App")
+    }
 
-        #expect(store.isStreaming == false)
+    @Test func removeStopsAndSelectsTheNextStream() async throws {
+        try await startStreaming()
+
+        store.remove(udid)
+
+        #expect(store.streams.isEmpty)
+        #expect(store.selected == nil)
+        #expect(harness.store.decode([LogStreamSettings].self, forKey: "logs.streams") == [])
     }
 
     @Test func clearRemovesEverything() async throws {
         try await startStreaming()
-        harness.spies.logs.emit(AppLogLineSample.debug)
-        try await waitUntil { store.lines.isEmpty == false }
+        harness.spies.logs.emit(AppLogLineSample.debug, on: udid)
+        try await waitUntil { stream?.lines.isEmpty == false }
 
-        store.clear()
+        store.clear(udid)
 
-        #expect(store.lines.isEmpty)
-        #expect(store.pendingCount == 0)
-        #expect(store.droppedLines == 0)
+        #expect(stream?.lines.isEmpty == true)
+        #expect(stream?.pending.isEmpty == true)
+        #expect(stream?.dropped == 0)
     }
 }

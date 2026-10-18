@@ -26,6 +26,11 @@ enum DebugLaunch {
                 await assembly.debugBuildRun(target: target, profile: environment["DEVHUB_BUILD_PROFILE"], branch: environment["DEVHUB_BUILD_BRANCH"])
             }
         }
+        if let streams = environment["DEVHUB_LOG_STREAMS"] {
+            Task {
+                await assembly.debugStreamLogs(streams.split(separator: ",").map(String.init))
+            }
+        }
         if let script = environment["DEVHUB_GIT_OPS"] {
             Task {
                 await assembly.debugRunGitOps(script)

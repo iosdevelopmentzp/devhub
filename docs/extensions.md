@@ -57,8 +57,8 @@ All fields optional. Missing values are detected (see "default").
 | `git.pullRequests.defaults.squash` | bool | `false` | the Squash box of the new request form |
 | `ai.reviewCommand` | string | `claude "$(cat {prompt})"` | "Fix threads with AI" runs this command in a terminal inside the worktree; `{prompt}` becomes the quoted path of the prompt file |
 | `launch.profiles[]` | [profile] | `[]` | section 5 |
-| `logs.process` | string | `CFBundleExecutable` of the installed app | default process filter of a log stream |
-| `logs.subsystem` | string | — | when set, the stream predicate filters by subsystem instead of process |
+| `logs.process` | string | `CFBundleExecutable` of the installed app, else the scheme | default process filter of a new log stream; each stream can change it in the Logs toolbar |
+| `logs.subsystem` | string | — | default subsystem of a new log stream; when set, the stream predicate filters by subsystem instead of process |
 | `simulators.statusScript` | path | — | section 6 |
 | `home.quickActions` | [action id] | built-ins in the default order | order and visibility of the Home grid: when set, only the listed ids appear, in this order (an id that does not exist is skipped); ids may be `builtin.*`, action ids and `script:<name>`; built-ins: `buildRun`, `runAttach`, `openEditor`, `openFolder`, `terminal`, `copyBranch`, `repository`, `newPullRequest`. Built-ins: `builtin.buildRun`, `builtin.runAttach`, `builtin.openEditor`, `builtin.openFolder`, `builtin.terminal`, `builtin.copyBranch`, `builtin.repository`, `builtin.newPullRequest`, and `builtin.pullRequests` (opens the pull request tab; only when listed) |
 

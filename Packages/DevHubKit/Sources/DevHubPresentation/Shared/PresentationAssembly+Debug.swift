@@ -16,6 +16,18 @@ package extension PresentationAssembly {
         output.isVisible = true
     }
 
+    func debugStreamLogs(_ targets: [String]) async {
+        await simulators.refresh()
+        await config.reload()
+        for target in targets {
+            guard let simulator = simulators.all.first(where: { $0.id == target || $0.name == target }) else {
+                activity.log("Debug logs", detail: "No simulator \(target).", outcome: .failure)
+                continue
+            }
+            logs.stream(on: simulator.id)
+        }
+    }
+
     func debugRunAction(_ id: String, prompt: Bool) async {
         await worktrees.refresh()
         await simulators.refresh()

@@ -155,7 +155,7 @@ package final class PresentationAssembly {
             appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "",
             home: FileManager.default.homeDirectoryForCurrentUser.path
         )
-        logs = LogsStore(repository: ports.logs, session: session, store: store)
+        logs = LogsStore(repository: ports.logs, session: session, config: config, simulators: simulators, activity: activity, store: store)
         mockSets = MockSetsStore(repository: ports.mockSets, session: session, activity: activity, events: events)
         mockServer = MockServerStore(
             relaunch: useCases.relaunchWithMocks,

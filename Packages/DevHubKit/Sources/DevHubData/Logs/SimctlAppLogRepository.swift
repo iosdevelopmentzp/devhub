@@ -11,12 +11,15 @@ struct SimctlAppLogRepository: AppLogRepository {
         return PlistReader.dictionary(at: info)?["CFBundleExecutable"] as? String
     }
 
-    func stream(udid: String, process: String) -> AsyncThrowingStream<AppLogLine, Error> {
+    func stream(udid: String, filter: AppLogFilter) -> AsyncThrowingStream<AppLogLine, Error> {
         AsyncThrowingStream { continuation in
             let counter = LogCounter()
             let task = Task {
                 do {
-                    let arguments = ["simctl", "spawn", udid, "log", "stream", "--style", "ndjson", "--level", "debug", "--predicate", "process == \"\(process)\""]
+                    var arguments = ["simctl", "spawn", udid, "log", "stream", "--style", "ndjson", "--level", "debug"]
+                    if let predicate = AppLogPredicatePolicy.predicate(for: filter) {
+                        arguments += ["--predicate", predicate]
+                    }
                     let status = try await shell.stream("xcrun", arguments, cwd: nil) { line in
                         guard let parsed = AppLogParser.parse(line, id: counter.next()) else { return }
                         continuation.yield(parsed)

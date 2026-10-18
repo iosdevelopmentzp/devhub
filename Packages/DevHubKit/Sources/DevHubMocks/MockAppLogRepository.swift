@@ -7,7 +7,7 @@ struct MockAppLogRepository: AppLogRepository {
         "ExampleApp"
     }
 
-    func stream(udid: String, process: String) -> AsyncThrowingStream<AppLogLine, Error> {
+    func stream(udid: String, filter: AppLogFilter) -> AsyncThrowingStream<AppLogLine, Error> {
         AsyncThrowingStream { continuation in
             let samples: [(AppLogLine.Level, String, String)] = [
                 (.info, "com.example.app · network", "GET /v1/profile/info 200 in 182 ms"),

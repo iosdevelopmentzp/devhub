@@ -4,9 +4,9 @@ import DevHubUI
 
 struct LogsToolbar: View {
     @Environment(LogsStore.self) private var logs
-    @Environment(SimulatorsStore.self) private var simulators
     @Environment(Toaster.self) private var toaster
 
+    let stream: LogStream
     let visibleLines: [AppLogLine]
 
     var body: some View {
@@ -16,41 +16,22 @@ struct LogsToolbar: View {
     }
 
     private var content: some View {
-        @Bindable var logs = logs
-        let model = model
+        let model = LogsToolbarMapper.model(stream: stream, visibleLineCount: visibleLines.count)
         return VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Picker("Simulator", selection: $logs.selectedUDID) {
-                    Text("Choose a booted simulator").tag(Simulator.ID?.none)
-                    ForEach(model.simulators) { option in
-                        Text(option.title).tag(Simulator.ID?.some(option.id))
-                    }
-                }
-                .labelsHidden()
-                .fixedSize()
-                .hint("Only booted simulators can stream logs")
-                TextField("Process", text: $logs.process)
+                TextField("Process", text: binding(\.process, logs.setProcess))
                     .textFieldStyle(.roundedBorder)
                     .font(.callout.monospaced())
-                    .frame(width: 120)
-                    .hint("The app's executable name. Found from the installed app, change it for another app.")
-                if logs.isStreaming {
-                    Button("Stop", systemImage: "stop.fill") {
-                        logs.stop()
-                    }
-                    .fixedSize()
-                    .hint("Stop xcrun simctl spawn … log stream")
-                } else {
-                    Button("Start", systemImage: "play.fill") {
-                        logs.start()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .fixedSize()
-                    .disabled(model.canStart == false)
-                    .hint("Stream the app's system log live: xcrun simctl spawn <udid> log stream")
-                }
+                    .frame(minWidth: 90, maxWidth: 140)
+                    .hint("The app's executable name. Found from the installed app when empty.")
+                TextField("Subsystem", text: binding(\.subsystem, logs.setSubsystem))
+                    .textFieldStyle(.roundedBorder)
+                    .font(.callout.monospaced())
+                    .frame(minWidth: 90, maxWidth: 180)
+                    .hint("When set, the stream shows this subsystem instead of the process")
+                runButton
                 Spacer(minLength: 0)
-                if logs.isStreaming {
+                if stream.isRunning {
                     ProgressView()
                         .controlSize(.mini)
                     Text("live")
@@ -59,7 +40,7 @@ struct LogsToolbar: View {
                 }
             }
             HStack(spacing: 8) {
-                Picker("Level", selection: $logs.minimumLevel) {
+                Picker("Level", selection: Binding(get: { stream.minimumLevel }, set: { logs.setLevel($0, for: stream.id) })) {
                     Text("All").tag(AppLogLine.Level.debug)
                     Text("Info+").tag(AppLogLine.Level.info)
                     Text("Default+").tag(AppLogLine.Level.notice)
@@ -69,8 +50,19 @@ struct LogsToolbar: View {
                 .labelsHidden()
                 .frame(width: 260)
                 .hint("Hide lines below this level")
+                Text(model.lineCountText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+                if let dropped = model.droppedText {
+                    Text(dropped)
+                        .font(.caption)
+                        .foregroundStyle(Tint.orange.color)
+                        .fixedSize()
+                        .hint("The list keeps the last \(LogStream.capacity) lines")
+                }
                 Spacer()
-                Toggle(isOn: $logs.isPaused) {
+                Toggle(isOn: Binding(get: { stream.isPaused }, set: { logs.setPaused($0, for: stream.id) })) {
                     Label(model.pauseTitle, systemImage: "pause.fill")
                 }
                 .toggleStyle(.button)
@@ -81,32 +73,39 @@ struct LogsToolbar: View {
                 }
                 .disabled(model.canCopy == false)
                 IconButton(systemImage: "trash", help: "Clear the list") {
-                    logs.clear()
+                    logs.clear(stream.id)
                 }
+                .disabled(model.canClear == false)
             }
-            ConfigActionBar(placement: .logsToolbar, item: chipItem)
+            ConfigActionBar(placement: .logsToolbar, item: ActionItemContext(simulatorUDID: stream.id, simulatorName: stream.name))
         }
     }
 
-    private var chipItem: ActionItemContext {
-        let simulator = logs.selectedUDID.flatMap(simulators.simulator(id:))
-        return ActionItemContext(simulatorUDID: simulator?.id, simulatorName: simulator?.name)
+    @ViewBuilder
+    private var runButton: some View {
+        if stream.isRunning {
+            Button("Stop", systemImage: "stop.fill") {
+                logs.stop(stream.id)
+            }
+            .fixedSize()
+            .hint("Stop xcrun simctl spawn … log stream")
+        } else {
+            Button("Start", systemImage: "play.fill") {
+                logs.start(stream.id)
+            }
+            .buttonStyle(.borderedProminent)
+            .fixedSize()
+            .hint("Stream the app's system log live: xcrun simctl spawn <udid> log stream")
+        }
     }
 
-    private var model: LogsToolbarModel {
-        LogsToolbarMapper.model(
-            simulators: simulators.all,
-            runtime: simulators.runtime(for:),
-            selectedUDID: logs.selectedUDID,
-            process: logs.process,
-            isPaused: logs.isPaused,
-            pendingCount: logs.pendingCount,
-            visibleLineCount: visibleLines.count
-        )
+    private func binding(_ keyPath: KeyPath<LogStream, String>, _ set: @escaping (String, Simulator.ID) -> Void) -> Binding<String> {
+        let id = stream.id
+        return Binding(get: { stream[keyPath: keyPath] }, set: { set($0, id) })
     }
 }
 
 #Preview {
-    LogsToolbar(visibleLines: [])
+    LogsToolbar(stream: LogStream(id: "A", name: "iPhone 17", process: "App", subsystem: "", minimumLevel: .debug), visibleLines: [])
         .previewEnvironment()
 }
