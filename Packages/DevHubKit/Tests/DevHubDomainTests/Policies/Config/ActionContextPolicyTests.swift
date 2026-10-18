@@ -34,6 +34,26 @@ import Testing
         #expect(context.placeholders["branch"] == "main")
     }
 
+    @Test func profileHostAndContainersBecomeVariables() {
+        var values = inputs()
+        values.profileID = "staging"
+        values.hostKind = .gitlab
+        values.containers = AppContainers(app: "/sim/Bundle/App.app", data: "/sim/Data/App")
+
+        let environment = ActionContextPolicy.make(values).environment
+
+        #expect(environment["DEVHUB_PROFILE"] == "staging")
+        #expect(environment["DEVHUB_HOST"] == "gitlab")
+        #expect(environment["DEVHUB_APP_CONTAINER"] == "/sim/Bundle/App.app")
+        #expect(environment["DEVHUB_DATA_CONTAINER"] == "/sim/Data/App")
+    }
+
+    @Test func unknownProfileHostAndContainersAreEmptyStrings() {
+        let environment = ActionContextPolicy.make(inputs()).environment
+
+        #expect(["DEVHUB_PROFILE", "DEVHUB_HOST", "DEVHUB_APP_CONTAINER", "DEVHUB_DATA_CONTAINER"].map { environment[$0] } == ["", "", "", ""])
+    }
+
     @Test func theRowItemWins() {
         let context = ActionContextPolicy.make(inputs(item: ActionItemContext(branch: "feature/ABC-1", worktreePath: "/wt", simulatorUDID: "ROW", simulatorName: "iPad", rowID: "r1")))
 

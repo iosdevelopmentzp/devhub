@@ -62,6 +62,7 @@ final class StoreHarness {
         worktrees: worktrees,
         codeHosts: codeHostRemote,
         build: build,
+        launcher: ports.launcher,
         workspace: workspace,
         toaster: toaster,
         activity: activity,
@@ -152,7 +153,7 @@ final class StoreHarness {
         store: store
     )
 
-    lazy var simulatorStatuses = SimulatorStatusStore(readStatus: useCases.readSimulatorStatus, config: config, session: session, simulators: simulators, build: build, events: events, settleDelay: .zero)
+    lazy var simulatorStatuses = SimulatorStatusStore(readStatus: useCases.readSimulatorStatus, config: config, session: session, simulators: simulators, build: build, codeHosts: codeHostRemote, launcher: ports.launcher, events: events, settleDelay: .zero)
 
     lazy var build = BuildStore(
         repository: ports.build,

@@ -6,7 +6,7 @@ extension ConfigActionsStore {
     func execute(_ action: ResolvedAction, item: ActionItemContext, inputs: [String: String]) async {
         let startedAt = runs[action.id]?.startedAt ?? Date()
         var outcome = ConfigActionOutcome()
-        let context = makeContext(action, item: item, inputs: inputs)
+        let context = await makeContext(action, item: item, inputs: inputs)
         var status = ConfigActionRun.Status.succeeded
         do {
             let exitCode = try await perform(action, context: context, outcome: &outcome)
@@ -27,7 +27,7 @@ extension ConfigActionsStore {
         finish(action, status: status, outcome: outcome, startedAt: startedAt)
     }
 
-    private func makeContext(_ action: ResolvedAction, item: ActionItemContext, inputs: [String: String]) -> ActionContext {
+    private func makeContext(_ action: ResolvedAction, item: ActionItemContext, inputs: [String: String]) async -> ActionContext {
         let project = session.selectedProject
         let target = build.target
         return ActionContextPolicy.make(ActionContextInputs(
@@ -42,7 +42,10 @@ extension ConfigActionsStore {
             configDir: action.origin.directory,
             item: item,
             inputs: inputs,
-            version: appVersion
+            version: appVersion,
+            profileID: target.flatMap { build.profile(for: $0.id) }?.id ?? "",
+            hostKind: codeHosts.kind,
+            containers: await launcher.containers(udid: item.simulatorUDID ?? target?.id ?? "", bundleID: effective.bundleID ?? "")
         ))
     }
 

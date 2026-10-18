@@ -7,6 +7,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- The `network.toolbar` placement puts config actions under the filters of the Network tab, with the chosen simulator. `refresh: ["network"]` reads the mock sets again after an action.
+- Scripts, commands and the status script get `DEVHUB_PROFILE` (the launch profile of the simulator), `DEVHUB_HOST` (`github` or `gitlab`), `DEVHUB_APP_CONTAINER` and `DEVHUB_DATA_CONTAINER` (the app and data folders of the app on the simulator). The example `.devhub` folder has a "Clear App Caches" action that uses them.
 - The run bar profile picker marks a `production: true` profile with a warning sign, and shows a red "production" tag next to the picker while that profile is selected.
 - DevHub has an app icon: a `</>` sign on an indigo square. It shows in Finder, in the Dock when the Dock icon is on, and in notifications.
 - Settings → Projects: the circle arrows button finds the scheme and bundle ID of a project again in the project files. Settings → Global config folder shows `~/.devhub` with Reveal, or "not created".

@@ -21,6 +21,10 @@ package enum ActionContextPolicy {
         context.version = inputs.version
         context.pullRequestNumber = inputs.item.pullRequestNumber.map(String.init) ?? ""
         context.pullRequestURL = inputs.item.pullRequestURL?.absoluteString ?? ""
+        context.profile = inputs.profileID
+        context.host = inputs.hostKind?.rawValue ?? ""
+        context.appContainer = inputs.containers.app
+        context.dataContainer = inputs.containers.data
         context.inputs = inputs.inputs
         return context
     }

@@ -149,6 +149,8 @@ package final class PresentationAssembly {
             session: session,
             simulators: simulators,
             build: build,
+            codeHosts: codeHostRemote,
+            launcher: ports.launcher,
             events: events,
             settleDelay: .seconds(3)
         )
@@ -161,6 +163,7 @@ package final class PresentationAssembly {
             worktrees: worktrees,
             codeHosts: codeHostRemote,
             build: build,
+            launcher: ports.launcher,
             workspace: workspace,
             toaster: toaster,
             activity: activity,

@@ -19,6 +19,7 @@ final class ConfigActionsStore {
     @ObservationIgnored let worktrees: any WorktreeLookup
     @ObservationIgnored let codeHosts: any CodeHostLookup
     @ObservationIgnored let build: any BuildLookup
+    @ObservationIgnored let launcher: any AppLaunchRepository
     @ObservationIgnored let workspace: WorkspaceActions
     @ObservationIgnored let toaster: Toaster
     @ObservationIgnored let activity: ActivityLog
@@ -38,6 +39,7 @@ final class ConfigActionsStore {
         worktrees: any WorktreeLookup,
         codeHosts: any CodeHostLookup,
         build: any BuildLookup,
+        launcher: any AppLaunchRepository,
         workspace: WorkspaceActions,
         toaster: Toaster,
         activity: ActivityLog,
@@ -55,6 +57,7 @@ final class ConfigActionsStore {
         self.worktrees = worktrees
         self.codeHosts = codeHosts
         self.build = build
+        self.launcher = launcher
         self.workspace = workspace
         self.toaster = toaster
         self.activity = activity

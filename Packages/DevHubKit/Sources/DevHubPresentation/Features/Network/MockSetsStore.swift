@@ -38,6 +38,8 @@ final class MockSetsStore: MockSetLookup {
             case .configChanged:
                 guard location != loadedLocation else { return }
                 Task { await self.load() }
+            case .refreshRequested(.network):
+                Task { await self.load() }
             default:
                 break
             }

@@ -75,7 +75,7 @@ Steps for a new field or placement:
 
 ## Context variables
 
-Every run gets `DEVHUB_PROJECT_PATH`, `DEVHUB_PROJECT_NAME`, `DEVHUB_CHECKOUT_PATH`, `DEVHUB_MAIN_PATH`, `DEVHUB_BRANCH`, `DEVHUB_BASE_BRANCH`, `DEVHUB_SCHEME`, `DEVHUB_CONFIGURATION`, `DEVHUB_BUNDLE_ID`, `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME`, `DEVHUB_APP_PATH`, `DEVHUB_WORKTREE_PATH`, `DEVHUB_INPUT_<KEY>`, `DEVHUB_CONFIG_DIR`, `DEVHUB_ROW_ID`, `DEVHUB_VERSION`. An empty value is set to an empty string, never left unset, so scripts can use `set -u`.
+Every run gets `DEVHUB_PROJECT_PATH`, `DEVHUB_PROJECT_NAME`, `DEVHUB_CHECKOUT_PATH`, `DEVHUB_MAIN_PATH`, `DEVHUB_BRANCH`, `DEVHUB_BASE_BRANCH`, `DEVHUB_SCHEME`, `DEVHUB_CONFIGURATION`, `DEVHUB_BUNDLE_ID`, `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME`, `DEVHUB_APP_PATH`, `DEVHUB_WORKTREE_PATH`, `DEVHUB_INPUT_<KEY>`, `DEVHUB_CONFIG_DIR`, `DEVHUB_ROW_ID`, `DEVHUB_PR_NUMBER`, `DEVHUB_PR_URL`, `DEVHUB_PROFILE`, `DEVHUB_HOST`, `DEVHUB_APP_CONTAINER`, `DEVHUB_DATA_CONTAINER`, `DEVHUB_VERSION`. The containers come from `AppLaunchRepository.containers(udid:bundleID:)` right before the run; the status script gets them too. An empty value is set to an empty string, never left unset, so scripts can use `set -u`.
 
 ## Directives
 

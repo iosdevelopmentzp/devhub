@@ -135,6 +135,14 @@ import DevHubTestSupport
         try await waitUntil { harness.spies.mockSets.calls.filter { $0 == .list(in: location) }.count == 2 }
     }
 
+    @Test func aNetworkRefreshReloadsTheSets() async throws {
+        await load()
+
+        harness.events.post(.refreshRequested(.network))
+
+        try await waitUntil { harness.spies.mockSets.calls.filter { $0 == .list(in: location) }.count == 2 }
+    }
+
     @Test func aConfiguredMocksFolderIsReadAndAChangeReloads() async throws {
         await load()
         harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(network: NetworkConfig(mocksFolder: "Mocks")), actions: [], tabs: [], issues: [], layers: [])

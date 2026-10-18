@@ -7,7 +7,7 @@ package enum ExampleConfig {
 
 Copy this folder into a project as `.devhub/` and adjust the values. Every field is explained in `docs/extensions.md`.
 
-- `project.json`: how the project builds and runs, base branch, worktree rules, launch profiles, log filter, Home grid order.
+- `project.json`: how the project builds and runs, base branch, worktree rules, launch profiles with their mock server upstream, the launch identity, the network mocks, log filter, Home grid order.
 - `actions/`: buttons with placements, inputs and confirmation.
 - `scripts/`: executables. A script with a `# devhub:` header becomes a row on Home without a JSON file. The helper scripts that an action, a tab or `simulators.statusScript` runs have `placements = palette`, so Home does not list them twice.
 - `tabs/`: a custom tab built from actions and a source script.
@@ -63,6 +63,18 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
   "cwd": "checkout",
   "confirm": "Delete DerivedData for this checkout? The next build takes longer.",
   "refresh": ["worktrees"]
+}
+"""#, isExecutable: false),
+        ExampleFile(path: "actions/clear-app-caches.json", text: #"""
+{
+  "id": "clear-app-caches",
+  "title": "Clear App Caches",
+  "subtitle": "Removes Library/Caches of the app on the chosen simulator",
+  "icon": "eraser",
+  "placements": ["network.toolbar", "simulators.row"],
+  "run": { "script": "scripts/clear-app-caches.sh" },
+  "confirm": "Delete the caches of the app on this simulator? Saved logins stay.",
+  "refresh": ["network", "simulators"]
 }
 """#, isExecutable: false),
         ExampleFile(path: "actions/open-ci.json", text: #"""
@@ -122,6 +134,18 @@ for folder in "$ROOT"/*/; do
     esac
 done
 echo "@devhub {\"toast\": \"Removed $REMOVED DerivedData folder(s)\"}"
+"""#, isExecutable: true),
+        ExampleFile(path: "scripts/clear-app-caches.sh", text: #"""
+#!/bin/zsh
+set -euo pipefail
+if [ -z "$DEVHUB_DATA_CONTAINER" ]; then
+    echo "@devhub {\"error\": \"$DEVHUB_BUNDLE_ID is not installed on $DEVHUB_SIMULATOR_NAME\"}"
+    exit 1
+fi
+echo "Profile: ${DEVHUB_PROFILE:-none} · host: ${DEVHUB_HOST:-unknown}"
+rm -rf "$DEVHUB_DATA_CONTAINER/Library/Caches"
+mkdir -p "$DEVHUB_DATA_CONTAINER/Library/Caches"
+echo "@devhub {\"toast\": \"Cleared the caches of $DEVHUB_BUNDLE_ID\"}"
 """#, isExecutable: true),
         ExampleFile(path: "scripts/list-devices.sh", text: #"""
 #!/bin/zsh

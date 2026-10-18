@@ -186,6 +186,7 @@ A response with an `errors` array counts as failed, even with status 200.
 | `launch.profiles[].production` | The server refuses this profile | [§5](../extensions.md#5-launch-profiles) |
 | `launch.profiles[].storage` | Helps to find the profile of the installed app | [§5](../extensions.md#5-launch-profiles) |
 | `simulators.statusScript` | Its `state` line gives the host and profile of the app | [§6](../extensions.md#6-simulator-status-script) |
+| `network.toolbar` placement | Config actions get a button under the filters, with the chosen simulator in `DEVHUB_SIMULATOR_UDID`. `refresh: ["network"]` reads the mock sets again | [§3](../extensions.md) |
 
 The set file format is in [extensions §9](../extensions.md#9-mock-set-files).
 
@@ -213,4 +214,3 @@ The mock sets are files, not preferences.
 6. A production profile cannot use the mock server. This refusal was checked by tests only.
 7. Copy as cURL has no request headers. Add the token by hand.
 8. The list keeps 2,000 requests per simulator, in memory only.
-9. `network.toolbar` from ADR 001 Appendix B.3 is not a placement yet.

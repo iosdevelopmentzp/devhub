@@ -7,4 +7,5 @@ package enum RefreshTarget: String, Codable, Hashable, Sendable {
     case scripts
     case logs
     case pullRequests
+    case network
 }

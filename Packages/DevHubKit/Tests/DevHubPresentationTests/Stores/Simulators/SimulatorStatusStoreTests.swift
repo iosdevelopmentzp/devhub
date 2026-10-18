@@ -38,6 +38,17 @@ import DevHubTestSupport
         #expect(harness.spies.scripts.calls.first?.executable == script)
     }
 
+    @Test func theStatusScriptGetsTheContainersOfTheApp() async throws {
+        harness.spies.tools.existingFiles = [script]
+        harness.spies.launcher.containersResult = AppContainers(app: "/sim/Bundle/App.app", data: "/sim/Data/App")
+
+        await load(statusScript: "scripts/status.sh")
+        try await waitUntil { store.statuses.isEmpty == false }
+
+        #expect(harness.spies.scripts.calls.first?.environment["DEVHUB_DATA_CONTAINER"] == "/sim/Data/App")
+        #expect(harness.spies.scripts.calls.first?.environment["DEVHUB_APP_CONTAINER"] == "/sim/Bundle/App.app")
+    }
+
     @Test func aMissingScriptIsAFailureLine() async throws {
         await load(statusScript: "scripts/status.sh")
         try await waitUntil { store.statuses.isEmpty == false }

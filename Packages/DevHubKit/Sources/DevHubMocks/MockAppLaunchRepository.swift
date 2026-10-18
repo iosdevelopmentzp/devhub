@@ -10,4 +10,8 @@ struct MockAppLaunchRepository: AppLaunchRepository {
     func cleanInstall(udid: String, bundleID: String, fallbackAppPath: String?) async throws {
         try await Task.sleep(for: .milliseconds(800))
     }
+
+    func containers(udid: String, bundleID: String) async -> AppContainers {
+        AppContainers(app: "/tmp/Containers/Bundle/\(bundleID).app", data: "/tmp/Containers/Data/\(bundleID)")
+    }
 }

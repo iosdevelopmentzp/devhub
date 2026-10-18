@@ -5,12 +5,14 @@ package final class SpyAppLaunchRepository: AppLaunchRepository, @unchecked Send
     package enum Call: Hashable {
         case inspect(udid: String, bundleID: String, identity: LaunchIdentityConfig?, storage: ProfileStorage?)
         case cleanInstall(udid: String, bundleID: String, fallbackAppPath: String?)
+        case containers(udid: String, bundleID: String)
     }
 
     private let lock = NSLock()
     private var _calls: [Call] = []
     private var _inspectResult: InstalledApp = .notInstalled
     private var _cleanInstallError: (any Error)? = nil
+    private var _containersResult: AppContainers = .none
 
     package init() {}
 
@@ -26,6 +28,15 @@ package final class SpyAppLaunchRepository: AppLaunchRepository, @unchecked Send
     package var cleanInstallError: (any Error)? {
         get { lock.withLock { _cleanInstallError } }
         set { lock.withLock { _cleanInstallError = newValue } }
+    }
+
+    package var containersResult: AppContainers {
+        get { lock.withLock { _containersResult } }
+        set { lock.withLock { _containersResult = newValue } }
+    }
+
+    package func containers(udid: String, bundleID: String) async -> AppContainers {
+        record(.containers(udid: udid, bundleID: bundleID)) { _containersResult }
     }
 
     package func inspect(udid: String, bundleID: String, identity: LaunchIdentityConfig?, storage: ProfileStorage?) async -> InstalledApp {

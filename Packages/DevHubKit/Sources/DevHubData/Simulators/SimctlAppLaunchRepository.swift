@@ -47,6 +47,13 @@ struct SimctlAppLaunchRepository: AppLaunchRepository {
         try await simctl.run(["install", udid, source], failure: AppLaunchError.command)
     }
 
+    func containers(udid: String, bundleID: String) async -> AppContainers {
+        guard udid.isEmpty == false, bundleID.isEmpty == false else { return .none }
+        async let app = container(udid: udid, bundleID: bundleID, kind: "app")
+        async let data = container(udid: udid, bundleID: bundleID, kind: "data")
+        return AppContainers(app: await app ?? "", data: await data ?? "")
+    }
+
     // MARK: Helpers
 
     private func container(udid: String, bundleID: String, kind: String) async -> String? {

@@ -14,17 +14,21 @@ final class SimulatorStatusStore {
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let simulators: any SimulatorLookup
     @ObservationIgnored private let build: any BuildLookup
+    @ObservationIgnored private let codeHosts: any CodeHostLookup
+    @ObservationIgnored private let launcher: any AppLaunchRepository
     @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private let settleDelay: Duration
     @ObservationIgnored private var tasks: [Simulator.ID: Task<Void, Never>] = [:]
     @ObservationIgnored private var subscription: SubscriptionToken?
 
-    init(readStatus: ReadSimulatorStatusUseCase, config: ConfigStore, session: ProjectSession, simulators: any SimulatorLookup, build: any BuildLookup, events: AppEvents, settleDelay: Duration) {
+    init(readStatus: ReadSimulatorStatusUseCase, config: ConfigStore, session: ProjectSession, simulators: any SimulatorLookup, build: any BuildLookup, codeHosts: any CodeHostLookup, launcher: any AppLaunchRepository, events: AppEvents, settleDelay: Duration) {
         self.readStatus = readStatus
         self.config = config
         self.session = session
         self.simulators = simulators
         self.build = build
+        self.codeHosts = codeHosts
+        self.launcher = launcher
         self.events = events
         self.settleDelay = settleDelay
         subscription = events.subscribe { [weak self] event in
@@ -74,14 +78,16 @@ final class SimulatorStatusStore {
     private func read(_ simulator: Simulator, after delay: Duration = .zero) {
         guard let script else { return }
         tasks[simulator.id]?.cancel()
-        let request = SimulatorStatusRequest(
-            script: script,
-            layers: config.resolved.layers,
-            projectPath: session.selectedProject.path,
-            environment: environment(for: simulator)
-        )
+        let layers = config.resolved.layers
+        let projectPath = session.selectedProject.path
         tasks[simulator.id] = Task { [weak self] in
             guard let self else { return }
+            let request = SimulatorStatusRequest(
+                script: script,
+                layers: layers,
+                projectPath: projectPath,
+                environment: await environment(for: simulator)
+            )
             await load(simulator.id, request: request, after: delay)
         }
     }
@@ -112,22 +118,27 @@ final class SimulatorStatusStore {
         }
     }
 
-    private func environment(for simulator: Simulator) -> [String: String] {
+    private func environment(for simulator: Simulator) async -> [String: String] {
         let project = session.selectedProject
         let path = ProjectPath(project.path).expanded
+        let effective = config.effective(detectedSchemes: build.schemeOptions, detectedBaseBranch: nil)
+        let containers = await launcher.containers(udid: simulator.id, bundleID: effective.bundleID ?? "")
         return ActionContextPolicy.make(ActionContextInputs(
             projectPath: path,
             projectName: project.name,
             checkoutPath: path,
             branch: "",
-            effective: config.effective(detectedSchemes: build.schemeOptions, detectedBaseBranch: nil),
+            effective: effective,
             simulatorUDID: simulator.id,
             simulatorName: simulator.name,
             appPath: build.lastBuiltAppPath() ?? "",
             configDir: "",
             item: ActionItemContext(simulatorUDID: simulator.id, simulatorName: simulator.name, rowID: simulator.id),
             inputs: [:],
-            version: ""
+            version: "",
+            profileID: build.profile(for: simulator.id)?.id ?? "",
+            hostKind: codeHosts.kind,
+            containers: containers
         )).environment
     }
 }

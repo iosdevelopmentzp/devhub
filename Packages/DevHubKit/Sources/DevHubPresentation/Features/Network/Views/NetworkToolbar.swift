@@ -56,6 +56,7 @@ struct NetworkToolbar: View {
                 }
                 .disabled(model.canClear == false)
             }
+            ConfigActionBar(placement: .networkToolbar, item: ActionItemContext(simulatorUDID: network.selectedUDID, simulatorName: network.selectedUDID.flatMap(simulators.simulator(id:))?.name))
         }
     }
 

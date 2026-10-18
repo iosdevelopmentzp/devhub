@@ -1,0 +1,10 @@
+{
+  "id": "clear-app-caches",
+  "title": "Clear App Caches",
+  "subtitle": "Removes Library/Caches of the app on the chosen simulator",
+  "icon": "eraser",
+  "placements": ["network.toolbar", "simulators.row"],
+  "run": { "script": "scripts/clear-app-caches.sh" },
+  "confirm": "Delete the caches of the app on this simulator? Saved logins stay.",
+  "refresh": ["network", "simulators"]
+}

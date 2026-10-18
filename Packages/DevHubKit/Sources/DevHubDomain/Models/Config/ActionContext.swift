@@ -19,6 +19,10 @@ package struct ActionContext: Hashable, Sendable {
     package var version = ""
     package var pullRequestNumber = ""
     package var pullRequestURL = ""
+    package var profile = ""
+    package var host = ""
+    package var appContainer = ""
+    package var dataContainer = ""
     package var inputs: [String: String] = [:]
 
     package init() {}
@@ -42,7 +46,11 @@ package struct ActionContext: Hashable, Sendable {
             "ROW_ID": rowID,
             "VERSION": version,
             "PR_NUMBER": pullRequestNumber,
-            "PR_URL": pullRequestURL
+            "PR_URL": pullRequestURL,
+            "PROFILE": profile,
+            "HOST": host,
+            "APP_CONTAINER": appContainer,
+            "DATA_CONTAINER": dataContainer
         ]
         for (key, value) in inputs {
             values["INPUT_" + Self.environmentKey(key)] = value

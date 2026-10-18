@@ -13,6 +13,9 @@ package struct ActionContextInputs: Hashable, Sendable {
     package var item: ActionItemContext
     package var inputs: [String: String]
     package var version: String
+    package var profileID: String = ""
+    package var hostKind: CodeHostKind? = nil
+    package var containers: AppContainers = .none
 
     package init(
         projectPath: String,
@@ -26,7 +29,10 @@ package struct ActionContextInputs: Hashable, Sendable {
         configDir: String,
         item: ActionItemContext,
         inputs: [String: String],
-        version: String
+        version: String,
+        profileID: String = "",
+        hostKind: CodeHostKind? = nil,
+        containers: AppContainers = .none
     ) {
         self.projectPath = projectPath
         self.projectName = projectName
@@ -40,5 +46,8 @@ package struct ActionContextInputs: Hashable, Sendable {
         self.item = item
         self.inputs = inputs
         self.version = version
+        self.profileID = profileID
+        self.hostKind = hostKind
+        self.containers = containers
     }
 }

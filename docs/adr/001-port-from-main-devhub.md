@@ -641,3 +641,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `2b9656c` | M8 | AI "This project" scope includes worktree sessions (`WorktreeLookup` in `AISessionsStore`). |
 | `9d165b7` | M8 | Documentation set finished: `docs/features/`, SPEC, ADR 004, `docs/testing.md`, `code-host` skill, skills rewritten; M8 closed. |
 | `8fb1b0c` | M8 | Production profiles marked in the run bar picker (`LaunchProfileModel.Option.isProduction`, `productionTag`). |
+| `3005904` | M8 | `GlabIntegrationTests` on a private GitLab test project: create, draft and ready, thread, reply, resolve, merge. |

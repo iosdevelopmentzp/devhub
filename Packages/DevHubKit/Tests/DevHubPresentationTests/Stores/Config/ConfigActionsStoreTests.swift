@@ -37,6 +37,21 @@ import DevHubTestSupport
         #expect(store.lastRun(of: "clean") != nil)
     }
 
+    @Test func aRowSimulatorGetsTheContainersOfTheApp() async throws {
+        let action = ConfigSample.action("clean")
+        harness.spies.launcher.containersResult = AppContainers(app: "/sim/Bundle/App.app", data: "/sim/Data/App")
+        await load([action])
+
+        store.request(action, item: ActionItemContext(simulatorUDID: "SIM-1"), slot: "network.toolbar")
+        try await finish("clean")
+
+        let request = try #require(harness.spies.scripts.calls.first)
+        #expect(request.environment["DEVHUB_APP_CONTAINER"] == "/sim/Bundle/App.app")
+        #expect(request.environment["DEVHUB_DATA_CONTAINER"] == "/sim/Data/App")
+        #expect(request.environment["DEVHUB_PROFILE"] == "")
+        #expect(harness.spies.launcher.calls.contains { if case .containers(udid: "SIM-1", bundleID: _) = $0 { true } else { false } })
+    }
+
     @Test func theBranchFallsBackToTheMainWorktree() async throws {
         harness.spies.worktrees.listResult = .success([WorktreeSample.main])
         await harness.worktrees.refresh()

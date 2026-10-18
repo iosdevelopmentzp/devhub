@@ -101,7 +101,7 @@ All fields optional. Missing values are detected (see "default").
 | `cwd` | `checkout` \| `main` \| `project` \| path | `checkout` | working folder; a relative path starts at the project folder; `checkout` is the checkout chosen in the Git tab (the project folder when none is chosen); `main` is the project folder |
 | `inputs` | [input] | `[]` | section 3.2 |
 | `confirm` | string | — | inline confirmation text; the action runs after the user confirms |
-| `refresh` | [`git` `worktrees` `simulators` `scripts` `logs` `pullRequests`] | `[]` | stores refreshed after success; `pullRequests` reads the pull request tab, the open requests and the Git status line again; `logs` does nothing yet |
+| `refresh` | [`git` `worktrees` `simulators` `scripts` `logs` `pullRequests` `network`] | `[]` | stores refreshed after success; `pullRequests` reads the pull request tab, the open requests and the Git status line again; `network` reads the mock sets again; `logs` does nothing yet |
 | `when` | object | — | visibility: `{"git": "clean"\|"dirty"}`, `{"simulator": "booted"}` (the target simulator is booted), `{"tool": "<executable>"}`, `{"kind": "xcode"\|"command"}`, `{"host": "github"\|"gitlab"}` (the code host of the remote) |
 
 ### 3.1 `run`
@@ -146,6 +146,7 @@ All fields optional. Missing values are detected (see "default").
 | `simulators.row` | item in a simulator row's overflow menu | `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME` of the row, `DEVHUB_ROW_ID` = the UDID |
 | `logs.toolbar` | button in the Logs toolbar | the simulator of the stream, else the target simulator |
 | `pullRequests.row` | item in the overflow and context menu of an open pull request row | `DEVHUB_PR_NUMBER`, `DEVHUB_PR_URL`, `DEVHUB_BRANCH` = the source branch, `DEVHUB_ROW_ID` = the number |
+| `network.toolbar` | button in the toolbar of the Network tab | `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME` of the simulator chosen in the toolbar |
 | `palette` | command palette entry | — |
 | `tab.<id>` | row in a custom tab section | — |
 
@@ -155,7 +156,7 @@ In a row placement, the inputs and the confirmation of an action open under that
 
 Every script, command, terminal text and `open` string gets these as environment variables and `{placeholders}`:
 
-`DEVHUB_PROJECT_PATH`, `DEVHUB_PROJECT_NAME`, `DEVHUB_CHECKOUT_PATH`, `DEVHUB_MAIN_PATH`, `DEVHUB_BRANCH`, `DEVHUB_BASE_BRANCH`, `DEVHUB_SCHEME`, `DEVHUB_CONFIGURATION`, `DEVHUB_BUNDLE_ID`, `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME`, `DEVHUB_APP_PATH`, `DEVHUB_WORKTREE_PATH`, `DEVHUB_INPUT_<KEY>`, `DEVHUB_CONFIG_DIR` (the `.devhub` folder of the layer that holds the action), `DEVHUB_ROW_ID` (row actions of a `view` and row placements), `DEVHUB_PR_NUMBER` and `DEVHUB_PR_URL` (the `pullRequests.row` placement), `DEVHUB_VERSION`. A value that is not known yet (simulator, app path before a build) is an empty string, never unset.
+`DEVHUB_PROJECT_PATH`, `DEVHUB_PROJECT_NAME`, `DEVHUB_CHECKOUT_PATH`, `DEVHUB_MAIN_PATH`, `DEVHUB_BRANCH`, `DEVHUB_BASE_BRANCH`, `DEVHUB_SCHEME`, `DEVHUB_CONFIGURATION`, `DEVHUB_BUNDLE_ID`, `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME`, `DEVHUB_APP_PATH`, `DEVHUB_WORKTREE_PATH`, `DEVHUB_INPUT_<KEY>`, `DEVHUB_CONFIG_DIR` (the `.devhub` folder of the layer that holds the action), `DEVHUB_ROW_ID` (row actions of a `view` and row placements), `DEVHUB_PR_NUMBER` and `DEVHUB_PR_URL` (the `pullRequests.row` placement), `DEVHUB_PROFILE` (the id of the launch profile chosen in the run bar for that simulator), `DEVHUB_HOST` (`github` or `gitlab`, the code host of the remote), `DEVHUB_APP_CONTAINER` and `DEVHUB_DATA_CONTAINER` (the app bundle folder and the data folder of the app on that simulator, from `xcrun simctl get_app_container`; empty when the app is not installed), `DEVHUB_VERSION`. The status script (`simulators.statusScript`) gets the same variables for its simulator. A value that is not known yet (simulator, app path before a build) is an empty string, never unset.
 
 Placeholders use the lowercase name without the prefix: `{project_path}`, `{branch}`, `{simulator_udid}`, `{input_key}` is written as `{key}`.
 
