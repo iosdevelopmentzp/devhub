@@ -13,6 +13,36 @@ import Testing
         #expect(config.home?.quickActions == ["builtin.buildRun", "clean"])
     }
 
+    @Test func decodesTheLaunchIdentityProfileFieldsAndNetwork() throws {
+        let json = """
+        {
+          "launch": {
+            "identity": { "variable": "APP_DEVICE_ID", "keptVariable": "APP_KEEP_DEVICE_ID", "args": ["-skipOnboarding"], "cleanInstallOnChange": false },
+            "profiles": [
+              { "id": "staging", "title": "Staging", "storage": { "suite": "group.com.example.app", "key": "environment" }, "upstream": "https://api.staging.example.com" },
+              { "id": "production", "title": "Production", "production": true }
+            ]
+          },
+          "network": { "baseURLVariable": "APP_BASE_URL", "mocksFolder": "~/mocks/example" }
+        }
+        """
+
+        let config = try ConfigDecoding.decode(ProjectConfig.self, from: ConfigDecoding.parseJSON(json))
+
+        #expect(config.launch?.identity == LaunchIdentityConfig(variable: "APP_DEVICE_ID", keptVariable: "APP_KEEP_DEVICE_ID", args: ["-skipOnboarding"], cleanInstallOnChange: false))
+        #expect(config.launch?.profiles?.first?.storage == ProfileStorage(suite: "group.com.example.app", key: "environment"))
+        #expect(config.launch?.profiles?.first?.upstream == "https://api.staging.example.com")
+        #expect(config.launch?.profiles?.first?.isProduction == false)
+        #expect(config.launch?.profiles?.last?.isProduction == true)
+        #expect(config.network == NetworkConfig(baseURLVariable: "APP_BASE_URL", mocksFolder: "~/mocks/example"))
+    }
+
+    @Test func anIdentityWithoutAVariableIsAnIssue() {
+        #expect(throws: ConfigError.self) {
+            try ConfigDecoding.decode(LaunchIdentityConfig.self, from: ["args": ["-x"]])
+        }
+    }
+
     @Test func aWrongRunTypeNamesThePath() {
         let object: [String: Any] = ["id": "x", "title": "X", "run": ["script": 3]]
 

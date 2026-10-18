@@ -22,16 +22,4 @@ import Testing
     @Test func anAbsoluteScriptIsTheOnlyCandidate() {
         #expect(SimulatorStatusPolicy.candidates(script: "/bin/status", layers: [], projectPath: "/repo") == ["/bin/status"])
     }
-
-    @Test func theLastViewDirectiveWins() {
-        let lines = ["Reading", #"@devhub {"view": {"keyValues": [["Environment", "staging"], ["User", "qa-12"]]}}"#, #"@devhub {"toast": "done"}"#]
-
-        #expect(SimulatorStatusPolicy.line(from: lines) == "Environment: staging · User: qa-12")
-    }
-
-    @Test func withoutAViewTheLastPlainLineWins() {
-        #expect(SimulatorStatusPolicy.line(from: ["first", "  second  ", "", #"@devhub {"toast": "x"}"#]) == "second")
-        #expect(SimulatorStatusPolicy.line(from: [#"@devhub {"view": {"text": "Signed in"}}"#, "   "]) == "Signed in")
-        #expect(SimulatorStatusPolicy.line(from: []) == nil)
-    }
 }

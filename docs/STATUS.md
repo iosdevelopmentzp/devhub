@@ -12,7 +12,7 @@ The app is being rewritten on the package architecture of the main DevHub. The p
 - M3 done: Git from config. `git.remote`, `git.baseBranch`, `git.protectedBranches`, `git.commitPrefix`, `git.ticketURL`, `git.worktrees.*`; "Open in Editor" on file rows; `DEVHUB_GIT_OPS`. Checked on a throwaway repository with a bare remote called `upstream`. About 1,600 tests.
 - M4 done: one code host port for GitHub (`gh`) and GitLab (`glab`), ADR 003. The Pull Requests tab, the Git status line and branch tags use the words of the host. `git.host.*`, `git.pullRequests.*`, `ai.reviewCommand`, the `pullRequests.row` placement, `when.host` and the `pullRequests` refresh target. Checked on a private GitHub test repository: the list in four scopes, details with a thread, files, draft and ready, update branch, merge with branch removal, create with labels, reply, resolve, re-run and cancel a check run. About 1,650 tests.
 - M5 done: Build & Run from config. `xcode.*` in the run bar and in `xcodebuild`, launch profiles (environment, arguments, `defaults` in the app or group container, clean install), `kind: command` projects, the `simulators.statusScript` line, deep link schemes from the installed app, log chips with one stream per simulator, Copilot CLI sessions and Copilot usage. Checked on a sample app: the main checkout, a worktree, a branch without a checkout, both profiles, a command project, two log streams at once, the status line, the AI tab with Copilot and Claude sessions and the usage strip with both providers. About 1,715 tests.
-- Next: M6, launch identities and the network config (ADR 001 sections 7.6 and 7.7).
+- M6 in progress: launch identities and the network config (ADR 001 sections 7.6, 7.7 and Appendix A). The config keys and the `state` directive are read; the identity panel and the mock server start to use them in the next steps.
 
 ## Screens
 
@@ -64,6 +64,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 24. Deep link schemes come from `CFBundleURLTypes` in the `Info.plist` of the app installed on the simulator, not from a `simulators.deepLinks` config key (ADR 001 section 7.5). Why: the app already declares its schemes, and a new key would change the config schema.
 25. The AI tab does not check that `copilot` or `claude` is installed before Resume. Why: Resume runs in the terminal with the PATH of the user; the app's own PATH misses folders such as `~/.local/bin`, so a check from the app would hide working sessions. The Doctor section (M7) shows missing tools.
 26. The Copilot token comes from `gh auth token` first and from the `copilot-cli` keychain item second. The keychain read stops after 10 s and is not tried again until the app restarts. Why: macOS can ask the user to allow `/usr/bin/security` to read that item; a background refresh every 5 minutes must not keep that dialog open or show it again and again.
+27. The M6 config keys follow ADR 001 Appendix A, approved by the owner on 2026-10-18: `launch.identity.*`, `launch.profiles[].storage`, `upstream` and `production`, `network.baseURLVariable` and `network.mocksFolder`, and the `state` directive of the status script.
 ## Next steps
 
 1. M6 (ADR 001 sections 7.6 and 7.7): launch identities from config and the `state` directive, the network base URL variable and upstreams from config.

@@ -33,7 +33,7 @@ extension ConfigActionsStore {
             outcome.refresh.formUnion(targets)
         case let .error(message):
             outcome.error = message
-        case .app:
+        case .app, .state:
             break
         case let .view(view):
             outcome.view = view

@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- `.devhub/project.json` reads `launch.identity`, the profile fields `storage`, `upstream` and `production`, and `network.baseURLVariable` and `network.mocksFolder`. A status script can print a `state` line. The identity panel and the mock server use them in the next changes.
 - The usage strip has a Copilot row when Copilot is logged in: the premium request meter with its reset date, or "No premium request limit". The expanded strip shows the plan and an "Open Usage" link for each provider. The Copilot token comes from `gh auth token`, else from the `copilot-cli` keychain item.
 - The AI tab lists Copilot CLI sessions (`~/.copilot/session-state`) next to Claude Code sessions. A provider filter (Copilot, Claude, Both) is saved. Each row shows its provider, and Resume runs `copilot --resume` or `claude --resume` in the session folder.
 - The Logs tab streams several simulators at once: one chip per simulator, `+` adds a booted simulator, `×` closes a stream. Each stream keeps its own process, subsystem, level, pause state and lines, and the streams come back after a restart. A new stream starts with `logs.process` and `logs.subsystem` from `.devhub/project.json`; with a subsystem the stream filters by subsystem instead of process.

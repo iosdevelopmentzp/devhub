@@ -7,6 +7,9 @@ package struct LaunchProfile: Codable, Hashable, Sendable, Identifiable {
     package var args: [String]? = nil
     package var defaults: [ProfileDefault]? = nil
     package var cleanInstall: Bool? = nil
+    package var storage: ProfileStorage? = nil
+    package var upstream: String? = nil
+    package var production: Bool? = nil
 
     package init(
         id: String,
@@ -14,7 +17,10 @@ package struct LaunchProfile: Codable, Hashable, Sendable, Identifiable {
         env: [String: String]? = nil,
         args: [String]? = nil,
         defaults: [ProfileDefault]? = nil,
-        cleanInstall: Bool? = nil
+        cleanInstall: Bool? = nil,
+        storage: ProfileStorage? = nil,
+        upstream: String? = nil,
+        production: Bool? = nil
     ) {
         self.id = id
         self.title = title
@@ -22,5 +28,12 @@ package struct LaunchProfile: Codable, Hashable, Sendable, Identifiable {
         self.args = args
         self.defaults = defaults
         self.cleanInstall = cleanInstall
+        self.storage = storage
+        self.upstream = upstream
+        self.production = production
+    }
+
+    package var isProduction: Bool {
+        production ?? false
     }
 }

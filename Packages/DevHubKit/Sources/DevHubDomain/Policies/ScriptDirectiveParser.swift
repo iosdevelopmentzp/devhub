@@ -36,6 +36,9 @@ package enum ScriptDirectiveParser {
         if let path = object["app"] as? String {
             directives.append(.app(path))
         }
+        if let state = object["state"] as? [String: Any] {
+            directives.append(.state(stateReport(state)))
+        }
         if let raw = object["view"] {
             switch decodeView(raw) {
             case let .success(view): directives.append(.view(view))
@@ -43,6 +46,14 @@ package enum ScriptDirectiveParser {
             }
         }
         return directives.isEmpty ? .unknown : .directives(directives)
+    }
+
+    private static func stateReport(_ object: [String: Any]) -> AppStateReport {
+        func text(_ key: String) -> String? {
+            guard let value = (object[key] as? String)?.trimmed, value.isEmpty == false else { return nil }
+            return value
+        }
+        return AppStateReport(identity: text("identity"), profile: text("profile"), host: text("host"), user: text("user"), version: text("version"))
     }
 
     private enum ViewResult {

@@ -10,4 +10,5 @@ package enum ScriptDirective: Hashable, Sendable {
     case error(String)
     case app(String)
     case view(ScriptView)
+    case state(AppStateReport)
 }

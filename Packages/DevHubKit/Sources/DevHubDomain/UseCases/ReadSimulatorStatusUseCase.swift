@@ -24,7 +24,7 @@ package struct ReadSimulatorStatusUseCase: Sendable {
         } catch ScriptError.timedOut {
             throw SimulatorStatusError.timedOut
         }
-        let line = SimulatorStatusPolicy.line(from: lines)
+        let line = SimulatorStatusParser.parse(lines)
         guard exitCode == 0 else {
             throw SimulatorStatusError.exited(exitCode, lastLine: line)
         }

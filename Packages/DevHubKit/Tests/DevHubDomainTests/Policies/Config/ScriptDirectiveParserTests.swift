@@ -44,4 +44,12 @@ import Testing
     @Test func anUnknownKeyIsUnknown() {
         #expect(ScriptDirectiveParser.parse(#"@devhub {"other": 1}"#) == .unknown)
     }
+
+    @Test func readsTheStateDirective() {
+        let line = #"@devhub {"state": {"identity": "devhub-3f9a1c2e", "profile": "staging", "host": "api.staging.example.com", "user": " ", "version": "2.4.0"}}"#
+
+        #expect(ScriptDirectiveParser.parse(line) == .directives([
+            .state(AppStateReport(identity: "devhub-3f9a1c2e", profile: "staging", host: "api.staging.example.com", user: nil, version: "2.4.0"))
+        ]))
+    }
 }

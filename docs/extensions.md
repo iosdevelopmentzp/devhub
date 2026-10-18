@@ -57,6 +57,14 @@ All fields optional. Missing values are detected (see "default").
 | `git.pullRequests.defaults.squash` | bool | `false` | the Squash box of the new request form |
 | `ai.reviewCommand` | string | `claude "$(cat {prompt})"` | "Fix threads with AI" runs this command in a terminal inside the worktree; `{prompt}` becomes the quoted path of the prompt file |
 | `launch.profiles[]` | [profile] | `[]` | section 5 |
+| `launch.identity.variable` | string | — | the environment variable that carries the identity of a launch (a device or account ID). The identity panel of a simulator chooses the value. Without `launch.identity` the panel is hidden |
+| `launch.identity.keptVariable` | string | — | a second variable that gets the same value, for an app that keeps the identity across launches; it is empty when no identity is chosen |
+| `launch.identity.args` | [string] | `[]` | arguments added to every launch of a project with `launch.identity` |
+| `launch.identity.idPrefix` | string | `devhub-` | the start of a new identity; DevHub adds 8 hex characters |
+| `launch.identity.cleanInstallOnChange` | bool | `true` | when the app on the simulator has another identity than the chosen one, Build & Run deletes the app, resets the simulator keychain and installs it again |
+| `launch.identity.hookMarker` | string | the value of `variable` | the text DevHub looks for in the app binary; when it is found, the simulator row shows the "debug hooks" tag |
+| `network.baseURLVariable` | string | — | the environment variable that gets the URL of the DevHub mock server when the app is relaunched through it. Without it the mock server cannot redirect the app |
+| `network.mocksFolder` | path | `~/.devhub/mocks/<project folder name>` | where the mock sets of the project are saved |
 | `logs.process` | string | `CFBundleExecutable` of the installed app, else the scheme | default process filter of a new log stream; each stream can change it in the Logs toolbar |
 | `logs.subsystem` | string | — | default subsystem of a new log stream; when set, the stream predicate filters by subsystem instead of process |
 | `simulators.statusScript` | path | — | section 6 |
@@ -190,12 +198,17 @@ Any executable under `scripts/` is an action without a JSON file. Header lines, 
 | `args` | appended after the bundle ID on `simctl launch` |
 | `defaults[]` | written after install and before launch into `Library/Preferences/<suite>.plist` of the app's data container, or of the app group container when `suite` starts with `group.`; `value` may be a string, a number or true or false; `type` is `string` (default), `bool`, `int`, `float` |
 | `cleanInstall` | when true the profile always deletes the app and resets the simulator keychain before install |
+| `storage` | `{"suite": "group.com.example.myapp", "key": "environment"}`: where the app saves its current profile; DevHub reads it to show which profile the installed app uses (same container rule as `defaults`) |
+| `upstream` | the URL of the real server for this profile; the mock server forwards to it in Passthrough mode |
+| `production` | when true the profile is shown in red and the mock server refuses to run with it |
 
 The selected profile is saved per simulator. The run bar shows a picker when the project has profiles. Launches from Xcode or the home screen do not get these values; the hint of the profile summary says so. A clean install also removes the defaults that an earlier profile wrote.
 
 ## 6. Simulator status script
 
 `simulators.statusScript` runs with `DEVHUB_SIMULATOR_UDID` and `DEVHUB_BUNDLE_ID` for booted, favourite and target simulators, and again after each launch. Its last `@devhub {"view": {"keyValues": [["Environment", "staging"], ["User", "qa-12"]]}}` line, or its last plain line, is shown under the device name, in the simulator row and under the target of the run bar. The result is cached until the next launch or refresh. The script must finish in under 5 seconds; a slower script is cancelled and the row shows "status timed out". A non-zero exit code shows the last line in red.
+
+The script may also print a `state` line (section 7) with what the app reports about itself: identity, profile, host, user and version. DevHub keeps the last one per simulator.
 
 A relative path is looked up in the user, project and global config folders, then in the project folder; the first file that exists runs. When no file exists, the row shows "Status script not found". A file without the executable bit runs through `/bin/zsh`.
 
@@ -213,6 +226,7 @@ A line that starts with `@devhub ` followed by one JSON object is a directive. O
 | `{"refresh": ["git", "simulators"]}` | refreshes stores |
 | `{"error": "message"}` | the run is marked failed with this message even with exit code 0 |
 | `{"app": "/path/App.app"}` | `build.command` and `run.command` only: the app to install and launch |
+| `{"state": {"identity": "devhub-3f9a1c2e", "profile": "staging", "host": "api.staging.example.com", "user": "qa-12", "version": "2.4.0"}}` | `simulators.statusScript` only: what the app reports about itself; every field is optional. The clean install rule compares `identity` with the chosen identity, and the mock server status line uses `host` |
 | `{"view": {...}}` | replaces the result area of the action (custom tab section or Output entry) |
 
 `view` shapes:

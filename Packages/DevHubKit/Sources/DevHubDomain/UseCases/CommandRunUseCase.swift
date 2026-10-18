@@ -70,7 +70,7 @@ package struct CommandRunUseCase: Sendable {
                         appPath = path.hasPrefix("/") ? path : (request.folder as NSString).appendingPathComponent(path)
                     case .error(let message):
                         reportedError = message
-                    case .toast, .copy, .open, .notify, .refresh, .view:
+                    case .toast, .copy, .open, .notify, .refresh, .view, .state:
                         break
                     }
                 }
