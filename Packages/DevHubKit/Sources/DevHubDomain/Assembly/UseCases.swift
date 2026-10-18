@@ -19,6 +19,7 @@ package struct UseCases: Sendable {
     package let launchInstalledApp: LaunchInstalledAppUseCase
     package let relaunchWithMocks: RelaunchWithMocksUseCase
     package let readSimulatorStatus: ReadSimulatorStatusUseCase
+    package let checkTools: CheckToolsUseCase
 
     package init(ports: Ports) {
         updateBranch = UpdateBranchUseCase(git: ports.git)
@@ -41,5 +42,6 @@ package struct UseCases: Sendable {
         launchInstalledApp = LaunchInstalledAppUseCase(launcher: ports.launcher, simulators: ports.simulators, attacher: ports.attacher, mockServer: ports.mockServer)
         relaunchWithMocks = RelaunchWithMocksUseCase(mockServer: ports.mockServer, simulators: ports.simulators)
         readSimulatorStatus = ReadSimulatorStatusUseCase(scripts: ports.scripts, tools: ports.tools)
+        checkTools = CheckToolsUseCase(scripts: ports.scripts, tools: ports.tools)
     }
 }

@@ -22,6 +22,10 @@ package final class SpyToolLocator: ToolLocating, @unchecked Sendable {
         lock.withLock { _installedTools.contains(executable) }
     }
 
+    package func path(of executable: String) -> String? {
+        lock.withLock { _installedTools.contains(executable) ? "/usr/local/bin/" + executable : nil }
+    }
+
     package func fileExists(atPath path: String) -> Bool {
         lock.withLock { _existingFiles.contains(path) }
     }

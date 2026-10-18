@@ -13,6 +13,7 @@ extension View {
             .environment(assembly.activity)
             .environment(assembly.toaster)
             .environment(assembly.notifier)
+            .environment(assembly.doctor)
             .environment(assembly.output)
             .environment(assembly.layout)
             .environment(assembly.settings)

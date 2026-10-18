@@ -6,6 +6,10 @@ struct MockToolLocator: ToolLocating {
         true
     }
 
+    func path(of executable: String) -> String? {
+        "/usr/bin/" + executable
+    }
+
     func fileExists(atPath path: String) -> Bool {
         true
     }

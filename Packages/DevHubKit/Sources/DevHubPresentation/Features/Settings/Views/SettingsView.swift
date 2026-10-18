@@ -101,6 +101,8 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
+            DoctorSection()
+
             Section("About") {
                 LabeledContent("Version", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—")
                 LabeledContent("Features", value: "\(FeatureRegistry.all.count) registered")
