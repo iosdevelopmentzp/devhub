@@ -193,7 +193,7 @@ final class StoreHarness {
 
     lazy var messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, events: events, store: store)
 
-    lazy var aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, store: store)
+    lazy var aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, worktrees: worktrees, store: store)
 
 
     // MARK: Observations

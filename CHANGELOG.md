@@ -70,6 +70,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- The "This project" scope of the AI tab also keeps sessions started in the worktrees of the project, also when a worktree folder sits next to the project folder.
 - The hint of "Delete all…" in the merged branches group names the branches that stay: the base branch and `git.protectedBranches`. Before, it always said "dev, main and master".
 - "Copy chmod Command" in the menu of a script that is not executable copies the command. Before, the menu item did nothing.
 - "Clean Finished" counts only the DerivedData that was really removed. A worktree that could not be removed no longer adds its size.

@@ -187,7 +187,7 @@ package final class PresentationAssembly {
         )
         network = NetworkStore(session: session, simulators: simulators, mockTraffic: mockServer, events: events, store: store)
         messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, events: events, store: store)
-        aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, store: store)
+        aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, worktrees: worktrees, store: store)
         appActions = AppActions(
             navigator: navigator,
             build: build,

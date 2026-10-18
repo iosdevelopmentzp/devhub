@@ -51,6 +51,15 @@ import DevHubTestSupport
         #expect(store.scoped == AISessionSample.all)
     }
 
+    @Test func projectScopeAlsoKeepsSessionsInTheWorktrees() async {
+        harness.spies.worktrees.listResult = .success([WorktreeSample.main, WorktreeSample.linked(path: AISessionSample.sibling.cwd, branch: "feature/x")])
+        await harness.worktrees.refresh()
+        harness.spies.aiSessions.sessionsResult = AISessionSample.all
+        await store.refresh()
+
+        #expect(store.scoped == [AISessionSample.root, AISessionSample.nested, AISessionSample.sibling])
+    }
+
     @Test func theProviderFilterIsSavedAndFiltersSessions() async {
         var copilot = AISessionSample.session(id: "copilot", cwd: ProjectSample.path)
         copilot.provider = .copilot

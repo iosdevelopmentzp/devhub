@@ -48,15 +48,17 @@ final class AISessionsStore {
 
     @ObservationIgnored private let repository: AISessionRepository
     @ObservationIgnored private let session: ProjectSession
+    @ObservationIgnored private let worktrees: any WorktreeLookup
     @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private let refreshTask = RefreshTask()
 
     private static let scopeKey = "claude.scope"
     private static let providerKey = "ai.provider"
 
-    init(repository: AISessionRepository, session: ProjectSession, store: any KeyValueStore) {
+    init(repository: AISessionRepository, session: ProjectSession, worktrees: any WorktreeLookup, store: any KeyValueStore) {
         self.repository = repository
         self.session = session
+        self.worktrees = worktrees
         self.store = store
         let stored = store.string(forKey: Self.scopeKey)
         scope = stored.flatMap(Scope.init(rawValue:)) ?? .project
@@ -66,8 +68,10 @@ final class AISessionsStore {
     var scoped: [AISession] {
         let filtered = sessions.filter { providerFilter.includes($0.provider) }
         guard scope == .project else { return filtered }
-        let root = ProjectPath(session.selectedProject.path).expanded
-        return filtered.filter { $0.cwd == root || $0.cwd.hasPrefix(root + "/") }
+        let roots = Set(([session.selectedProject.path] + worktrees.worktrees.map(\.path)).map { ProjectPath($0).expanded })
+        return filtered.filter { session in
+            roots.contains { session.cwd == $0 || session.cwd.hasPrefix($0 + "/") }
+        }
     }
 
     func refresh() async {
