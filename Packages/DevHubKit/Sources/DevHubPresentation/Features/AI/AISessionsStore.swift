@@ -13,6 +13,22 @@ final class AISessionsStore {
         var id: String { rawValue }
     }
 
+    enum ProviderFilter: String, CaseIterable, Identifiable {
+        case copilot
+        case claude
+        case both
+
+        var id: String { rawValue }
+
+        func includes(_ provider: AIProvider) -> Bool {
+            switch self {
+            case .copilot: provider == .copilot
+            case .claude: provider == .claude
+            case .both: true
+            }
+        }
+    }
+
     private(set) var sessions: [AISession] = []
     private(set) var isLoading = false
     private(set) var hasLoaded = false
@@ -23,12 +39,20 @@ final class AISessionsStore {
         }
     }
 
+    var providerFilter: ProviderFilter {
+        didSet {
+            guard providerFilter != oldValue else { return }
+            store.set(providerFilter.rawValue, forKey: Self.providerKey)
+        }
+    }
+
     @ObservationIgnored private let repository: AISessionRepository
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private let refreshTask = RefreshTask()
 
     private static let scopeKey = "claude.scope"
+    private static let providerKey = "ai.provider"
 
     init(repository: AISessionRepository, session: ProjectSession, store: any KeyValueStore) {
         self.repository = repository
@@ -36,12 +60,14 @@ final class AISessionsStore {
         self.store = store
         let stored = store.string(forKey: Self.scopeKey)
         scope = stored.flatMap(Scope.init(rawValue:)) ?? .project
+        providerFilter = store.string(forKey: Self.providerKey).flatMap(ProviderFilter.init(rawValue:)) ?? .both
     }
 
     var scoped: [AISession] {
-        guard scope == .project else { return sessions }
+        let filtered = sessions.filter { providerFilter.includes($0.provider) }
+        guard scope == .project else { return filtered }
         let root = ProjectPath(session.selectedProject.path).expanded
-        return sessions.filter { $0.cwd == root || $0.cwd.hasPrefix(root + "/") }
+        return filtered.filter { $0.cwd == root || $0.cwd.hasPrefix(root + "/") }
     }
 
     func refresh() async {

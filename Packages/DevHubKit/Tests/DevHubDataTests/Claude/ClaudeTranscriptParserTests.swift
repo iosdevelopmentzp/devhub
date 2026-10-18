@@ -19,6 +19,7 @@ import Testing
 
         #expect(session == AISession(
             id: "1F0C5E2A-0000-4000-8000-000000000001",
+            provider: .claude,
             title: "Custom title",
             lastPrompt: "Fix the bug",
             cwd: "/Users/me/Projects/App",

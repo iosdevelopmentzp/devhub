@@ -4,7 +4,7 @@ import DevHubUI
 
 struct AISessionsView: View {
     @Environment(ProjectSession.self) private var session
-    @Environment(AISessionsStore.self) private var claude
+    @Environment(AISessionsStore.self) private var sessions
     @Environment(\.panelOpenCount) private var openCount
 
     var body: some View {
@@ -16,20 +16,20 @@ struct AISessionsView: View {
         }
         .background(Theme.surface)
         .task(id: openCount) {
-            await claude.refresh()
+            await sessions.refresh()
         }
     }
 
     private var visible: [AISession] {
-        claude.scoped.filter { session.matchesSearch($0.title, $0.cwd, $0.gitBranch ?? "", $0.lastPrompt ?? "") }
+        sessions.scoped.filter { session.matchesSearch($0.title, $0.cwd, $0.gitBranch ?? "", $0.lastPrompt ?? "", AISessionRowMapper.title(for: $0.provider)) }
     }
 
     private var content: some View {
         ListState(
             failure: nil,
-            isLoading: claude.hasLoaded == false,
-            loadingTitle: "Reading Claude sessions…",
-            empty: claude.scoped.isEmpty ? emptyMessage : nil,
+            isLoading: sessions.hasLoaded == false,
+            loadingTitle: "Reading AI sessions…",
+            empty: sessions.scoped.isEmpty ? emptyMessage : nil,
             noResultsFor: visible.isEmpty ? session.searchText : nil
         ) {
             ScrollView {
@@ -52,11 +52,11 @@ struct AISessionsView: View {
 
     private var emptyMessage: ListMessage {
         ListMessage(
-            "No Claude sessions",
+            "No AI sessions",
             systemImage: "bubble.left.and.text.bubble.right",
-            description: claude.scope == .project
+            description: sessions.scope == .project
                 ? "No sessions were started inside \(session.selectedProject.name). Switch to All to see every session."
-                : "Claude Code has no saved sessions in ~/.claude/projects."
+                : "No Copilot CLI sessions in ~/.copilot/session-state and no Claude Code sessions in ~/.claude/projects."
         )
     }
 }

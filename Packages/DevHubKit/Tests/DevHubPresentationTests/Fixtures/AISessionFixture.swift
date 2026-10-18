@@ -4,6 +4,7 @@ import Foundation
 enum AISessionFixture {
     static let session = AISession(
         id: "5f0c2d8e-1b7a-4c3e-9a51-0e2f6b7d9c41",
+        provider: .claude,
         title: "Fix the worktree delete confirmation",
         lastPrompt: "Now run the build again",
         cwd: "/Users/dev/Projects/DevHub",

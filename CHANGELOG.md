@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- The AI tab lists Copilot CLI sessions (`~/.copilot/session-state`) next to Claude Code sessions. A provider filter (Copilot, Claude, Both) is saved. Each row shows its provider, and Resume runs `copilot --resume` or `claude --resume` in the session folder.
 - The Logs tab streams several simulators at once: one chip per simulator, `+` adds a booted simulator, `×` closes a stream. Each stream keeps its own process, subsystem, level, pause state and lines, and the streams come back after a restart. A new stream starts with `logs.process` and `logs.subsystem` from `.devhub/project.json`; with a subsystem the stream filters by subsystem instead of process.
 - `simulators.statusScript` shows its result under the name of the booted, favourite and target simulators, and under the target of the run bar. The line is read again after each launch and on refresh. A failure, a missing script or a timeout shows in red.
 - Build & Run for `kind: command` projects: the run bar shows `build.command → run.command` instead of the scheme pickers and runs both in the selected checkout. Their output goes to the build log, `progress` lines move the progress bar, an `error` line or a non-zero exit fails the run, and an `app` line makes DevHub install and launch that app with the launch profile.

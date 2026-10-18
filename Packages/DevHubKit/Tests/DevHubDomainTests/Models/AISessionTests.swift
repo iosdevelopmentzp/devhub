@@ -15,9 +15,18 @@ import Testing
         #expect(session(cwd: "/Users/me/Bob's").resumeCommand == #"cd '/Users/me/Bob'\''s' && claude --resume abc-123"#)
     }
 
+    @Test func aCopilotSessionResumesWithCopilot() {
+        var copilot = session(cwd: "/repo")
+        copilot.provider = .copilot
+
+        #expect(copilot.terminalCommand == "copilot --resume abc-123")
+        #expect(copilot.resumeCommand == "cd '/repo' && copilot --resume abc-123")
+    }
+
     private func session(cwd: String) -> AISession {
         AISession(
             id: "abc-123",
+            provider: .claude,
             title: "Session",
             lastPrompt: nil,
             cwd: cwd,

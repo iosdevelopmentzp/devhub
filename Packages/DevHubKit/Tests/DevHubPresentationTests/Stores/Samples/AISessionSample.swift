@@ -12,6 +12,7 @@ enum AISessionSample {
     static func session(id: String, cwd: String) -> AISession {
         AISession(
             id: id,
+            provider: .claude,
             title: "Session \(id)",
             lastPrompt: nil,
             cwd: cwd,

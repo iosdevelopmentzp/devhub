@@ -2,6 +2,7 @@ import Foundation
 
 package struct AISession: Identifiable, Hashable, Sendable {
     package let id: String
+    package var provider: AIProvider
     package var title: String
     package var lastPrompt: String?
     package var cwd: String
@@ -12,6 +13,7 @@ package struct AISession: Identifiable, Hashable, Sendable {
 
     package init(
         id: String,
+        provider: AIProvider,
         title: String,
         lastPrompt: String?,
         cwd: String,
@@ -21,6 +23,7 @@ package struct AISession: Identifiable, Hashable, Sendable {
         folderExists: Bool
     ) {
         self.id = id
+        self.provider = provider
         self.title = title
         self.lastPrompt = lastPrompt
         self.cwd = cwd
@@ -34,7 +37,11 @@ package struct AISession: Identifiable, Hashable, Sendable {
         (cwd as NSString).lastPathComponent
     }
 
+    package var terminalCommand: String {
+        "\(provider.executable) --resume \(id)"
+    }
+
     package var resumeCommand: String {
-        "cd \(cwd.shellQuoted) && claude --resume \(id)"
+        "cd \(cwd.shellQuoted) && \(terminalCommand)"
     }
 }

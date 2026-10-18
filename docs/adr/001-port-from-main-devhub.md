@@ -611,3 +611,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `9400eb8` | M5 | `simulators.statusScript`: `ReadSimulatorStatusUseCase` (5 s timeout, first existing script in the config folders), `SimulatorStatusStore`, the status line in simulator rows and under the run bar target; `ToolLocating.fileExists(atPath:)`. |
 | `957cc82` | M5 | Log chips: one `LogStream` per simulator with its own process, subsystem, level and pause state, saved as `LogStreamSettings`; `AppLogFilter` and `AppLogPredicatePolicy` (subsystem wins over process); `DEVHUB_LOG_STREAMS`. |
 | `c6b99ff` | M5 | Deep link schemes from `CFBundleURLTypes` of the installed app (`AppURLSchemeParser`, `SimulatorMessagingRepository.urlSchemes`); the push alert template takes the project name (STATUS decision 24). |
+| `6d5ae8d` | M5 | Rename `ClaudeSession*` to `AISession*`, the feature folder `Features/AI`, the tab id `ai`. |

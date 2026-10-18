@@ -50,4 +50,21 @@ import DevHubTestSupport
 
         #expect(store.scoped == AISessionSample.all)
     }
+
+    @Test func theProviderFilterIsSavedAndFiltersSessions() async {
+        var copilot = AISessionSample.session(id: "copilot", cwd: ProjectSample.path)
+        copilot.provider = .copilot
+        harness.spies.aiSessions.sessionsResult = [AISessionSample.root, copilot]
+        await store.refresh()
+        #expect(store.providerFilter == .both)
+        #expect(store.scoped.map(\.id) == ["root", "copilot"])
+
+        store.providerFilter = .copilot
+
+        #expect(store.scoped.map(\.id) == ["copilot"])
+        #expect(harness.store.string(forKey: "ai.provider") == "copilot")
+        let saved = InMemoryKeyValueStore()
+        saved.set("claude", forKey: "ai.provider")
+        #expect(StoreHarness(store: saved).aiSessions.providerFilter == .claude)
+    }
 }

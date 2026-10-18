@@ -61,7 +61,7 @@ struct AISessionRow: View {
                 }
                 .opacity(isHovered ? 1 : 0)
                 Button("Resume", systemImage: "terminal") {
-                    appActions.runInTerminal(model.terminalCommand, at: model.folderPath, title: "Resumed Claude session")
+                    appActions.runInTerminal(model.terminalCommand, at: model.folderPath, title: model.terminalTitle)
                 }
                 .controlSize(.small)
                 .fixedSize()
@@ -73,15 +73,14 @@ struct AISessionRow: View {
 
     @ViewBuilder
     private var tags: some View {
-        if model.hasTags {
-            FlowLayout(spacing: 6) {
-                if let tag = model.branchTag {
-                    ModelTag(model: tag)
-                        .copyOnClick(tag.text, label: tag.text)
-                }
-                ForEach(model.statusTags, id: \.self) { tag in
-                    ModelTag(model: tag)
-                }
+        FlowLayout(spacing: 6) {
+            ModelTag(model: model.providerTag)
+            if let tag = model.branchTag {
+                ModelTag(model: tag)
+                    .copyOnClick(tag.text, label: tag.text)
+            }
+            ForEach(model.statusTags, id: \.self) { tag in
+                ModelTag(model: tag)
             }
         }
     }

@@ -30,6 +30,7 @@ enum ClaudeTranscriptParser {
         guard let title = customTitle ?? aiTitle ?? prompt, title.isEmpty == false else { return nil }
         return AISession(
             id: id,
+            provider: .claude,
             title: singleLine(title),
             lastPrompt: prompt,
             cwd: cwd,

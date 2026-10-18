@@ -41,6 +41,7 @@ import Testing
     private func session(_ id: String, updatedAt: Date) -> AISession {
         AISession(
             id: id,
+            provider: .claude,
             title: "Session \(id)",
             lastPrompt: nil,
             cwd: AISessionFixture.session.cwd,

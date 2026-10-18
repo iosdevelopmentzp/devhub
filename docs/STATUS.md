@@ -61,6 +61,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 22. Actions that a host or a repository does not allow are hidden, not shown with an error: `PullRequestPermissions.canRevokeApproval` (GitHub: write access) and `canSetAutoMerge` (GitHub: write access and `autoMergeAllowed` on the repository).
 23. A `kind: command` project runs `build.command`, then `run.command`, in the checkout of the run bar, with the action variables (`DEVHUB_SIMULATOR_UDID`, `DEVHUB_BRANCH`, …). Both commands may print `@devhub {"app": "<path>"}`; a relative path is read from the checkout. A script file without the executable bit runs through `/bin/zsh`. Run & Attach stays off for these projects. Why: the app path is known only after the build, and a fresh clone often loses the executable bit.
 24. Deep link schemes come from `CFBundleURLTypes` in the `Info.plist` of the app installed on the simulator, not from a `simulators.deepLinks` config key (ADR 001 section 7.5). Why: the app already declares its schemes, and a new key would change the config schema.
+25. The AI tab does not check that `copilot` or `claude` is installed before Resume. Why: Resume runs in the terminal with the PATH of the user; the app's own PATH misses folders such as `~/.local/bin`, so a check from the app would hide working sessions. The Doctor section (M7) shows missing tools.
 ## Next steps
 
 1. M5 (ADR 001 section 7.5): Build & Run, launch profiles, `kind: command` projects, the simulator status rows, log chips, Copilot sessions.
