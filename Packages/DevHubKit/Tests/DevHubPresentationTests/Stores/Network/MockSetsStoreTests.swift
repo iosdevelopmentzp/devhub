@@ -7,7 +7,7 @@ import DevHubTestSupport
 
 @Suite struct MockSetsStoreTests {
     private let harness = StoreHarness()
-    private let project = "App"
+    private let location = MockSetLocation.defaultFolder(project: "App")
 
     private var store: MockSetsStore {
         harness.mockSets
@@ -22,7 +22,7 @@ import DevHubTestSupport
         await load()
 
         #expect(store.sets == [MockSetSample.vip, MockSetSample.empty])
-        #expect(harness.spies.mockSets.calls == [.list(project: project)])
+        #expect(harness.spies.mockSets.calls == [.list(in: location)])
         #expect(store.error == nil)
     }
 
@@ -55,7 +55,7 @@ import DevHubTestSupport
         #expect(store.sets.map(\.name) == ["Premium", "Premium copy"])
         #expect(store.set(id: copy)?.rules.map(\.pathPattern) == ["/v1/settings/list"])
         #expect(store.set(id: copy)?.rules.first?.id != MockSetSample.ruleID)
-        try await waitUntil { harness.spies.mockSets.calls.contains(.delete(id: MockSetSample.empty.id, project: project)) }
+        try await waitUntil { harness.spies.mockSets.calls.contains(.delete(id: MockSetSample.empty.id, in: location)) }
     }
 
     @Test func addRuleOpensItAndSaveRuleClosesTheEditor() async throws {
@@ -121,6 +121,27 @@ import DevHubTestSupport
 
         harness.events.post(.projectChanged)
 
-        try await waitUntil { harness.spies.mockSets.calls.filter { $0 == .list(project: project) }.count == 2 }
+        try await waitUntil { harness.spies.mockSets.calls.filter { $0 == .list(in: location) }.count == 2 }
+    }
+
+    @Test func aConfiguredMocksFolderIsReadAndAChangeReloads() async throws {
+        await load()
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(network: NetworkConfig(mocksFolder: "Mocks")), actions: [], tabs: [], issues: [], layers: [])
+
+        await harness.config.reload()
+
+        let folder = MockSetLocation.folder(ProjectSample.path + "/Mocks")
+        try await waitUntil { harness.spies.mockSets.calls.contains(.list(in: folder)) }
+        #expect(store.location == folder)
+    }
+
+    @Test func aConfigChangeWithTheSameFolderDoesNotReload() async {
+        await load()
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(name: "Renamed"), actions: [], tabs: [], issues: [], layers: [])
+
+        await harness.config.reload()
+        await harness.settle()
+
+        #expect(harness.spies.mockSets.calls == [.list(in: location)])
     }
 }

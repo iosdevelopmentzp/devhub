@@ -4,12 +4,12 @@ import DevHubDomain
 struct FileMockSetRepository: MockSetRepository {
     let root: URL
 
-    func list(project: String) async throws -> [MockSet] {
-        try entries(in: folder(for: project)).map(\.set).sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    func list(in location: MockSetLocation) async throws -> [MockSet] {
+        try entries(in: folder(for: location)).map(\.set).sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
-    func save(_ set: MockSet, project: String) async throws {
-        let folder = folder(for: project)
+    func save(_ set: MockSet, in location: MockSetLocation) async throws {
+        let folder = folder(for: location)
         let existing = try entries(in: folder)
         let takenStems = Set(existing.filter { $0.set.id != set.id }.map(\.stem))
         var stem = MockRouteName.stem(for: set.name)
@@ -37,8 +37,8 @@ struct FileMockSetRepository: MockSetRepository {
         }
     }
 
-    func delete(id: MockSet.ID, project: String) async throws {
-        let folder = folder(for: project)
+    func delete(id: MockSet.ID, in location: MockSetLocation) async throws {
+        let folder = folder(for: location)
         do {
             for entry in try entries(in: folder) where entry.set.id == id {
                 try removeFiles(stem: entry.stem, in: folder)
@@ -50,8 +50,13 @@ struct FileMockSetRepository: MockSetRepository {
         }
     }
 
-    func folder(for project: String) -> URL {
-        root.appendingPathComponent(MockRouteName.stem(for: project), isDirectory: true)
+    func folder(for location: MockSetLocation) -> URL {
+        switch location {
+        case .defaultFolder(let project):
+            root.appendingPathComponent(MockRouteName.stem(for: project), isDirectory: true)
+        case .folder(let path):
+            URL(fileURLWithPath: path, isDirectory: true)
+        }
     }
 
     private func entries(in folder: URL) throws -> [(stem: String, set: MockSet)] {

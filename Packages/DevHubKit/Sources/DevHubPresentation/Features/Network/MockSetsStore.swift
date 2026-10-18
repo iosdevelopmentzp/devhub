@@ -14,27 +14,38 @@ final class MockSetsStore: MockSetLookup {
 
     @ObservationIgnored private let repository: any MockSetRepository
     @ObservationIgnored private let session: ProjectSession
+    @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private let refreshTask = RefreshTask()
     @ObservationIgnored private var subscription: SubscriptionToken?
+    @ObservationIgnored private var loadedLocation: MockSetLocation?
 
-    init(repository: any MockSetRepository, session: ProjectSession, activity: ActivityLog, events: AppEvents) {
+    init(repository: any MockSetRepository, session: ProjectSession, config: ConfigStore, activity: ActivityLog, events: AppEvents) {
         self.repository = repository
         self.session = session
+        self.config = config
         self.activity = activity
         self.events = events
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
-            guard case .projectChanged = event else { return }
-            sets = []
-            editingRuleID = nil
-            Task { await self.load() }
+            switch event {
+            case .projectChanged:
+                sets = []
+                editingRuleID = nil
+                loadedLocation = nil
+                Task { await self.load() }
+            case .configChanged:
+                guard location != loadedLocation else { return }
+                Task { await self.load() }
+            default:
+                break
+            }
         }
     }
 
-    var projectKey: String {
-        ProjectPath(session.selectedProject.path).url.lastPathComponent
+    var location: MockSetLocation {
+        MockSetLocationPolicy.location(network: config.config.network, projectPath: session.selectedProject.path)
     }
 
     func set(id: MockSet.ID) -> MockSet? {
@@ -46,9 +57,11 @@ final class MockSetsStore: MockSetLookup {
         await refreshTask.run { [weak self] in
             guard let self else { return }
             do {
-                let loaded = try await repository.list(project: projectKey)
+                let location = location
+                let loaded = try await repository.list(in: location)
                 try Task.checkCancellation()
                 sets = loaded
+                loadedLocation = location
                 error = nil
             } catch is CancellationError {
             } catch {
@@ -92,11 +105,11 @@ final class MockSetsStore: MockSetLookup {
     func deleteSet(id: MockSet.ID) {
         guard let set = set(id: id) else { return }
         sets.removeAll { $0.id == id }
-        let project = projectKey
+        let location = location
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await repository.delete(id: id, project: project)
+                try await repository.delete(id: id, in: location)
                 activity.log("Deleted mock set", detail: set.name, outcome: .success)
             } catch {
                 fail("Could not delete mock set \(set.name)", error)
@@ -169,11 +182,11 @@ final class MockSetsStore: MockSetLookup {
 
     private func persist(_ set: MockSet, title: String?) {
         events.post(.mockSetChanged(id: set.id))
-        let project = projectKey
+        let location = location
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await repository.save(set, project: project)
+                try await repository.save(set, in: location)
                 if let title {
                     activity.log(title, detail: set.name, outcome: .success)
                 }

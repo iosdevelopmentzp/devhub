@@ -64,7 +64,7 @@ All fields optional. Missing values are detected (see "default").
 | `launch.identity.cleanInstallOnChange` | bool | `true` | when the app on the simulator has another identity than the chosen one, a launch from DevHub deletes the app, resets the simulator keychain and installs it again. With no chosen identity, this happens only when the app still carries an identity that DevHub set; the app's own identity stays |
 | `launch.identity.hookMarker` | string | the value of `variable` | the text DevHub looks for in the app binary; when it is found, the identity panel shows a green tag with the variable name, else a red "no … hook" tag |
 | `network.baseURLVariable` | string | — | the environment variable that gets the URL of the DevHub mock server when the app is relaunched through it. Without it the mock server cannot redirect the app |
-| `network.mocksFolder` | path | `~/.devhub/mocks/<project folder name>` | where the mock sets of the project are saved |
+| `network.mocksFolder` | path | `~/.devhub/mocks/<project folder name>` | where the mock sets of the project are saved. A relative path starts at the project folder, `~` is the home folder. A change reloads the sets |
 | `logs.process` | string | `CFBundleExecutable` of the installed app, else the scheme | default process filter of a new log stream; each stream can change it in the Logs toolbar |
 | `logs.subsystem` | string | — | default subsystem of a new log stream; when set, the stream predicate filters by subsystem instead of process |
 | `simulators.statusScript` | path | — | section 6 |

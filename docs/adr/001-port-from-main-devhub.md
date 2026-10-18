@@ -618,3 +618,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `2936ab8` | M5 | `BuildStore+Queries.swift` takes the read-only members; `BuildStore.swift` has 326 lines. |
 | `724c418` | M5 | M5 closed: STATUS stage, screens, next steps and known gaps; the testing skill names the new spies. |
 | `80474bc` | M6 | Step 6.1: `launch.identity`, profile `storage`, `upstream` and `production`, `network.*` and the `state` directive are decoded (STATUS decision 27); `docs/extensions.md` documents them. |
+| `f9181ee` | M6 | Step 6.2: `LaunchPlan` and `LaunchRecord` for every launch; `AppLaunchRepository` (`inspect`, `cleanInstall`) replaces the device identity port; `IdentityStore` with ID, alias, saved IDs and the `state` report from `SimulatorStatusStore`; `CleanInstallPolicy` keeps the app's own ID; `MockUpstreamPolicy` takes the upstream from the profile; `waitUntilBooted` before a launch (STATUS decisions 28 to 30). |

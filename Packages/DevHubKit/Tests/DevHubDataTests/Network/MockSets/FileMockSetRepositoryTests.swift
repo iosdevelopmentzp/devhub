@@ -16,61 +16,71 @@ import Testing
     @Test func roundTripKeepsEveryRuleField() async throws {
         let set = sample(name: "VIP user", body: #"{"ok":true}"#)
 
-        try await repository.save(set, project: "example-app")
-        let loaded = try await repository.list(project: "example-app")
+        try await repository.save(set, in: .defaultFolder(project: "example-app"))
+        let loaded = try await repository.list(in: .defaultFolder(project: "example-app"))
 
         #expect(loaded == [set])
         #expect(FileManager.default.fileExists(atPath: directory.path("example-app/VIP-user.json")))
+    }
+
+    @Test func aConfiguredFolderIsUsedAsItIs() async throws {
+        let set = sample(name: "Shared", body: "{}")
+        let folder = directory.path("repo/Mocks")
+
+        try await repository.save(set, in: .folder(folder))
+
+        #expect(FileManager.default.fileExists(atPath: directory.path("repo/Mocks/Shared.json")))
+        #expect(try await repository.list(in: .folder(folder)) == [set])
     }
 
     @Test func largeBodiesGoToBodyFilesNamedLikeTheUITestFixtures() async throws {
         let big = "{\"items\":[" + Array(repeating: #"{"name":"gift"}"#, count: 200).joined(separator: ",") + "]}"
         let set = sample(name: "Big", body: big)
 
-        try await repository.save(set, project: "app")
+        try await repository.save(set, in: .defaultFolder(project: "app"))
 
         #expect(FileManager.default.fileExists(atPath: directory.path("app/Big/bodies/GET_v1_settings_list.json")))
-        #expect(try await repository.list(project: "app") == [set])
+        #expect(try await repository.list(in: .defaultFolder(project: "app")) == [set])
     }
 
     @Test func renameMovesTheFileAndKeepsOneCopy() async throws {
         var set = sample(name: "First", body: "{}")
-        try await repository.save(set, project: "app")
+        try await repository.save(set, in: .defaultFolder(project: "app"))
 
         set.name = "Second"
-        try await repository.save(set, project: "app")
+        try await repository.save(set, in: .defaultFolder(project: "app"))
 
-        #expect(try await repository.list(project: "app").map(\.name) == ["Second"])
+        #expect(try await repository.list(in: .defaultFolder(project: "app")).map(\.name) == ["Second"])
         #expect(FileManager.default.fileExists(atPath: directory.path("app/First.json")) == false)
     }
 
     @Test func twoSetsWithTheSameFileNameGetDifferentFiles() async throws {
-        try await repository.save(sample(name: "A/B", body: "{}"), project: "app")
-        try await repository.save(sample(name: "A B", body: "{}"), project: "app")
+        try await repository.save(sample(name: "A/B", body: "{}"), in: .defaultFolder(project: "app"))
+        try await repository.save(sample(name: "A B", body: "{}"), in: .defaultFolder(project: "app"))
 
-        #expect(try await repository.list(project: "app").count == 2)
+        #expect(try await repository.list(in: .defaultFolder(project: "app")).count == 2)
     }
 
     @Test func deleteRemovesTheFileAndItsBodies() async throws {
         let big = String(repeating: "x", count: 3_000)
         let set = sample(name: "Gone", body: big)
-        try await repository.save(set, project: "app")
+        try await repository.save(set, in: .defaultFolder(project: "app"))
 
-        try await repository.delete(id: set.id, project: "app")
+        try await repository.delete(id: set.id, in: .defaultFolder(project: "app"))
 
-        #expect(try await repository.list(project: "app").isEmpty)
+        #expect(try await repository.list(in: .defaultFolder(project: "app")).isEmpty)
         #expect(FileManager.default.fileExists(atPath: directory.path("app/Gone")) == false)
     }
 
     @Test func missingFolderIsAnEmptyList() async throws {
-        #expect(try await repository.list(project: "nothing").isEmpty)
+        #expect(try await repository.list(in: .defaultFolder(project: "nothing")).isEmpty)
     }
 
     @Test func brokenFileIsReportedByName() async throws {
         _ = try directory.write("{ not json", to: "app/broken.json")
 
         await #expect(throws: MockSetError.unreadable(file: "broken.json", reason: "It is not a JSON object.")) {
-            try await repository.list(project: "app")
+            try await repository.list(in: .defaultFolder(project: "app"))
         }
     }
 
@@ -100,7 +110,7 @@ import Testing
             )
         ])
 
-        try await repository.save(set, project: "app")
+        try await repository.save(set, in: .defaultFolder(project: "app"))
 
         let text = try String(contentsOfFile: directory.path("app/Secrets.json"), encoding: .utf8)
         #expect(text.contains(secret) == false)

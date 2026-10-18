@@ -3,9 +3,9 @@ import Foundation
 
 package final class SpyMockSetRepository: MockSetRepository, @unchecked Sendable {
     package enum Call: Hashable {
-        case list(project: String)
-        case save(MockSet, project: String)
-        case delete(id: MockSet.ID, project: String)
+        case list(in: MockSetLocation)
+        case save(MockSet, in: MockSetLocation)
+        case delete(id: MockSet.ID, in: MockSetLocation)
     }
 
     private let lock = NSLock()
@@ -36,22 +36,22 @@ package final class SpyMockSetRepository: MockSetRepository, @unchecked Sendable
         }
     }
 
-    package func list(project: String) async throws -> [MockSet] {
+    package func list(in location: MockSetLocation) async throws -> [MockSet] {
         try lock.withLock {
-            _calls.append(.list(project: project))
+            _calls.append(.list(in: location))
             return try _listResult.get()
         }
     }
 
-    package func save(_ set: MockSet, project: String) async throws {
+    package func save(_ set: MockSet, in location: MockSetLocation) async throws {
         let error = lock.withLock {
-            _calls.append(.save(set, project: project))
+            _calls.append(.save(set, in: location))
             return _saveError
         }
         if let error { throw error }
     }
 
-    package func delete(id: MockSet.ID, project: String) async throws {
-        lock.withLock { _calls.append(.delete(id: id, project: project)) }
+    package func delete(id: MockSet.ID, in location: MockSetLocation) async throws {
+        lock.withLock { _calls.append(.delete(id: id, in: location)) }
     }
 }

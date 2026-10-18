@@ -165,7 +165,7 @@ package final class PresentationAssembly {
             home: FileManager.default.homeDirectoryForCurrentUser.path
         )
         logs = LogsStore(repository: ports.logs, session: session, config: config, simulators: simulators, activity: activity, store: store)
-        mockSets = MockSetsStore(repository: ports.mockSets, session: session, activity: activity, events: events)
+        mockSets = MockSetsStore(repository: ports.mockSets, session: session, config: config, activity: activity, events: events)
         mockServer = MockServerStore(
             relaunch: useCases.relaunchWithMocks,
             server: ports.mockServer,
