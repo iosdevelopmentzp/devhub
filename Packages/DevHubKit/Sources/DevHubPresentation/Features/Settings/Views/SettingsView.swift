@@ -5,6 +5,7 @@ import DevHubUI
 struct SettingsView: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(ProjectSession.self) private var session
+    @Environment(ConfigStore.self) private var config
     @Environment(\.codeHostWords) private var words
 
     var body: some View {
@@ -42,6 +43,7 @@ struct SettingsView: View {
                         model: ProjectSettingsRowMapper.model(
                             for: project,
                             isSelected: project.id == session.selectedProjectID,
+                            hasLaunchIdentity: config.config.launch?.identity != nil,
                             projectCount: session.projects.count
                         ),
                         scheme: field(\.scheme, of: project),

@@ -5,6 +5,7 @@ package final class SpySimulatorRepository: SimulatorRepository, @unchecked Send
     package enum Call: Hashable {
         case list
         case boot(udid: String)
+        case waitUntilBooted(udid: String)
         case shutdown(udid: String)
         case erase(udid: String)
         case openInSimulatorApp(udid: String)
@@ -101,6 +102,10 @@ package final class SpySimulatorRepository: SimulatorRepository, @unchecked Send
     package func boot(udid: String) async throws {
         let error = record(.boot(udid: udid)) { _bootError }
         if let error { throw error }
+    }
+
+    package func waitUntilBooted(udid: String) async throws {
+        record(.waitUntilBooted(udid: udid)) {}
     }
 
     package func shutdown(udid: String) async throws {

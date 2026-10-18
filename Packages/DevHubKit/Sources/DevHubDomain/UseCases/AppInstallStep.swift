@@ -2,18 +2,17 @@ import Foundation
 
 package struct AppInstallStep: Sendable {
     package let simulators: any SimulatorRepository
-    package let identity: any DeviceIdentityRepository
     package let attacher: any XcodeAttaching
     package let mockServer: any MockServerRepository
 
-    package init(simulators: any SimulatorRepository, identity: any DeviceIdentityRepository, attacher: any XcodeAttaching, mockServer: any MockServerRepository) {
+    package init(simulators: any SimulatorRepository, attacher: any XcodeAttaching, mockServer: any MockServerRepository) {
         self.simulators = simulators
-        self.identity = identity
         self.attacher = attacher
         self.mockServer = mockServer
     }
 
     package func run(_ product: BuildProduct, request: BuildRequest, continuation: AsyncThrowingStream<BuildEvent, Error>.Continuation) async throws {
+        try await simulators.waitUntilBooted(udid: request.simulatorUDID)
         if request.cleanInstall {
             continuation.yield(.step("Clean install: deleting the app and resetting the simulator keychain", progress: nil))
             await simulators.uninstallQuietly(udid: request.simulatorUDID, bundleID: product.bundleID)
@@ -42,32 +41,21 @@ package struct AppInstallStep: Sendable {
         request: BuildRequest,
         continuation: AsyncThrowingStream<BuildEvent, Error>.Continuation
     ) async throws -> Int32? {
-        let mocks = await MockLaunchPreparation(identity: identity, mockServer: mockServer).prepare(
-            udid: request.simulatorUDID,
-            config: request.identity?.config,
-            environment: request.identity?.environment
-        )
-        let environment = request.launch.environment.merging(mocks.environment) { _, mock in mock }
+        let plan = request.launch
+        let mocks = await MockLaunchPreparation(mockServer: mockServer).prepare(udid: request.simulatorUDID, plan: plan)
         if let note = mocks.note {
             continuation.yield(.output(note))
         }
-        guard let buildIdentity = request.identity else {
-            continuation.yield(.step("Launching \(product.bundleID)", progress: nil))
-            try await simulators.openInSimulatorApp(udid: request.simulatorUDID)
-            return try await simulators.launch(udid: request.simulatorUDID, bundleID: product.bundleID, waitForDebugger: request.attachDebugger, environment: environment, arguments: request.launch.arguments)
-        }
-        if let environment = buildIdentity.environment {
-            continuation.yield(.step("Setting environment \(environment)", progress: nil))
-            try await identity.setEnvironment(environment, udid: request.simulatorUDID, config: buildIdentity.config)
-        }
-        continuation.yield(.step("Launching \(product.bundleID)" + (buildIdentity.deviceID.map { " · device ID \($0)" } ?? ""), progress: nil))
-        return try await identity.launch(
+        continuation.yield(.step("Launching \(product.bundleID)" + (plan.identity.map { " · ID \($0)" } ?? ""), progress: nil))
+        try await simulators.openInSimulatorApp(udid: request.simulatorUDID)
+        let pid = try await simulators.launch(
             udid: request.simulatorUDID,
-            config: buildIdentity.config,
-            deviceID: buildIdentity.deviceID,
+            bundleID: product.bundleID,
             waitForDebugger: request.attachDebugger,
-            environment: environment,
-            arguments: request.launch.arguments
+            environment: plan.environment.merging(mocks.environment) { _, mock in mock },
+            arguments: plan.arguments
         )
+        continuation.yield(.launched(plan.record(bundleID: product.bundleID, baseURL: mocks.baseURL, date: .now)))
+        return pid
     }
 }

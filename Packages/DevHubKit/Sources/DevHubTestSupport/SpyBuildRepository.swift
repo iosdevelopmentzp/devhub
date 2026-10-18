@@ -35,9 +35,7 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
                 && left.incremental == right.incremental
                 && left.simulatorUDID == right.simulatorUDID
                 && left.simulatorName == right.simulatorName
-                && left.identity?.config == right.identity?.config
-                && left.identity?.deviceID == right.identity?.deviceID
-                && left.identity?.environment == right.identity?.environment
+                && left.launch == right.launch
                 && left.cleanInstall == right.cleanInstall
                 && left.attachDebugger == right.attachDebugger
         }

@@ -11,7 +11,7 @@ struct MockRulesView: View {
         let current = currentSet
         return VStack(spacing: 0) {
             MockSetBar(
-                sets: MockServerBarMapper.model(settings: .off, state: nil, sets: mockSets.sets, hasSimulator: false, isApplying: false, needsApply: false, error: nil, identity: nil, config: nil).sets,
+                sets: MockServerBarMapper.model(settings: .off, state: nil, sets: mockSets.sets, hasSimulator: false, isApplying: false, needsApply: false, error: nil, app: nil, report: nil, lastLaunch: nil, profiles: []).sets,
                 selectedSetID: current?.id,
                 selectedName: current?.name,
                 onSelect: select,

@@ -8,6 +8,8 @@ final class GatedSimulatorRepository: SimulatorRepository {
         recorded.withLock { $0 }
     }
 
+    func waitUntilBooted(udid: String) async throws {}
+
     func boot(udid: String) async throws {
         record("boot")
         while Task.isCancelled == false {

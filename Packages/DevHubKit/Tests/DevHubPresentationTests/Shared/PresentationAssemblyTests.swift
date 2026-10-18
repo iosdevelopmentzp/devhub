@@ -15,7 +15,7 @@ import Testing
         #expect(assembly.worktrees.worktrees == MockData.worktrees)
         #expect(assembly.worktrees.derivedDataSizes == MockData.derivedDataSizes)
         #expect(assembly.simulators.groups == MockData.simulatorGroups)
-        #expect(assembly.identity.identities == MockData.identities)
+        #expect(assembly.identity.apps == MockData.installedApps)
         #expect(assembly.usage.usage == MockData.usage)
         #expect(assembly.activity.events == MockData.recentEvents)
     }

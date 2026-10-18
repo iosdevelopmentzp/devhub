@@ -7,7 +7,7 @@ import Testing
     @Test func staticsAreNotEmpty() {
         #expect(MockData.recentEvents.isEmpty == false)
         #expect(MockData.aiSessions.isEmpty == false)
-        #expect(MockData.identities.isEmpty == false)
+        #expect(MockData.installedApps.isEmpty == false)
         #expect(MockData.projects.isEmpty == false)
         #expect(MockData.simulatorGroups.flatMap(\.simulators).isEmpty == false)
         #expect(MockData.usage.limits.isEmpty == false)
@@ -23,7 +23,7 @@ import Testing
     @Test func identitiesPointAtMockSimulators() {
         let simulatorIDs = Set(MockData.simulatorGroups.flatMap(\.simulators).map(\.id))
 
-        #expect(Set(MockData.identities.keys).isSubset(of: simulatorIDs))
+        #expect(Set(MockData.installedApps.keys).isSubset(of: simulatorIDs))
     }
 
     @Test func agoCountsBackFromNow() {

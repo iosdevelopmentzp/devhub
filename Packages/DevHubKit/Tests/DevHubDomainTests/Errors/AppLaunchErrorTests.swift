@@ -1,9 +1,9 @@
 import Testing
 @testable import DevHubDomain
 
-@Suite struct DeviceIdentityErrorTests {
+@Suite struct AppLaunchErrorTests {
     @Test func everyCaseHasADescription() {
-        let errors: [DeviceIdentityError] = [.command("simctl failed"), .noAppToReinstall]
+        let errors: [AppLaunchError] = [.command("simctl failed"), .noAppToReinstall]
 
         for error in errors {
             #expect(error.errorDescription?.isEmpty == false)
@@ -11,6 +11,6 @@ import Testing
     }
 
     @Test func commandShowsTheMessage() {
-        #expect(DeviceIdentityError.command("simctl failed").errorDescription == "simctl failed")
+        #expect(AppLaunchError.command("simctl failed").errorDescription == "simctl failed")
     }
 }

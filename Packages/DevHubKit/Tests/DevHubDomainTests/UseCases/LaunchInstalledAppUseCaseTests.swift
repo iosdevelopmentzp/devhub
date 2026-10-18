@@ -5,46 +5,63 @@ import Testing
 
 @Suite struct LaunchInstalledAppUseCaseTests {
     private let udid = IdentityLaunchFixture.udid
+    private let bundleID = IdentityLaunchFixture.bundleID
 
-    @Test func plainLaunchOnlyLaunches() async throws {
+    @Test func plainLaunchBootsOpensAndLaunches() async throws {
         let (ports, spies) = Ports.spies()
 
-        try await launch(ports, IdentityLaunchFixture.plain, cleanInstall: false)
+        let record = try await launch(ports, IdentityLaunchFixture.plain, cleanInstall: false)
 
-        #expect(spies.identity.calls == [.launch(udid: udid, config: .example, deviceID: nil, waitForDebugger: false, environment: [:])])
+        #expect(spies.simulators.calls == [
+            .boot(udid: udid),
+            .waitUntilBooted(udid: udid),
+            .openInSimulatorApp(udid: udid),
+            .launch(udid: udid, bundleID: bundleID, waitForDebugger: false, environment: [:]),
+        ])
+        #expect(spies.launcher.calls.isEmpty)
         #expect(spies.attacher.calls.isEmpty)
+        #expect(record.profileID == nil)
+        #expect(record.identity == nil)
     }
 
-    @Test func cleanInstallRunsFirstThenEnvironmentThenLaunchWithTheDeviceID() async throws {
+    @Test func cleanInstallRunsFirstThenDefaultsThenLaunchWithTheIdentity() async throws {
         let (ports, spies) = Ports.spies()
+        let item = ProfileDefault(suite: "com.example.app", key: "onboarding", value: "false", type: "bool")
+        var profile = IdentityLaunchFixture.staging
+        profile.defaults = [item]
         var request = IdentityLaunchFixture.plain
-        request.deviceID = "QA-DEVICE"
-        request.environment = "qa"
+        request.plan = IdentityLaunchFixture.plan(identity: "QA-DEVICE", profile: profile)
 
-        try await launch(ports, request, cleanInstall: true)
+        let record = try await launch(ports, request, cleanInstall: true)
 
-        #expect(spies.identity.calls == [
-            .cleanInstall(udid: udid, config: .example, fallbackAppPath: "/derived/App.app"),
-            .setEnvironment("qa", udid: udid, config: .example),
-            .launch(udid: udid, config: .example, deviceID: "QA-DEVICE", waitForDebugger: false, environment: [:]),
+        #expect(spies.launcher.calls == [.cleanInstall(udid: udid, bundleID: bundleID, fallbackAppPath: "/derived/App.app")])
+        #expect(spies.simulators.calls == [
+            .boot(udid: udid),
+            .waitUntilBooted(udid: udid),
+            .writeDefaults(udid: udid, bundleID: bundleID, defaults: [item]),
+            .openInSimulatorApp(udid: udid),
+            .launch(udid: udid, bundleID: bundleID, waitForDebugger: false, environment: ["API_ENV": "staging", "APP_DEVICE_ID": "QA-DEVICE"]),
         ])
+        #expect(spies.simulators.launchArguments == [["-skipOnboarding"]])
+        #expect(record.profileID == "staging")
+        #expect(record.identity == "QA-DEVICE")
     }
 
     @Test func attachesXcodeToTheLaunchedProcess() async throws {
         let (ports, spies) = Ports.spies()
-        spies.identity.launchResult = .success(4242)
+        spies.simulators.launchResult = .success(4242)
         var request = IdentityLaunchFixture.plain
         request.attachDebugger = true
 
-        try await launch(ports, request, cleanInstall: false)
+        _ = try await launch(ports, request, cleanInstall: false)
 
-        #expect(spies.identity.calls == [.launch(udid: udid, config: .example, deviceID: nil, waitForDebugger: true, environment: [:])])
+        #expect(spies.simulators.calls.last == .launch(udid: udid, bundleID: bundleID, waitForDebugger: true, environment: [:]))
         #expect(spies.attacher.calls == [.attach(pid: 4242, simulatorUDID: udid, projectPath: "/repo")])
     }
 
     @Test func attachWithoutAProcessIDFails() async {
         let (ports, spies) = Ports.spies()
-        spies.identity.launchResult = .success(nil)
+        spies.simulators.launchResult = .success(nil)
         var request = IdentityLaunchFixture.plain
         request.attachDebugger = true
 
@@ -61,32 +78,28 @@ import Testing
 
     @Test func failedCleanInstallStopsBeforeLaunch() async {
         let (ports, spies) = Ports.spies()
-        spies.identity.cleanInstallError = DeviceIdentityError.noAppToReinstall
+        spies.launcher.cleanInstallError = AppLaunchError.noAppToReinstall
 
-        await #expect(throws: DeviceIdentityError.self) {
+        await #expect(throws: AppLaunchError.self) {
             try await launch(ports, IdentityLaunchFixture.plain, cleanInstall: true)
         }
-        #expect(spies.identity.calls == [.cleanInstall(udid: udid, config: .example, fallbackAppPath: "/derived/App.app")])
+        #expect(spies.simulators.calls == [.boot(udid: udid), .waitUntilBooted(udid: udid)])
     }
 
-    @Test func runningMockServerKeepsTheStubURLOnTheLaunch() async throws {
+    @Test func runningMockServerPutsItsURLIntoTheBaseURLVariable() async throws {
         let (ports, spies) = Ports.spies()
         spies.mockServer.ports = [udid: 52001]
+        var request = IdentityLaunchFixture.plain
+        request.plan = LaunchPlan(profile: IdentityLaunchFixture.staging, identityConfig: nil, identity: nil, baseURLVariable: "APP_BASE_URL")
 
-        try await launch(ports, IdentityLaunchFixture.plain, cleanInstall: false)
+        let record = try await launch(ports, request, cleanInstall: false)
 
-        #expect(spies.identity.calls == [
-            .read(udid: udid, config: .example),
-            .launch(udid: udid, config: .example, deviceID: nil, waitForDebugger: false, environment: ["DEVHUB_BASE_URL": "http://127.0.0.1:52001"])
-        ])
-        #expect(spies.mockServer.calls.contains(.retarget(udid: udid, upstream: URL(string: "https://api-qa.example.com")!)))
+        #expect(spies.simulators.calls.last == .launch(udid: udid, bundleID: bundleID, waitForDebugger: false, environment: ["API_ENV": "staging", "APP_BASE_URL": "http://127.0.0.1:52001"]))
+        #expect(spies.mockServer.calls.contains(.retarget(udid: udid, upstream: URL(string: "https://api.staging.example.com")!)))
+        #expect(record.baseURL == "http://127.0.0.1:52001")
     }
 
-    private func launch(_ ports: Ports, _ request: IdentityLaunch, cleanInstall: Bool) async throws {
-        try await LaunchInstalledAppUseCase(identity: ports.identity, attacher: ports.attacher, mockServer: ports.mockServer).execute(
-            request,
-            config: .example,
-            cleanInstall: cleanInstall
-        )
+    private func launch(_ ports: Ports, _ request: IdentityLaunch, cleanInstall: Bool) async throws -> LaunchRecord {
+        try await UseCases(ports: ports).launchInstalledApp.execute(request, cleanInstall: cleanInstall)
     }
 }

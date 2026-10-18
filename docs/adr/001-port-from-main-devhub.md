@@ -617,3 +617,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `f9d594b` | M5 | Copilot usage: `CopilotUsageRepository` port, `GitHubCopilotUsageRepository`, `CopilotUsageParser`, `CopilotTokenReader` (`gh auth token` first, keychain with a 10 s timeout, STATUS decision 26); `UsageProviderModel` rows in the usage strip; `gh auth token` is a secret command. |
 | `2936ab8` | M5 | `BuildStore+Queries.swift` takes the read-only members; `BuildStore.swift` has 326 lines. |
 | `724c418` | M5 | M5 closed: STATUS stage, screens, next steps and known gaps; the testing skill names the new spies. |
+| `80474bc` | M6 | Step 6.1: `launch.identity`, profile `storage`, `upstream` and `production`, `network.*` and the `state` directive are decoded (STATUS decision 27); `docs/extensions.md` documents them. |

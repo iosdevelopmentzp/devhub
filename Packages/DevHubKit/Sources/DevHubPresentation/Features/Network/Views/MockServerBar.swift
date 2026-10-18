@@ -131,8 +131,10 @@ struct MockServerBar: View {
             isApplying: udid.map(mockServer.isApplying) ?? false,
             needsApply: udid.map(mockServer.needsApply) ?? false,
             error: udid.flatMap { mockServer.errors[$0] },
-            identity: udid.flatMap { identityStore.identities[$0] },
-            config: identityStore.config
+            app: udid.flatMap { identityStore.installedApp(for: $0) },
+            report: udid.flatMap { identityStore.reports[$0] },
+            lastLaunch: udid.flatMap { identityStore.settings(for: $0).lastLaunch },
+            profiles: identityStore.profiles
         )
     }
 }

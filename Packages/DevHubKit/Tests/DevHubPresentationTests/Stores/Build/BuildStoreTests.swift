@@ -36,8 +36,8 @@ import DevHubTestSupport
             incremental: true,
             simulatorUDID: simulator.id,
             simulatorName: simulator.name,
-            identity: nil,
-            cleanInstall: false, launch: .none,
+            cleanInstall: false,
+            launch: .none,
             attachDebugger: attachDebugger
         )
     }
@@ -205,13 +205,14 @@ import DevHubTestSupport
             return
         }
         #expect(store.log == ["line 1", "App: \(product.appPath)"])
-        #expect(harness.postedLabels.contains("buildFinished(sim-off, none)"))
+        #expect(harness.postedLabels.contains("buildFinished(sim-off, - -)"))
         #expect(harness.spies.build.calls == [
             .build(request(path: ProjectSample.path, attachDebugger: false)),
             .locateProduct(request(path: ProjectSample.path, attachDebugger: false), hints: []),
         ])
-        #expect(harness.spies.simulators.calls.prefix(4) == [
+        #expect(harness.spies.simulators.calls.prefix(5) == [
             .boot(udid: simulator.id),
+            .waitUntilBooted(udid: simulator.id),
             .install(udid: simulator.id, appPath: product.appPath),
             .openInSimulatorApp(udid: simulator.id),
             .launch(udid: simulator.id, bundleID: product.bundleID, waitForDebugger: false, environment: [:]),
@@ -333,18 +334,20 @@ import DevHubTestSupport
         #expect(harness.spies.build.calls.first == .build(request(path: WorktreeSample.feature.path, attachDebugger: false)))
     }
 
-    @Test func runWithAnIdentityReportsTheLaunchedDeviceID() async throws {
-        let harness = StoreHarness(projects: [ProjectSample.identified])
+    @Test func runWithAnIdentityReportsTheLaunch() async throws {
+        harness.spies.config.loadResult = LaunchConfigSample.resolved()
+        await harness.config.reload()
         harness.simulators.groups = SimulatorSample.shutdownOnly
         harness.spies.build.locateProductResult = .success(product)
         harness.identity.setDesiredDeviceID("device-1", for: simulator.id)
 
-        harness.build.run()
+        store.run()
 
-        try await waitUntil { harness.postedLabels.contains("buildFinished(sim-off, device-1)") }
-        #expect(harness.spies.identity.calls.contains(.launch(udid: simulator.id, config: .example, deviceID: "device-1", waitForDebugger: false, environment: [:])))
+        try await waitUntil { harness.postedLabels.contains("buildFinished(sim-off, staging device-1)") }
+        #expect(harness.spies.simulators.calls.contains(.launch(udid: simulator.id, bundleID: product.bundleID, waitForDebugger: false, environment: ["API_ENV": "staging", "APP_DEVICE_ID": "device-1"])))
         #expect(harness.identity.savedDeviceIDs == ["device-1"])
-        #expect(harness.identity.settings(for: simulator.id).appliedDeviceID == "device-1")
+        #expect(harness.identity.settings(for: simulator.id).appliedIdentity == "device-1")
+        #expect(harness.identity.settings(for: simulator.id).lastLaunch?.profileID == "staging")
     }
 
     @Test func lastBuiltAppPathAsksForTheSource() {
@@ -396,7 +399,7 @@ import DevHubTestSupport
             return
         }
         #expect(request.cleanInstall)
-        #expect(request.launch == LaunchSettings(profile: production))
+        #expect(request.launch == LaunchPlan(profile: production, identityConfig: nil, identity: nil, baseURLVariable: nil))
     }
 
     @Test func aCommandProjectRunsItsCommandsInsteadOfXcodebuild() async throws {

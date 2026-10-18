@@ -8,32 +8,14 @@ enum RunBarMapper {
         state: BuildState,
         target: Simulator?,
         runtime: String?,
-        identity: AppIdentity?,
-        identitySettings: SimulatorIdentitySettings?,
-        savedDeviceIDs: [String],
-        deviceIDAliases: [String: String],
+        identity: IdentityContext?,
         mockState: MockServerState?,
-        isApplying: Bool,
-        config: DeviceIdentityConfig?,
         hasLog: Bool,
         isLoadingSimulators: Bool
     ) -> RunBarModel {
         RunBarModel(
             targetLabel: "Target",
-            target: target.map {
-                targetModel(
-                    for: $0,
-                    runtime: runtime,
-                    identity: identity,
-                    settings: identitySettings ?? SimulatorIdentitySettings(hasApplied: false),
-                    savedDeviceIDs: savedDeviceIDs,
-                    deviceIDAliases: deviceIDAliases,
-                    mockState: mockState,
-                    isApplying: isApplying,
-                    config: config,
-                    cleanInstallIsOn: state.cleanInstall
-                )
-            },
+            target: target.map { targetModel(for: $0, runtime: runtime, identity: identity, mockState: mockState, cleanInstallIsOn: state.cleanInstall) },
             noTargetText: "No simulator selected",
             progress: progress(state.phase),
             outcome: outcome(state.phase, targetName: target?.name),
@@ -47,27 +29,19 @@ enum RunBarMapper {
     private static func targetModel(
         for simulator: Simulator,
         runtime: String?,
-        identity: AppIdentity?,
-        settings: SimulatorIdentitySettings,
-        savedDeviceIDs: [String],
-        deviceIDAliases: [String: String],
+        identity: IdentityContext?,
         mockState: MockServerState?,
-        isApplying: Bool,
-        config: DeviceIdentityConfig?,
         cleanInstallIsOn: Bool
     ) -> RunBarModel.Target {
-        let installed = identity.flatMap { $0.isInstalled ? $0 : nil }
-        let hasConfig = config != nil
-        let needsCleanInstall = IdentityPanelMapper.needsCleanInstall(identity: identity, settings: settings, savedDeviceIDs: savedDeviceIDs)
-        return RunBarModel.Target(
+        RunBarModel.Target(
             id: simulator.id,
             name: simulator.name,
             icon: SimulatorRowMapper.kindIcon(simulator.kind),
             runtimeTag: runtime.map { TagModel($0) },
-            identity: hasConfig ? installed.map { IdentityPanelMapper.summary(for: $0, settings: settings, aliases: deviceIDAliases, mockState: mockState, isApplying: isApplying) } : nil,
-            identityMissingText: hasConfig && installed == nil ? "App not installed on this simulator" : nil,
-            launch: config.map { IdentityPanelMapper.launch(config: $0, settings: settings, actualDeviceID: identity?.lastDeviceID, savedDeviceIDs: savedDeviceIDs, aliases: deviceIDAliases) },
-            cleanInstallNote: hasConfig ? IdentityPanelMapper.cleanInstallNote(needsCleanInstall: needsCleanInstall, cleanInstallIsOn: cleanInstallIsOn) : nil
+            identity: identity.flatMap { $0.isInstalled ? IdentityPanelMapper.summary(context: $0, mockState: mockState) : nil },
+            identityMissingText: identity.flatMap { $0.isInstalled ? nil : "App not installed on this simulator" },
+            launch: identity.map { IdentityPanelMapper.launch(context: $0) },
+            cleanInstallNote: identity.map { IdentityPanelMapper.cleanInstallNote(context: $0, cleanInstallIsOn: cleanInstallIsOn) }
         )
     }
 

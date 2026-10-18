@@ -7,8 +7,7 @@ enum ProjectFixture {
         name: "ExampleApp",
         path: "/Users/dev/Projects/ExampleApp",
         scheme: "ExampleApp",
-        bundleID: "com.example.app",
-        identity: .example
+        bundleID: "com.example.app"
     )
 
     static let devHub = Project(
@@ -16,7 +15,6 @@ enum ProjectFixture {
         name: "DevHub",
         path: "/Users/dev/Projects/DevHub",
         scheme: "DevHub",
-        bundleID: "com.example.devhub",
-        identity: nil
+        bundleID: "com.example.devhub"
     )
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-package enum DeviceIdentityError: LocalizedError, Sendable {
+package enum AppLaunchError: LocalizedError, Sendable {
     case command(String)
     case noAppToReinstall
 

@@ -77,7 +77,7 @@ final class BuildStore: BuildLookup {
                 dropMissingSource()
             case .configChanged:
                 Task { await self.refreshSchemes() }
-            case .branchesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .refreshRequested:
+            case .branchesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .appStateReported, .refreshRequested:
                 break
             }
         }
@@ -190,13 +190,12 @@ final class BuildStore: BuildLookup {
             state.targetSimulatorID = simulator.id
             store.set(simulator.id, forKey: Self.targetKey)
         }
-        let buildIdentity = identity.buildIdentity(for: simulator.id)
         let cleanInstall = willCleanInstall(on: simulator.id)
         let scheme = state.scheme
         let configuration = state.configuration
         let incremental = state.incremental
         let container = container
-        let launch = LaunchSettings(profile: profile)
+        let launch = launchPlan(for: simulator.id)
         let profileTitle = profile.map { " · \($0.title)" } ?? ""
         events.post(.buildStarted(simulatorID: simulator.id))
         buildLog.removeAll()
@@ -205,7 +204,7 @@ final class BuildStore: BuildLookup {
         saveRunOptions()
         buildTask = Task { [weak self] in
             guard let self else { return }
-            var launchedDeviceID: String??
+            var launchRecord: LaunchRecord?
             do {
                 let prepared = try await prepare()
                 try Task.checkCancellation()
@@ -218,19 +217,18 @@ final class BuildStore: BuildLookup {
                     incremental: incremental,
                     simulatorUDID: simulator.id,
                     simulatorName: simulator.name,
-                    identity: buildIdentity,
                     cleanInstall: cleanInstall,
                     launch: launch,
                     attachDebugger: attachDebugger
                 )
                 for try await event in events(for: request, prepared: prepared, simulator: simulator) {
+                    if case .launched(let record) = event {
+                        launchRecord = record
+                    }
                     handle(event)
                 }
                 try Task.checkCancellation()
                 state.phase = .succeeded(.now)
-                if let buildIdentity {
-                    launchedDeviceID = .some(buildIdentity.deviceID)
-                }
                 let sourceName = prepared.worktreeName ?? prepared.path.abbreviatingHome
                 activity.log(attachDebugger ? "Launched \(scheme), Xcode attached" : "Launched \(scheme)", detail: "\(simulator.name) · \(configuration) · \(sourceName)\(profileTitle)", outcome: .success)
             } catch is CancellationError {
@@ -242,7 +240,7 @@ final class BuildStore: BuildLookup {
                 activity.log("Build failed", detail: error.localizedDescription, outcome: .failure)
             }
             buildTask = nil
-            events.post(.buildFinished(simulatorID: simulator.id, launchedDeviceID: launchedDeviceID))
+            events.post(.buildFinished(simulatorID: simulator.id, launch: launchRecord))
         }
     }
 
@@ -288,8 +286,11 @@ final class BuildStore: BuildLookup {
             if hasLog == false {
                 hasLog = true
             }
+        case .launched:
+            break
         }
     }
+
 
     private func dropMissingSource() {
         guard worktrees.worktrees.isEmpty == false, case .worktree(let path) = source, worktrees.worktrees.contains(where: { $0.path == path }) == false else { return }
@@ -310,6 +311,10 @@ final class BuildStore: BuildLookup {
         guard runOptions[target] != options else { return }
         runOptions[target] = options
         store.encode(runOptions, forKey: Self.runOptionsKey)
+    }
+
+    func savedProfileID(for id: Simulator.ID) -> LaunchProfile.ID? {
+        runOptions[id]?.profileID
     }
 
     private func loadRunOptions(for id: Simulator.ID) {

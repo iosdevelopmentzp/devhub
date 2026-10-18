@@ -13,8 +13,7 @@ struct XcodeProjectDetector: ProjectDetecting {
             name: folder.lastPathComponent,
             path: path,
             scheme: scheme,
-            bundleID: bundleID,
-            identity: nil
+            bundleID: bundleID
         )
     }
 

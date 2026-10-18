@@ -19,6 +19,9 @@ final class MockServerStore: MockTrafficLookup {
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let simulators: any SimulatorLookup
     @ObservationIgnored private let identity: any IdentityLookup
+    @ObservationIgnored private let build: any BuildLookup
+    @ObservationIgnored private let config: ConfigStore
+    @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private let sets: any MockSetLookup
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let store: any KeyValueStore
@@ -32,6 +35,8 @@ final class MockServerStore: MockTrafficLookup {
         session: ProjectSession,
         simulators: any SimulatorLookup,
         identity: any IdentityLookup,
+        build: any BuildLookup,
+        config: ConfigStore,
         sets: any MockSetLookup,
         activity: ActivityLog,
         events: AppEvents,
@@ -42,6 +47,9 @@ final class MockServerStore: MockTrafficLookup {
         self.session = session
         self.simulators = simulators
         self.identity = identity
+        self.build = build
+        self.config = config
+        self.events = events
         self.sets = sets
         self.activity = activity
         self.store = store
@@ -53,7 +61,7 @@ final class MockServerStore: MockTrafficLookup {
                 stopAll()
             case .mockSetChanged(let id):
                 pushRules(of: id)
-            case .appLaunched(let id):
+            case .appLaunched(let id, _):
                 Task { await self.sync(id) }
             case .buildFinished(let id, _):
                 Task { await self.sync(id) }
@@ -102,15 +110,16 @@ final class MockServerStore: MockTrafficLookup {
         Task { [weak self] in
             guard let self else { return }
             do {
-                let state = try await relaunch.execute(request) { [weak self] exchange in
+                let result = try await relaunch.execute(request) { [weak self] exchange in
                     Task { @MainActor [weak self] in
                         guard let self else { return }
                         receive(exchange, for: id)
                     }
                 }
-                states[id] = state
+                states[id] = result.state
                 rememberUpstream(for: id, request: request)
-                activity.log(title(for: wanted.mode, on: name), detail: detail(for: state), outcome: .success)
+                activity.log(title(for: wanted.mode, on: name), detail: detail(for: result.state), outcome: .success)
+                events.post(.appLaunched(simulatorID: id, launch: result.launch))
             } catch {
                 errors[id] = error.localizedDescription
                 if await server.port(udid: id) == nil {
@@ -210,7 +219,7 @@ final class MockServerStore: MockTrafficLookup {
         var current = settings(for: id)
         if request.mode == .off {
             current.upstream = nil
-        } else if let config = request.identity, let upstream = try? UpstreamResolver.upstream(environment: request.environment, config: config) {
+        } else if let upstream = try? MockUpstreamPolicy.upstream(for: request.plan.profile) {
             current.upstream = upstream.absoluteString
         }
         guard current != settings(for: id) else { return }
@@ -218,14 +227,18 @@ final class MockServerStore: MockTrafficLookup {
     }
 
     private func relaunchRequest(for id: Simulator.ID, wanted: MockSimulatorSettings) -> MockRelaunchRequest {
-        let project = session.selectedProject
-        let identitySettings = identity.settings(for: id)
+        let profiles = config.config.launch?.profiles ?? []
+        let current = profiles.profile(matching: identity.report(for: id)?.profile) ?? profiles.profile(matching: identity.installedApp(for: id)?.storedProfileID)
+        let plan = LaunchPlan(
+            profile: current ?? build.profile(for: id),
+            identityConfig: identity.identityConfig,
+            identity: identity.actualIdentity(for: id),
+            baseURLVariable: config.config.network?.baseURLVariable
+        )
         return MockRelaunchRequest(
             udid: id,
-            bundleID: project.identity?.bundleID ?? project.bundleID,
-            identity: project.identity,
-            deviceID: identitySettings.hasApplied ? identitySettings.appliedDeviceID : nil,
-            environment: identity.storedEnvironment(for: id) ?? identitySettings.desiredEnvironment,
+            bundleID: identity.bundleID(for: id),
+            plan: plan,
             mode: wanted.mode,
             set: wanted.setID.flatMap(sets.set(id:))
         )

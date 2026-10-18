@@ -4,32 +4,16 @@ import DevHubUI
 
 struct LaunchIdentityControls: View {
     let model: LaunchIdentityModel
-    @Binding var environment: String
     @Binding var deviceID: String
     @Binding var alias: String
     let onForget: (String) -> Void
+    let newID: () -> String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
-                FieldLabel("Environment")
-                Picker("Environment", selection: $environment) {
-                    Text("keep").tag("")
-                    ForEach(model.environments, id: \.self) { name in
-                        Text(name).tag(name)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: 240)
-                .hint("keep = do not touch the value stored in the app")
-                if let productionTag = model.productionTag {
-                    ModelTag(model: productionTag)
-                }
-            }
-            HStack(spacing: 8) {
-                FieldLabel("Device ID")
-                TextField("empty = the simulator's own ID", text: $deviceID)
+                FieldLabel("ID")
+                TextField("empty = the app's own ID", text: $deviceID)
                     .textFieldStyle(.roundedBorder)
                     .font(.caption.monospaced())
                     .frame(width: 260)
@@ -50,13 +34,13 @@ struct LaunchIdentityControls: View {
                 }
                 .fixedSize()
                 Button("New", systemImage: "dice") {
-                    deviceID = "devhub-\(UUID().uuidString.prefix(8).lowercased())"
+                    deviceID = newID()
                 }
-                .hint("A random ID: the backend registers a new account on it")
+                .hint("A new random ID for the next launch")
                 Button("Own", systemImage: "iphone") {
                     deviceID = ""
                 }
-                .hint("No override: the app uses its own keychain ID and forgets the ID kept from DevHub")
+                .hint("No ID from DevHub: the app uses its own")
             }
             HStack(spacing: 8) {
                 FieldLabel("Alias")
@@ -65,7 +49,7 @@ struct LaunchIdentityControls: View {
                     .font(.caption)
                     .frame(width: 260)
                     .disabled(model.canEditAlias == false)
-                    .hint("A name for the device ID in the field, or for the simulator's current ID when the field is empty. DevHub shows it next to the ID.")
+                    .hint("A name for the ID in the field, or for the current ID when the field is empty. DevHub shows it next to the ID.")
             }
         }
         .controlSize(.small)
@@ -75,10 +59,10 @@ struct LaunchIdentityControls: View {
 #Preview {
     LaunchIdentityControls(
         model: .preview,
-        environment: .constant(""),
         deviceID: .constant(""),
         alias: .constant(""),
-        onForget: { _ in }
+        onForget: { _ in },
+        newID: { "devhub-1a2b3c4d" }
     )
     .padding()
 }

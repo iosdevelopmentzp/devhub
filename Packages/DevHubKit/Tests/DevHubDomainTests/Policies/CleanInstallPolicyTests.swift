@@ -2,87 +2,78 @@ import Testing
 @testable import DevHubDomain
 
 @Suite struct CleanInstallPolicyTests {
-    private let realID = "6F9619FF-8B86-D011-B42D-00C04FC964FF"
-    private let notApplied = SimulatorIdentitySettings(hasApplied: false)
+    private let config = LaunchIdentityConfig(variable: "APP_DEVICE_ID")
+    private let installed = InstalledApp(isInstalled: true, version: "1.0", hasIdentityHook: true, keepsIdentity: false, storedProfileID: nil)
 
-    @Test func noIdentityNeedsNoCleanInstall() {
-        #expect(needs(identity: nil, settings: notApplied, desired: "X") == false)
+    @Test func noIdentityConfigNeedsNoCleanInstall() {
+        #expect(needs(desired: "X", config: nil) == false)
+    }
+
+    @Test func turnedOffCleanInstallNeedsNoCleanInstall() {
+        var config = config
+        config.cleanInstallOnChange = false
+
+        #expect(needs(desired: "X", config: config) == false)
     }
 
     @Test func appNotInstalledNeedsNoCleanInstall() {
-        #expect(needs(identity: .notInstalled, settings: notApplied, desired: "X") == false)
+        #expect(needs(app: .notInstalled, desired: "X") == false)
     }
 
-    @Test func desiredIDEqualToTheLastIDNeedsNoCleanInstall() {
-        #expect(needs(identity: installed(lastDeviceID: "A"), settings: notApplied, desired: "A") == false)
+    @Test func reportedIDEqualToTheDesiredIDNeedsNoCleanInstall() {
+        #expect(needs(report: report("A"), desired: "A") == false)
     }
 
-    @Test func desiredIDDifferentFromTheLastIDNeedsACleanInstall() {
-        #expect(needs(identity: installed(lastDeviceID: "A"), settings: notApplied, desired: "B"))
+    @Test func reportedIDDifferentFromTheDesiredIDNeedsACleanInstall() {
+        #expect(needs(report: report("A"), desired: "B"))
     }
 
-    @Test func desiredIDMatchesTheAppliedIDWhenTheAppReportsNone() {
-        let settings = SimulatorIdentitySettings(appliedDeviceID: "A", hasApplied: true)
-
-        #expect(needs(identity: installed(lastDeviceID: nil), settings: settings, desired: "A") == false)
+    @Test func reportWinsOverTheAppliedID() {
+        #expect(needs(report: report("A"), settings: applied("B"), desired: "B"))
     }
 
-    @Test func desiredIDWithNoKnownIDNeedsACleanInstall() {
-        #expect(needs(identity: installed(lastDeviceID: nil), settings: notApplied, desired: "A"))
+    @Test func appliedIDIsUsedWithoutAReport() {
+        #expect(needs(settings: applied("A"), desired: "A") == false)
+        #expect(needs(settings: applied("B"), desired: "A"))
+    }
+
+    @Test func noDesiredIDLeavesTheOwnIDAlone() {
+        #expect(needs(report: report("own"), desired: nil) == false)
+        #expect(needs(report: report("own"), settings: applied("A"), desired: nil) == false)
+    }
+
+    @Test func noDesiredIDRemovesAnIDThatDevHubSet() {
+        #expect(needs(settings: applied("A"), desired: nil))
+        #expect(needs(report: report("A"), settings: applied("A"), desired: nil))
+        #expect(needs(report: report("A"), desired: nil, saved: ["A"]))
     }
 
     @Test func appliedIDIsIgnoredWhenNotApplied() {
-        let settings = SimulatorIdentitySettings(appliedDeviceID: "A", hasApplied: false)
+        let settings = SimulatorLaunchSettings(desiredIdentity: nil, appliedIdentity: "A", hasApplied: false, lastLaunch: nil)
 
-        #expect(needs(identity: installed(lastDeviceID: nil), settings: settings, desired: "A"))
+        #expect(needs(settings: settings, desired: "A"))
     }
 
     @Test func noDesiredAndNoKnownIDNeedsNoCleanInstall() {
-        #expect(needs(identity: installed(lastDeviceID: nil), settings: notApplied, desired: nil) == false)
+        #expect(needs(desired: nil) == false)
     }
 
-    @Test func noDesiredAndARealDeviceIDNeedsNoCleanInstall() {
-        #expect(needs(identity: installed(lastDeviceID: realID), settings: notApplied, desired: nil) == false)
+    private func report(_ identity: String?) -> AppStateReport {
+        AppStateReport(identity: identity, profile: nil, host: nil, user: nil, version: nil)
     }
 
-    @Test func noDesiredAndAnOverrideIDNeedsACleanInstall() {
-        #expect(needs(identity: installed(lastDeviceID: "qa-device"), settings: notApplied, desired: nil))
+    private func applied(_ identity: String?) -> SimulatorLaunchSettings {
+        SimulatorLaunchSettings(desiredIdentity: nil, appliedIdentity: identity, hasApplied: true, lastLaunch: nil)
     }
 
-    @Test func noDesiredAndASavedIDNeedsACleanInstall() {
-        let result = CleanInstallPolicy.needsCleanInstall(
-            identity: installed(lastDeviceID: realID),
-            settings: notApplied,
-            desiredDeviceID: nil,
-            savedDeviceIDs: [realID]
-        )
-
-        #expect(result)
-    }
-
-    @Test func noDesiredAndAnAppliedOverrideNeedsACleanInstall() {
-        let settings = SimulatorIdentitySettings(appliedDeviceID: realID, hasApplied: true)
-
-        #expect(needs(identity: installed(lastDeviceID: realID), settings: settings, desired: nil))
-    }
-
-    @Test func savedIDIsAnOverride() {
-        #expect(CleanInstallPolicy.isOverrideID(realID, savedDeviceIDs: [realID]))
-    }
-
-    @Test func nonUUIDIsAnOverride() {
-        #expect(CleanInstallPolicy.isOverrideID("qa-device", savedDeviceIDs: []))
-    }
-
-    @Test func unsavedUUIDIsNotAnOverride() {
-        #expect(CleanInstallPolicy.isOverrideID(realID, savedDeviceIDs: ["other"]) == false)
-    }
-
-    private func installed(lastDeviceID: String?) -> AppIdentity {
-        AppIdentity(isInstalled: true, version: "1.0", hasDebugHooks: true, lastDeviceID: lastDeviceID)
-    }
-
-    private func needs(identity: AppIdentity?, settings: SimulatorIdentitySettings, desired: String?) -> Bool {
-        CleanInstallPolicy.needsCleanInstall(identity: identity, settings: settings, desiredDeviceID: desired, savedDeviceIDs: [])
+    private func needs(
+        app: InstalledApp? = nil,
+        report: AppStateReport? = nil,
+        settings: SimulatorLaunchSettings = .empty,
+        desired: String?,
+        saved: [String] = [],
+        config: LaunchIdentityConfig? = LaunchIdentityConfig(variable: "APP_DEVICE_ID")
+    ) -> Bool {
+        CleanInstallPolicy.needsCleanInstall(app: app ?? installed, report: report, settings: settings, desiredIdentity: desired, savedIdentities: saved, config: config)
     }
 }

@@ -2,20 +2,15 @@ import Foundation
 import DevHubDomain
 
 extension MockData {
-    package static let identityConfig = DeviceIdentityConfig(
-        bundleID: "com.example.app",
-        environmentSuite: "group.com.example.app",
-        environmentKey: "selectedEnvironment",
-        environments: ["qa", "dev", "prod"],
-        defaultEnvironment: "qa",
-        deviceIDVariable: "APP_DEVICE_ID",
-        launchArguments: ["APP_DEFAULT_DEVICE_AUTH"],
-        mockUpstreams: [
-            "qa": "https://api-qa.example.com",
-            "dev": "https://api-dev.example.com"
+    package static let launchConfig = LaunchConfig(
+        profiles: [
+            LaunchProfile(id: "staging", title: "Staging", env: ["API_ENV": "staging"], storage: ProfileStorage(suite: "group.com.example.app", key: "environment"), upstream: "https://api.staging.example.com"),
+            LaunchProfile(id: "production", title: "Production", env: ["API_ENV": "production"], storage: ProfileStorage(suite: "group.com.example.app", key: "environment"), production: true)
         ],
-        keptDeviceIDVariable: "DEVHUB_DEVICE_ID"
+        identity: LaunchIdentityConfig(variable: "APP_DEVICE_ID", keptVariable: "APP_KEEP_DEVICE_ID", args: ["-skipOnboarding"])
     )
+
+    package static let networkConfig = NetworkConfig(baseURLVariable: "APP_BASE_URL")
 
     package static let projects: [Project] = [
         Project(
@@ -23,24 +18,21 @@ extension MockData {
             name: "example-app",
             path: "~/Documents/Projects/example-app",
             scheme: "ExampleApp",
-            bundleID: "com.example.app",
-            identity: identityConfig
+            bundleID: "com.example.app"
         ),
         Project(
             id: "second-app",
             name: "second-app",
             path: "~/Documents/Projects/second-app",
             scheme: "SecondApp",
-            bundleID: "com.example.second",
-            identity: nil
+            bundleID: "com.example.second"
         ),
         Project(
             id: "example-docs",
             name: "example-docs",
             path: "~/Documents/Projects/example-docs",
             scheme: "—",
-            bundleID: "—",
-            identity: nil
+            bundleID: "—"
         )
     ]
 }

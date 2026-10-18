@@ -23,7 +23,7 @@ enum DebugLaunch {
         }
         if let target = environment["DEVHUB_BUILD_RUN"] {
             Task {
-                await assembly.debugBuildRun(target: target, profile: environment["DEVHUB_BUILD_PROFILE"], branch: environment["DEVHUB_BUILD_BRANCH"])
+                await assembly.debugBuildRun(target: target, profile: environment["DEVHUB_BUILD_PROFILE"], identity: environment["DEVHUB_LAUNCH_ID"], branch: environment["DEVHUB_BUILD_BRANCH"])
             }
         }
         if let streams = environment["DEVHUB_LOG_STREAMS"] {

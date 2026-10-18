@@ -6,7 +6,7 @@ package struct Ports: Sendable {
     package let simulators: any SimulatorRepository
     package let build: any BuildRepository
     package let worktrees: any WorktreeRepository
-    package let identity: any DeviceIdentityRepository
+    package let launcher: any AppLaunchRepository
     package let git: any GitRepository
     package let changes: any GitChangesRepository
     package let logs: any AppLogRepository
@@ -30,7 +30,7 @@ package struct Ports: Sendable {
         simulators: any SimulatorRepository,
         build: any BuildRepository,
         worktrees: any WorktreeRepository,
-        identity: any DeviceIdentityRepository,
+        launcher: any AppLaunchRepository,
         git: any GitRepository,
         changes: any GitChangesRepository,
         logs: any AppLogRepository,
@@ -53,7 +53,7 @@ package struct Ports: Sendable {
         self.simulators = simulators
         self.build = build
         self.worktrees = worktrees
-        self.identity = identity
+        self.launcher = launcher
         self.git = git
         self.changes = changes
         self.logs = logs

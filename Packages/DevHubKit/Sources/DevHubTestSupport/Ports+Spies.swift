@@ -9,7 +9,7 @@ package extension Ports {
             simulators: spies.simulators,
             build: spies.build,
             worktrees: spies.worktrees,
-            identity: spies.identity,
+            launcher: spies.launcher,
             git: spies.git,
             changes: spies.changes,
             logs: spies.logs,

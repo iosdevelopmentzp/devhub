@@ -1,22 +1,35 @@
 import Foundation
 
 package struct LaunchInstalledAppUseCase: Sendable {
-    package let identity: any DeviceIdentityRepository
+    package let launcher: any AppLaunchRepository
+    package let simulators: any SimulatorRepository
     package let attacher: any XcodeAttaching
     package let mockServer: any MockServerRepository
 
-    package func execute(_ request: IdentityLaunch, config: DeviceIdentityConfig, cleanInstall: Bool) async throws {
+    package func execute(_ request: IdentityLaunch, cleanInstall: Bool) async throws -> LaunchRecord {
         let udid = request.simulator.id
+        let plan = request.plan
+        try await simulators.boot(udid: udid)
+        try await simulators.waitUntilBooted(udid: udid)
         if cleanInstall {
-            try await identity.cleanInstall(udid: udid, config: config, fallbackAppPath: request.fallbackAppPath)
+            try await launcher.cleanInstall(udid: udid, bundleID: request.bundleID, fallbackAppPath: request.fallbackAppPath)
         }
-        if let environment = request.environment {
-            try await identity.setEnvironment(environment, udid: udid, config: config)
+        if plan.defaults.isEmpty == false {
+            try await simulators.writeDefaults(udid: udid, bundleID: request.bundleID, defaults: plan.defaults)
         }
-        let environment = await MockLaunchPreparation(identity: identity, mockServer: mockServer).prepare(udid: udid, config: config, environment: request.environment).environment
-        let pid = try await identity.launch(udid: udid, config: config, deviceID: request.deviceID, waitForDebugger: request.attachDebugger, environment: environment, arguments: [])
-        guard request.attachDebugger else { return }
+        let mocks = await MockLaunchPreparation(mockServer: mockServer).prepare(udid: udid, plan: plan)
+        try await simulators.openInSimulatorApp(udid: udid)
+        let pid = try await simulators.launch(
+            udid: udid,
+            bundleID: request.bundleID,
+            waitForDebugger: request.attachDebugger,
+            environment: plan.environment.merging(mocks.environment) { _, mock in mock },
+            arguments: plan.arguments
+        )
+        let record = plan.record(bundleID: request.bundleID, baseURL: mocks.baseURL, date: .now)
+        guard request.attachDebugger else { return record }
         guard let pid else { throw XcodeAttachError.script("simctl launch did not report a process ID.") }
         try await attacher.attach(pid: pid, simulatorUDID: udid, projectPath: request.projectPath)
+        return record
     }
 }

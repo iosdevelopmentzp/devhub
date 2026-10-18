@@ -1,20 +1,23 @@
 import Foundation
 
 package enum MockServerError: LocalizedError, Equatable {
-    case prodNotSupported
-    case noUpstream(environment: String)
-    case noIdentityConfig
+    case productionRefused(profile: String)
+    case noUpstream(profile: String)
+    case noProfile
+    case disabled
     case noSetChosen
     case startFailed(String)
 
     package var errorDescription: String? {
         switch self {
-        case .prodNotSupported:
-            "Prod cannot be mocked: Release builds pin certificates and ignore DEVHUB_BASE_URL. Switch the app to qa or dev."
-        case .noUpstream(let environment):
-            "No mock host is set for the \"\(environment)\" environment. Add it to mockUpstreams in the project's identity settings."
-        case .noIdentityConfig:
-            "This project has no device identity settings, so DevHub does not know the real API host. Add an identity config first."
+        case .productionRefused(let profile):
+            "The \(profile) profile is marked production: DevHub does not send production traffic through the mock server. Choose another profile in the run bar."
+        case .noUpstream(let profile):
+            "The \(profile) profile has no upstream. Add the real server URL as launch.profiles[].upstream in .devhub/project.json."
+        case .noProfile:
+            "The project has no launch profile. Add launch.profiles with an upstream to .devhub/project.json."
+        case .disabled:
+            "Set network.baseURLVariable in .devhub/project.json: the app reads the mock server URL from that environment variable."
         case .noSetChosen:
             "Choose a mock set, or create one, before you turn on Mock mode."
         case .startFailed(let message):

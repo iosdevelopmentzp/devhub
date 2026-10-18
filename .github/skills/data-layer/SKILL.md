@@ -19,7 +19,7 @@ DevHubData/
                     GitCommandRunner, GitCommandEncoder, TrackingInfoParser, MergedBranchesQuery, GitStatusParser,
                     WorktreePorcelainParser, GlabPullRequestParser, GlabErrorMapper
     Git/Parsers/    GitBranchHeaderParser, GitLogParser, LocalBranchParser, RemoteBranchParser, ReflogVisitParser
-    Simulators/     SimctlSimulatorRepository, SimctlDeviceIdentityRepository, SimctlMessagingRepository, SimctlRunner,
+    Simulators/     SimctlSimulatorRepository, SimctlAppLaunchRepository, SimctlMessagingRepository, SimctlRunner,
                     SimctlListParser, ContainerLocator
     Build/          XcodeBuildRepository, BuildOutputParser, ProductLocator, XcodeContainer
     Claude/         AnthropicUsageRepository, ClaudeUsageParser, ClaudeCredentialsReader, ClaudeCredentialsParser,
@@ -173,8 +173,11 @@ rules; `stop` cancels the listener and every open connection. Network.framework 
   tests (`StubURLProtocol` in `DevHubDataTests/Support/`).
 - Every exchange becomes a `NetworkRequest` with `mockRuleID` and request headers, and goes through
   `NetworkRequestRedactor` before `onExchange` is called. The Network tab lists exchanges only.
-- The launch side lives in Domain: `MockLaunchEnvironment.variables(port:)` gives `DEVHUB_BASE_URL`; both launch ports
-  take an `environment` map and Data prefixes every key with `SIMCTL_CHILD_` (`Dictionary+ChildEnvironment`).
+- The launch side lives in Domain: `MockLaunchEnvironment.variables(port:variable:)` puts the server URL into
+  `network.baseURLVariable`, `MockUpstreamPolicy` takes the upstream from the launch profile. Every launch goes
+  through `SimulatorRepository.launch` with the environment and arguments of a `LaunchPlan`; Data prefixes every
+  key with `SIMCTL_CHILD_` (`Dictionary+ChildEnvironment`). `SimctlAppLaunchRepository` reads the installed app
+  (version, identity hook in the binary, stored profile) and does the clean install.
 - `FileMockSetRepository(root:)` stores `<root>/<project folder>/<set name>.json` with `JSONSerialization` (rules
   with inline JSON patch values). Respond bodies over 1 KB go to `<set>/bodies/GET_v1_settings_list.json`
   (`MockRouteName`, the UI-test fixture naming). `MockSetFileCoder` masks bodies and patch values with

@@ -113,9 +113,10 @@ package final class PresentationAssembly {
         )
         simulators = SimulatorsStore(repository: ports.simulators, activity: activity, events: events, store: store)
         identity = IdentityStore(
-            repository: ports.identity,
+            repository: ports.launcher,
             launchInstalledApp: useCases.launchInstalledApp,
             session: session,
+            config: config,
             simulators: simulators,
             attacher: ports.attacher,
             activity: activity,
@@ -137,7 +138,15 @@ package final class PresentationAssembly {
             events: events,
             store: store
         )
-        simulatorStatuses = SimulatorStatusStore(readStatus: useCases.readSimulatorStatus, config: config, session: session, simulators: simulators, build: build, events: events)
+        simulatorStatuses = SimulatorStatusStore(
+            readStatus: useCases.readSimulatorStatus,
+            config: config,
+            session: session,
+            simulators: simulators,
+            build: build,
+            events: events,
+            settleDelay: .seconds(3)
+        )
         configActions = ConfigActionsStore(
             config: config,
             scripts: ports.scripts,
@@ -163,6 +172,8 @@ package final class PresentationAssembly {
             session: session,
             simulators: simulators,
             identity: identity,
+            build: build,
+            config: config,
             sets: mockSets,
             activity: activity,
             events: events,

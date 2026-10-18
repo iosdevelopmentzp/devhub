@@ -4,7 +4,6 @@ import Testing
 @testable import DevHubPresentation
 
 @Suite struct SimulatorRowMapperTests {
-    let noSettings = SimulatorIdentitySettings(hasApplied: false)
 
     @Test func configActionsPassThrough() {
         var flags = Flags()
@@ -130,7 +129,7 @@ import Testing
     @Test func runningBuildDisablesBuildActions() {
         var flags = Flags()
         flags.buildIsRunning = true
-        flags.identity = AppIdentityFixture.installed
+        flags.identity = IdentityContextFixture.context()
 
         let model = row(SimulatorFixture.iPhone, flags: flags)
 
@@ -142,25 +141,25 @@ import Testing
 
     @Test func launchAndAttachNeedsInstalledApp() {
         var flags = Flags()
-        flags.identity = AppIdentityFixture.installed
+        flags.identity = IdentityContextFixture.context()
         #expect(row(SimulatorFixture.iPhone, flags: flags).canLaunchAndAttach)
 
-        flags.identity = .notInstalled
+        flags.identity = IdentityContextFixture.context(app: .notInstalled)
         #expect(row(SimulatorFixture.iPhone, flags: flags).canLaunchAndAttach == false)
     }
 
     @Test func identitySummaryNeedsConfigAndInstalledApp() {
         var flags = Flags()
-        flags.identity = AppIdentityFixture.installed
         #expect(row(SimulatorFixture.iPhone, flags: flags).identity == nil)
+        #expect(row(SimulatorFixture.iPhone, flags: flags).hasIdentityConfig == false)
 
-        flags.hasIdentityConfig = true
-        flags.isApplying = true
+        let context = IdentityContextFixture.context(isApplying: true)
+        flags.identity = context
         let model = row(SimulatorFixture.iPhone, flags: flags)
         #expect(model.hasIdentityConfig)
-        #expect(model.identity == IdentityPanelMapper.summary(for: AppIdentityFixture.installed, settings: noSettings, aliases: [:], mockState: nil, isApplying: true))
+        #expect(model.identity == IdentityPanelMapper.summary(context: context, mockState: nil))
 
-        flags.identity = .notInstalled
+        flags.identity = IdentityContextFixture.context(app: .notInstalled)
         #expect(row(SimulatorFixture.iPhone, flags: flags).identity == nil)
     }
 
@@ -199,12 +198,8 @@ import Testing
             installedApps: flags.installedApps,
             status: flags.status,
             identity: flags.identity,
-            identitySettings: noSettings,
-            deviceIDAliases: [:],
             mockState: nil,
-            hasIdentityConfig: flags.hasIdentityConfig,
             isUninstalling: flags.isUninstalling,
-            isApplying: flags.isApplying,
             buildIsRunning: flags.buildIsRunning,
             bundleID: "com.example.app",
             isConfirmingErase: flags.isConfirmingErase,
@@ -220,10 +215,8 @@ private struct Flags {
     var isTarget = false
     var installedApps: Int?
     var status: SimulatorStatus?
-    var identity: AppIdentity?
-    var hasIdentityConfig = false
+    var identity: IdentityContext?
     var isUninstalling = false
-    var isApplying = false
     var buildIsRunning = false
     var isConfirmingErase = false
     var isEditingIdentity = false

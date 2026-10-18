@@ -7,7 +7,10 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
-- `.devhub/project.json` reads `launch.identity`, the profile fields `storage`, `upstream` and `production`, and `network.baseURLVariable` and `network.mocksFolder`. A status script can print a `state` line. The identity panel and the mock server use them in the next changes.
+- Launch identities from `launch.identity` in `.devhub/project.json`: the identity panel of a simulator and the run bar choose an ID (New, Saved, Own) and an alias. Build & Run and "Launch" pass the ID in `launch.identity.variable` (and `keptVariable`) with `launch.identity.args`. When the app on the simulator has another ID, the launch reinstalls it and resets the simulator keychain; "Own" reinstalls only when the app still carries an ID that DevHub set.
+- The identity panel shows the profile, host, user, ID and version that the status script reports in a `state` line, the hook tag found in the app binary (`hookMarker`, `keptVariable`) and the time of the last launch from DevHub.
+- The mock server takes its upstream from the `upstream` of the launch profile the app uses (the reported profile, else the stored one, else the run bar profile), refuses a `production` profile, and passes its URL in `network.baseURLVariable`. "Apply & Relaunch" also writes the `defaults` of that profile. The Network bar tells when the app was launched without DevHub, points to an old server, or uses another profile than the server.
+- `.devhub/project.json` reads `launch.identity`, the profile fields `storage`, `upstream` and `production`, and `network.baseURLVariable` and `network.mocksFolder`.
 - The usage strip has a Copilot row when Copilot is logged in: the premium request meter with its reset date, or "No premium request limit". The expanded strip shows the plan and an "Open Usage" link for each provider. The Copilot token comes from `gh auth token`, else from the `copilot-cli` keychain item.
 - The AI tab lists Copilot CLI sessions (`~/.copilot/session-state`) next to Claude Code sessions. A provider filter (Copilot, Claude, Both) is saved. Each row shows its provider, and Resume runs `copilot --resume` or `claude --resume` in the session folder.
 - The Logs tab streams several simulators at once: one chip per simulator, `+` adds a booted simulator, `×` closes a stream. Each stream keeps its own process, subsystem, level, pause state and lines, and the streams come back after a restart. A new stream starts with `logs.process` and `logs.subsystem` from `.devhub/project.json`; with a subsystem the stream filters by subsystem instead of process.
@@ -29,6 +32,9 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- A launch of an installed app waits until the simulator has booted before it installs or launches.
+- The status line under a simulator is read again 3 s after a launch, so it shows what the app wrote at start.
+- The saved identity settings of the old app (`simulators.identity`) are not read: every simulator starts with no chosen ID. Choose the ID again in the identity panel.
 - The Output panel hides the output of `gh auth token`, like the output of `security`.
 - The Claude tab is the AI tab (tab id `ai`).
 - The deep link menu of the simulator messaging panel lists the URL schemes of the installed app (`CFBundleURLTypes` in its `Info.plist`) instead of fixed example schemes. The push alert template uses the project name as its title.

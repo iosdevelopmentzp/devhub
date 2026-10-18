@@ -1,3 +1,5 @@
+import DevHubDomain
+import Foundation
 import Testing
 @testable import DevHubPresentation
 
@@ -71,13 +73,13 @@ import Testing
         let events = AppEvents()
         let log = Log()
         let token = events.subscribe { event in
-            guard case .buildFinished(let simulatorID, let launchedDeviceID) = event else { return }
-            log.items.append("\(simulatorID) \(String(describing: launchedDeviceID))")
+            guard case .buildFinished(let simulatorID, let launch) = event else { return }
+            log.items.append("\(simulatorID) \(launch?.identity ?? "-")")
         }
 
-        events.post(.buildFinished(simulatorID: "sim-1", launchedDeviceID: .some(nil)))
+        events.post(.buildFinished(simulatorID: "sim-1", launch: LaunchRecord(bundleID: nil, profileID: nil, identity: "device-1", baseURL: nil, date: .now)))
 
-        #expect(log.items == ["sim-1 Optional(nil)"])
+        #expect(log.items == ["sim-1 device-1"])
         withExtendedLifetime(token) {}
     }
 }

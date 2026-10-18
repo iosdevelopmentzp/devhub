@@ -42,10 +42,10 @@ struct LaunchPicker: View {
                 if let launch = model.launch, let id = model.selectedID {
                     LaunchIdentityControls(
                         model: launch,
-                        environment: environmentBinding(for: id),
                         deviceID: deviceIDBinding(for: id),
                         alias: aliasBinding(for: id),
-                        onForget: { identityStore.forgetSavedDeviceID($0) }
+                        onForget: { identityStore.forgetSavedDeviceID($0) },
+                        newID: { identityStore.newIdentity() }
                     )
                 }
                 if let note = model.cleanInstallNote {
@@ -68,11 +68,7 @@ struct LaunchPicker: View {
             simulators: simulators.all,
             runtime: { simulators.runtime(for: $0) },
             targetID: targetID,
-            config: identityStore.config,
-            settings: targetID.map { identityStore.settings(for: $0) } ?? SimulatorIdentitySettings(hasApplied: false),
-            identity: targetID.flatMap { identityStore.identities[$0] },
-            savedDeviceIDs: identityStore.savedDeviceIDs,
-            aliases: identityStore.deviceIDAliases,
+            identity: targetID.flatMap { identityStore.context(for: $0) },
             cleanInstallIsOn: build.state.cleanInstall,
             buildIsRunning: build.isRunning
         )
@@ -88,16 +84,9 @@ struct LaunchPicker: View {
         )
     }
 
-    private func environmentBinding(for id: Simulator.ID) -> Binding<String> {
-        Binding(
-            get: { identityStore.settings(for: id).desiredEnvironment ?? "" },
-            set: { identityStore.setDesiredEnvironment($0, for: id) }
-        )
-    }
-
     private func deviceIDBinding(for id: Simulator.ID) -> Binding<String> {
         Binding(
-            get: { identityStore.settings(for: id).desiredDeviceID ?? "" },
+            get: { identityStore.settings(for: id).desiredIdentity ?? "" },
             set: { identityStore.setDesiredDeviceID($0, for: id) }
         )
     }

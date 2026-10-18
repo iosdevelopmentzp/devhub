@@ -20,7 +20,7 @@ extension PresentationAssembly {
         assembly.worktrees.worktrees = MockData.worktrees
         assembly.worktrees.derivedDataSizes = MockData.derivedDataSizes
         assembly.simulators.groups = MockData.simulatorGroups
-        assembly.identity.identities = MockData.identities
+        assembly.identity.apps = MockData.installedApps
         assembly.usage.usage = MockData.usage
         assembly.usage.copilot = MockData.copilotUsage
         return assembly

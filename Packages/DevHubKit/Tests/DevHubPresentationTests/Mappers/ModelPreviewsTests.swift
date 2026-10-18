@@ -18,7 +18,7 @@ import Testing
         #expect(CleanInstallNoteModel.preview.iconTint == .secondary)
         #expect(IdentityPanelModel.preview.isInstalled)
         #expect(IdentitySummaryModel.preview.userIcon == "person.fill")
-        #expect(LaunchIdentityModel.preview.environments == ["qa", "dev", "prod"])
+        #expect(LaunchIdentityModel.preview.idPrefix == "devhub-")
     }
 
     @Test func gitPreviewsBuild() {

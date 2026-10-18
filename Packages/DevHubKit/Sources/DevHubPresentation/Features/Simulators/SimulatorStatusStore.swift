@@ -7,21 +7,26 @@ import DevHubUI
 @Observable
 final class SimulatorStatusStore {
     private(set) var statuses: [Simulator.ID: SimulatorStatus] = [:]
+    private(set) var reports: [Simulator.ID: AppStateReport] = [:]
 
     @ObservationIgnored private let readStatus: ReadSimulatorStatusUseCase
     @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let simulators: any SimulatorLookup
     @ObservationIgnored private let build: any BuildLookup
+    @ObservationIgnored private let events: AppEvents
+    @ObservationIgnored private let settleDelay: Duration
     @ObservationIgnored private var tasks: [Simulator.ID: Task<Void, Never>] = [:]
     @ObservationIgnored private var subscription: SubscriptionToken?
 
-    init(readStatus: ReadSimulatorStatusUseCase, config: ConfigStore, session: ProjectSession, simulators: any SimulatorLookup, build: any BuildLookup, events: AppEvents) {
+    init(readStatus: ReadSimulatorStatusUseCase, config: ConfigStore, session: ProjectSession, simulators: any SimulatorLookup, build: any BuildLookup, events: AppEvents, settleDelay: Duration) {
         self.readStatus = readStatus
         self.config = config
         self.session = session
         self.simulators = simulators
         self.build = build
+        self.events = events
+        self.settleDelay = settleDelay
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             switch event {
@@ -29,9 +34,9 @@ final class SimulatorStatusStore {
                 reloadAll()
             case .simulatorsChanged:
                 loadMissing()
-            case let .appLaunched(id), let .buildFinished(id, _):
+            case let .appLaunched(id, _), let .buildFinished(id, _):
                 guard let simulator = simulators.simulator(id: id) else { return }
-                read(simulator)
+                read(simulator, after: settleDelay)
             default:
                 break
             }
@@ -48,6 +53,10 @@ final class SimulatorStatusStore {
         tasks.values.forEach { $0.cancel() }
         tasks = [:]
         statuses = [:]
+        for id in reports.keys {
+            events.post(.appStateReported(simulatorID: id, report: nil))
+        }
+        reports = [:]
         loadMissing()
     }
 
@@ -62,7 +71,7 @@ final class SimulatorStatusStore {
         return simulators.all.filter { $0.state == .booted || $0.isFavorite || $0.id == targetID }
     }
 
-    private func read(_ simulator: Simulator) {
+    private func read(_ simulator: Simulator, after delay: Duration = .zero) {
         guard let script else { return }
         tasks[simulator.id]?.cancel()
         let request = SimulatorStatusRequest(
@@ -73,20 +82,33 @@ final class SimulatorStatusStore {
         )
         tasks[simulator.id] = Task { [weak self] in
             guard let self else { return }
-            let status = await status(for: request)
-            guard Task.isCancelled == false else { return }
-            if statuses[simulator.id] != status {
-                statuses[simulator.id] = status
-            }
-            tasks[simulator.id] = nil
+            await load(simulator.id, request: request, after: delay)
         }
     }
 
-    private func status(for request: SimulatorStatusRequest) async -> SimulatorStatus? {
+    private func load(_ id: Simulator.ID, request: SimulatorStatusRequest, after delay: Duration) async {
+        if delay > .zero {
+            try? await Task.sleep(for: delay)
+        }
+        guard Task.isCancelled == false else { return }
+        let reading = await reading(for: request)
+        guard Task.isCancelled == false else { return }
+        if statuses[id] != reading.status {
+            statuses[id] = reading.status
+        }
+        if reports[id] != reading.state {
+            reports[id] = reading.state
+            events.post(.appStateReported(simulatorID: id, report: reading.state))
+        }
+        tasks[id] = nil
+    }
+
+    private func reading(for request: SimulatorStatusRequest) async -> (status: SimulatorStatus?, state: AppStateReport?) {
         do {
-            return try await readStatus.execute(request).map { SimulatorStatus(text: $0, isFailure: false) }
+            let reading = try await readStatus.execute(request)
+            return (reading.line.map { SimulatorStatus(text: $0, isFailure: false) }, reading.state)
         } catch {
-            return SimulatorStatus(text: error.localizedDescription, isFailure: true)
+            return (SimulatorStatus(text: error.localizedDescription, isFailure: true), nil)
         }
     }
 

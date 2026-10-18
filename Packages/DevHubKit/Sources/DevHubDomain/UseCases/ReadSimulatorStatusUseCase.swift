@@ -6,7 +6,7 @@ package struct ReadSimulatorStatusUseCase: Sendable {
     let scripts: any ScriptRunning
     let tools: any ToolLocating
 
-    package func execute(_ request: SimulatorStatusRequest) async throws -> String? {
+    package func execute(_ request: SimulatorStatusRequest) async throws -> SimulatorStatusReading {
         let candidates = SimulatorStatusPolicy.candidates(script: request.script, layers: request.layers, projectPath: request.projectPath)
         guard let executable = candidates.first(where: tools.fileExists(atPath:)) else {
             throw SimulatorStatusError.notFound(request.script)
@@ -28,6 +28,6 @@ package struct ReadSimulatorStatusUseCase: Sendable {
         guard exitCode == 0 else {
             throw SimulatorStatusError.exited(exitCode, lastLine: line)
         }
-        return line
+        return SimulatorStatusReading(line: line, state: SimulatorStatusParser.state(lines))
     }
 }

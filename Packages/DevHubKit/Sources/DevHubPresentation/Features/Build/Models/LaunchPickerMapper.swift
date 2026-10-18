@@ -9,27 +9,20 @@ enum LaunchPickerMapper {
         simulators: [Simulator],
         runtime: (Simulator.ID) -> String?,
         targetID: Simulator.ID?,
-        config: DeviceIdentityConfig?,
-        settings: SimulatorIdentitySettings,
-        identity: AppIdentity?,
-        savedDeviceIDs: [String],
-        aliases: [String: String],
+        identity: IdentityContext?,
         cleanInstallIsOn: Bool,
         buildIsRunning: Bool
     ) -> LaunchPickerModel {
         let ordered = simulators.enumerated().sorted { lhs, rhs in
             (rank(lhs.element), lhs.offset) < (rank(rhs.element), rhs.offset)
         }
-        let needsCleanInstall = config != nil && IdentityPanelMapper.needsCleanInstall(identity: identity, settings: settings, savedDeviceIDs: savedDeviceIDs)
-        let willCleanInstall = cleanInstallIsOn || needsCleanInstall
+        let willCleanInstall = cleanInstallIsOn || identity?.needsCleanInstall == true
         return LaunchPickerModel(
             title: "Build & Run \(subject) on",
             simulators: ordered.map { LaunchPickerModel.SimulatorOption(id: $0.element.id, title: title($0.element, runtime: runtime($0.element.id))) },
             selectedID: targetID,
-            launch: config.map {
-                IdentityPanelMapper.launch(config: $0, settings: settings, actualDeviceID: identity?.lastDeviceID, savedDeviceIDs: savedDeviceIDs, aliases: aliases)
-            },
-            cleanInstallNote: config == nil ? nil : IdentityPanelMapper.cleanInstallNote(needsCleanInstall: needsCleanInstall, cleanInstallIsOn: cleanInstallIsOn),
+            launch: identity.map { IdentityPanelMapper.launch(context: $0) },
+            cleanInstallNote: identity.map { IdentityPanelMapper.cleanInstallNote(context: $0, cleanInstallIsOn: cleanInstallIsOn) },
             runTitle: willCleanInstall ? "Reinstall & Run" : "Build & Run",
             runTint: willCleanInstall ? .orange : .green,
             canRun: targetID != nil && buildIsRunning == false

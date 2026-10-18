@@ -9,17 +9,7 @@ enum ProjectSample {
         name: "App",
         path: path,
         scheme: "App",
-        bundleID: "com.example.app",
-        identity: nil
-    )
-
-    static let identified = Project(
-        id: "identified",
-        name: "Identified",
-        path: "/tmp/DevHubTests/Identified",
-        scheme: "Identified",
-        bundleID: "com.example.identified",
-        identity: .example
+        bundleID: "com.example.app"
     )
 
     static let other = Project(
@@ -27,7 +17,6 @@ enum ProjectSample {
         name: "Other",
         path: "/tmp/DevHubTests/Other",
         scheme: "Other",
-        bundleID: "com.example.other",
-        identity: nil
+        bundleID: "com.example.other"
     )
 }

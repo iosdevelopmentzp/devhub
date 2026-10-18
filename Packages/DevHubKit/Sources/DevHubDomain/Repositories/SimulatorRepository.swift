@@ -3,6 +3,7 @@ import Foundation
 package protocol SimulatorRepository: Sendable {
     func list() async throws -> [SimulatorGroup]
     func boot(udid: String) async throws
+    func waitUntilBooted(udid: String) async throws
     func shutdown(udid: String) async throws
     func erase(udid: String) async throws
     func openInSimulatorApp(udid: String) async throws

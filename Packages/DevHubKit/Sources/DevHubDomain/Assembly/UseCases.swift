@@ -35,11 +35,11 @@ package struct UseCases: Sendable {
         cleanFinishedWorktrees = CleanFinishedWorktreesUseCase(remove: removeWorktree)
         let createWorktree = CreateWorktreeUseCase(worktrees: ports.worktrees)
         self.createWorktree = createWorktree
-        buildAndRun = BuildAndRunUseCase(build: ports.build, simulators: ports.simulators, identity: ports.identity, attacher: ports.attacher, mockServer: ports.mockServer)
+        buildAndRun = BuildAndRunUseCase(build: ports.build, simulators: ports.simulators, attacher: ports.attacher, mockServer: ports.mockServer)
         commandRun = CommandRunUseCase(scripts: ports.scripts, build: ports.build, simulators: ports.simulators, install: buildAndRun.install)
         prepareBuildCheckout = PrepareBuildCheckoutUseCase(worktrees: ports.worktrees, createWorktree: createWorktree)
-        launchInstalledApp = LaunchInstalledAppUseCase(identity: ports.identity, attacher: ports.attacher, mockServer: ports.mockServer)
-        relaunchWithMocks = RelaunchWithMocksUseCase(mockServer: ports.mockServer, simulators: ports.simulators, identity: ports.identity)
+        launchInstalledApp = LaunchInstalledAppUseCase(launcher: ports.launcher, simulators: ports.simulators, attacher: ports.attacher, mockServer: ports.mockServer)
+        relaunchWithMocks = RelaunchWithMocksUseCase(mockServer: ports.mockServer, simulators: ports.simulators)
         readSimulatorStatus = ReadSimulatorStatusUseCase(scripts: ports.scripts, tools: ports.tools)
     }
 }

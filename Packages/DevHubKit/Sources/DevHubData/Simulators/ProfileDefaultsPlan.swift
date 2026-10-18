@@ -2,8 +2,8 @@ import Foundation
 import DevHubDomain
 
 enum ProfileDefaultsPlan {
-    static func containerKind(for item: ProfileDefault, bundleID: String) -> String {
-        item.suite.hasPrefix("group.") ? item.suite : "data"
+    static func containerKind(suite: String) -> String {
+        suite.hasPrefix("group.") ? suite : "data"
     }
 
     static func writeArguments(_ item: ProfileDefault, udid: String, folder: String) -> [String] {

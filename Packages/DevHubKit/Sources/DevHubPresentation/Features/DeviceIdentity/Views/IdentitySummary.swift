@@ -14,7 +14,9 @@ struct IdentitySummary: View {
                     Text(model.applyingText)
                 }
             } else {
-                ModelTag(model: model.environmentTag)
+                if let profileTag = model.profileTag {
+                    ModelTag(model: profileTag)
+                }
                 if let deviceID = model.deviceID {
                     HStack(spacing: 4) {
                         if let alias = model.deviceAlias {
@@ -29,15 +31,13 @@ struct IdentitySummary: View {
                     }
                     .copyOnClick(deviceID, label: deviceID)
                 }
-                if let userText = model.userText, let copyValue = model.userCopyValue {
+                if let userText = model.userText {
                     HStack(spacing: 3) {
                         Image(systemName: model.userIcon)
                         Text(userText)
                             .lineLimit(1)
                     }
-                    .copyOnClick(copyValue, label: model.userCopyLabel ?? copyValue)
-                } else if let notLoggedInText = model.notLoggedInText {
-                    Text(notLoggedInText)
+                    .copyOnClick(userText, label: "user \(userText)")
                 }
                 if let nextDeviceTag = model.nextDeviceTag {
                     ModelTag(model: nextDeviceTag)

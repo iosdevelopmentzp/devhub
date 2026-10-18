@@ -127,6 +127,7 @@ final class AppActions {
     func launchInstalledApp(on simulator: Simulator, attachDebugger: Bool) {
         identity.launchInstalledApp(
             on: simulator,
+            profile: build.profile(for: simulator.id),
             attachDebugger: attachDebugger,
             forceCleanInstall: build.state.cleanInstall,
             projectPath: build.sourcePath,

@@ -14,7 +14,6 @@ import Testing
             incremental: true,
             simulatorUDID: "sim",
             simulatorName: "iPhone 17",
-            identity: nil,
             cleanInstall: false, launch: .none,
             attachDebugger: false
         )

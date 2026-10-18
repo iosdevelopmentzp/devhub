@@ -29,7 +29,6 @@ import Testing
         #expect(project.name == "MyApp")
         #expect(project.scheme == "MyApp Dev")
         #expect(project.bundleID == "com.example.myapp")
-        #expect(project.identity == nil)
     }
 
     @Test func fallsBackToContainerNameThenFolderName() throws {

@@ -87,13 +87,9 @@ struct SimulatorsView: View {
             isTarget: build.isTarget(simulator.id),
             installedApps: simulators.installedAppCounts[simulator.id],
             status: statuses.statuses[simulator.id],
-            identity: identityStore.identities[simulator.id],
-            identitySettings: identityStore.settings(for: simulator.id),
-            deviceIDAliases: identityStore.deviceIDAliases,
+            identity: identityStore.context(for: simulator.id),
             mockState: mockServerStore.states[simulator.id],
-            hasIdentityConfig: identityStore.config != nil,
             isUninstalling: simulators.isUninstalling(simulator.id),
-            isApplying: identityStore.isApplying(simulator.id),
             buildIsRunning: build.isRunning,
             bundleID: session.selectedProject.bundleID,
             isConfirmingErase: confirmingEraseID == simulator.id,
@@ -143,29 +139,16 @@ struct SimulatorsView: View {
         if model.isMessaging, let simulator = simulators.simulator(id: model.id) {
             MessagingPanel(simulator: simulator, onClose: { messagingID = nil })
         }
-        if model.isEditingIdentity, let config = identityStore.config {
-            identityPanel(id: model.id, config: config)
+        if model.isEditingIdentity, let context = identityStore.context(for: model.id) {
+            identityPanel(id: model.id, context: context)
         }
     }
 
-    private func identityPanel(id: Simulator.ID, config: DeviceIdentityConfig) -> some View {
+    private func identityPanel(id: Simulator.ID, context: IdentityContext) -> some View {
         DeviceIdentityPanel(
-            model: IdentityPanelMapper.model(
-                for: identityStore.identities[id],
-                config: config,
-                settings: identityStore.settings(for: id),
-                savedDeviceIDs: identityStore.savedDeviceIDs,
-                aliases: identityStore.deviceIDAliases,
-                isApplying: identityStore.isApplying(id),
-                buildIsRunning: build.isRunning,
-                cleanInstallIsOn: build.state.cleanInstall
-            ),
-            environment: Binding(
-                get: { identityStore.settings(for: id).desiredEnvironment ?? "" },
-                set: { identityStore.setDesiredEnvironment($0, for: id) }
-            ),
+            model: IdentityPanelMapper.model(context: context, bundleID: identityStore.bundleID(for: id), buildIsRunning: build.isRunning, cleanInstallIsOn: build.state.cleanInstall),
             deviceID: Binding(
-                get: { identityStore.settings(for: id).desiredDeviceID ?? "" },
+                get: { identityStore.settings(for: id).desiredIdentity ?? "" },
                 set: { identityStore.setDesiredDeviceID($0, for: id) }
             ),
             alias: Binding(
@@ -173,6 +156,7 @@ struct SimulatorsView: View {
                 set: { identityStore.setAlias($0, for: id) }
             ),
             onForget: { identityStore.forgetSavedDeviceID($0) },
+            newID: { identityStore.newIdentity() },
             onRefresh: { await identityStore.refresh(id: id) },
             onLaunch: { launchInstalledApp(on: id, attachDebugger: $0) },
             onClose: { editingIdentityID = nil }

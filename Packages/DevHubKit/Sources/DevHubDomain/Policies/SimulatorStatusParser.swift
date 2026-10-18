@@ -22,6 +22,16 @@ package enum SimulatorStatusParser {
         return nil
     }
 
+    package static func state(_ lines: [String]) -> AppStateReport? {
+        for line in lines.reversed() where line.hasPrefix(ScriptDirectiveParser.marker) {
+            guard case let .directives(directives) = ScriptDirectiveParser.parse(line) else { continue }
+            for case let .state(report) in directives.reversed() {
+                return report
+            }
+        }
+        return nil
+    }
+
     private static func describe(_ view: ScriptView) -> String {
         if view.pairs.isEmpty == false {
             return view.pairs.map { "\($0.0): \($0.1)" }.joined(separator: " · ")

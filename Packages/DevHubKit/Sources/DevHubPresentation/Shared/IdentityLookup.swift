@@ -4,8 +4,11 @@ import DevHubUI
 
 @MainActor
 protocol IdentityLookup: AnyObject {
-    func buildIdentity(for id: Simulator.ID) -> BuildIdentity?
+    var identityConfig: LaunchIdentityConfig? { get }
+    func bundleID(for id: Simulator.ID) -> String
+    func settings(for id: Simulator.ID) -> SimulatorLaunchSettings
     func needsCleanInstall(id: Simulator.ID) -> Bool
-    func settings(for id: Simulator.ID) -> SimulatorIdentitySettings
-    func storedEnvironment(for id: Simulator.ID) -> String?
+    func installedApp(for id: Simulator.ID) -> InstalledApp?
+    func actualIdentity(for id: Simulator.ID) -> String?
+    func report(for id: Simulator.ID) -> AppStateReport?
 }

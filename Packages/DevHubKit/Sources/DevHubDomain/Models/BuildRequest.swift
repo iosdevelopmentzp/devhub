@@ -8,9 +8,8 @@ package struct BuildRequest: Sendable {
     package var incremental: Bool
     package var simulatorUDID: String
     package var simulatorName: String
-    package var identity: BuildIdentity?
     package var cleanInstall: Bool
-    package var launch: LaunchSettings
+    package var launch: LaunchPlan
     package var attachDebugger: Bool
 
     package init(
@@ -21,9 +20,8 @@ package struct BuildRequest: Sendable {
         incremental: Bool,
         simulatorUDID: String,
         simulatorName: String,
-        identity: BuildIdentity?,
         cleanInstall: Bool,
-        launch: LaunchSettings,
+        launch: LaunchPlan,
         attachDebugger: Bool
     ) {
         self.projectPath = projectPath
@@ -33,7 +31,6 @@ package struct BuildRequest: Sendable {
         self.incremental = incremental
         self.simulatorUDID = simulatorUDID
         self.simulatorName = simulatorName
-        self.identity = identity
         self.cleanInstall = cleanInstall
         self.launch = launch
         self.attachDebugger = attachDebugger

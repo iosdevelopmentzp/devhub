@@ -2,7 +2,7 @@ import Testing
 @testable import DevHubDomain
 
 @Suite struct EffectiveProjectPolicyTests {
-    private let project = Project(id: "app", name: "app", path: "/repo", scheme: "ExampleApp", bundleID: "com.example.app", identity: nil)
+    private let project = Project(id: "app", name: "app", path: "/repo", scheme: "ExampleApp", bundleID: "com.example.app")
 
     @Test func detectionFillsWhatConfigLeavesOut() {
         let effective = EffectiveProjectPolicy.resolve(config: .empty, project: project, detectedSchemes: ["ExampleApp", "Widget"], detectedBaseBranch: "origin/develop")
@@ -33,7 +33,7 @@ import Testing
     }
 
     @Test func noSchemeMeansACommandProject() {
-        let plain = Project(id: "tool", name: "tool", path: "/tool", scheme: "—", bundleID: "—", identity: nil)
+        let plain = Project(id: "tool", name: "tool", path: "/tool", scheme: "—", bundleID: "—")
 
         let effective = EffectiveProjectPolicy.resolve(config: .empty, project: plain, detectedSchemes: [], detectedBaseBranch: nil)
 

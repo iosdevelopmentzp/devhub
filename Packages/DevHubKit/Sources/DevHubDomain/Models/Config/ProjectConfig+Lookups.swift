@@ -12,6 +12,10 @@ package extension ProjectConfig {
         return xcode?.bundleID ?? detected
     }
 
+    func knownBundleIDs(detected: String?) -> Set<String> {
+        Set([xcode?.bundleID, detected].compactMap { $0 } + (xcode?.bundleIDs?.values.map { $0 } ?? []))
+    }
+
     func visibleSchemes(detected: [String]) -> [String] {
         guard let listed = xcode?.schemes, listed.isEmpty == false else { return detected }
         return listed

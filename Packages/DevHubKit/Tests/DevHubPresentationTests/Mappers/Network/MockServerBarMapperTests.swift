@@ -34,11 +34,11 @@ import DevHubTestSupport
     }
 
     @Test func runningServerShowsPortAndHost() {
-        let state = MockServerState(mode: .passthrough, setID: nil, upstreamHost: "api-qa.example.com", status: .running(port: 52001))
+        let state = MockServerState(mode: .passthrough, setID: nil, upstreamHost: "api.staging.example.com", status: .running(port: 52001))
 
         let model = model(settings: MockSimulatorSettings(mode: .passthrough, setID: nil), state: state, isApplying: false, needsApply: false)
 
-        #expect(model.statusText == "Port 52001 → api-qa.example.com")
+        #expect(model.statusText == "Port 52001 → api.staging.example.com")
         #expect(model.statusTint == .green)
         #expect(model.statusHint.contains("http://127.0.0.1:52001"))
     }
@@ -53,29 +53,40 @@ import DevHubTestSupport
     }
 
     @Test func noSimulatorCannotApplyAndErrorsPassThrough() {
-        let model = MockServerBarMapper.model(settings: .off, state: nil, sets: [], hasSimulator: false, isApplying: false, needsApply: false, error: "boom", identity: nil, config: nil)
+        let model = MockServerBarMapper.model(settings: .off, state: nil, sets: [], hasSimulator: false, isApplying: false, needsApply: false, error: "boom", app: nil, report: nil, lastLaunch: nil, profiles: [])
 
         #expect(model.canApply == false)
         #expect(model.error == "boom")
     }
 
     @Test func appStatusExplainsWhetherTheAppUsesTheServer() {
-        let running = MockServerState(mode: .passthrough, setID: nil, upstreamHost: "api-qa.example.com", status: .running(port: 52001))
-        let through = AppIdentity(isInstalled: true, version: "1", hasDebugHooks: true, storedEnvironment: "qa", apiHost: "127.0.0.1:52001")
-        let direct = AppIdentity(isInstalled: true, version: "1", hasDebugHooks: true, storedEnvironment: "qa", apiHost: "api-qa.example.com")
-        let otherEnvironment = AppIdentity(isInstalled: true, version: "1", hasDebugHooks: true, storedEnvironment: "dev", apiHost: "127.0.0.1:52001")
-        let silent = AppIdentity(isInstalled: true, version: "1", hasDebugHooks: true)
+        let profiles = IdentityContextFixture.profiles + [LaunchProfile(id: "dev", title: "Dev", upstream: "https://api.dev.example.com")]
+        let running = MockServerState(mode: .passthrough, setID: nil, upstreamHost: "api.staging.example.com", status: .running(port: 52001))
+        let app = IdentityContextFixture.installedApp
+        let through = LaunchRecord(bundleID: nil, profileID: "staging", identity: nil, baseURL: "http://127.0.0.1:52001", date: .now)
+        let oldPort = LaunchRecord(bundleID: nil, profileID: "staging", identity: nil, baseURL: "http://127.0.0.1:50000", date: .now)
+        let noServer = LaunchRecord(bundleID: nil, profileID: "staging", identity: nil, baseURL: nil, date: .now)
+        let otherProfile = LaunchRecord(bundleID: nil, profileID: "dev", identity: nil, baseURL: "http://127.0.0.1:52001", date: .now)
+        let direct = AppStateReport(identity: nil, profile: nil, host: "api.staging.example.com", user: nil, version: nil)
+        let local = AppStateReport(identity: nil, profile: nil, host: "127.0.0.1:52001", user: nil, version: nil)
 
-        #expect(MockServerBarMapper.appStatus(state: nil, identity: through, config: .example) == nil)
-        #expect(MockServerBarMapper.appStatus(state: running, identity: .notInstalled, config: .example)?.text == "App not installed on this simulator")
-        #expect(MockServerBarMapper.appStatus(state: running, identity: silent, config: .example)?.text == "App has not sent requests yet")
-        #expect(MockServerBarMapper.appStatus(state: running, identity: through, config: .example)?.tint == .green)
-        #expect(MockServerBarMapper.appStatus(state: running, identity: direct, config: .example)?.text == "App talks to api-qa.example.com directly: launched without DevHub")
-        #expect(MockServerBarMapper.appStatus(state: running, identity: otherEnvironment, config: .example)?.text == "App is on dev, the server forwards to qa: relaunch")
+        func status(_ state: MockServerState?, app: InstalledApp? = app, report: AppStateReport? = nil, lastLaunch: LaunchRecord?) -> (text: String, tint: Tint, hint: String)? {
+            MockServerBarMapper.appStatus(state: state, app: app, report: report, lastLaunch: lastLaunch, profiles: profiles)
+        }
+
+        #expect(status(nil, lastLaunch: through) == nil)
+        #expect(status(running, app: .notInstalled, lastLaunch: through)?.text == "App not installed on this simulator")
+        #expect(status(running, lastLaunch: nil)?.text == "Launched outside DevHub: traffic may bypass the server")
+        #expect(status(running, lastLaunch: oldPort)?.text == "App points to an old DevHub server (http://127.0.0.1:50000): relaunch")
+        #expect(status(running, lastLaunch: noServer)?.text == "The last launch did not use the server: relaunch")
+        #expect(status(running, report: direct, lastLaunch: through)?.text == "App reports api.staging.example.com: launched without DevHub")
+        #expect(status(running, lastLaunch: otherProfile)?.text == "App is on Dev, the server forwards to Staging: relaunch")
+        #expect(status(running, report: local, lastLaunch: through)?.tint == .green)
+        #expect(status(running, app: nil, lastLaunch: through)?.text == "App goes through DevHub (http://127.0.0.1:52001)")
         #expect(model(settings: .off, state: nil, isApplying: false, needsApply: false).appText == nil)
     }
 
     private func model(settings: MockSimulatorSettings, state: MockServerState?, isApplying: Bool, needsApply: Bool) -> MockServerBarModel {
-        MockServerBarMapper.model(settings: settings, state: state, sets: [set], hasSimulator: true, isApplying: isApplying, needsApply: needsApply, error: nil, identity: nil, config: nil)
+        MockServerBarMapper.model(settings: settings, state: state, sets: [set], hasSimulator: true, isApplying: isApplying, needsApply: needsApply, error: nil, app: nil, report: nil, lastLaunch: nil, profiles: [])
     }
 }

@@ -49,7 +49,7 @@ swift test --package-path Packages/DevHubKit --filter X   # the full output, whe
 
 One `Spy<Port>` per port: `SpyGitRepository`, `SpyGitChangesRepository`, `SpyWorktreeRepository`,
 `SpyCodeHostRepository`, `SpySimulatorRepository`, `SpySimulatorMessagingRepository`, `SpyBuildRepository`,
-`SpyDeviceIdentityRepository`, `SpyDerivedDataRepository`, `SpyAppLogRepository`, `SpyNetworkLogRepository`, `SpyMockServerRepository` (`emit(_:udid:)` calls the saved `onExchange`), `SpyMockSetRepository` (`savedSets`), `SpyAISessionRepository`, `SpyCopilotUsageRepository`,
+`SpyAppLaunchRepository`, `SpyDerivedDataRepository`, `SpyAppLogRepository`, `SpyNetworkLogRepository`, `SpyMockServerRepository` (`emit(_:udid:)` calls the saved `onExchange`), `SpyMockSetRepository` (`savedSets`), `SpyAISessionRepository`, `SpyCopilotUsageRepository`,
 `SpyClaudeUsageRepository`, `SpyWorkspaceOpener`, `SpyXcodeAttacher`,
 `SpyProjectDetector`, plus `SpyCommandRecorder` (`events`) and `CallbackRecorder<Value>` (a thread-safe list for `@Sendable` callbacks).
 

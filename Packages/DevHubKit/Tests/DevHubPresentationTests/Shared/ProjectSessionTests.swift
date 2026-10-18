@@ -47,7 +47,7 @@ import Testing
 
     @Test func addExistingPathSelectsTheExistingProject() {
         let session = makeSession(selected: nil)
-        let duplicate = Project(id: "other-id", name: "Copy", path: ProjectFixture.devHub.path, scheme: "", bundleID: "", identity: nil)
+        let duplicate = Project(id: "other-id", name: "Copy", path: ProjectFixture.devHub.path, scheme: "", bundleID: "")
 
         session.add(duplicate)
 
@@ -131,7 +131,7 @@ import Testing
 
     @Test func updateOfUnknownProjectIsIgnored() {
         let session = makeSession(selected: nil)
-        let unknown = Project(id: "unknown", name: "X", path: "/x", scheme: "X", bundleID: "x", identity: nil)
+        let unknown = Project(id: "unknown", name: "X", path: "/x", scheme: "X", bundleID: "x")
 
         session.update(unknown)
 

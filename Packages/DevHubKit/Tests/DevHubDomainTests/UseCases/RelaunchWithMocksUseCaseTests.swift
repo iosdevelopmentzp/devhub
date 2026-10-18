@@ -5,50 +5,66 @@ import Testing
 
 @Suite struct RelaunchWithMocksUseCaseTests {
     private let udid = "SIM-1"
-    private let qa = URL(string: "https://api-qa.example.com")!
+    private let bundleID = "com.example.app"
+    private let staging = URL(string: "https://api.staging.example.com")!
 
-    @Test func passthroughStartsWithoutRulesAndLaunchesWithTheStubURLAndDeviceID() async throws {
+    @Test func passthroughStartsWithoutRulesAndLaunchesWithTheStubURLAndIdentity() async throws {
         let (ports, spies) = Ports.spies()
         spies.mockServer.startResult = .success(52001)
 
-        let state = try await useCase(ports).execute(request(mode: .passthrough, set: nil)) { _ in }
+        let result = try await useCase(ports).execute(request(mode: .passthrough, set: nil)) { _ in }
 
-        #expect(spies.mockServer.calls == [.start(udid: udid, upstream: qa, rules: [])])
-        #expect(spies.identity.calls == [
-            .launch(udid: udid, config: .example, deviceID: "QA-DEVICE", waitForDebugger: false, environment: ["DEVHUB_BASE_URL": "http://127.0.0.1:52001"])
+        #expect(spies.mockServer.calls == [.start(udid: udid, upstream: staging, rules: [])])
+        #expect(spies.simulators.calls == [
+            .openInSimulatorApp(udid: udid),
+            .launch(udid: udid, bundleID: bundleID, waitForDebugger: false, environment: ["API_ENV": "staging", "APP_DEVICE_ID": "QA-DEVICE", "APP_BASE_URL": "http://127.0.0.1:52001"]),
         ])
-        #expect(state == MockServerState(mode: .passthrough, setID: nil, upstreamHost: "api-qa.example.com", status: .running(port: 52001)))
+        #expect(result.state == MockServerState(mode: .passthrough, setID: nil, upstreamHost: "api.staging.example.com", status: .running(port: 52001)))
+        #expect(result.launch.baseURL == "http://127.0.0.1:52001")
+        #expect(result.launch.identity == "QA-DEVICE")
+    }
+
+    @Test func theDefaultsOfTheProfileAreWrittenBeforeTheLaunch() async throws {
+        let (ports, spies) = Ports.spies()
+        let item = ProfileDefault(suite: bundleID, key: "environment", value: "staging")
+        var relaunch = request(mode: .passthrough, set: nil)
+        relaunch.plan.profile?.defaults = [item]
+
+        _ = try await useCase(ports).execute(relaunch) { _ in }
+
+        #expect(spies.simulators.calls.first == .writeDefaults(udid: udid, bundleID: bundleID, defaults: [item]))
     }
 
     @Test func mockModeSendsTheRulesOfTheSet() async throws {
         let (ports, spies) = Ports.spies()
 
-        let state = try await useCase(ports).execute(request(mode: .mock, set: MockRuleFixture.set)) { _ in }
+        let result = try await useCase(ports).execute(request(mode: .mock, set: MockRuleFixture.set)) { _ in }
 
-        #expect(spies.mockServer.calls == [.start(udid: udid, upstream: qa, rules: MockRuleFixture.set.rules)])
-        #expect(state?.setID == MockRuleFixture.set.id)
+        #expect(spies.mockServer.calls == [.start(udid: udid, upstream: staging, rules: MockRuleFixture.set.rules)])
+        #expect(result.state?.setID == MockRuleFixture.set.id)
     }
 
     @Test func offStopsTheServerAndRelaunchesWithoutTheVariable() async throws {
         let (ports, spies) = Ports.spies()
 
-        let state = try await useCase(ports).execute(request(mode: .off, set: nil)) { _ in }
+        let result = try await useCase(ports).execute(request(mode: .off, set: nil)) { _ in }
 
-        #expect(state == nil)
+        #expect(result.state == nil)
+        #expect(result.launch.baseURL == nil)
         #expect(spies.mockServer.calls == [.stop(udid: udid)])
-        #expect(spies.identity.calls == [.launch(udid: udid, config: .example, deviceID: "QA-DEVICE", waitForDebugger: false, environment: [:])])
+        #expect(spies.simulators.calls.last == .launch(udid: udid, bundleID: bundleID, waitForDebugger: false, environment: ["API_ENV": "staging", "APP_DEVICE_ID": "QA-DEVICE"]))
     }
 
-    @Test func prodIsRefusedBeforeAnythingStarts() async {
+    @Test func productionIsRefusedBeforeAnythingStarts() async {
         let (ports, spies) = Ports.spies()
-        var prod = request(mode: .passthrough, set: nil)
-        prod.environment = "prod"
+        var production = request(mode: .passthrough, set: nil)
+        production.plan.profile = LaunchProfile(id: "prod", title: "Production", upstream: "https://api.example.com", production: true)
 
-        await #expect(throws: MockServerError.prodNotSupported) {
-            try await useCase(ports).execute(prod) { _ in }
+        await #expect(throws: MockServerError.productionRefused(profile: "Production")) {
+            try await useCase(ports).execute(production) { _ in }
         }
         #expect(spies.mockServer.calls.isEmpty)
-        #expect(spies.identity.calls.isEmpty)
+        #expect(spies.simulators.calls.isEmpty)
     }
 
     @Test func mockModeWithoutASetIsRefused() async {
@@ -60,27 +76,15 @@ import Testing
         #expect(spies.mockServer.calls.isEmpty)
     }
 
-    @Test func projectWithoutIdentityLaunchesThroughTheSimulatorPortWhenOff() async throws {
+    @Test func withoutTheBaseURLVariableTheServerIsDisabled() async {
         let (ports, spies) = Ports.spies()
-        var plain = request(mode: .off, set: nil)
-        plain.identity = nil
-
-        _ = try await useCase(ports).execute(plain) { _ in }
-
-        #expect(spies.simulators.calls == [
-            .openInSimulatorApp(udid: udid),
-            .launch(udid: udid, bundleID: "com.example.app", waitForDebugger: false, environment: [:])
-        ])
-    }
-
-    @Test func projectWithoutIdentityCannotStartTheServer() async {
-        let (ports, _) = Ports.spies()
         var plain = request(mode: .passthrough, set: nil)
-        plain.identity = nil
+        plain.plan.baseURLVariable = nil
 
-        await #expect(throws: MockServerError.noIdentityConfig) {
+        await #expect(throws: MockServerError.disabled) {
             try await useCase(ports).execute(plain) { _ in }
         }
+        #expect(spies.mockServer.calls.isEmpty)
     }
 
     @Test func serverFailureStopsBeforeTheLaunch() async {
@@ -90,7 +94,7 @@ import Testing
         await #expect(throws: MockServerError.startFailed("busy")) {
             try await useCase(ports).execute(request(mode: .passthrough, set: nil)) { _ in }
         }
-        #expect(spies.identity.calls.isEmpty)
+        #expect(spies.simulators.calls.isEmpty)
     }
 
     @Test func exchangesFromTheServerReachTheCallback() async throws {
@@ -108,6 +112,12 @@ import Testing
     }
 
     private func request(mode: MockMode, set: MockSet?) -> MockRelaunchRequest {
-        MockRelaunchRequest(udid: udid, bundleID: "com.example.app", identity: .example, deviceID: "QA-DEVICE", environment: "qa", mode: mode, set: set)
+        MockRelaunchRequest(
+            udid: udid,
+            bundleID: bundleID,
+            plan: IdentityLaunchFixture.plan(identity: "QA-DEVICE", profile: IdentityLaunchFixture.staging, baseURLVariable: "APP_BASE_URL"),
+            mode: mode,
+            set: set
+        )
     }
 }

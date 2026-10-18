@@ -10,13 +10,9 @@ enum SimulatorRowMapper {
         isTarget: Bool,
         installedApps: Int?,
         status: SimulatorStatus?,
-        identity: AppIdentity?,
-        identitySettings: SimulatorIdentitySettings,
-        deviceIDAliases: [String: String],
+        identity: IdentityContext?,
         mockState: MockServerState?,
-        hasIdentityConfig: Bool,
         isUninstalling: Bool,
-        isApplying: Bool,
         buildIsRunning: Bool,
         bundleID: String,
         isConfirmingErase: Bool,
@@ -42,15 +38,8 @@ enum SimulatorRowMapper {
             favoriteIcon: "star.fill",
             favoriteHint: "In favorites",
             favoriteMenuTitle: simulator.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-            identity: identitySummary(
-                identity: identity,
-                settings: identitySettings,
-                aliases: deviceIDAliases,
-                mockState: mockState,
-                hasIdentityConfig: hasIdentityConfig,
-                isApplying: isApplying
-            ),
-            hasIdentityConfig: hasIdentityConfig,
+            identity: identity.flatMap { $0.isInstalled ? IdentityPanelMapper.summary(context: $0, mockState: mockState) : nil },
+            hasIdentityConfig: identity != nil,
             isUninstalling: isUninstalling,
             powerHint: simulator.state == .booted ? "Shutdown" : "Boot",
             canBuildAndRun: buildIsRunning == false,
@@ -106,17 +95,5 @@ enum SimulatorRowMapper {
         let stateText = stateText(state)
         guard installedApps > 0 else { return stateText }
         return "\(stateText) · \(CountText.count(installedApps, "app")) installed"
-    }
-
-    private static func identitySummary(
-        identity: AppIdentity?,
-        settings: SimulatorIdentitySettings,
-        aliases: [String: String],
-        mockState: MockServerState?,
-        hasIdentityConfig: Bool,
-        isApplying: Bool
-    ) -> IdentitySummaryModel? {
-        guard hasIdentityConfig, let identity, identity.isInstalled else { return nil }
-        return IdentityPanelMapper.summary(for: identity, settings: settings, aliases: aliases, mockState: mockState, isApplying: isApplying)
     }
 }

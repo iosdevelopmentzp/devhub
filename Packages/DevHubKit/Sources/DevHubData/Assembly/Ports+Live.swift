@@ -7,7 +7,6 @@ extension Ports {
         let derivedData = XcodeDerivedDataRepository(shell: shell)
         let productLocator = ProductLocator(derivedData: derivedData)
         let simulators = SimctlSimulatorRepository(shell: shell)
-        let identity = SimctlDeviceIdentityRepository(shell: shell, simulators: simulators)
         let attacher = AccessibilityXcodeAttacher(shell: shell)
         let build = XcodeBuildRepository(shell: shell, productLocator: productLocator)
         let worktrees = ShellWorktreeRepository(shell: shell)
@@ -20,7 +19,7 @@ extension Ports {
             simulators: simulators,
             build: build,
             worktrees: worktrees,
-            identity: identity,
+            launcher: SimctlAppLaunchRepository(shell: shell),
             git: git,
             changes: ShellGitChangesRepository(shell: shell),
             logs: SimctlAppLogRepository(shell: shell),

@@ -31,17 +31,18 @@ import Testing
         #expect(useCases.prepareBuildCheckout.createWorktree.worktrees as? SpyWorktreeRepository === spies.worktrees)
     }
 
-    @Test func buildUseCasesShareTheBuildSimulatorIdentityAndAttachPorts() {
+    @Test func buildUseCasesShareTheBuildSimulatorLauncherAndAttachPorts() {
         let (ports, spies) = Ports.spies()
 
         let useCases = UseCases(ports: ports)
 
         #expect(useCases.buildAndRun.build as? SpyBuildRepository === spies.build)
         #expect(useCases.buildAndRun.simulators as? SpySimulatorRepository === spies.simulators)
-        #expect(useCases.buildAndRun.install.identity as? SpyDeviceIdentityRepository === spies.identity)
+        #expect(useCases.buildAndRun.install.simulators as? SpySimulatorRepository === spies.simulators)
         #expect(useCases.buildAndRun.install.attacher as? SpyXcodeAttacher === spies.attacher)
         #expect(useCases.commandRun.scripts as? SpyScriptRunner === spies.scripts)
-        #expect(useCases.launchInstalledApp.identity as? SpyDeviceIdentityRepository === spies.identity)
+        #expect(useCases.launchInstalledApp.launcher as? SpyAppLaunchRepository === spies.launcher)
+        #expect(useCases.launchInstalledApp.simulators as? SpySimulatorRepository === spies.simulators)
         #expect(useCases.launchInstalledApp.attacher as? SpyXcodeAttacher === spies.attacher)
     }
 }

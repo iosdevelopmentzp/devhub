@@ -13,7 +13,6 @@ import Testing
         #expect(project.name == "App")
         #expect(project.scheme == "App")
         #expect(project.bundleID == "")
-        #expect(project.identity == nil)
         #expect(detector.isGitRepository(folder))
     }
 }

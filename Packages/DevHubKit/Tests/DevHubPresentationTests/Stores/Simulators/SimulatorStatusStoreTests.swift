@@ -63,9 +63,25 @@ import DevHubTestSupport
         harness.spies.scripts.events = [.output("Environment: production"), .exited(0)]
 
         store.loadMissing()
-        harness.events.post(.appLaunched(simulatorID: SimulatorSample.booted.id))
+        harness.events.post(.appLaunched(simulatorID: SimulatorSample.booted.id, launch: nil))
         try await waitUntil { store.statuses[SimulatorSample.booted.id]?.text == "Environment: production" }
 
         #expect(udids == [SimulatorSample.booted.id, SimulatorSample.booted.id])
+    }
+
+    @Test func aStateDirectiveIsPostedOnceForTheIdentityPanel() async throws {
+        harness.spies.tools.existingFiles = [script]
+        harness.spies.scripts.events = [.output(#"@devhub {"state": {"identity": "qa-1"}}"#), .output("Environment: staging"), .exited(0)]
+
+        await load(statusScript: "scripts/status.sh")
+        try await waitUntil { store.reports.isEmpty == false }
+        store.loadMissing()
+        harness.events.post(.appLaunched(simulatorID: SimulatorSample.booted.id, launch: nil))
+        try await waitUntil { harness.spies.scripts.calls.count == 2 }
+        await harness.settle()
+
+        #expect(store.reports[SimulatorSample.booted.id]?.identity == "qa-1")
+        #expect(harness.postCount("appStateReported(sim-booted, qa-1)") == 1)
+        #expect(harness.identity.actualIdentity(for: SimulatorSample.booted.id) == "qa-1")
     }
 }

@@ -16,10 +16,12 @@ extension AppEvent {
             "commandFailed"
         case .buildStarted(let id):
             "buildStarted(\(id))"
-        case .buildFinished(let id, let launchedDeviceID):
-            "buildFinished(\(id), \(Self.describe(launchedDeviceID)))"
-        case .appLaunched(let id):
-            "appLaunched(\(id))"
+        case .buildFinished(let id, let launch):
+            "buildFinished(\(id), \(Self.describe(launch)))"
+        case .appLaunched(let id, let launch):
+            "appLaunched(\(id), \(Self.describe(launch)))"
+        case .appStateReported(let id, let report):
+            "appStateReported(\(id), \(report?.identity ?? "-"))"
         case .worktreeCheckoutPrepared:
             "worktreeCheckoutPrepared"
         case .worktreeBootstrapping(let path, let isRunning):
@@ -35,14 +37,8 @@ extension AppEvent {
         }
     }
 
-    private static func describe(_ launchedDeviceID: String??) -> String {
-        switch launchedDeviceID {
-        case .none:
-            "none"
-        case .some(.none):
-            "nil"
-        case .some(.some(let id)):
-            id
-        }
+    private static func describe(_ launch: LaunchRecord?) -> String {
+        guard let launch else { return "none" }
+        return "\(launch.profileID ?? "-") \(launch.identity ?? "-")"
     }
 }

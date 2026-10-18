@@ -59,6 +59,21 @@ extension BuildStore {
         profiles.first { $0.id == state.profileID } ?? profiles.first
     }
 
+    func profile(for id: Simulator.ID) -> LaunchProfile? {
+        guard id != state.targetSimulatorID else { return profile }
+        let saved = savedProfileID(for: id)
+        return profiles.first { $0.id == saved } ?? profiles.first
+    }
+
+    func launchPlan(for id: Simulator.ID) -> LaunchPlan {
+        LaunchPlan(
+            profile: profile(for: id),
+            identityConfig: identity.identityConfig,
+            identity: identity.settings(for: id).desiredIdentity,
+            baseURLVariable: config.config.network?.baseURLVariable
+        )
+    }
+
     var sourceWorktreeID: Worktree.ID? {
         sourceResolution.worktreeID
     }

@@ -6,10 +6,10 @@ struct DeviceIdentityPanel: View {
     @Environment(Toaster.self) private var toaster
 
     let model: IdentityPanelModel
-    @Binding var environment: String
     @Binding var deviceID: String
     @Binding var alias: String
     let onForget: (String) -> Void
+    let newID: () -> String
     let onRefresh: () async -> Void
     let onLaunch: (_ attachDebugger: Bool) -> Void
     let onClose: () -> Void
@@ -48,7 +48,7 @@ struct DeviceIdentityPanel: View {
                     ProgressView()
                         .controlSize(.mini)
                 }
-                IconButton(systemImage: "arrow.clockwise", help: "Read again from the app's files on the simulator") {
+                IconButton(systemImage: "arrow.clockwise", help: "Read the installed app again") {
                     refresh()
                 }
             }
@@ -65,15 +65,15 @@ struct DeviceIdentityPanel: View {
     private var details: some View {
         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
             GridRow {
-                FieldLabel("Environment")
+                FieldLabel("Profile")
                 HStack(spacing: 6) {
-                    ModelTag(model: model.environmentTag)
-                    if let environmentNote = model.environmentNote {
-                        Text(environmentNote)
+                    ModelTag(model: model.profileTag)
+                    if let profileNote = model.profileNote {
+                        Text(profileNote)
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
-                    if let host = model.apiHost {
+                    if let host = model.host {
                         Text(host)
                             .font(.caption2.monospaced())
                             .foregroundStyle(.secondary)
@@ -81,7 +81,7 @@ struct DeviceIdentityPanel: View {
                 }
             }
             GridRow {
-                FieldLabel("Device ID")
+                FieldLabel("ID")
                 HStack(spacing: 6) {
                     if let deviceAlias = model.deviceAlias {
                         Text(deviceAlias)
@@ -92,12 +92,8 @@ struct DeviceIdentityPanel: View {
             }
             GridRow {
                 FieldLabel("User")
-                if let userName = model.userName {
-                    HStack(spacing: 6) {
-                        Text(userName)
-                            .font(.caption.weight(.medium))
-                        copyable(model.userPublicID, placeholder: "")
-                    }
+                if let user = model.user {
+                    copyable(user, placeholder: "")
                 } else {
                     Text(model.userPlaceholder)
                         .font(.caption)
@@ -119,7 +115,7 @@ struct DeviceIdentityPanel: View {
 
     private var desiredSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            LaunchIdentityControls(model: model.launch, environment: $environment, deviceID: $deviceID, alias: $alias, onForget: onForget)
+            LaunchIdentityControls(model: model.launch, deviceID: $deviceID, alias: $alias, onForget: onForget, newID: newID)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 CleanInstallNote(model: model.cleanInstallNote)
                 Spacer()
@@ -172,10 +168,10 @@ struct DeviceIdentityPanel: View {
 #Preview {
     DeviceIdentityPanel(
         model: .preview,
-        environment: .constant(""),
         deviceID: .constant(""),
         alias: .constant(""),
         onForget: { _ in },
+        newID: { "devhub-1a2b3c4d" },
         onRefresh: {},
         onLaunch: { _ in },
         onClose: {}

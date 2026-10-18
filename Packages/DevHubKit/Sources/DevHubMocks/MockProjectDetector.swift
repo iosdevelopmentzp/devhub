@@ -10,8 +10,7 @@ struct MockProjectDetector: ProjectDetecting {
             name: folder.lastPathComponent,
             path: path,
             scheme: folder.lastPathComponent,
-            bundleID: "",
-            identity: nil
+            bundleID: ""
         )
     }
 

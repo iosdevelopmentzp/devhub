@@ -16,10 +16,25 @@ import Testing
         spies.tools.existingFiles = ["/repo/scripts/status.sh"]
         spies.scripts.events = [.output("Environment: staging"), .exited(0)]
 
-        let line = try await UseCases(ports: ports).readSimulatorStatus.execute(request)
+        let reading = try await UseCases(ports: ports).readSimulatorStatus.execute(request)
 
-        #expect(line == "Environment: staging")
+        #expect(reading == SimulatorStatusReading(line: "Environment: staging", state: nil))
         #expect(spies.scripts.calls == [ScriptRunRequest(executable: "/repo/scripts/status.sh", arguments: [], cwd: "/repo", environment: ["DEVHUB_SIMULATOR_UDID": "sim-1"], timeout: .seconds(5))])
+    }
+
+    @Test func theStateDirectiveComesBackAsAReport() async throws {
+        let (ports, spies) = Ports.spies()
+        spies.tools.existingFiles = ["/repo/scripts/status.sh"]
+        spies.scripts.events = [
+            .output(#"@devhub {"state": {"identity": "qa-1", "profile": "staging", "host": "api.staging.example.com"}}"#),
+            .output("Environment: staging"),
+            .exited(0),
+        ]
+
+        let reading = try await UseCases(ports: ports).readSimulatorStatus.execute(request)
+
+        #expect(reading.line == "Environment: staging")
+        #expect(reading.state == AppStateReport(identity: "qa-1", profile: "staging", host: "api.staging.example.com", user: nil, version: nil))
     }
 
     @Test func aMissingScriptFails() async {

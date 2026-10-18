@@ -8,10 +8,10 @@ import DevHubTestSupport
     private let booted = Simulator(id: "b", name: "iPhone 16", kind: .phone, state: .booted, isFavorite: false)
     private let favorite = Simulator(id: "f", name: "iPad Pro", kind: .pad, state: .shutdown, isFavorite: true)
     private let plain = Simulator(id: "p", name: "iPhone SE", kind: .phone, state: .shutdown, isFavorite: false)
-    private let noSettings = SimulatorIdentitySettings(hasApplied: false)
+    private let context = IdentityContextFixture.context()
 
     @Test func bootedThenFavoritesThenTheRestWithRuntimes() {
-        let model = map(simulators: [plain, favorite, booted], config: nil)
+        let model = map(simulators: [plain, favorite, booted], identity: nil)
 
         #expect(model.simulators == [
             LaunchPickerModel.SimulatorOption(id: "b", title: "iPhone 16 · iOS 18.2 · booted"),
@@ -28,27 +28,33 @@ import DevHubTestSupport
     }
 
     @Test func withAConfigTheIdentityControlsAndTheNoteAppear() {
-        let model = map(simulators: [booted], config: .example)
+        let model = map(simulators: [booted], identity: context)
 
-        #expect(model.launch == IdentityPanelMapper.launch(config: .example, settings: noSettings, actualDeviceID: nil, savedDeviceIDs: [], aliases: [:]))
-        #expect(model.cleanInstallNote == IdentityPanelMapper.cleanInstallNote(needsCleanInstall: false, cleanInstallIsOn: false))
+        #expect(model.launch == IdentityPanelMapper.launch(context: context))
+        #expect(model.cleanInstallNote == IdentityPanelMapper.cleanInstallNote(context: context, cleanInstallIsOn: false))
     }
 
     @Test func cleanInstallChangesTheRunButton() {
-        let model = map(simulators: [booted], config: .example, cleanInstallIsOn: true)
+        let model = map(simulators: [booted], identity: context, cleanInstallIsOn: true)
 
         #expect(model.runTitle == "Reinstall & Run")
         #expect(model.runTint == .orange)
     }
 
+    @Test func anotherIDChangesTheRunButton() {
+        let other = IdentityContextFixture.context(settings: IdentityContextFixture.settings(desired: "devhub-1"))
+
+        #expect(map(simulators: [booted], identity: other).runTitle == "Reinstall & Run")
+    }
+
     @Test func cannotRunWithoutATargetOrDuringABuild() {
-        #expect(map(simulators: [], config: nil, targetID: nil).canRun == false)
-        #expect(map(simulators: [booted], config: nil, buildIsRunning: true).canRun == false)
+        #expect(map(simulators: [], identity: nil, targetID: nil).canRun == false)
+        #expect(map(simulators: [booted], identity: nil, buildIsRunning: true).canRun == false)
     }
 
     private func map(
         simulators: [Simulator],
-        config: DeviceIdentityConfig?,
+        identity: IdentityContext?,
         targetID: Simulator.ID? = "b",
         cleanInstallIsOn: Bool = false,
         buildIsRunning: Bool = false
@@ -58,11 +64,7 @@ import DevHubTestSupport
             simulators: simulators,
             runtime: { _ in "iOS 18.2" },
             targetID: targetID,
-            config: config,
-            settings: noSettings,
-            identity: nil,
-            savedDeviceIDs: [],
-            aliases: [:],
+            identity: identity,
             cleanInstallIsOn: cleanInstallIsOn,
             buildIsRunning: buildIsRunning
         )

@@ -32,10 +32,10 @@ struct RunBar: View {
                     Divider()
                     LaunchIdentityControls(
                         model: launch,
-                        environment: environmentBinding(for: target.id),
                         deviceID: deviceIDBinding(for: target.id),
                         alias: aliasBinding(for: target.id),
-                        onForget: { identityStore.forgetSavedDeviceID($0) }
+                        onForget: { identityStore.forgetSavedDeviceID($0) },
+                        newID: { identityStore.newIdentity() }
                     )
                     if let note = target.cleanInstallNote {
                         CleanInstallNote(model: note)
@@ -65,13 +65,8 @@ struct RunBar: View {
             state: build.state,
             target: target,
             runtime: target.flatMap { simulators.runtime(for: $0.id) },
-            identity: target.flatMap { identityStore.identities[$0.id] },
-            identitySettings: target.map { identityStore.settings(for: $0.id) },
-            savedDeviceIDs: identityStore.savedDeviceIDs,
-            deviceIDAliases: identityStore.deviceIDAliases,
+            identity: target.flatMap { identityStore.context(for: $0.id) },
             mockState: target.flatMap { mockServerStore.states[$0.id] },
-            isApplying: target.map { identityStore.isApplying($0.id) } ?? false,
-            config: identityStore.config,
             hasLog: build.hasLog,
             isLoadingSimulators: simulators.isLoading
         )
@@ -201,13 +196,6 @@ struct RunBar: View {
         }
     }
 
-    private func environmentBinding(for id: Simulator.ID) -> Binding<String> {
-        Binding(
-            get: { identityStore.settings(for: id).desiredEnvironment ?? "" },
-            set: { identityStore.setDesiredEnvironment($0, for: id) }
-        )
-    }
-
     private func aliasBinding(for id: Simulator.ID) -> Binding<String> {
         Binding(
             get: { identityStore.alias(for: id) },
@@ -217,7 +205,7 @@ struct RunBar: View {
 
     private func deviceIDBinding(for id: Simulator.ID) -> Binding<String> {
         Binding(
-            get: { identityStore.settings(for: id).desiredDeviceID ?? "" },
+            get: { identityStore.settings(for: id).desiredIdentity ?? "" },
             set: { identityStore.setDesiredDeviceID($0, for: id) }
         )
     }

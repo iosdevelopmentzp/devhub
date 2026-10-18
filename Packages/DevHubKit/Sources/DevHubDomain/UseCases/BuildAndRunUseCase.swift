@@ -5,10 +5,10 @@ package struct BuildAndRunUseCase: Sendable {
     package let simulators: any SimulatorRepository
     package let install: AppInstallStep
 
-    package init(build: any BuildRepository, simulators: any SimulatorRepository, identity: any DeviceIdentityRepository, attacher: any XcodeAttaching, mockServer: any MockServerRepository) {
+    package init(build: any BuildRepository, simulators: any SimulatorRepository, attacher: any XcodeAttaching, mockServer: any MockServerRepository) {
         self.build = build
         self.simulators = simulators
-        install = AppInstallStep(simulators: simulators, identity: identity, attacher: attacher, mockServer: mockServer)
+        install = AppInstallStep(simulators: simulators, attacher: attacher, mockServer: mockServer)
     }
 
     package func run(_ request: BuildRequest) -> AsyncThrowingStream<BuildEvent, Error> {

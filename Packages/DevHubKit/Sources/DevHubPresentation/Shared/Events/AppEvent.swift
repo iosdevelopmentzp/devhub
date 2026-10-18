@@ -9,8 +9,9 @@ enum AppEvent {
     case simulatorsChanged
     case commandFailed
     case buildStarted(simulatorID: String)
-    case buildFinished(simulatorID: String, launchedDeviceID: String??)
-    case appLaunched(simulatorID: String)
+    case buildFinished(simulatorID: String, launch: LaunchRecord?)
+    case appLaunched(simulatorID: String, launch: LaunchRecord?)
+    case appStateReported(simulatorID: String, report: AppStateReport?)
     case worktreeCheckoutPrepared
     case worktreeBootstrapping(path: String, isRunning: Bool)
     case mockSetChanged(id: MockSet.ID)

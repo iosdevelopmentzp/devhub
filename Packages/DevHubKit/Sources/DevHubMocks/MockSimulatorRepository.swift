@@ -11,6 +11,8 @@ struct MockSimulatorRepository: SimulatorRepository {
         try await Task.sleep(for: .milliseconds(900))
     }
 
+    func waitUntilBooted(udid: String) async throws {}
+
     func shutdown(udid: String) async throws {
         try await Task.sleep(for: .milliseconds(300))
     }

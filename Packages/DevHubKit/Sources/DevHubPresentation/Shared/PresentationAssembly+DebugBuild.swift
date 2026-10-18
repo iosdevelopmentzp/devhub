@@ -3,7 +3,7 @@ import Foundation
 import DevHubDomain
 
 package extension PresentationAssembly {
-    func debugBuildRun(target: String, profile: String?, branch: String?) async {
+    func debugBuildRun(target: String, profile: String?, identity: String?, branch: String?) async {
         await worktrees.refresh()
         await simulators.refresh()
         await config.reload()
@@ -15,6 +15,9 @@ package extension PresentationAssembly {
         build.selectTarget(id: simulator.id)
         if let profile {
             build.setProfile(profile)
+        }
+        if let identity {
+            self.identity.setDesiredDeviceID(identity, for: simulator.id)
         }
         if let branch {
             build.useSource(branch: branch)

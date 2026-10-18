@@ -72,6 +72,7 @@ private func collect(_ stream: AsyncThrowingStream<BuildEvent, Error>) async -> 
             switch event {
             case .step(let title, _): events.append("step: \(title)")
             case .output(let line): events.append("output: \(line)")
+            case .launched: events.append("launched")
             }
         }
         return (events, nil)

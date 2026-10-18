@@ -1,17 +1,20 @@
 import Foundation
 
 package struct LaunchRecord: Codable, Hashable, Sendable {
+    package var bundleID: String?
     package var profileID: String?
     package var identity: String?
     package var baseURL: String?
     package var date: Date
 
     package init(
+        bundleID: String?,
         profileID: String?,
         identity: String?,
         baseURL: String?,
         date: Date
     ) {
+        self.bundleID = bundleID
         self.profileID = profileID
         self.identity = identity
         self.baseURL = baseURL

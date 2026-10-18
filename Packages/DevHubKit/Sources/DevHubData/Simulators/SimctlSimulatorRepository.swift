@@ -22,6 +22,10 @@ struct SimctlSimulatorRepository: SimulatorRepository {
         try await simctl.run(["boot", udid], allowingExit: Self.stateAlreadyReached, failure: SimulatorError.command)
     }
 
+    func waitUntilBooted(udid: String) async throws {
+        try await simctl.run(["bootstatus", udid], failure: SimulatorError.command)
+    }
+
     func shutdown(udid: String) async throws {
         try await simctl.run(["shutdown", udid], allowingExit: Self.stateAlreadyReached, failure: SimulatorError.command)
     }
@@ -72,7 +76,7 @@ struct SimctlSimulatorRepository: SimulatorRepository {
     }
 
     func writeDefaults(udid: String, bundleID: String, defaults: [ProfileDefault]) async throws {
-        for (container, items) in Dictionary(grouping: defaults, by: { ProfileDefaultsPlan.containerKind(for: $0, bundleID: bundleID) }) {
+        for (container, items) in Dictionary(grouping: defaults, by: { ProfileDefaultsPlan.containerKind(suite: $0.suite) }) {
             let root = try await simctl.run(["get_app_container", udid, bundleID, container], failure: SimulatorError.command).stdout.trimmingCharacters(in: .whitespacesAndNewlines)
             let folder = (root as NSString).appendingPathComponent("Library/Preferences")
             try FileManager.default.createDirectory(atPath: folder, withIntermediateDirectories: true)
@@ -113,7 +117,7 @@ struct SimctlSimulatorRepository: SimulatorRepository {
     private func whileBooted<T>(udid: String, wasBooted: Bool, _ work: () async throws -> T) async throws -> T {
         if wasBooted == false {
             try await boot(udid: udid)
-            try await simctl.run(["bootstatus", udid], failure: SimulatorError.command)
+            try await waitUntilBooted(udid: udid)
         }
         do {
             let value = try await work()

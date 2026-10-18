@@ -14,12 +14,7 @@ enum BuildRequestFixture {
         incremental: true,
         simulatorUDID: udid,
         simulatorName: simulatorName,
-        identity: nil,
         cleanInstall: false, launch: .none,
         attachDebugger: false
     )
-
-    static func identity(deviceID: String?, environment: String?) -> BuildIdentity {
-        BuildIdentity(config: .example, deviceID: deviceID, environment: environment)
-    }
 }

@@ -8,7 +8,7 @@ package final class SpyProjectDetector: ProjectDetecting, @unchecked Sendable {
     }
 
     private static let defaultProject: @Sendable (URL) -> Project = { folder in
-        Project(id: folder.path, name: folder.lastPathComponent, path: folder.path, scheme: "", bundleID: "", identity: nil)
+        Project(id: folder.path, name: folder.lastPathComponent, path: folder.path, scheme: "", bundleID: "")
     }
 
     private let lock = NSLock()

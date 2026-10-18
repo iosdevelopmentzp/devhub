@@ -13,11 +13,13 @@ enum MockServerBarMapper {
         isApplying: Bool,
         needsApply: Bool,
         error: String?,
-        identity: AppIdentity?,
-        config: DeviceIdentityConfig?
+        app: InstalledApp?,
+        report: AppStateReport?,
+        lastLaunch: LaunchRecord?,
+        profiles: [LaunchProfile]
     ) -> MockServerBarModel {
         let status = status(state: state, isApplying: isApplying)
-        let app = appStatus(state: state, identity: identity, config: config)
+        let app = appStatus(state: state, app: app, report: report, lastLaunch: lastLaunch, profiles: profiles)
         return MockServerBarModel(
             modes: modeOptions,
             mode: settings.mode,
@@ -45,34 +47,36 @@ enum MockServerBarMapper {
         }
     }
 
-    static func appStatus(state: MockServerState?, identity: AppIdentity?, config: DeviceIdentityConfig?) -> (text: String, tint: Tint, hint: String)? {
+    static func appStatus(state: MockServerState?, app: InstalledApp?, report: AppStateReport?, lastLaunch: LaunchRecord?, profiles: [LaunchProfile]) -> (text: String, tint: Tint, hint: String)? {
         guard let state, let port = state.port else { return nil }
-        guard let identity, identity.isInstalled else {
+        let serverURL = MockLaunchEnvironment.baseURL(port: port)
+        guard app?.isInstalled != false else {
             return ("App not installed on this simulator", .secondary, "Build & Run installs it; the launch from DevHub points it to the server")
         }
-        guard let apiHost = identity.apiHost else {
-            return ("App has not sent requests yet", .secondary, "DevHub reads the host from the app's session log after the first request")
+        guard let lastLaunch else {
+            return ("Launched outside DevHub: traffic may bypass the server", .orange, "DevHub has no launch of this app on record. Press Apply & Relaunch so the app gets \(serverURL).")
         }
-        guard apiHost.hasPrefix("127.0.0.1") else {
+        guard lastLaunch.baseURL == serverURL else {
+            let text = lastLaunch.baseURL.map { "App points to an old DevHub server (\($0)): relaunch" } ?? "The last launch did not use the server: relaunch"
+            return (text, .orange, "The server listens on \(serverURL). Launch the app from DevHub again.")
+        }
+        if let host = report?.host, host.hasPrefix("127.0.0.1") == false {
             return (
-                "App talks to \(apiHost) directly: launched without DevHub",
+                "App reports \(host): launched without DevHub",
                 .orange,
-                "The server runs, but the app was started from Xcode or the home screen and ignores it. Launch the app from DevHub (Apply & Relaunch, Launch or Build & Run)."
+                "The server runs, but the status script says the app talks to \(host). It was probably started from Xcode or the home screen. Launch the app from DevHub."
             )
         }
-        guard apiHost == "127.0.0.1:\(port)" else {
-            return ("App points to an old DevHub port (\(apiHost)): relaunch", .orange, "The server now listens on 127.0.0.1:\(port). Launch the app from DevHub again.")
-        }
-        let appEnvironment = identity.storedEnvironment ?? config?.defaultEnvironment
-        let serverEnvironment = config.flatMap { UpstreamResolver.environmentName(ofHost: state.upstreamHost, config: $0) }
-        if let appEnvironment, let serverEnvironment, appEnvironment != serverEnvironment {
+        let appProfile = profiles.first { $0.id == lastLaunch.profileID }
+        let serverProfile = MockUpstreamPolicy.profile(ofHost: state.upstreamHost, in: profiles)
+        if let appProfile, let serverProfile, appProfile.id != serverProfile.id {
             return (
-                "App is on \(appEnvironment), the server forwards to \(serverEnvironment): relaunch",
+                "App is on \(appProfile.title), the server forwards to \(serverProfile.title): relaunch",
                 .orange,
-                "The app stores \(appEnvironment) but its requests reach \(state.upstreamHost). A launch from DevHub moves the server to the app's environment."
+                "The app was launched with \(appProfile.title) but its requests reach \(state.upstreamHost). A launch from DevHub moves the server to the app's profile."
             )
         }
-        return ("App goes through DevHub (127.0.0.1:\(port))", .green, "The app's last requests went to the DevHub server, which forwards them to \(state.upstreamHost)")
+        return ("App goes through DevHub (\(serverURL))", .green, "As of the last launch from DevHub the app talks to the DevHub server, which forwards to \(state.upstreamHost)")
     }
 
     private static func status(state: MockServerState?, isApplying: Bool) -> (text: String, tint: Tint, hint: String) {

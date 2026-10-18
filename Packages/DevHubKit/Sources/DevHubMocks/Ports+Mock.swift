@@ -10,7 +10,7 @@ extension Ports {
             simulators: MockSimulatorRepository(),
             build: MockBuildRepository(),
             worktrees: MockWorktreeRepository(),
-            identity: MockDeviceIdentityRepository(),
+            launcher: MockAppLaunchRepository(),
             git: MockGitRepository(),
             changes: MockGitChangesRepository(),
             logs: MockAppLogRepository(),

@@ -64,10 +64,10 @@ import DevHubTestSupport
 
     @Test func buildFinishedAndAppLaunchedRefresh() async throws {
         _ = store
-        harness.events.post(.buildFinished(simulatorID: booted.id, launchedDeviceID: nil))
+        harness.events.post(.buildFinished(simulatorID: booted.id, launch: nil))
         try await waitUntil { listCalls == 1 }
 
-        harness.events.post(.appLaunched(simulatorID: booted.id))
+        harness.events.post(.appLaunched(simulatorID: booted.id, launch: nil))
         try await waitUntil { listCalls == 2 }
     }
 
