@@ -10,7 +10,6 @@ Read first, in this order: this file, `docs/STATUS.md` (where the project stands
 - Local package `Packages/DevHubKit` (tools 6.2, Swift 6) with the modules `DevHubDomain`, `DevHubData`, `DevHubMocks`, `DevHubUI`, `DevHubPresentation`, `DevHubComposition`, `DevHubTestSupport` and four test targets. `project.pbxproj` holds the package reference.
 - No App Sandbox. Ad-hoc signing ("Sign to Run Locally"). `INFOPLIST_KEY_LSUIElement = YES`: no Dock icon by default. Keep it this way: a sandbox would block `git`, `xcrun` and `xcodebuild`.
 - `DevHub/` is an Xcode synchronized folder. Edit `project.pbxproj` only for build settings, never for file lists. New code goes into the package.
-- `legacy/` holds the Swift sources of the first generic app. It is not built. It is the port source for the config system, Copilot support and debug switches until milestone M7 deletes it.
 - No third-party packages.
 - The repository has no remote. Never push it anywhere. The GitHub account on this machine is only for a playground repository that tests the pull request features.
 
@@ -46,7 +45,6 @@ Modules, one direction: `Composition → Presentation → Domain ← Data`; Pres
 | `Packages/DevHubKit/Tests` | `DevHubDomainTests`, `DevHubDataTests`, `DevHubUITests`, `DevHubPresentationTests` |
 | `Scripts/` | build, test, layer and anonymity checks, run, install, smoke, launcher, `ai/` hooks |
 | `docs/` | `ARCHITECTURE.md`, `STATUS.md`, `SPEC.md`, `extensions.md`, `adr/`, `examples/` |
-| `legacy/` | the first generic app, port source only, not built |
 
 ## Conventions
 

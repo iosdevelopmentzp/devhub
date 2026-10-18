@@ -1,18 +1,19 @@
 # Status
 
-Last updated: 2026-10-18 (rewrite, milestone M6)
+Last updated: 2026-10-18 (rewrite, milestone M7)
 
 ## Stage
 
 The app is being rewritten on the package architecture of the main DevHub. The plan and its step log are in `docs/adr/001-port-from-main-devhub.md` (milestones M0 to M8).
 
 - M0 done: local git repository, anonymity check, the plan as ADR 001.
-- M1 done: the package `Packages/DevHubKit` (seven modules, about 1,480 tests) is the app. Slack commands and the session log reader are gone. The first generic app is in `legacy/` as the port source and is not built.
+- M1 done: the package `Packages/DevHubKit` (seven modules, about 1,480 tests) is the app. Slack commands and the session log reader are gone. The first generic app stayed in `legacy/` as the port source until M7 deleted it.
 - M2 done: the `.devhub/` config system inside the modules (ADR 002): Home quick actions and scripts, config problems, hot reload, placements in the Git header, branch, worktree and simulator rows, the run bar and the Logs toolbar. About 1,570 tests.
 - M3 done: Git from config. `git.remote`, `git.baseBranch`, `git.protectedBranches`, `git.commitPrefix`, `git.ticketURL`, `git.worktrees.*`; "Open in Editor" on file rows; `DEVHUB_GIT_OPS`. Checked on a throwaway repository with a bare remote called `upstream`. About 1,600 tests.
 - M4 done: one code host port for GitHub (`gh`) and GitLab (`glab`), ADR 003. The Pull Requests tab, the Git status line and branch tags use the words of the host. `git.host.*`, `git.pullRequests.*`, `ai.reviewCommand`, the `pullRequests.row` placement, `when.host` and the `pullRequests` refresh target. Checked on a private GitHub test repository: the list in four scopes, details with a thread, files, draft and ready, update branch, merge with branch removal, create with labels, reply, resolve, re-run and cancel a check run. About 1,650 tests.
 - M5 done: Build & Run from config. `xcode.*` in the run bar and in `xcodebuild`, launch profiles (environment, arguments, `defaults` in the app or group container, clean install), `kind: command` projects, the `simulators.statusScript` line, deep link schemes from the installed app, log chips with one stream per simulator, Copilot CLI sessions and Copilot usage. Checked on a sample app: the main checkout, a worktree, a branch without a checkout, both profiles, a command project, two log streams at once, the status line, the AI tab with Copilot and Claude sessions and the usage strip with both providers. About 1,715 tests.
 - M6 done: launch identities and the network config (ADR 001 sections 7.6, 7.7 and Appendix A). `launch.identity`, profile `storage`, `upstream` and `production`, the `state` line of the status script, the identity panel and the run bar, the clean install rule, the mock server with profile upstreams, `network.baseURLVariable` and `network.mocksFolder`, the Network empty states, the example config. Checked on a sample app with a local upstream: Build & Run with an ID and a profile, the `state` report in the panel, Passthrough lists the request of the app, a patch rule from `network.mocksFolder` changes two fields of the response. The production refusal was checked by tests only. About 1,740 tests.
+- M7 done: the shell is complete (ADR 001 sections 7.8 and 7.10). Custom tabs from `.devhub/tabs`, the ⌘K command palette, macOS notifications while the panel is closed, the menu bar icon state (build running, unseen failure), GraphQL in the Network tab, Settings with Doctor, project re-detect and the global config folder. `legacy/` is deleted. About 1,795 tests.
 
 ## Screens
 
@@ -47,7 +48,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 6. Common branch names (`main`, `master`, `develop`, `dev`) are not project names and may appear in tests and defaults. The remote comes from `git.remote` (`GitSettingsPolicy.defaultRemote` is `origin`), and every git command, `BranchName` and policy takes the remote name as a parameter.
 7. The first launch has no project. `ProjectSession.selectedProject` falls back to `Project.none` and `RootView` shows `NoProjectState` instead of a tab. Why: the main app had a fixed default project, and a generic app cannot know one.
 8. The Network tab lists only the exchanges of the DevHub mock server. Why: the session log was the log format of one app. `NetworkStore` keeps selection, filter, pause and clear over the server exchanges.
-9. Debug launch switches live in `DevHubComposition/Debug/DebugLaunch.swift` and are compiled in Debug builds only. Today: `DEVHUB_PROJECT`, `DEVHUB_OPEN_PANEL`, `DEVHUB_TAB`, `DEVHUB_SNAPSHOT`, `DEVHUB_SNAPSHOT_DELAY`, `DEVHUB_RUN_ACTION` (comma-separated action ids, run with default inputs), `DEVHUB_REQUEST_ACTION` (one id, opens its prompt), `DEVHUB_SHOW_OUTPUT`, `DEVHUB_GIT_OPS` (comma-separated steps such as `fetch,stage:a.txt,commit:Message,push,wt-create:feature/x,switch:topic,delete-branch:topic`; each step waits until the stores are idle; the list is in `PresentationAssembly+DebugGitOps.swift`). `DEVHUB_PROJECT`, `DEVHUB_TAB` and `DEVHUB_SHOW_OUTPUT` change saved preferences. The rest of the switches from `legacy/App/DebugLaunch*.swift` come with the features they drive.
+9. Debug launch switches live in `DevHubComposition/Debug/DebugLaunch.swift` and are compiled in Debug builds only. Today: `DEVHUB_PROJECT`, `DEVHUB_OPEN_PANEL`, `DEVHUB_TAB`, `DEVHUB_SNAPSHOT`, `DEVHUB_SNAPSHOT_DELAY`, `DEVHUB_RUN_ACTION` (comma-separated action ids, run with default inputs), `DEVHUB_REQUEST_ACTION` (one id, opens its prompt), `DEVHUB_SHOW_OUTPUT`, `DEVHUB_GIT_OPS` (comma-separated steps such as `fetch,stage:a.txt,commit:Message,push,wt-create:feature/x,switch:topic,delete-branch:topic`; each step waits until the stores are idle; the list is in `PresentationAssembly+DebugGitOps.swift`). `DEVHUB_PROJECT`, `DEVHUB_TAB` and `DEVHUB_SHOW_OUTPUT` change saved preferences. Later switches: `DEVHUB_BUILD_RUN` (with `DEVHUB_BUILD_PROFILE`, `DEVHUB_BUILD_BRANCH`, `DEVHUB_LAUNCH_ID`), `DEVHUB_MOCK`, `DEVHUB_LOG_STREAMS`, `DEVHUB_PALETTE`.
 10. Snapshot trap: SwiftUI does not redraw a panel that is covered by other windows, and `cacheDisplay` does not draw some controls (a prominent button looks empty). Check results on the command line as well as in the picture.
 11. The scripts stop only the build of this repository, by its executable path. Why: another app with the same name (`DevHub`) can run on the same machine.
 12. The app keeps the bundle ID `devteams.DevHub` of the first generic app, so it reads and writes the same preferences domain.
@@ -73,7 +74,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 31. A custom tab has no store of its own: `CustomTabMapper` turns the tab config into sections, and the rows run through `ConfigActionsStore` like the scripts on Home. A source script is the header script action `script:<file name>`, so its run, result and last run time are shared with Home. Why: one place runs config scripts and keeps their results; a second store would copy that state.
 ## Next steps
 
-1. M7 (ADR 001 sections 7.8 and 7.10): custom tabs, the command palette, notifications, the menu bar state, Settings with launch at login and Doctor; delete `legacy/`.
+1. M8 (ADR 001 section 8): refresh `docs/SPEC.md`, rewrite the stale skills, final status.
 2. Rewrite the skills that still describe the first generic app (`add-feature`, `providers-and-shell`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`) when the milestone that touches their area lands.
 3. `docs/SPEC.md` still describes the first generic app; M8 refreshes it.
 
@@ -84,7 +85,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 - `network.toolbar` from ADR 001 Appendix B.3 is not a placement yet. It is not in `docs/extensions.md`; adding it changes the schema, so it waits for the owner.
 - Auto-merge on GitHub was not seen working: the test repository is private on a free plan, which has no branch protection and no auto-merge. The action stays hidden there (`autoMergeAllowed` is false).
 - The GitLab flows were not clicked through after the M4 rename: that needs a GitLab host of the owner. The `glab` code and its tests did not change in behaviour.
-- The Doctor rows for `gh` and `glab` come with the Doctor section in M7.
+- macOS notifications were checked by tests only: the permission prompt was not accepted in this session, so no banner was seen.
 - The context menus of rows were checked by tests only: a headless snapshot does not open a menu.
 - With `xcode.bundleIDs` per scheme, the identity panel reads the app of the effective scheme until the first launch from DevHub on that simulator (decision 30).
 - Launch & Attach in a simulator row needs `launch.identity`: without it DevHub does not read whether the app is installed.

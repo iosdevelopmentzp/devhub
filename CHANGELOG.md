@@ -79,6 +79,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- Deleted `legacy/`, the sources of the first generic app. Everything it did now lives in the package.
 - Debug launch switch `DEVHUB_PALETTE=<query>` opens the command palette.
 - Debug launch switches `DEVHUB_LAUNCH_ID=<id>` (the launch identity for `DEVHUB_BUILD_RUN`) and `DEVHUB_MOCK=<simulator>,<mode>[,<set>]` (Apply & Relaunch of the mock server).
 - `DEVHUB_BUILD_RUN`, `DEVHUB_BUILD_PROFILE` and `DEVHUB_BUILD_BRANCH` run Build & Run headless in Debug builds.
