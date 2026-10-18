@@ -191,6 +191,7 @@ An integration suite runs a real process or a real socket. It has `.tags(.integr
 | `MergedBranchesQueryIntegrationTests` | `Integration/` | `git` |
 | `MockServerIntegrationTests` | `Integration/` | the mock server on a real local socket |
 | `GhIntegrationTests` | `Integration/` | `gh` against the test repository (section 11); skipped without `DEVHUB_PLAYGROUND` |
+| `GlabIntegrationTests` | `Integration/` | `glab` against a GitLab test project (section 12); skipped without `DEVHUB_GITLAB_PLAYGROUND` |
 | `ConfigWatcherIntegrationTests` | `Config/` | the config file watcher over a temporary folder |
 | `ShellScriptRunnerIntegrationTests` | `Config/` | a config script through `/bin/sh`: output lines, exit code, timeout |
 
@@ -274,6 +275,29 @@ Flows that change the repository (merge, create, resolve) change it for real. Cr
 
 - A private repository on a free plan has no branch protection and no auto-merge. The auto-merge action stays hidden there (`autoMergeAllowed` is false).
 - The GitLab flows need a GitLab host of the owner. No GitLab test repository exists.
+
+
+## 12. The test project for merge requests
+
+`GlabIntegrationTests` runs against a private GitLab test project. It runs only when `DEVHUB_GITLAB_PLAYGROUND` is set:
+
+```sh
+DEVHUB_GITLAB_PLAYGROUND=<host>/<owner>/<project> Scripts/test.sh --filter GlabIntegrationTests
+```
+
+The host and the project come only from the variable. They never go into the repository.
+
+This suite writes. Each run:
+
+1. creates a branch `devhub-test-<random>` with one file through the GitLab API;
+2. creates a draft merge request from it;
+3. sets it to ready, to draft and to ready again;
+4. starts a thread, replies to it and resolves it;
+5. merges it with squash and branch removal.
+
+A second test reads the labels and the diff of a merged request.
+
+Not covered: approve and unapprove (GitLab may not allow approving your own request), auto-merge and pipelines (the test project has no CI).
 
 ## 12. Before a commit
 
