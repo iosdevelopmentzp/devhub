@@ -70,6 +70,9 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- The menu bar shows "PR" on GitHub and "MR" on GitLab next to the review count. Before, it showed "MR" for every host.
+- The Output panel sorts `gh` and `glab` calls the same way: GraphQL queries, GET calls and `view`, `list`, `checks`, `diff` and `status` count as reads; mutations and calls that send data count as actions. Before, every `glab api` call was a read and every `gh` call was an action.
+- GitLab GraphQL calls send `true` and `false` as booleans (`-F`), so draft, auto-merge and resolve mutations get the type GitLab expects.
 - Run & Attach, Launch & Attach and "Open in Xcode" open the workspace or project from `xcode.container`. Before, they opened the first one in the folder.
 - "Duplicate" of a mock set keeps the GraphQL operation name of each rule. Before, the copy matched every request on the path.
 - The Network tab names the real mock set folder (`network.mocksFolder` or `~/.devhub/mocks/<project>`) in the delete question and the picker hint. The mock server info and the "Copy as cURL" hints describe what DevHub does today.

@@ -250,7 +250,8 @@ package final class AppWindows: NSObject {
             statusItem.button?.image = StatusItemImage.image(for: state)
             statusItem.button?.title = StatusItemTitle.text(
                 usage: settings.values.showUsageInMenuBar ? usage.usage?.limits.first?.percentText : nil,
-                reviewCount: settings.values.showReviewCountInMenuBar ? assembly.openPullRequests.reviewCount : nil
+                reviewCount: settings.values.showReviewCountInMenuBar ? assembly.openPullRequests.reviewCount : nil,
+                words: assembly.codeHostRemote.words
             )
         } onChange: {
             DispatchQueue.main.async { [weak self] in

@@ -16,13 +16,15 @@ package enum CommandKind: Sendable {
     ]
     private static let simctlReads: Set<String> = ["list", "get_app_container", "listapps", "bootstatus"]
     private static let plainReads: Set<String> = ["du", "ps", "grep", "plutil", "pgrep"]
+    private static let codeHostReads: Set<String> = ["view", "list", "checks", "diff", "status"]
 
     package static func classify(_ executable: String, _ arguments: [String]) -> CommandKind {
         switch executable {
         case "security":
             return .secret
         case "gh":
-            return arguments.starts(with: ["auth", "token"]) ? .secret : .action
+            if arguments.starts(with: ["auth", "token"]) { return .secret }
+            return codeHostKind(arguments)
         case "git":
             return gitKind(arguments)
         case "xcrun":
@@ -32,7 +34,7 @@ package enum CommandKind: Sendable {
             if arguments[1] == "spawn", arguments.contains("log") { return .appLog }
             return .action
         case "glab":
-            return arguments.first == "api" ? .read : .action
+            return codeHostKind(arguments)
         case "xcodebuild":
             return arguments.contains("-showBuildSettings") ? .read : .action
         case "osascript":
@@ -40,6 +42,21 @@ package enum CommandKind: Sendable {
         default:
             return plainReads.contains(executable) ? .read : .action
         }
+    }
+
+    private static func codeHostKind(_ arguments: [String]) -> CommandKind {
+        guard arguments.first == "api" else {
+            return arguments.count > 1 && codeHostReads.contains(arguments[1]) ? .read : .action
+        }
+        if arguments.contains("graphql") {
+            let query = arguments.first { $0.hasPrefix("query=") } ?? ""
+            return query.dropFirst("query=".count).trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("mutation") ? .action : .read
+        }
+        if let index = arguments.firstIndex(where: { $0 == "-X" || $0 == "--method" }), index + 1 < arguments.count {
+            return arguments[index + 1].uppercased() == "GET" ? .read : .action
+        }
+        let sendsFields = arguments.contains { ["-f", "-F", "--field", "--raw-field", "--input"].contains($0) }
+        return sendsFields ? .action : .read
     }
 
     private static func gitKind(_ arguments: [String]) -> CommandKind {

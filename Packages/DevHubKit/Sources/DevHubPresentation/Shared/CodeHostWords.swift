@@ -39,6 +39,10 @@ struct CodeHostWords: Equatable {
         kind == .gitlab ? "merge request" : "pull request"
     }
 
+    var shortRequest: String {
+        kind == .gitlab ? "MR" : "PR"
+    }
+
     var requests: String {
         "\(request)s"
     }

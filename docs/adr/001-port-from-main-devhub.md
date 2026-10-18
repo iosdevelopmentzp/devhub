@@ -632,3 +632,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `11b0254` | M7 | `legacy/` deleted, AGENTS.md updated, M7 closed in STATUS. |
 | `fe1ce55` | M8 | App icon (`Scripts/make-app-icon.swift`) and README refresh: documentation table, Doctor tools, first project steps. |
 | `61bcf46` | M8 | Fixes from the doc review: bundle ID through `IdentityLookup` for deep links, push, uninstall and logs; `operationName` kept on duplicate; mock folder text and two hints. |
+| `ad52757` | M8 | `xcode.container` passed to `XcodeAttaching.attach` and `WorkspaceOpening.openInXcode`. |

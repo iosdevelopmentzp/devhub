@@ -66,9 +66,18 @@ import Testing
         #expect(CommandKind.classify("xcrun", ["xcodebuild", "list"]) == .action)
     }
 
-    @Test func glabAPIIsARead() {
-        #expect(CommandKind.classify("glab", ["api", "projects"]) == .read)
+    @Test func codeHostAPICallsAreReadsUnlessTheyChangeData() {
+        for tool in ["gh", "glab"] {
+            #expect(CommandKind.classify(tool, ["api", "--hostname", "github.com", "repos/example/app"]) == .read)
+            #expect(CommandKind.classify(tool, ["api", "--hostname", "github.com", "-X", "GET", "repos/example/app/pulls", "-f", "state=open"]) == .read)
+            #expect(CommandKind.classify(tool, ["api", "--hostname", "github.com", "-X", "PUT", "repos/example/app/pulls/1/merge"]) == .action)
+            #expect(CommandKind.classify(tool, ["api", "--hostname", "github.com", "repos/example/app/issues/1/comments", "-f", "body=Hi"]) == .action)
+            #expect(CommandKind.classify(tool, ["api", "graphql", "--hostname", "github.com", "-f", "query=query { viewer { login } }"]) == .read)
+            #expect(CommandKind.classify(tool, ["api", "graphql", "--hostname", "github.com", "-f", "query= mutation Approve { x }"]) == .action)
+        }
         #expect(CommandKind.classify("glab", ["mr", "create"]) == .action)
+        #expect(CommandKind.classify("gh", ["pr", "view", "12"]) == .read)
+        #expect(CommandKind.classify("gh", ["pr", "checks", "12"]) == .read)
     }
 
     @Test func xcodebuildShowBuildSettingsIsARead() {
@@ -99,7 +108,7 @@ import Testing
 
     @Test func ghAuthTokenIsASecret() {
         #expect(CommandKind.classify("gh", ["auth", "token"]) == .secret)
-        #expect(CommandKind.classify("gh", ["auth", "status"]) == .action)
+        #expect(CommandKind.classify("gh", ["auth", "status"]) == .read)
         #expect(CommandKind.classify("gh", ["pr", "merge", "12"]) == .action)
     }
 

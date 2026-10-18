@@ -22,8 +22,10 @@ struct GlabClient {
 
     static func graphqlArguments(query: String, variables: [(name: String, value: String)], host: String) -> [String] {
         ["api", "graphql", "--hostname", host, "-f", "query=\(query)"]
-            + variables.flatMap { ["-f", "\($0.name)=\($0.value)"] }
+            + variables.flatMap { [booleans.contains($0.value) ? "-F" : "-f", "\($0.name)=\($0.value)"] }
     }
+
+    private static let booleans: Set<String> = ["true", "false"]
 
     static func host(of repository: CodeHost) throws -> String {
         guard repository.kind == .gitlab else { throw PullRequestError.noCodeHost }

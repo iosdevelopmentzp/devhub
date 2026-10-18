@@ -15,6 +15,16 @@ import Testing
         #expect(arguments == ["api", "graphql", "--hostname", "gitlab.example.com", "-f", "query=query { x }", "-f", "path=team/app", "-f", "iid=7"])
     }
 
+    @Test func graphqlSendsBooleansAsTypedFields() {
+        let arguments = GlabClient.graphqlArguments(
+            query: "mutation { x }",
+            variables: [(name: "draft", value: "true"), (name: "title", value: "@notes.txt")],
+            host: "gitlab.example.com"
+        )
+
+        #expect(arguments == ["api", "graphql", "--hostname", "gitlab.example.com", "-f", "query=mutation { x }", "-F", "draft=true", "-f", "title=@notes.txt"])
+    }
+
     @Test func restWritesPassTheMethodAndFields() {
         let arguments = GlabClient.restArguments(
             endpoint: "projects/team%2Fapp/merge_requests/7/merge",

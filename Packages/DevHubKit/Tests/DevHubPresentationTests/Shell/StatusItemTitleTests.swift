@@ -11,6 +11,11 @@ import Testing
         (nil, 0, ""),
     ])
     func title(usage: String?, reviewCount: Int?, text: String) {
-        #expect(StatusItemTitle.text(usage: usage, reviewCount: reviewCount) == text)
+        #expect(StatusItemTitle.text(usage: usage, reviewCount: reviewCount, words: .gitLab) == text)
+    }
+
+    @Test func gitHubAndAnUnknownHostCountPullRequests() {
+        #expect(StatusItemTitle.text(usage: nil, reviewCount: 2, words: .gitHub) == " 2 PR")
+        #expect(StatusItemTitle.text(usage: nil, reviewCount: 2, words: CodeHostWords(kind: nil)) == " 2 PR")
     }
 }
