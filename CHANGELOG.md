@@ -96,6 +96,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- Documentation for the finished rewrite: `docs/features/<tab>.md` for every tab, a new `docs/SPEC.md`, `docs/adr/004-launch-identities-and-network.md`, `docs/testing.md`, the `code-host` skill, and rewritten `add-feature`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`, `data-layer` and `testing` skills. The `providers-and-shell` skill is merged into `data-layer`.
+- `docs/extensions.md`: the `xcode.bundleID` default and use, the `production` key, the `notify` directive and the custom tab shortcut now match the code.
 - `Scripts/check-layers.sh` fails on `MainActor.assumeIsolated`. The three window observers, the hot key and the command log hop to the main actor with `Task { @MainActor in }` or `DispatchQueue.main.async { @MainActor in }`.
 - `Scripts/make-app-icon.swift <folder>` draws the app icon PNGs in every size. Run it on `DevHub/Assets.xcassets/AppIcon.appiconset`.
 - README: a documentation table, the tools that Doctor checks, "First project in two minutes", ⌘K, ⌘9 and notifications.

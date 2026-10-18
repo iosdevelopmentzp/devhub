@@ -1,72 +1,175 @@
 ---
 name: panel-window
-description: "How DevHub's menu bar item, panel and pinned window work: NSStatusItem plus an own NSPanel instead of MenuBarExtra, open and close rules, saved position and size, drag and resize, screen clamping, light appearance, hints overlay, global hot key, Dock icon and login item. Load before changing anything in DevHub/Shell, WindowLayout, hints or the status item."
+description: "How DevHub's menu bar item, panel and windows work: AppWindows with an NSStatusItem and an own MenuBarPanel instead of MenuBarExtra, open and close rules, WindowLayout (saved position and size, drag, resize, screen clamping), the pinned window and pull request windows, the status item image and title (StatusItemState, StatusItemImage, StatusItemTitle), the GlobalHotKey shortcut, Dock icon and login item, light appearance, the hints overlay. Load before changing anything in DevHubPresentation/Shell, WindowLayout, hints or the status item."
 ---
 
 # Panel Window
 
+Paths are relative to `Packages/DevHubKit/Sources/`. The window code lives in `DevHubPresentation/Shell/` (with
+`WindowLayout` and `StatusItemState` in `DevHubPresentation/Shared/`), the hints in `DevHubUI/Hint/`, the hot key in
+`DevHubData/Workspace/`.
+
 ## Why not `MenuBarExtra`
 
-`MenuBarExtra(.window)` puts its panel back under the icon on every open and every resize, and the panel cannot be moved. DevHub draws its own menu bar item and panel. The SwiftUI `App` body is `Settings { EmptyView() }`; `AppDependencies.live()` creates `AppWindows`, which owns the status item, the panel and the pinned window.
+`MenuBarExtra(.window)` puts its panel back under the icon on every open and every resize, and the user cannot move
+it. DevHub draws its own status item and panel. The SwiftUI `App` in `DevHub/DevHubApp.swift` has only an empty
+`Settings` scene and keeps `AppContainer.live()` alive.
+
+## Start
+
+`AppContainer.live()` (DevHubComposition) builds `PresentationAssembly`, then `startSystemIntegration()`:
+
+```swift
+let windows = AppWindows(assembly: assembly)
+let hotKey = GlobalHotKey { windows.showPinnedOrPanel() }
+settings.onShortcutChange = { hotKey.register($0) }
+DispatchQueue.main.async { [settings, assembly] in
+    windows.start()
+    hotKey.register(settings.values.globalShortcut)
+    if settings.values.showDockIcon {
+        settings.applyDockIcon()
+    }
+    #if DEBUG
+    DebugLaunch.apply(assembly: assembly, windows: windows)
+    #endif
+}
+```
+
+`AppWindows.start()` sets the status item button, starts the observation of the layout and the status label, starts
+the usage and review polling, loads the config and the mock sets, and closes the panel on
+`NSApplication.didResignActiveNotification`.
 
 ## Pieces
 
-| Type | Role |
-|---|---|
-| `AppWindows` (Shell, split in `AppWindows+StatusItem`, `+Pinned`, `+Observation`) | status item button (left click toggles, right click shows a menu), panel, pinned window, click monitor, resign observer, layout and settings observation, hot key. Created with `AppWindows(layout:settings:navigator:session:makeContent:)`; `makeContent` receives a `PanelActions` and returns the root view as `AnyView`, so Shell never imports `AppDependencies` |
-| `PanelActions` (Shell, environment `\.panelActions`) | `isPinned`, `togglePin`, `handleEscape`, `resetPosition`: how views talk to `AppWindows` without knowing it; defaults are no-ops so previews work |
-| `MenuBarPanel: NSPanel` | borderless, `canBecomeKey` true, `isFloatingPanel`, `level = .statusBar`, `hidesOnDeactivate = false`, `isReleasedWhenClosed = false`, `collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]`, `animationBehavior = .none`, `isMovable = false`, clear background; the root view clips itself with a 10 pt rounded rectangle and the panel has a shadow |
-| `WindowLayout` (Shared, `@Observable`, Foundation and CoreGraphics only) | `size`, `panelTopLeft`, `openCount`; `panelFrame(anchor:visibleFrames:)`, `resize(to:topLeft:visibleFrame:)`, `savePanelTopLeft`, `setSize`, `reset()`, `resetPosition()`; persisted through `AppPreferences` (`window.size`, `window.panelTopLeft`). The top-left point uses AppKit screen coordinates (y is the top edge). `AppWindows` re-fits the panel when `size` or `panelTopLeft` change |
-| `WindowDragArea` (Shell, `NSViewRepresentable`) | moves the window itself in `mouseDragged` (`mouseDownCanMoveWindow` false), clamps to the usable area, reports the new top-left on mouse up; double-click resets to the icon |
-| `ResizeGrip` (Shell) | drag changes `layout.size`; double-click resets to 720 × 820 |
-| `WindowAppearance` (UI, `NSViewRepresentable`) | sets `window.appearance = NSAppearance(named: .aqua)` from inside the view tree |
-| `HostWindowReader` | gives a view its `NSWindow` |
-| `GlobalHotKey` (Services/Workspace) | Carbon `RegisterEventHotKey`, no Accessibility needed |
+| Type | Module, folder | Role |
+|---|---|---|
+| `AppWindows` | Presentation `Shell/` | `package final class`. Owns the `NSStatusItem`, the `MenuBarPanel`, the pinned window and one window per pull request. `togglePanel()`, `showPanel()`, `showPinnedOrPanel()`, `togglePin()`, `showPullRequestWindow(_:)` |
+| `MenuBarPanel` | Presentation `Shell/` | `NSPanel`: `.borderless`, `canBecomeKey` true, `isFloatingPanel`, `level = .statusBar`, `hidesOnDeactivate = false`, `isReleasedWhenClosed = false`, `collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]`, `animationBehavior = .none`, `isMovable = false`, clear background, shadow |
+| `WindowLayout` | Presentation `Shared/` | `@Observable`: `size`, `panelTopLeft`, `openCount`; `panelFrame(anchor:anchorScreen:)`, `fit(_:)`, `resize(to:in:)`, `reset()`. Saves `window.size` and `window.panelTopLeft` through `KeyValueStore` |
+| `WindowFrame` | Presentation `Shell/` | view modifier: a fixed `frame(width:height:)` from `layout.size` in the panel; a flexible frame with `minimumSize` in the pinned window that writes its size back to `layout` |
+| `RootView` | Presentation `Shell/` | usage strip, `HeaderView`, `FeatureTabBar`, `SearchFilterBar`, the selected tab or `NoProjectState`, `OutputPanel`, `FooterView`; the palette overlay, `HintOverlay`, `ToastView` |
+| `PanelDragArea`, `WindowDragArea` | Presentation `Shell/` | the header background moves the panel; a double click puts it back under the icon |
+| `ResizeGrip` | Presentation `Shell/` | in the footer: a drag changes `layout.size`; a double click sets 720 × 820 |
+| `WindowAppearance`, `HostWindowReader` | UI | set the window appearance from the view tree; give a view its `NSWindow` |
+| `GlobalHotKey` | Data `Workspace/` | Carbon `RegisterEventHotKey`, no Accessibility needed |
+
+Environment values for the shell: `\.isPinnedWindow` (DevHubUI), `\.togglePin`, `\.openPullRequestWindow` and
+`\.panelOpenCount` (DevHubPresentation). `AppWindows.hostingController(isPinned:)` sets the first three on
+`RootView().inject(assembly)`; `RootView` sets `\.panelOpenCount`.
 
 ## Open and close
 
-- First open creates the `NSHostingController` with `RootView().inject(dependencies)` and keeps it. Later opens only set the frame and `makeKeyAndOrderFront`, then `layout.openCount += 1`. `RootView` uses `.task(id: layout.openCount)` to refresh stores on each open and `.id("\(tab)#\(openCount)")` on the feature view.
-- `NSApp.activate()` before `makeKeyAndOrderFront`, `statusItem.button?.highlight(true)` while open.
-- Close on: a global mouse-down monitor (`NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown])`), `NSApplication.didResignActiveNotification`, Esc with an empty search field. Remove the monitor on close.
+- The first `showPanel()` creates the `NSHostingController` and keeps it. Later opens add 1 to `layout.openCount`.
+  Every tab view and `RootView` use `.task(id: openCount)` to refresh on each open.
+- `showPanel()` sets the frame, calls `NSApp.activate()`, then `makeKeyAndOrderFront`, highlights the status item
+  button and installs a global mouse-down monitor (`.leftMouseDown`, `.rightMouseDown`, `.otherMouseDown`).
+- The panel closes on a click outside DevHub (the monitor), on `didResignActiveNotification`, and on a second click
+  on the status item. `closePanel()` removes the monitor.
+- Left and right click on the status item both toggle the panel. There is no status item menu.
+- `Notifier.panelShown(_:)` hears every open and close, so notifications show only while the panel and the pinned
+  window are closed.
 
 ## Position and size
 
-- The anchor is the status item button frame converted to screen coordinates: `x = midX - width / 2`, `y = minY - 4`. A saved `panelTopLeft` wins over the anchor.
-- `panelFrame` picks the screen that contains the top-left point (else the anchor screen, else main), takes `visibleFrame` inset by 12, clamps the size to that area (and writes the clamped size back), clamps the point, writes the clamped point back when a saved point moved, and returns the frame.
-- `AppWindows.fitPanel()` re-applies the frame when the layout changes (observed with `withObservationTracking`, re-armed after each change). When `panelTopLeft` becomes nil (double-click), the frame goes back to the icon. Screens are matched by x position only, because the menu bar is outside `visibleFrame`.
-- `resize(to:topLeft:visibleFrame:)` limits the size to the room between the window's top-left corner and the screen edge, so resizing stops at the edge and the grip stays reachable.
-- A display change (`NSApplication.didChangeScreenParametersNotification`) calls `fit`.
+- The anchor is the status item button frame in screen coordinates: `x = midX - width / 2`, `y = minY - 4`. A saved
+  `panelTopLeft` wins over the anchor. The top-left point uses AppKit screen coordinates (y is the top edge).
+- `panelFrame(anchor:anchorScreen:)` picks the screen that contains the point (else the screen of the icon, else
+  the main screen), takes `visibleFrame` inset by `screenInset` (12), clamps the size and the point to that area,
+  writes a moved point back and returns the frame.
+- `AppWindows.observeLayout()` watches `size` and `panelTopLeft` with `withObservationTracking` and starts the
+  observation again after each change. When `panelTopLeft` becomes nil (double click on the header), the panel goes back to the icon.
+- `resize(to:in:)` limits the size to the room between the top-left corner and the screen edge, so the grip stays on
+  the screen. Sizes never go below `WindowLayout.minimumSize` (640 × 560). The default is `defaultSize` (720 × 820).
 
 ## Pinned window
 
-`NSWindow` with `[.titled, .closable, .miniaturizable, .resizable]`, `level = .floating`, `isReleasedWhenClosed = false`, `contentMinSize = 640 × 560`, `setFrameAutosaveName("DevHubPinnedWindow")`. The same `RootView` with `.environment(\.isPinnedWindow, true)`. `NSHostingController.sizingOptions = [.minSize]`. In the pinned window the root view uses `frame(minWidth:idealWidth:maxWidth:…)` and reports its size back to `layout`; in the panel it uses a fixed `frame(width:height:)`.
+The pin button in `HeaderView` calls `\.togglePin`. `togglePin()` closes the panel and shows an `NSWindow` with
+`[.titled, .closable, .miniaturizable, .resizable]`, `level = .floating`, `isReleasedWhenClosed = false`,
+`contentMinSize = WindowLayout.minimumSize` and the autosave name `WindowLayout.pinnedAutosaveName`. The content is
+the same `RootView` with `\.isPinnedWindow` true and `sizingOptions = [.minSize]`. `showPinnedOrPanel()` (the hot key)
+brings the pinned window to the front when it is visible, else toggles the panel.
+
+`showPullRequestWindow(_:)` opens one window per pull request (860 × 720, autosave name
+`WindowLayout.pullRequestAutosaveName`) with `PullRequestWindowView`.
+
+## Status item
+
+`AppWindows.updateStatusLabel()` reads the stores inside `withObservationTracking` and sets the button image and
+title again after every change.
+
+```swift
+let state = StatusItemState.state(isBuilding: assembly.build.isRunning, hasUnseenFailure: assembly.notifier.hasUnseenFailure)
+statusItem.button?.image = StatusItemImage.image(for: state)
+statusItem.button?.title = StatusItemTitle.text(
+    usage: settings.values.showUsageInMenuBar ? usage.usage?.limits.first?.percentText : nil,
+    reviewCount: settings.values.showReviewCountInMenuBar ? assembly.openPullRequests.reviewCount : nil,
+    words: assembly.codeHostRemote.words
+)
+```
+
+| Type | Folder | What it does |
+|---|---|---|
+| `StatusItemState` | `Shared/` | `.idle`, `.building`, `.failed`; `symbolName` (`hammer.fill` or `hammer.circle.fill`) and `showsFailureDot` |
+| `StatusItemImage` | `Shell/` | a template SF Symbol; for `.failed` a drawn copy with a red dot in the corner (not a template) |
+| `StatusItemTitle` | `Shell/` | the text after the icon: the usage percent and the review count, joined by ` · `. The count ends with `CodeHostWords.shortRequest`: "PR" on GitHub, "MR" on GitLab |
+
+Tests: `StatusItemStateTests` and `StatusItemTitleTests` in `DevHubPresentationTests`.
+
+## Global shortcut, Dock icon, login item
+
+- `GlobalShortcut` (Domain) has the fixed list `optionCommandD` (⌥⌘D, the default), `controlOptionSpace`,
+  `controlOptionD` and `off`. `GlobalShortcut+Carbon.swift` (Data) maps each case to a Carbon key code and modifiers.
+- `GlobalHotKey.register(_:)` removes the old key and registers the new one on `GetApplicationEventTarget()`. The C
+  handler posts `.devHubHotKeyPressed` on the main queue; the observer calls the `action` closure.
+- `SettingsStore.onShortcutChange` fires when the user picks another shortcut in Settings.
+- Dock icon: `SettingsStore.applyDockIcon()` calls `NSApp.setActivationPolicy(.regular)` or `.accessory`.
+- Login item: `SettingsStore.setLaunchAtLogin(_:)` uses `SMAppService.mainApp`. When the status is
+  `.requiresApproval`, it opens `SMAppService.openSystemSettingsLoginItems()`.
+
+## Keys
+
+- ⌘K opens the command palette, ⌘F focuses the search field (both in `HeaderView`). ⌘1 to ⌘9 select a tab
+  (`TabButton`). ⇧⌘O shows the Output panel (`OutputToggle`). ⌘Q quits (`FooterView`).
+- Esc in `SearchField` clears the search (`.onExitCommand`). Esc in the palette closes the palette.
 
 ## Appearance
 
-`preferredColorScheme` does not reach the panel. `RootView` has `.background(WindowAppearance(name: .aqua))` and `.colorScheme(.light)`. Never `NSApp.appearance = …`: the menu bar label would turn black on a dark menu bar.
+`preferredColorScheme` does not reach an `NSPanel`. `RootView` ends with `.background(WindowAppearance(name: .aqua))`
+and `.colorScheme(.light)`; a pull request window sets `window.appearance = NSAppearance(named: .aqua)`. Never set
+`NSApp.appearance`: the menu bar text would turn black on a dark menu bar.
 
 ## Hints
 
-`HintCenter` (`@Observable`, in the environment) holds one `Hint(id, text, frame)`. `.hint(_:)` reports its global frame with `onGeometryChange`, starts a task on hover (0.55 s, or 0.06 s when a hint was shown in the last 0.8 s) and shows the hint; hover end or `onDisappear` hides it. A local event monitor for mouse down, key down and scroll hides the current hint. `HintOverlay` sits in an `.overlay` of `RootView`, converts the frame into its own space, places the bubble 6 pt below the item (above when there is no room), 8 pt from the edges, at most 260 pt wide, and fades it in after the bubble was measured. `hintWhenTruncated` compares the ideal width (a hidden `fixedSize()` copy) with the real width.
+`HintCenter` (DevHubUI `Hint/`, `@Observable`) holds one `Hint(id:text:frame:)`. `PresentationAssembly` builds it and
+`inject` puts it into `\.hintCenter`.
 
-## Hot key, Dock icon, login item
-
-- `GlobalHotKey.register(shortcut)` unregisters the old key and registers the new one with `EventHotKeyID(signature: fourCharCode, id: 1)` on `GetApplicationEventTarget()`. The C handler posts a `Notification` on the main queue; the Swift side calls `AppWindows.showPinnedOrPanel()`. Fixed list: ⌥⌘D, ⌃⌥Space, ⌃⌥D, Off.
-- Dock icon: `NSApp.setActivationPolicy(.regular)` or `.accessory`.
-- Login item: `SMAppService.mainApp.register()` / `unregister()`; `status == .requiresApproval` → `SMAppService.openSystemSettingsLoginItems()` and a message.
-
-## Escape key
-
-`SearchField` handles Esc itself (`.onKeyPress(.escape)`) and `MenuBarPanel.cancelOperation` handles it when another view has focus. Both call `PanelActions.handleEscape`: clear the search, else close the panel.
+- `.hint(_:)` (`HintModifier`) reads its global frame with `onGeometryChange` and starts a task on hover. The delay
+  is 550 ms, or 60 ms when a hint is visible or was hidden in the last 0.8 s. Hover end or `onDisappear` hides it.
+- A local event monitor in `HintCenter` hides the hint on mouse down, key down and scroll.
+- `HintOverlay` sits in an `.overlay` of `RootView`. It places `HintBubble` 6 pt below the item (above when there is
+  no room), at least 8 pt from the edges, at most 260 pt wide (`CappedWidthLayout`), and shows it after it was
+  measured.
+- `.hintWhenTruncated(_:)` (`TruncationHintModifier`) shows the full text only when the text is cut.
 
 ## Check without a screen
 
-`DEVHUB_OPEN_PANEL=1 DEVHUB_TAB=<id> DEVHUB_SNAPSHOT=<png path> <app>/Contents/MacOS/DevHub` opens the panel at launch and writes a picture of its content after 1.5 s (`App/DebugLaunch.swift`). Read the PNG to check a layout. `DEVHUB_RUN_TEST_COMMANDS=1` also runs the Home test commands. `screencapture` does not work without Screen Recording permission.
+```sh
+APP="$(Scripts/build.sh | tail -1)"
+DEVHUB_OPEN_PANEL=1 DEVHUB_TAB=git DEVHUB_SNAPSHOT=/tmp/panel.png "$APP/Contents/MacOS/DevHub"
+```
+
+`DebugLaunch` (DevHubComposition, Debug builds only) opens the panel 0.5 s after launch and writes the PNG after
+`DEVHUB_SNAPSHOT_DELAY` more seconds (default 1). `AppWindows+Debug.swift` holds `debugShowPanel()` and
+`debugSnapshot(to:)`. The full list of switches is in `build-and-run`. `screencapture` needs the Screen Recording
+permission, so use the snapshot.
 
 ## Traps
 
-- Alerts and sheets inside the panel are unreliable. Inline confirmation only.
+- Alerts and sheets in the panel are unreliable. Confirm inline (`InlineConfirmation`).
 - `.help` tooltips are slow in the panel. Use `.hint`.
-- A rebuilt ad-hoc binary may lose Accessibility; show the path to System Settings instead of failing silently.
-- Two menu bar icons mean two instances: `pkill -x DevHub`.
-- A `Menu` with a custom label shows only its first text: use a `Button` with a `.popover` for a rich label (`ProjectMenu`).
+- A snapshot does not show the status item, a context menu or a covered panel. `cacheDisplay` does not draw some
+  controls (a prominent button can look empty). Check such results with tests or in a real run.
+- A rebuilt ad-hoc binary can lose the Accessibility permission. Settings → Doctor shows it.
+- Two menu bar icons mean two running copies. `Scripts/run.sh` stops only the copy built from this repository.
+- A `Menu` with a custom label shows only its first text. Use a `Button` with a `.popover` for a rich label
+  (`ProjectMenu`).

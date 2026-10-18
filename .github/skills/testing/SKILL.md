@@ -18,7 +18,7 @@ Short rules: `.claude/rules/testing.md`. Contract: `docs/ARCHITECTURE.md` sectio
 | `Tests/DevHubPresentationTests/` | `Shared/` objects, `Mappers/` tables, `Stores/` over spies | `@testable import DevHubPresentation`, `DevHubMocks`, `DevHubTestSupport` |
 
 Domain and Data test targets are nonisolated; UI and Presentation test targets are MainActor, like their modules.
-About 1,480 tests in about 260 suites run in about 3 s.
+On 2026-10-18 the package had 1,807 tests in 328 suites. A full run takes a few seconds after the build.
 
 ## Running
 
@@ -49,9 +49,10 @@ swift test --package-path Packages/DevHubKit --filter X   # the full output, whe
 
 One `Spy<Port>` per port: `SpyGitRepository`, `SpyGitChangesRepository`, `SpyWorktreeRepository`,
 `SpyCodeHostRepository`, `SpySimulatorRepository`, `SpySimulatorMessagingRepository`, `SpyBuildRepository`,
-`SpyAppLaunchRepository`, `SpyDerivedDataRepository`, `SpyAppLogRepository`, `SpyNetworkLogRepository`, `SpyMockServerRepository` (`emit(_:udid:)` calls the saved `onExchange`), `SpyMockSetRepository` (`savedSets`), `SpyAISessionRepository`, `SpyCopilotUsageRepository`,
-`SpyClaudeUsageRepository`, `SpyWorkspaceOpener`, `SpyXcodeAttacher`,
-`SpyProjectDetector`, plus `SpyCommandRecorder` (`events`) and `CallbackRecorder<Value>` (a thread-safe list for `@Sendable` callbacks).
+`SpyAppLaunchRepository`, `SpyDerivedDataRepository`, `SpyAppLogRepository`, `SpyMockServerRepository` (`emit(_:udid:)` calls the saved `onExchange`), `SpyMockSetRepository` (`savedSets`), `SpyAISessionRepository`, `SpyCopilotUsageRepository`,
+`SpyClaudeUsageRepository`, `SpyWorkspaceOpener`, `SpyXcodeAttacher`, `SpyProjectDetector`,
+`SpyReviewPromptRepository`, `SpyConfigRepository`, `SpyScriptRunner`, `SpyToolLocator`,
+`SpyUserNotificationRepository`, plus `SpyCommandRecorder` (`events`) and `CallbackRecorder<Value>` (a thread-safe list for `@Sendable` callbacks).
 
 - `calls: [Call]` records every call in order. `Call` is a `Hashable` enum with one case per port method.
 - Scripted answers: `<method>Result` (`Result<Value, any Error>` or a plain value) and `<method>Error`
@@ -163,7 +164,7 @@ that something did **not** happen.
   clock. Assert nil or not empty only.
 - Methods that call `NSWorkspace`, `NSApp` or `SMAppService` directly: they change the real Mac.
 - `XcodeDerivedDataRepository`: its root is not injectable yet (`docs/STATUS.md`). `ContainerLocator.find(…devicesRoot:)` takes a root; `SimulatorContainerTree` (`DevHubDataTests/Support/`) builds a fake simulator data container.
-- Behaviour that looks wrong: pin it as it is, and add it to `docs/STATUS.md` next steps 0b. Fix it in a separate
+- Behaviour that looks wrong: pin it as it is, and add it to the known gaps of `docs/STATUS.md`. Fix it in a separate
   change that also updates the test.
 
 ## Add a test for…

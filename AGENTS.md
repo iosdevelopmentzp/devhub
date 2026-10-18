@@ -44,7 +44,7 @@ Modules, one direction: `Composition → Presentation → Domain ← Data`; Pres
 | `Packages/DevHubKit/Sources/DevHubTestSupport` | one `Spy<Port>` per port, `Ports.spies()`, test helpers, sample values |
 | `Packages/DevHubKit/Tests` | `DevHubDomainTests`, `DevHubDataTests`, `DevHubUITests`, `DevHubPresentationTests` |
 | `Scripts/` | build, test, layer and anonymity checks, run, install, smoke, launcher, `ai/` hooks |
-| `docs/` | `ARCHITECTURE.md`, `STATUS.md`, `SPEC.md`, `extensions.md`, `adr/`, `examples/` |
+| `docs/` | `ARCHITECTURE.md`, `STATUS.md`, `SPEC.md`, `extensions.md`, `testing.md`, `features/` (one page per tab), `adr/`, `examples/` |
 
 ## Conventions
 
@@ -105,13 +105,14 @@ Documentation, UI text, hints, commit messages and the changelog use short sente
 
 - `add-feature`: add a screen or tab end to end through the modules, with tests.
 - `add-use-case`: policy or use case, lookup protocols, events, use case tests.
-- `data-layer`: repositories, `ShellRunner`, runners, parsers, persistence, `Ports.live`, mocks.
+- `data-layer`: repositories, `ShellRunner`, the command log and the Output panel, runners, parsers, persistence, `Ports.live`, mocks.
+- `code-host`: the `CodeHostRepository` port for GitHub (`gh`) and GitLab (`glab`), host words, capabilities, `git.host` config.
 - `testing`: Swift Testing conventions, spies, store harness, fixtures, integration suites.
 - `ui-components`: DevHubUI blocks, row model and mapper pattern, formatters, `Tint`, spacing.
 - `xcode-toolchain`: `xcodebuild`, `simctl`, DerivedData, product lookup, signing trap, log streams, Xcode attach.
 - `panel-window`: status item, panel, pinned window, position, appearance, hints, hot key.
 - `extensions`: the `.devhub/` config (actions, scripts, launch profiles, custom tabs) and how to extend the schema.
 - `build-and-run`: build scripts, smoke check, debug launch switches, common failures.
-- `update-docs`: end-of-session pass over changelog, status, ADR step log, this file and the skills.
+- `update-docs`: end-of-session pass over changelog, status, ADR step log, feature pages, this file and the skills.
 
-Skills not yet rewritten for the package (`add-feature`, `providers-and-shell`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`) still describe the first generic app in places. `docs/STATUS.md` lists what is stale; the milestone that touches the area updates the skill.
+Every skill describes the package code. When a change makes a skill wrong, fix the skill in the same session (`update-docs`).

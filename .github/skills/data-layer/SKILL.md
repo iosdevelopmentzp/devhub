@@ -1,6 +1,6 @@
 ---
 name: data-layer
-description: "The Data layer of DevHub: repositories behind Domain ports, ShellRunner (run and stream, the deadlock trap, command recording), GitCommandRunner and SimctlRunner, parsers with private DTOs, mocks in DevHubMocks, KeyValueStore persistence, Ports.live and Ports.mock wiring, injected file roots, parser and integration tests, streams for long work, threading and error rules. Load when a task runs git, xcrun, xcodebuild or any process, reads files or defaults, or adds or changes a repository."
+description: "The Data layer of DevHub: the Data folders, repositories behind Domain ports, ShellRunner (run and stream, the deadlock trap, never Process elsewhere), the command log and CommandKind classification behind the Output panel, GitCommandRunner and SimctlRunner, parsers with private DTOs, mocks in DevHubMocks, KeyValueStore persistence, Ports.live and Ports.mock wiring, injected file roots, parser and integration tests, streams for long work, threading and error rules. Load when a task runs git, xcrun, xcodebuild or any process, reads files or defaults, or adds or changes a repository."
 ---
 
 # Data Layer
@@ -13,18 +13,30 @@ Paths below are relative to `Packages/DevHubKit/Sources/`.
 
 ```
 DevHubData/
-    Shell/          ShellRunner (actor), ShellResult, LineBatcher, CommandFormatter, ISO8601
+    Shell/          ShellRunner (package actor), ShellResult, LineBatcher, LineCollector, CommandFormatter, ISO8601
     Persistence/    UserDefaultsKeyValueStore(defaults:)
-    Git/            ShellGitRepository, ShellWorktreeRepository, ShellGitChangesRepository, GlabPullRequestRepository,
-                    GitCommandRunner, GitCommandEncoder, TrackingInfoParser, MergedBranchesQuery, GitStatusParser,
-                    WorktreePorcelainParser, GlabPullRequestParser, GlabErrorMapper
-    Git/Parsers/    GitBranchHeaderParser, GitLogParser, LocalBranchParser, RemoteBranchParser, ReflogVisitParser
+    Git/            ShellGitRepository, ShellWorktreeRepository, ShellGitChangesRepository, GitCommandRunner,
+                    GitCommandEncoder, GitLogQuery, GitStatusParser, WorktreePorcelainParser, TrackingInfoParser,
+                    MergedBranchesQuery; GitLab: GlabPullRequestRepository, GlabClient, Glab*Parser,
+                    GlabGraphQLQueries, CodeHostErrorMapper
+    Git/Parsers/    GitBranchHeaderParser, GitLogParser, GitCommitFilesParser, GitDiffOutputParser,
+                    GitRefDecorationParser, GitReflogParser, GitStashParser, LocalBranchParser, RemoteBranchParser,
+                    ReflogVisitParser
+    GitHub/         GhPullRequestRepository, GhClient, GhPullRequestParser, GhCheckParser, GhDiffParser,
+                    GhCreatedPullRequestParser, GhGraphQLQueries
+    CodeHost/       RoutingCodeHostRepository (picks gh or glab per remote; see `code-host`)
     Simulators/     SimctlSimulatorRepository, SimctlAppLaunchRepository, SimctlMessagingRepository, SimctlRunner,
-                    SimctlListParser, ContainerLocator
-    Build/          XcodeBuildRepository, BuildOutputParser, ProductLocator, XcodeContainer
-    Claude/         AnthropicUsageRepository, ClaudeUsageParser, ClaudeCredentialsReader, ClaudeCredentialsParser,
-                    ClaudeTranscriptSessionRepository(root:), ClaudeTranscriptParser
+                    SimctlListParser, ContainerLocator, ProfileDefaultsPlan, AppURLSchemeParser,
+                    Dictionary+ChildEnvironment
+    Build/          XcodeBuildRepository, BuildOutputParser, BuildStepThrottle, ProductLocator, XcodeContainer
     Logs/           SimctlAppLogRepository, AppLogParser, LogRedactor, LogCounter
+    Claude/         AnthropicUsageRepository, ClaudeUsageParser, ClaudeCredentialsReader, ClaudeCredentialsParser,
+                    ClaudeTranscriptSessionRepository(root:), ClaudeTranscriptParser, FileReviewPromptRepository(root:)
+    Copilot/        CopilotSessionRepository(root:), CopilotSessionParser, CopilotEventScanner, WorkspaceYAMLParser,
+                    GitHubCopilotUsageRepository, CopilotUsageParser, CopilotTokenReader, CopilotTokenParser
+    AI/             CompositeAISessionRepository (Claude and Copilot sessions in one list)
+    Config/         FileConfigRepository(home:pollInterval:), ConfigFolderReader, ConfigWatcher, ExampleConfigWriter,
+                    ShellScriptRunner
     Network/        NetworkRequestRedactor
     Network/MockServer/  NWMockServerRepository(session:) (actor, one LocalMockServer per udid), LocalMockServer
                     (NWListener on 127.0.0.1), HTTPRequestParser, MockHTTPRequest, MockHTTPResponse,
@@ -32,14 +44,16 @@ DevHubData/
                     URLSession+MockForwarding   (Network.framework allowed here only)
     Network/MockSets/    FileMockSetRepository(root:), MockSetFileCoder, MockRouteName
     Workspace/      ShellWorkspaceOpener, AccessibilityXcodeAttacher, XcodeDerivedDataRepository, XcodeProjectDetector,
-                    GlobalHotKey, PlistReader, LaunchOutput, FileManager+ModificationDate   (AppKit allowed here only)
+                    PathToolLocator, SystemUserNotificationRepository, GlobalHotKey, GlobalShortcut+Carbon,
+                    Notification+GlobalHotKey, PlistReader, LaunchOutput, FileManager+ModificationDate
+                    (AppKit allowed here only)
     Assembly/       Ports+Live.swift
 DevHubMocks/        Mock<Thing>Repository one per file, MockData and MockData+<Domain>.swift,
                     Persistence/InMemoryKeyValueStore, Ports+Mock.swift
 ```
 
 `Ports.live(shell:)` (`DevHubData/Assembly/Ports+Live.swift`) builds every repository once and passes the real file
-roots (`~/.claude/projects`, `~/.devhub/mocks`). `Ports.mock()` (`DevHubMocks/Ports+Mock.swift`)
+roots (`~/.claude/projects`, `~/.copilot/session-state`, `~/.devhub/mocks`, `~/.devhub/prompts`). `Ports.mock()` (`DevHubMocks/Ports+Mock.swift`)
 builds every mock. `UseCases(ports:)` builds the use cases. `AppContainer.live()` (DevHubComposition) builds the
 `ShellRunner` and the `CommandLog`.
 
@@ -90,17 +104,22 @@ another repository; `Ports.live` passes it in. A file root is an `init` paramete
 
 ## ShellRunner
 
+Every process in the app goes through `ShellRunner` (`DevHubData/Shell/ShellRunner.swift`). Never `Process` in another
+file (`Scripts/check-layers.sh` fails on it), never a process on the main actor. `AppContainer.live()` builds one
+runner with `ShellRunner(recorder: CommandLogRecorder(log: commandLog))` and passes it to `Ports.live(shell:)`.
+
 ```swift
-actor ShellRunner {
-    init(recorder: any CommandRecording)
+package actor ShellRunner {
+    package init(recorder: any CommandRecording)
     nonisolated func run(_ executable: String, _ arguments: [String], cwd: String?) async throws -> ShellResult
     nonisolated func run(_ executable: String, _ arguments: [String], cwd: String?, environment: [String: String]) async throws -> ShellResult
     func stream(_ executable: String, _ arguments: [String], cwd: String?, onLine: @escaping @Sendable (String) -> Void) async throws -> Int32
+    func stream(_ executable: String, _ arguments: [String], cwd: String?, environment: [String: String], onLine: @escaping @Sendable (String) -> Void) async throws -> Int32
 }
 ```
 
-- Launches through `/usr/bin/env <executable>`, prepends `/opt/homebrew/bin:/usr/local/bin` to `PATH`, merges the
-  extra environment, expands `~` in `cwd`.
+- Launches through `/usr/bin/env <executable>`, puts `/opt/homebrew/bin:/usr/local/bin` in front of `PATH`, merges
+  the extra environment, expands `~` in `cwd`.
 - `run` throws only when the process cannot start. A non-zero exit comes back in `ShellResult.exitCode`; the caller
   decides. `ShellResult.failureMessage` is stderr, else stdout, else "Exited with code N.".
 - **The deadlock trap.** `readDataToEndOfFile()` on the Swift concurrency pool plus a stderr reader on a global GCD
@@ -110,11 +129,35 @@ actor ShellRunner {
 - **Streaming.** One pipe for stdout and stderr; `for try await line in pipe.fileHandleForReading.bytes.lines`;
   `withTaskCancellationHandler` whose `onCancel` terminates the process. After a stream the caller runs
   `try Task.checkCancellation()`: a cancelled stream ends without throwing.
-- **Recording.** Every call reports `started`, `output` (batched every 0.25 s for streams) and `finished` through
-  the `CommandRecording` port (`DevHubDomain/Repositories/`). `CommandLogRecorder` (DevHubPresentation) hops to the main actor
-  and feeds the `CommandLog` the Output panel shows. `CommandKind.classify` (Domain) decides how an entry shows:
-  `read` hidden unless "Show reads", `action` shown, `secret` (`security`) output never recorded, `appLog`
-  (`simctl spawn … log stream`) lines never recorded.
+- No token in arguments. A token goes into a request header in memory and is dropped after the request.
+
+## Command log and the Output panel
+
+Every `run` and `stream` reports `started`, `output` (batched every 0.25 s by `LineBatcher` for streams) and
+`finished` as a `CommandEvent` to the `CommandRecording` port (`DevHubDomain/Repositories/`).
+`CommandLogRecorder` (DevHubPresentation `Shared/`) hops to the main queue and feeds `CommandLog`, which the Output
+panel shows. `CommandLog` keeps 300 entries and 4 000 lines per entry. `CommandFormatter.displayCommand` quotes
+arguments with spaces or shell characters.
+
+`CommandKind.classify(_:_:)` (Domain) decides how an entry shows:
+
+| Kind | Examples | Output panel |
+|---|---|---|
+| `read` | git `status log for-each-ref rev-parse symbolic-ref reflog rev-list show-ref config diff merge-base ls-remote remote show`, `worktree list`, `stash list`, `branch` without `-d -D -m -M -u`; simctl `list get_app_container listapps bootstatus`, `spawn … read`; `du ps grep plutil pgrep`; `xcodebuild -showBuildSettings`; `gh` and `glab` reads (below); `osascript` without `click` | hidden unless "Show reads" (`OutputPanelState.showsReads`) |
+| `action` | everything else | shown |
+| `secret` | `security`, `gh auth token` | "Output hidden: it contains credentials." Nothing recorded |
+| `appLog` | `simctl spawn … log stream` | "App log lines are shown in the Logs tab only." Nothing recorded |
+
+`gh` and `glab` share one rule (`codeHostKind`): a GraphQL query is a `read`, a GraphQL mutation an `action`; an
+`api` call with `-X GET` is a `read`, with another method an `action`; an `api` call without a method is a `read`
+unless it sends fields (`-f -F --field --raw-field --input`); the subcommands `view list checks diff status` are
+reads. `gh auth token` is `secret`.
+
+A new command that only reads belongs in the `read` list, with a line in `CommandKindTests`.
+
+When an action fails, the store logs it to `ActivityLog` and may post `AppEvent.commandFailed`; `OutputPanelState`
+then opens the Output panel. A failed read (for example `git status` in a folder without a repository) is expected
+and stays hidden.
 
 ## Shared runners
 
@@ -123,6 +166,7 @@ actor ShellRunner {
 | `GitCommandRunner(shell:)` | `run(arguments, in:, environment:) -> String` throws `WorktreeError.command(failureMessage)` on a non-zero exit; `result(...)` for the raw `ShellResult` |
 | `GitCommandEncoder` | the one `switch` from `GitCommand` (Domain) to arguments and environment. A new git action is a new `GitCommand` case plus one `case` here |
 | `SimctlRunner(shell:)` | `run(arguments, allowingExit: [149], failure: SimulatorError.command)`; `xcrun simctl` is prepended; tolerated exit codes are explicit |
+| `GhClient(shell:)`, `GlabClient(shell:)` | `gh api` and `glab api` calls (REST and GraphQL) for the code host repositories; see `code-host` |
 | `PlistReader.dictionary(at:)` | plist file to `[String: Any]?` |
 | `ISO8601.date(from:)` | fractional seconds first, then plain |
 | `TrackingInfoParser`, `MergedBranchesQuery` | upstream, ahead and behind from `for-each-ref`; the set of branches merged into the base; both git repositories use them with `MergedBranchPolicy` |
@@ -152,7 +196,9 @@ The store consumes with `for try await event in useCase.run(request)`, then `try
 ## Mock server
 
 `NWMockServerRepository: MockServerRepository` (an actor) keeps one `LocalMockServer` per simulator UDID. Each
-server is an `NWListener` bound to `127.0.0.1` with an ephemeral port (`acceptLocalOnly`). A second `start` for the
+server is an `NWListener` bound to `127.0.0.1` (`acceptLocalOnly`). It first tries a stable port for the simulator:
+`MockServerPortPolicy.port(for: udid)` (Domain) hashes the UDID to a port from 49152 to 59151, so the app keeps the
+same base URL after a restart of DevHub. When that port is busy, the server starts again on any free port. A second `start` for the
 same UDID keeps the port and swaps the upstream, the rules and the callback; `update(udid:rules:)` swaps only the
 rules; `stop` cancels the listener and every open connection. Network.framework is allowed only in
 `DevHubData/Network/MockServer/` (`check-layers.sh`).

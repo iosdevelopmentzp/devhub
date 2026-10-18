@@ -1,80 +1,161 @@
 ---
 name: xcode-toolchain
-description: "Verified commands and traps for xcodebuild, simctl, DerivedData, product lookup, code signing on simulator builds, launch environment, app containers, clean install, log streams and attaching Xcode. Load before touching Build & Run, Simulators, Logs or anything that runs xcrun or xcodebuild."
+description: "Verified commands and traps for xcodebuild, simctl, DerivedData, product lookup, code signing on simulator builds, launch environment and defaults, app containers, clean install, log streams and attaching Xcode, with the Data repositories and Domain use cases that run them (XcodeBuildRepository, BuildOutputParser, ProductLocator, XcodeContainer, XcodeDerivedDataRepository, SimctlSimulatorRepository, SimctlAppLaunchRepository, SimctlMessagingRepository, SimctlAppLogRepository, AccessibilityXcodeAttacher, BuildAndRunUseCase, AppInstallStep). Load before touching Build & Run, Simulators, Logs or anything that runs xcrun or xcodebuild."
 ---
 
 # Xcode Toolchain
 
-Read `docs/SPEC.md` section 8.5 to 8.7 for the full list. This skill is the short form with the commands.
+Every command below runs through `ShellRunner` (see `data-layer`), so it shows in the Output panel. Paths are
+relative to `Packages/DevHubKit/Sources/`.
 
-## Build and run pipeline (`kind: xcode`)
+| Area | Code |
+|---|---|
+| Build | `DevHubData/Build/`: `XcodeBuildRepository`, `BuildOutputParser`, `BuildStepThrottle`, `ProductLocator`, `XcodeContainer` |
+| DerivedData | `DevHubData/Workspace/XcodeDerivedDataRepository` |
+| Simulators | `DevHubData/Simulators/`: `SimctlSimulatorRepository`, `SimctlAppLaunchRepository`, `SimctlMessagingRepository`, `SimctlRunner`, `SimctlListParser`, `ContainerLocator`, `ProfileDefaultsPlan`, `AppURLSchemeParser`, `Dictionary+ChildEnvironment` |
+| Logs | `DevHubData/Logs/`: `SimctlAppLogRepository`, `AppLogParser`, `LogRedactor`, `LogCounter`; `AppLogPredicatePolicy` (Domain) |
+| Attach | `DevHubData/Workspace/AccessibilityXcodeAttacher` |
+| Pipelines | `DevHubDomain/UseCases/`: `BuildAndRunUseCase`, `CommandRunUseCase`, `AppInstallStep`, `LaunchInstalledAppUseCase`, `MockLaunchPreparation` |
+| Project detection | `DevHubData/Workspace/XcodeProjectDetector` (scheme and bundle ID of a new project) |
+
+## Build and Run pipeline (`kind: xcode`)
+
+`BuildAndRunUseCase.run(_:)` returns an `AsyncThrowingStream<BuildEvent, Error>` and runs these steps. `BuildStore`
+reads the stream.
 
 ```
-xcrun simctl boot <udid>                                     exit 149 = already booted = success
-xcodebuild <container> -scheme S -configuration C -destination id=<udid> clean      only when Fast is off
-xcodebuild <container> -scheme S -configuration C -destination id=<udid> ONLY_ACTIVE_ARCH=YES build     streamed
-locate .app  →  bundle ID from <app>/Info.plist CFBundleIdentifier
-[clean install]  simctl terminate · simctl uninstall · simctl keychain <udid> reset
+xcrun simctl boot <udid>                                                     exit 149 = already booted = success
+xcodebuild <container> -scheme S -configuration C -destination id=<udid> clean                    only when request.incremental is false
+xcodebuild <container> -scheme S -configuration C -destination id=<udid> ONLY_ACTIVE_ARCH=YES build    streamed
+locate the .app (ProductLocator), bundle ID from <app>/Info.plist CFBundleIdentifier
+xcrun simctl bootstatus <udid>
+[clean install]  xcrun simctl uninstall <udid> <bundleID> · xcrun simctl keychain <udid> reset
 xcrun simctl install <udid> <app>
+[profile defaults]  xcrun simctl get_app_container <udid> <bundleID> data|<group suite> · xcrun simctl spawn <udid> defaults write <plist> <key> -string <value>
 open -a Simulator --args -CurrentDeviceUDID <udid>
-xcrun simctl launch --terminate-running-process [--wait-for-debugger] <udid> <bundleID> [args]     env through SIMCTL_CHILD_*
+xcrun simctl launch --terminate-running-process [--wait-for-debugger] <udid> <bundleID> [arguments]
+[attach]  AccessibilityXcodeAttacher.attach(pid:simulatorUDID:projectPath:container:)
 ```
 
-`<container>` is `-workspace <path>` or `-project <path>`: first `.xcworkspace`, else first `.xcodeproj` in the folder.
+- `<container>` is `-workspace <path>` or `-project <path>`. `XcodeContainer.locate(in:preferred:)` takes
+  `xcode.container` from config, else the first `.xcworkspace`, else the first `.xcodeproj` in the folder.
+- The launch environment and arguments come from the `LaunchPlan` of the profile. `SimctlSimulatorRepository.launch`
+  prefixes every key with `SIMCTL_CHILD_` (`Dictionary.childEnvironment`). `MockLaunchPreparation` adds the mock
+  server URL under `network.baseURLVariable`.
+- The process ID is the last `: <pid>` of the `simctl launch` output (`LaunchOutput.pid(from:)`).
+- `kind: command` projects use `CommandRunUseCase`: boot, `build.command`, `run.command`, then the same
+  `AppInstallStep` when a command printed `@devhub {"app": "<path>"}`.
 
 ### Never do this
 
-- `CODE_SIGNING_ALLOWED=NO` or any signing override on a build that will run. Embedded frameworks stay unsigned and dyld on Apple silicon kills the app at launch: "Library not loaded: @rpath/<Framework>". `xcodebuild` ad-hoc signs for a simulator destination by itself.
-- `-derivedDataPath`. Sharing Xcode's DerivedData reuses the cache of the Xcode build of the same checkout.
-- A fake percentage. `xcodebuild` has no total. Indeterminate bar plus a step text.
+- `CODE_SIGNING_ALLOWED=NO` or any signing override on a build that will run. Embedded frameworks stay unsigned and
+  dyld on Apple silicon stops the app at launch: "Library not loaded: @rpath/<Framework>". `xcodebuild` signs ad hoc
+  for a simulator destination by itself.
+- `-derivedDataPath`. The shared DerivedData folder reuses the cache of the Xcode build of the same checkout.
+- A fake percentage. `xcodebuild` has no total. Show an indeterminate bar and the step text.
 
-### Step text
+### Step text (`BuildOutputParser.step(from:)`)
 
-First token of a line → verb: `SwiftCompile CompileSwift CompileSwiftSources SwiftDriver SwiftEmitModule CompileC ProcessPCH CompileXIB CompileStoryboard CompileMetalFile` → Compiling; `CompileAssetCatalog` → Compiling assets; `Ld Libtool LinkStoryboards` → Linking; `PhaseScriptExecution` → Running script; `CodeSign` → Signing; `CopySwiftLibs CpResource Copy PBXCp` → Copying; `ProcessInfoPlistFile` → Processing Info.plist; `GenerateDSYMFile` → Generating dSYM; `Touch Validate RegisterExecutionPolicyException` → Finishing; lines that start with `Resolve Package Graph` or `Resolved source packages` → Resolving packages. The target comes from `(in target '…')`. Lines that contain `error: ` are errors; the first one is the failure message (file name only when it starts with `/`).
+The first word of a line that does not start with a space maps to a verb: `SwiftCompile CompileSwift
+CompileSwiftSources SwiftDriver SwiftEmitModule CompileC ProcessPCH CompileXIB CompileStoryboard CompileMetalFile` →
+Compiling; `CompileAssetCatalog` → Compiling assets; `Ld Libtool LinkStoryboards` → Linking; `PhaseScriptExecution` →
+Running script; `CodeSign` → Signing; `CopySwiftLibs CpResource Copy PBXCp` → Copying; `ProcessInfoPlistFile` →
+Processing Info.plist; `GenerateDSYMFile` → Generating dSYM; `Touch Validate RegisterExecutionPolicyException` →
+Finishing. `Resolve Package Graph` and `Resolved source packages` → Resolving packages. The target comes from
+`(in target '…')`: "Compiling · ExampleApp". `BuildStepThrottle` sends at most one step every 200 ms.
+
+`BuildOutputParser.error(from:)`: a line with `error: ` is an error; the first one is the failure message (the file
+name only, when the line starts with `/`).
 
 ### Product lookup, in this order
 
-1. `Touch`, `Validate`, `CodeSign`, `RegisterExecutionPolicyException` lines whose path ends with `.app` and contains `<Configuration>-iphonesimulator/` (unescape `\ `). Check that the path exists.
-2. The DerivedData folder whose `info.plist` has `WorkspacePath` whose parent folder equals the checkout (standardized, case-insensitive) → `Build/Products/<Configuration>-iphonesimulator/*.app`: the one named like the scheme, else the only one, else the newest.
-3. `xcodebuild … -showBuildSettings -json` (slow, about 30 s on a big project): the entry with `PRODUCT_TYPE == com.apple.product-type.application`, `TARGET_BUILD_DIR/WRAPPER_NAME`.
+1. `BuildOutputParser.appPath(from:)` collects paths from `Touch`, `Validate`, `CodeSign` and
+   `RegisterExecutionPolicyException` lines that end with `.app` (`\ ` unescaped). `ProductLocator` takes the first
+   one that contains `<Configuration>-iphonesimulator/` and exists.
+2. The DerivedData folder of the checkout → `Build/Products/<Configuration>-iphonesimulator/*.app`: the one named
+   like the scheme, else the only one, else the newest.
+3. `xcodebuild … -showBuildSettings -json` (slow, about 30 s on a big project): the entry with
+   `PRODUCT_TYPE == com.apple.product-type.application`, then `TARGET_BUILD_DIR/WRAPPER_NAME`.
 
-### DerivedData
+### DerivedData (`XcodeDerivedDataRepository`)
 
-Root: `IDECustomDerivedDataLocation` in `com.apple.dt.Xcode` preferences (`CFPreferencesCopyAppValue`), relative values under the home folder, default `~/Library/Developer/Xcode/DerivedData`. Delete a folder only when its path is under that root. Size: `du -sk`.
+- Root: `IDECustomDerivedDataLocation` in the `com.apple.dt.Xcode` preferences (`CFPreferencesCopyAppValue`). A
+  relative value is under the home folder. The default is `~/Library/Developer/Xcode/DerivedData`.
+- `folder(forCheckout:)`: the folder whose `info.plist` has a `WorkspacePath` whose parent folder equals the checkout
+  (standardized, lowercased).
+- `size(of:)` runs `du -sk`. `remove(_:)` deletes a folder only when it is under the root.
 
-### Schemes
+### Schemes (`XcodeContainer.schemeNames()`)
 
-`.xcscheme` names under `<container>/xcshareddata/xcschemes` and `<container>/xcuserdata/*/xcschemes`; for a workspace also under sibling `.xcodeproj` folders. Fall back to the configured scheme name.
+`.xcscheme` files under `<container>/xcshareddata/xcschemes` and `<container>/xcuserdata/*/xcschemes`; for a workspace
+also under the sibling `.xcodeproj` folders. Sorted with `localizedStandardCompare`.
 
 ## Simulators
 
-| Need | Command |
+| Need | Command and code |
 |---|---|
-| List | `xcrun simctl list devices available -j` (`LiveSimulatorProvider`, parsed by `SimulatorListParser`) → `devices[runtimeID] = [{udid, name, state, deviceTypeIdentifier, isAvailable}]`; runtime `com.apple.CoreSimulator.SimRuntime.iOS-26-4` → platform and version from the suffix |
-| Boot, shutdown, erase | `simctl boot`, `simctl shutdown` (149 ok), `simctl shutdown` then `simctl erase` |
+| List | `xcrun simctl list devices available -j` (`SimctlSimulatorRepository.list`, `SimctlListParser`). Runtime `com.apple.CoreSimulator.SimRuntime.iOS-26-4` → "iOS 26.4". Only iOS runtimes; newest first |
+| Boot, shutdown | `simctl boot`, `simctl shutdown`; exit 149 means "already in that state" and counts as success (`SimctlRunner.run(_:allowingExit:failure:)`) |
+| Erase | `simctl shutdown`, then `simctl erase` |
 | Wait for boot | `simctl bootstatus <udid>` |
-| Open window | `open -a Simulator --args -CurrentDeviceUDID <udid>` |
-| Installed app count without booting | folders under `~/Library/Developer/CoreSimulator/Devices/<udid>/data/Containers/Bundle/Application` |
-| User apps | `simctl listapps <udid>` (plist text) filtered by `ApplicationType == User` |
-| Uninstall | `simctl uninstall <udid> <bundleID>`; a shut-down device: boot, bootstatus, work, shutdown |
-| App container | `simctl get_app_container <udid> <bundleID> app\|data`; fails when shut down → scan `…/data/Containers/Bundle/Application/*/` and `…/Data/Application/*/` for `.com.apple.mobile_container_manager.metadata.plist` with `MCMMetadataIdentifier == bundleID` |
-| Defaults in the app container | booted: `simctl spawn <udid> defaults write <data>/Library/Preferences/<suite>.plist <key> -string <value>`; shut down: edit the plist with `PropertyListSerialization` (binary) |
-| Clean install without a build | copy of the installed app kept with `ditto` under `~/Library/Caches/DevHub/Apps/<udid>-<bundleID>.app`, else the last built product; `terminate`, `uninstall`, `keychain reset`, `install` |
-| Deep link | `simctl openurl <udid> <url>` |
-| Push | `simctl push <udid> <bundleID> <file.apns>` with a JSON body that has `aps` |
-| Launch PID | the last `: <pid>` of the `simctl launch` output |
+| Open the window | `open -a Simulator --args -CurrentDeviceUDID <udid>` |
+| Installed app count without booting | folders under `~/Library/Developer/CoreSimulator/Devices/<udid>/data/Containers/Bundle/Application` (`installedAppCounts(udids:)`) |
+| User apps | `simctl listapps <udid>` (plist text), `ApplicationType == User` |
+| Uninstall | `simctl uninstall <udid> <bundleID>`. A shut-down device is booted, waited for, then shut down again (`whileBooted`) |
+| App container | `simctl get_app_container <udid> <bundleID> app\|data\|<group>`. It fails on a shut-down device; `ContainerLocator.find` then reads `.com.apple.mobile_container_manager.metadata.plist` (`MCMMetadataIdentifier`) under `Bundle/Application/*` or `Data/Application/*` |
+| Profile defaults | `ProfileDefaultsPlan`: a `group.` suite writes into that group container, any other suite into the `data` container. `simctl spawn <udid> defaults write <container>/Library/Preferences/<suite>.plist <key> -string\|-bool\|-integer\|-float <value>` |
+| Installed app facts | `SimctlAppLaunchRepository.inspect`: version from `Info.plist`, identity marker with `grep -q -a -F` in the executable and `*.debug.dylib`, stored profile from the preferences plist |
+| Clean install without a build | `SimctlAppLaunchRepository.cleanInstall`: copy the installed app with `ditto` to `~/Library/Caches/DevHub/Apps/<udid>-<bundleID>.app` (else the last built product), `simctl terminate`, `uninstall`, `keychain reset`, `install` |
+| Deep link | `simctl openurl <udid> <url>` (`SimctlMessagingRepository.openURL`) |
+| URL schemes | `CFBundleURLTypes` in the installed app `Info.plist` (`AppURLSchemeParser`) |
+| Push | `simctl push <udid> <bundleID> <file.apns>`, a temporary file with the JSON payload |
 
 ## Logs
 
-`xcrun simctl spawn <udid> log stream --style ndjson --level debug --predicate 'process == "<Executable>"'` (or `subsystem == "…"`). Fields: `timestamp` (`yyyy-MM-dd HH:mm:ss.SSSSSSZ`, `en_US_POSIX`), `messageType` (`Debug Info Default Error Fault`), `subsystem`, `category`, `eventMessage`. The executable name is `CFBundleExecutable` of the installed app: `simctl get_app_container <udid> <bundleID> app`, else the `Bundle/Application` folders, then `Info.plist` (`LiveSimulatorProvider.executableName`). A stream needs a process or a subsystem; with neither the store looks the executable up and shows an error when that fails. The provider filter is `subsystem` when set, else `process`. Only `os_log` / `Logger` lines arrive; `print()` does not. Redact before storing (`LogRedactor`): `Bearer …`, JWTs, values after `authorization x-auth-token access_token refresh_token id_token token password secret api_key`. Nothing on disk; the `CommandLog` entry is `appLog` and records no lines. Redaction runs inside `LogLineParser`, before a line reaches the store. The level filter works on the client; the stream always uses `--level debug`. Batch every 150 ms, cap 5 000 lines per stream with a dropped counter; Pause keeps a waiting count.
+```
+xcrun simctl spawn <udid> log stream --style ndjson --level debug --predicate 'subsystem == "<s>"'   or   'process == "<Executable>"'
+```
+
+- `AppLogPredicatePolicy.predicate(for:)` uses the subsystem when it is set, else the process. With neither there is
+  no predicate.
+- `AppLogParser.parse(_:id:)` reads `timestamp` (`yyyy-MM-dd HH:mm:ss.SSSSSSZ`, `en_US_POSIX`), `messageType`
+  (`Debug Info Default Error Fault`), `subsystem`, `category`, `eventMessage`. It redacts the message with
+  `LogRedactor` before the line leaves Data: `Bearer …`, JWTs, and values after `authorization`, `x-auth-token`,
+  `access_token`, `refresh_token`, `id_token`, `token`, `password`, `secret`, `api_key`.
+- The process name is `CFBundleExecutable` of the installed app (`SimctlAppLogRepository.executableName`, through
+  `simctl get_app_container … app`). The bundle ID comes from `IdentityLookup.bundleID(for:)`: the last launch from
+  DevHub, else `xcode.bundleIDs` and `xcode.bundleID`, else the project settings. `LogsStore` falls back to the scheme name.
+- Only `os_log` and `Logger` lines arrive. `print()` does not.
+- The level filter runs in the app. The stream always uses `--level debug`.
+- `LogsStore` adds lines every 150 ms. `LogStream.capacity` is 5 000 lines per stream; older lines go to `dropped`.
+  Pause keeps new lines in `pending`.
+- The command log entry has the kind `appLog`, so it records no lines. Nothing goes to disk.
+- A stream that ends with a non-zero code and no cancel throws `AppLogError.streamStopped`.
 
 ## Run & Attach (Xcode)
 
-1. `AXIsProcessTrusted()`; when false, `AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true])`, report the System Settings path, stop.
-2. `simctl launch --wait-for-debugger` → PID.
-3. `open -a Xcode <container>`; when Xcode had no window, wait for one (`System Events` window count, up to 150 s) plus 6 s; else 1.5 s.
-4. Select the run destination by UDID: `tell application "Xcode"` … `run destinations of workspace document` … `device identifier of (device of destination)` … `set active run destination`.
-5. `System Events` on process `Xcode`: `click menu item "Attach to Process by PID or Name…" of menu 1 of menu bar item "Debug"`, `set value of text field 1 of sheet 1 of window 1 to "<pid>"` (keystrokes do not reach the field), `click button "Attach" of sheet 1 of window 1`.
-6. Poll `ps -o stat= -p <pid>` for 25 s; a state that starts with `T` means still stopped → report the PID and the manual steps.
+`AccessibilityXcodeAttacher.attach(pid:simulatorUDID:projectPath:container:)`:
 
-Needs `INFOPLIST_KEY_NSAppleEventsUsageDescription`. A rebuilt ad-hoc binary may need Accessibility again.
+1. `AXIsProcessTrusted()`. When false: `AXIsProcessTrustedWithOptions` with the prompt, then
+   `XcodeAttachError.accessibilityNotGranted`.
+2. `simctl launch --wait-for-debugger` gave the PID before this step.
+3. `open -a Xcode <container>`. The container is `xcode.container` (passed as `container`), else the first `.xcworkspace`, else the first `.xcodeproj` (`XcodeContainer.locate(in:preferred:)`). When Xcode had no window, wait for one (`System Events` window count, every 3 s, up
+   to 150 s), then 6 s; else 1.5 s.
+4. `osascript`: select the run destination whose `device identifier` is the UDID in `run destinations of workspace
+   document`.
+5. `osascript` on `System Events`, process `Xcode`: click "Attach to Process by PID or Name…" in the Debug menu, `set
+   value of text field 1 of sheet 1 of window 1` to the PID (keystrokes do not reach the field), click "Attach".
+6. Poll `ps -o stat= -p <pid>` every second for 25 s. A state that still starts with `T` means stopped →
+   `XcodeAttachError.stillStopped(pid)` with the manual steps.
+
+The app target needs `INFOPLIST_KEY_NSAppleEventsUsageDescription` (set in `project.pbxproj`). A rebuilt ad hoc binary
+can lose the Accessibility permission; Settings → Doctor shows it.
+
+## Tests
+
+- Parsers: `BuildOutputParserTests`, `SimctlListParserTests`, `AppLogParserTests`, `LogRedactorTests` with fixtures.
+- File code over `TemporaryDirectory`: `XcodeContainerTests`, `ProductLocatorTests`, `ContainerLocatorTests`
+  (`SimulatorContainerTree` in `DevHubDataTests/Support/`).
+- Pipelines over spies: `BuildAndRunUseCaseTests`, `CommandRunUseCaseTests`, `LaunchInstalledAppUseCaseTests`.
+- A real run: `DEVHUB_BUILD_RUN=<simulator name or UDID>` with `DEVHUB_BUILD_PROFILE`, `DEVHUB_BUILD_BRANCH` and
+  `DEVHUB_LAUNCH_ID` (`build-and-run`).

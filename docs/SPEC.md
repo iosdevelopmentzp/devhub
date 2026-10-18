@@ -1,629 +1,613 @@
-# DevHub — specification for a one-session build
+# DevHub product specification
 
-Working name: **DevHub**. Rename before the session if you want another name. Search and replace `DevHub`, `devhub` and `DEVHUB_` in this folder.
+This document describes what DevHub does today and why. It covers the panel, every tab, the config system, the technical rules that the code depends on, and a checklist to test the app by hand.
 
-This document is written for an AI coding agent (GitHub Copilot CLI first, Claude Code second) and for the human owner. The agent reads this file, `AGENTS.md` and the skills under `.github/skills/` and builds the app in one session, milestone by milestone.
+Other documents give the details:
 
----
-
-## 0. How to read this document
-
-1. **The result is a working app.** Not a prototype, not a mock. Every screen in section 5 runs real commands through the provider layer.
-2. **No tests.** No unit tests, no UI tests, no test target. The check is `Scripts/build.sh` with zero warnings plus a manual run. Time goes into features and the build check, not into tests.
-3. **Config over code.** Every project builds differently. Where a generic rule cannot cover a project, the difference goes into the project's `.devhub/` folder (section 6), never into Swift. A project name, path, bundle ID or branch name written in Swift is a bug.
-4. **The agent decides.** When the spec leaves a choice open, pick the simplest option that keeps the layers in section 7 clean, write the decision into `docs/STATUS.md` and continue. Do not stop to ask.
-5. **Priorities.** Items marked **P0** must work at the end of the session. **P1** should work. **P2** is done when time remains. An unfinished P1 or P2 item goes to `docs/STATUS.md` under "Next steps" with what is missing.
-6. **The reference UI (Appendix A) may be revisited.** Keep the patterns: one panel, tabs, rows with hover actions, inline confirmation, search in every list, searchable pickers. Change colours, spacing or grouping when it makes the screen clearer.
-7. **Section 8 is a list of verified solutions and traps.** Every item there cost at least one failed attempt in an earlier tool with the same goals. Read it before writing the related code. Do not re-discover these problems.
-8. **Plain English everywhere.** Documentation, UI text, hints, commit messages, changelog: short sentences, common words, no idioms.
-
----
-
-## 1. What DevHub is
-
-A personal macOS menu bar panel for daily development work across many repositories. One click on the menu bar icon opens a panel with tabs:
-
-| Tab | Purpose |
+| Document | Content |
 |---|---|
-| Home | Project card, quick actions, scripts, recent activity |
-| Git | Branch state, remote actions, branches, history, changes, commit |
-| Worktrees | List, create, delete, clean finished worktrees |
-| Simulators | Device list, run bar: build and run any branch from any scheme on any simulator |
-| Logs | Live system log of the app, one stream per simulator |
-| AI | Copilot CLI and Claude Code sessions with one-click resume; usage quotas in the strip at the top |
-| Settings | Projects, terminal, editor, shortcuts, toggles, doctor |
-| custom tabs | Defined in `.devhub/tabs/*.json` (section 6) |
+| `docs/features/<tab>.md` | one page per tab: every action, the command it runs, the config it reads, the limits |
+| `docs/extensions.md` | the full `.devhub/` config schema |
+| `docs/ARCHITECTURE.md` | the module contract of the Swift package |
+| `docs/STATUS.md` | what is real per screen, numbered decisions, known gaps |
+| `docs/adr/` | design decisions: the rewrite plan (001), the config system (002), code hosts (003), launch identities and network (004) |
 
-Plus a global **command palette** (⌘K) that searches everything, and an **Output panel** that shows every command the app runs.
+When this document and the code disagree, the code is right. Fix this document in the same commit.
 
-The core is generic. Project knowledge lives in `.devhub/` config files that the user edits at any time: quick actions, git pills, scripts with inputs, launch profiles, custom tabs. A script can drive the UI through a small line protocol.
+---
 
-### Principles
+## 1. Purpose and users
 
-1. **Config over code** (see 0.2).
-2. **Every external command is visible.** One `ShellRunner`; every run lands in the Output panel with its working folder, output, duration and exit code.
-3. **Never switch the user's branch without being asked.** A build of another branch uses a worktree. Updates use fast-forward only.
-4. **Secrets never leave memory.** Tokens are read for one request and dropped. Commands that print secrets have their output hidden. Log lines are masked before they are stored.
-5. **Search everywhere.** Every list filters by the header search. Every picker with more than a handful of items is a searchable picker.
+### 1.1 What DevHub is
+
+DevHub is a personal macOS menu bar app for daily iOS development work across many repositories. One click on the menu bar icon opens a panel. The panel has tabs for git, worktrees, pull requests, simulators, Build & Run, app logs, a network mock server and AI sessions.
+
+The core is generic. Swift code never names a project, a path, a bundle ID, a host or a branch. Each project describes itself in `.devhub/` config files: how it builds, its launch profiles, its quick actions, its scripts and its own tabs.
+
+### 1.2 Users
+
+1. An iOS developer who works on several repositories and many branches at the same time.
+2. A team that shares one `.devhub/` folder in the repository, so every member gets the same actions and scripts.
+3. A QA engineer or a developer who needs to run the app with a given device ID, environment or mocked server answer.
+
+### 1.3 Principles
+
+1. **Config over code.** A difference between projects goes into `.devhub/`, never into Swift.
+2. **Every external command is visible.** Every process runs through one `ShellRunner`. Each run appears in the Output panel with its folder, output, duration and exit code.
+3. **The user's branch never changes without a request.** A build of another branch uses a worktree. Pull and update use fast-forward only.
+4. **Secrets stay in memory.** A token is read for one request and then dropped. The output of `security` and `gh auth token` is never recorded. Log lines are masked before DevHub keeps them.
+5. **Search in every list.** The header search filters the list of the current tab. Long pickers have a search field.
 6. **Fast open.** The panel opens at once with the last state and refreshes in the background.
-7. **Degrade, do not break.** When an optional tool (`gh`, `glab`, `copilot`, `claude`) is missing or not logged in, the feature shows what to install or run, and the rest of the app works.
-8. **The repo documents itself.** `AGENTS.md`, `CHANGELOG.md`, `docs/STATUS.md` and the skills are kept current by the agent in the same session that changes the code (section 9).
-9. **Clear layers, small files.** Section 7. A file over ~300 lines is a sign to split.
+7. **A missing tool does not break the app.** When `gh`, `glab`, `copilot` or `claude` is missing or not logged in, the feature shows what to install or run. The other tabs work.
+8. **Every failure is visible.** A failed command opens the Output panel. A failed action adds a red line to the Recent list on Home. No error is caught without a message.
 
-### Non-goals for v1
+### 1.4 Non-goals
 
-- Physical devices (`devicectl`). Idea for later.
-- App Store, notarization, sandbox. Ad-hoc signing only. A sandbox would block `git`, `xcrun` and `xcodebuild`.
-- Chat or messaging integrations. If a project needs them, it adds an action with a script.
-- An AI chat inside the app. Only session lists, resume and quotas.
-- Dark theme. Light appearance is forced on the panel window (see 8.2). A theme switch is a P2 idea.
-
----
-
-## 2. Before the session (human checklist)
-
-1. Create the folder and `git init`.
-2. Copy everything from `seed/` into the folder, including the dot folders `.github` and `.claude`.
-3. Create the Xcode project in that folder: macOS App, SwiftUI, product name `DevHub`, bundle ID of your choice (for example `local.devhub.app`), **no tests** (uncheck "Include Tests"). Use the installed macOS SDK as the deployment target. Then set these build settings on the app target:
-
-   | Setting | Value | Why |
-   |---|---|---|
-   | `ENABLE_APP_SANDBOX` | `NO` | shell commands |
-   | `CODE_SIGN_STYLE` | `Automatic`, no team, "Sign to Run Locally" | no developer account needed |
-   | `INFOPLIST_KEY_LSUIElement` | `YES` | menu bar only, no Dock icon |
-   | `SWIFT_VERSION` | `5.0` | Swift 5 language mode |
-   | `SWIFT_DEFAULT_ACTOR_ISOLATION` | `MainActor` | views and stores on the main actor by default |
-   | `SWIFT_APPROACHABLE_CONCURRENCY` | `YES` | |
-   | `INFOPLIST_KEY_NSAppleEventsUsageDescription` | `DevHub drives Xcode's Debug menu to attach the debugger to an app on the simulator.` | without it macOS rejects the Apple Events used by Run & Attach |
-   | `GENERATE_INFOPLIST_FILE` | `YES` | |
-
-   Keep the Xcode 16 **synchronized folder**: a file added under `DevHub/` on disk joins the target. The agent edits `project.pbxproj` only for build settings, never for file lists.
-4. Open the project once in Xcode so the `DevHub` scheme exists (`xcodebuild -scheme` needs it). Build once. Commit.
-5. Tools on the machine: Xcode with command line tools, `git`, `python3` (used by the hook scripts), a terminal app. Optional: `gh`, `glab`, `copilot`, `claude`.
-6. Optional: add a remote (`git remote add origin …`) and push once, so the agent can push its commits. Without a remote the agent commits locally only.
-7. Start the session in the folder:
-   - Copilot: `copilot`, then: `Read AGENTS.md and docs/SPEC.md. Implement the specification milestone by milestone (section 3). After every milestone run Scripts/build.sh, update CHANGELOG.md and docs/STATUS.md, and commit.`
-   - Claude Code: `claude`, same prompt.
+- Physical devices (`devicectl`).
+- App Store distribution, notarization or the App Sandbox. The app uses ad-hoc signing. A sandbox would block `git`, `xcrun` and `xcodebuild`.
+- Chat integrations. A project that needs one adds an action with a script.
+- An AI chat inside the app. The AI tab lists sessions, resumes them and shows quotas.
+- A dark theme. The panel always uses the light appearance.
 
 ---
 
-## 3. Milestones
+## 2. The panel shell
 
-Each milestone ends with: `Scripts/build.sh` clean (zero warnings), a launch of the app (`Scripts/run.sh`) to check the screen by hand or with the headless smoke check, `CHANGELOG.md` and `docs/STATUS.md` updated, a commit and a push. Inside a milestone every finished feature is also a commit and a push (see "Commits and pushes" below).
+Details: `docs/features/output.md` (Output panel) and `docs/features/palette.md` (command palette).
 
-| # | Milestone | Priority | Done when |
-|---|---|---|---|
-| M0 | Skeleton: own status item and panel (8.1), window layout and drag, header, tab bar, footer, theme, shared components, hints, settings store, project session, mock providers, previews, `Scripts/build.sh`, `run.sh`, `install.sh` | P0 | the panel opens from the menu bar with a mock Home and all tabs navigable |
-| M1 | `ShellRunner`, `CommandLog`, Output panel, activity log, toasts and click-to-copy | P0 | a command run from Home shows in the Output panel with exit code and duration |
-| M2 | Projects (add, detect, switch), config loader and watcher for `.devhub/`, Home (project card, quick actions, scripts), action runner with inputs and the script line protocol | P0 | a script from `.devhub/scripts` with an input runs, streams output, reports progress in the footer |
-| M3 | Git tab (header, pills, local, remote, history, changes, diff, commit) and Worktrees tab | P0 | fetch, pull, push, switch, commit, create and delete worktree work on a real repo |
-| M4 | Simulators tab and Build & Run: schemes, configurations, build source (main, worktree, any branch), target, launch profiles, run options per simulator, Run & Attach, clean install, deep link, push | P0 | a branch without a checkout builds in a new worktree and launches on the chosen simulator while the main checkout keeps its branch |
-| M5 | Logs tab: one stream per simulator, levels, search, pause, copy, redaction | P1 | two simulators stream at the same time in two chips |
-| M6 | AI tab: Copilot and Claude sessions with resume; usage strip with Claude and Copilot quotas | P1 | sessions grouped by day, filtered to the project; resume opens the terminal in the right folder |
-| M7 | Extensions: custom tabs from config, placements everywhere, hot reload on file change, command palette | P1 | editing a JSON file under `.devhub/` changes the UI without a restart |
-| M8 | Polish: in-app build log viewer, menu bar icon state, doctor in Settings, keyboard navigation in lists, notifications when the panel is closed, launcher `.command` | P2 | |
+### 2.1 Status item and menu bar icon
 
-If time runs out: M0 to M4 are mandatory. The action system with inputs and placements belongs to M2 and is mandatory.
+- DevHub has no Dock icon by default (`LSUIElement`). Settings can show one.
+- The status item shows a hammer icon. A click (left or right) opens or closes the panel.
+- The icon shows the build state:
 
-### Commits and pushes: the remote is always a working app
+  | State | Icon |
+  |---|---|
+  | idle | `hammer.fill` |
+  | a build runs | `hammer.circle.fill` |
+  | a build failed while the panel was closed | `hammer.fill` with a red dot, until the panel opens |
 
-The session may stop at any moment (token limit, network, a crash). The owner must be able to clone the remote at any moment, run `Scripts/run.sh` and get a working app with every feature finished so far. So:
+- Next to the icon, the title can show the Claude session usage in percent and the number of requests that wait for your review. Each part has a switch in Settings.
 
-- **Every pushed commit builds clean and launches.** Before a commit: `Scripts/build.sh` prints only the app path, then the headless smoke check (8.13) says `alive`. A commit that does not pass this is not made.
-- **Push after every finished feature, not only after a milestone.** A feature is finished when its screen or action works end to end with real data and the build is clean. Typical cadence: one push every 20 to 40 minutes of work.
-- **Never leave the remote half-done.** A feature that is not finished yet is committed only when the app still builds and the unfinished part is not reachable from the UI (no tab, no button), or when it shows a clear "not yet" empty state. Prefer small, finished steps: a new screen with mock data that works is better than a half-wired real screen that crashes.
-- When the repository has a remote (`git remote get-url origin` succeeds) and a push works (`git push -u origin <branch>` returns 0), push after every commit. When the push fails for access reasons, record that in `docs/STATUS.md` under "Known gaps", keep committing locally with the same rules, and do not retry on every commit.
-- Work on the branch the session started on. Never force-push. Never rewrite history of a pushed commit.
-- No time goes into tests: no unit tests, no UI tests. The build and the smoke check are the gate.
-- Small commits with a clear message (`feat:`, `fix:`, `docs:`, `chore:`), the body in plain English. `CHANGELOG.md` gets its line in the same commit as the feature.
-- M0 includes a `README.md` in the new repo with the three commands a clone needs: `Scripts/run.sh`, `Scripts/install.sh`, `DevHub.command`. Keep it true as the app grows.
+### 2.2 Panel and pinned window
 
----
+- The panel is a borderless `NSPanel`, 720 × 820 points by default, minimum 640 × 560. A grip in the footer corner resizes it.
+- A drag on empty header or footer space moves the panel. DevHub saves the position and uses it on the next open. A double-click on empty header space moves the panel to its place under the icon again.
+- The panel always stays inside the visible area of its screen. It gets smaller when the screen is small.
+- A click outside the panel or a switch to another app closes the panel.
+- The pin button in the header opens the same content in a normal floating window. That window stays open, keeps its frame and does not close on a click outside.
+- A pull request can open in its own window (860 × 720 by default).
 
-## 4. Shell of the app
+### 2.3 Layout from top to bottom
 
-### 4.1 Menu bar item and panel
+1. **Usage strip** (a switch in Settings). One row per AI provider that is logged in. Claude shows the session and week limits. Copilot shows the premium requests of the month. A click shows reset times and a Refresh button.
+2. **Header.** The project menu (switch project, Add Project), the current branch under the project name, the search field with a prompt per tab (⌘F), the palette button (⌘K), the pin button and the settings button.
+3. **Tab bar.** The built-in tabs, then the custom tabs. ⌘1 to ⌘9 select the first nine tabs. The selected tab has the accent colour. When the titles do not fit, the other tabs show only icons.
+4. **Search filter bar.** A thin bar with "Clear search" appears only when the current tab is filtered. Without it, a saved query could hide most of a list without a sign.
+5. **The view of the selected tab.**
+6. **Output panel** (⇧⌘O). Section 2.6.
+7. **Footer.** The status text (Ready, the current build or script step with a spinner, the last result), the Output toggle with a running indicator, Quit (⌘Q) and the resize grip.
 
-- Status item with a template icon (SF Symbol `hammer.fill` or similar). Left click toggles the panel. Right click opens a small menu: Open, Pin, Settings, Quit.
-- The icon shows state: a small dot or a spinner-like symbol while a build runs, a red dot after a failure until the user opens the panel (P2). Optional usage percent next to the icon (Settings).
-- The panel: borderless `NSPanel`, default 720 × 820 points, minimum 640 × 560, resizable by a grip in the footer corner, movable by dragging empty header or footer space. The position is saved and used on the next open. Double-click on empty header space puts it back under the icon. The panel always stays 12 points inside the visible frame of its screen and shrinks when the screen is small. Details and traps in 8.1.
-- A click outside the panel or a switch to another app closes it. Esc with an empty search field closes it.
-- Pin button in the header: opens the same content in a floating window that stays open and on top; the panel closes. The window remembers its frame.
-- Global shortcut (Settings, default ⌥⌘D, a fixed list of choices) opens the panel or brings the pinned window to the front.
+### 2.4 First launch with no project
 
-### 4.2 Layout from top to bottom
+DevHub has no default project. With no project, the panel shows "No project yet" and an Add Project button. A project is a folder: the git checkout with the `.xcodeproj` or `.xcworkspace`, or any folder with a `.devhub/project.json` of `kind: command`.
 
-1. **Usage strip** (optional, Settings): one row per AI provider that is logged in: Claude session and week bars, Copilot premium requests. Click expands reset times and a Refresh button. Section 5.8.
-2. **Header**: project switcher (searchable, with "Add project…"), the current branch under the project name, header search field with a prompt per tab (⌘F focuses, Esc clears), pin button, settings button.
-3. **Tab bar**: pills from `FeatureRegistry` plus custom tabs from config. Selected pill filled with the accent colour, white text. ⌘1 … ⌘9. When titles do not fit, tabs show icons only (`ViewThatFits`).
-4. **Search filter bar**: a thin accent bar that appears only when the current tab is filtered by a query, with "Clear search". Without it a saved query hides most of a list with no sign.
-5. **Feature view** for the selected tab.
-6. **Output panel** (toggle in the footer, ⇧⌘O): fixed height, shows every command. Section 4.4.
-7. **Footer**: status label (Ready, current build step with a spinner, last build result, last failure), Output toggle with a running indicator, "⌘1–N tabs" hint, Quit, resize grip.
+### 2.5 Global shortcut
 
-### 4.3 Command palette (⌘K, P1)
+Settings offers a fixed list: ⌥⌘D (default), ⌃⌥Space, ⌃⌥D or Off. The shortcut opens the panel. When the pinned window is open, it brings that window to the front. It needs no Accessibility permission.
 
-A popover with a search field and a result list. Sources: tabs, built-in and config actions, scripts, simulators (boot, make target, run on), local branches (switch, run on target, create worktree), worktrees (open), AI sessions (resume), settings toggles. Enter runs the first match, arrows move. Each result shows a small category tag. The palette reuses the `SearchablePicker` component.
+### 2.6 Output panel
 
-### 4.4 Output panel
+- One entry per command: a status dot, the command line, the working folder, the duration, the exit code and a copy button. Output lines appear while the command runs.
+- The log keeps 300 entries and 4,000 lines per entry.
+- "Show reads" also shows read-only commands such as `git status` and `simctl list`. They are hidden by default.
+- A `secret` command (`security`, `gh auth token`) records no output: "Output hidden: it contains credentials."
+- An app log stream records no lines: "App log lines are shown in the Logs tab only."
+- Search over commands and output, Copy All, Clear.
+- The Output panel opens by itself when a command fails.
 
-- One entry per command: status dot (running, success, failure), the command line, working folder, duration, exit code, copy button. Output lines stream in while the command runs; long outputs show the last 8 lines with "show all". 300 entries, 4 000 lines per entry.
-- "Show reads" toggle: read-only commands (`git status`, `simctl list`, …) are hidden by default to keep the list short.
-- Commands classified as **secret** (`security`) record no output: "Output hidden: it contains credentials." App log streams record no lines either: "App log lines are shown in the Logs tab only."
-- Search over commands, output and errors. Copy all. Clear.
-- The panel opens by itself when a command fails.
+### 2.7 Command palette (⌘K)
 
----
+An overlay in the panel with a search field and a result list. Arrows move, Return runs the selected item, Esc closes. It shows at most 60 results. Every word of the query must match. A title that starts with the first word comes first.
 
-## 5. Screens
+Sources:
 
-Every screen: filters its lists with the header search; shows `ContentUnavailableView.search` for an empty filtered result; shows an empty state with a short hint when there is nothing; shows errors inline with a Retry button; ends with a `#Preview` using mock providers.
+| Section | Items |
+|---|---|
+| Tabs | every tab, and Settings |
+| Actions | every built-in action, and every config action and script whose `when` condition matches |
+| Simulators | Build & Run on a simulator, make a simulator the target |
+| Branches | switch to a local branch, Build & Run it, create a worktree for it. With local changes, "Switch to" does not switch: it shows the Git tab and asks you to use Switch or Stash & Switch in the branch row |
+| Worktrees | open the folder, Build & Run the worktree |
+| Pull requests | show an open request |
+| AI sessions | resume a session in the terminal |
 
-### 5.1 Home
+### 2.8 Notifications
 
-- **Project card**: icon tile, name, path (click copies), branch tag, status tag (clean or N changes), ahead/behind, buttons: Finder, Xcode (or the configured editor), Terminal, Repository (web). Data from the main checkout.
-- **Quick actions**: a grid of tiles (four columns at 720 points, fewer when narrower). Built-in: Build & Run, Run & Attach, Open in Xcode, Open folder, Terminal here, Copy branch, Repository, New pull/merge request. Config actions with placement `home.quickActions` join the grid. The order and the hidden ones come from `.devhub/project.json → home.quickActions` (P1); default: built-ins first.
-- **Scripts**: rows from `.devhub/scripts/` of the project and from `~/.devhub/scripts/` (global). Each row: icon, title, description, file name, last run time, Run button, inputs when the header declares them. Header format in `docs/extensions.md`. Section header has: the folder path (click opens Finder), a lightbulb that shows the header format, a reload button.
-- **Recent**: the last 8 activity events (title, detail, time, outcome dot). Clear.
-
-### 5.2 Git
-
-- **Header card**: checkout picker (main checkout or any worktree, searchable), branch name and short hash (click copies), tags: clean or N changes, upstream ↑↓ or "no upstream", "N ahead / M behind <base>", stash count, last fetch time, refresh button. A banner with Continue / Abort / Terminal appears while a rebase, merge or cherry-pick is in progress.
-- **PR / MR line** (P1): number, state (open, draft, merged), conflicts, review or merge status, latest pipeline or checks. Click opens the web page. Through `gh` for GitHub and `glab` for GitLab, detected from the remote URL. Not logged in: show the login command with a copy button.
-- **Pills** (an `ActionBar` that never cuts buttons): Fetch, Pull (`--ff-only`), Push (`-u` when no upstream), Force Push… (`--force-with-lease`, inline confirm), Rebase on <base>… (fetch, then `rebase --autostash`, inline confirm), Update <base> (fast-forward without switching), Stash / Pop Stash, plus config actions with placement `git.pills`. Right side icons: Terminal here, New PR/MR, Open branch on web.
-- **Segments**: Local N | Remote N | History | Changes. The tab remembers the segment.
-  - **Local**: sorted by the user's last checkout (reflog), current first. Each row: name, worktree tag when checked out elsewhere, changes in that worktree, ↑↓, "local only", "remote deleted", "merged". Actions: Switch, Update (fast-forward, also inside another worktree), Run on target, Create worktree, Delete (`-d`; `-D` with inline confirm), Copy, Web, PR/MR.
-  - **Remote**: sorted by last commit. Author, subject, date. Actions: Check out (creates a tracking branch), Run on target, Create worktree, Web.
-  - **History**: last 150 commits of the chosen checkout, "not pushed" tag on commits that are on no remote branch. Click copies the hash. Full hash and subject in the hint.
-  - **Changes**: files of the chosen checkout grouped as conflicts, staged, changes, new. Click shows the diff (text, capped at 4 000 lines, binary notice). Per file: stage, unstage, open in editor, discard (inline confirm; a new file is deleted). Stage All / Unstage All. Commit box with a prefix built from the branch name (configurable pattern, default ticket key such as `ABC-123: `), Amend, Commit (⌘↩), Commit & Push. No partial staging in v1.
-
-### 5.3 Worktrees
-
-- Toolbar: base branch name, total DerivedData size, Fetch (`--prune`), Prune (missing folders), Clean Finished… (inline confirm with the list), New worktree (branch picker with search; a new name branches from the base).
-- Sections: main checkout, in progress, finished (merged into base or remote branch deleted), missing folder.
-- Row: branch, path, changed files, merged / remote deleted / not pushed tags, ↑↓, DerivedData size, last commit and time, locked tag, "needs bootstrap" tag with a Run button.
-- Actions: Run on target, Use as build source, Open in Finder, Open in editor, Terminal, Copy path, Copy branch, Delete (inline confirm with warnings for uncommitted changes and unpushed commits, checkboxes "Delete DerivedData (size)" and "Delete branch").
-- Rules in 8.4.
-
-### 5.4 Simulators
-
-- **Run bar card**:
-  - Scheme (searchable, from the project's `.xcscheme` files), Configuration (Debug, Release, plus any from the project), Build source: main checkout, a worktree, or "Other branch…" with a searchable branch picker (a branch without a checkout gets a worktree on the next run), Fast (skip clean), Clean install (delete app, reset simulator keychain, install).
-  - Target: the simulator chosen in the list, with its runtime.
-  - Launch profile (from config; "none" when the project defines none): environment variables, launch arguments, defaults written into the app container. Section 6.4.
-  - Buttons: Run & Attach, Build & Run (prominent), Launch (installed app, no build), Cancel while running.
-  - Run options are saved per simulator and restored when the simulator becomes the target.
-  - While a build runs the footer shows the step text (Compiling · Target, Linking, Installing…). The bar is indeterminate (8.5). A failure shows the first `error:` line with "Show log" (in-app viewer in M8; a temp file opened in Console before that).
-- **List**: count line ("119 simulators · 36 with apps"), Remove Apps from All… (inline confirm, progress with Stop). Sections: Favorites, then one per runtime, newest first. Only iOS runtimes in v1; the parser keeps the platform so others can be added.
-- **Row**: status dot, device icon, name, runtime tag, "target" tag, favorite star, "Booted · N apps installed", optional project status line (6.5). Hover actions: Launch, Deep link / Push (popover with URL field and recent links; push payload editor with alert and silent templates, JSON check), Stream logs, Remove all apps (one tap, no confirm), Power, overflow menu: Open in Simulator.app, Make target, Copy UDID, Erase… (inline confirm), Uninstall <bundle id>, Open data container, Screenshot (P2), Appearance light/dark (P2).
-- **Create / delete simulator** (P2): `simctl create`, `simctl delete`.
-
-### 5.5 Logs
-
-- Chips bar: one chip per active stream ("iPhone 17 · booted", a dot, a close ×), a "+" that opens a searchable picker of booted simulators. The process name defaults to the project app's executable (from the installed app's `Info.plist`); editable. Optional subsystem filter from config.
-- Per stream: level segmented control (All, Info+, Default+, Errors), the header search filters lines, Pause with a counter of waiting lines, Copy visible lines, Clear. 5 000 lines in memory per stream, nothing on disk. Lines are masked by `LogRedactor` before storage (8.7).
-- Row: time, level colour, subsystem · category, message (selectable, click copies).
-- The chosen streams and levels survive a relaunch; streams restart on demand, not automatically.
-
-### 5.6 AI
-
-- Toolbar: provider segmented control (Copilot | Claude | Both), scope (This project | All), count, refresh.
-- Rows grouped by day: provider tile, title, date, folder path, branch tag, last prompt preview (one line), Resume button. Resume opens the configured terminal in the session folder and runs `copilot --resume <id>` or `claude --resume <id>`. A missing folder disables Resume with a hint.
-- Copilot sessions come from `~/.copilot/session-state/<id>/workspace.yaml` and `events.jsonl`; Claude sessions from `~/.claude/projects/*/<id>.jsonl`. Parsing rules in 8.9.
-- Copilot is listed first because it is the main tool.
-
-### 5.7 Settings
-
-- General: launch at login (`SMAppService`), show Dock icon, global shortcut (fixed list), show usage strip, show usage percent in the menu bar (per provider), terminal app (Terminal, iTerm2, Ghostty, Warp, …), editor (Xcode, VS Code, Cursor, …).
-- Projects: list with path, detected kind (Xcode workspace, Xcode project, command-based), scheme, bundle ID; Add project… (folder picker), remove, re-detect, "Open .devhub folder", "Create .devhub example".
-- Global config folder: `~/.devhub` with a Reveal button.
-- Doctor (P2): a table of tools (git, xcodebuild, simctl, gh, glab, copilot, claude, python3) with version or "missing" and the install command; Accessibility permission state with a button that opens System Settings.
-
-### 5.8 Usage strip
-
-- **Claude**: session (five hour) and week limits, plus per-model week limits when the response has them. Source in 8.10.
-- **Copilot**: premium requests used and remaining for the month, reset date, plan name. Source in 8.11.
-- Each provider row: name, one or two bars with percent, chevron to expand reset times and plan, Refresh. Errors show inline ("Claude Code is not logged in. Run `claude` once.") with Retry.
-- Polling every 5 minutes while the panel is open; refresh on open when older than 60 seconds.
+- DevHub posts macOS notifications only while the panel and the pinned window are closed. Settings has the switch "Notify when the panel is closed" (on by default) and an "Allow Notifications" button. DevHub asks for the permission only from that button.
+- Events: a build finished or failed, and the number of requests that wait for your review went up.
+- The `notify` directive of a script always posts a notification when the permission is given. It does not check the panel or the switch.
 
 ---
 
-## 6. Extension system (`.devhub/`)
+## 3. Tabs
 
-Normative schema with every field: `docs/extensions.md`. Examples: `docs/examples/devhub/`. This section gives the model.
-
-### 6.1 Layers and files
-
-| Location | Scope | Committed |
+| Tab | Purpose | Details |
 |---|---|---|
-| `<repo>/.devhub/` | the project; shared with teammates | yes (the team decides) |
-| `~/.devhub/projects/<project folder name>/` | the user's additions for that project | no |
-| `~/.devhub/` | global: scripts and actions for every project | no |
+| Home | project card, quick actions, scripts, config problems, recent activity | [`features/home.md`](features/home.md) |
+| Git | branch state, remote actions, branches, history, reflog, changes, commit | [`features/git.md`](features/git.md) |
+| Pull Requests | GitHub pull requests through `gh`, GitLab merge requests through `glab` | [`features/pull-requests.md`](features/pull-requests.md) |
+| Worktrees | list, create, delete and clean worktrees | [`features/worktrees.md`](features/worktrees.md) |
+| Simulators | the simulator list and the Build & Run bar | [`features/simulators.md`](features/simulators.md) |
+| Device identity | the panel of a simulator row: device ID, profile, clean install | [`features/device-identity.md`](features/device-identity.md) |
+| Logs | live app logs, one stream per simulator | [`features/logs.md`](features/logs.md) |
+| Network | the mock server, mock sets, GraphQL | [`features/network.md`](features/network.md) |
+| AI | Copilot CLI and Claude Code sessions, usage | [`features/ai.md`](features/ai.md) |
+| custom tabs | tabs from `.devhub/tabs/*.json` | [`features/custom-tabs.md`](features/custom-tabs.md) |
+| Settings | app settings, projects, config folders, Doctor | [`features/settings.md`](features/settings.md) |
 
-Inside each: `project.json` (only in the project layers), `actions/*.json`, `scripts/*` (executables with a header), `tabs/*.json`. Items merge by `id`; the user layer wins over the project layer, the project layer wins over global.
+Every tab filters its lists with the header search. Every tab shows an empty state with a short hint when there is nothing to show. Errors appear inside the tab with a Retry button.
 
-The app watches these folders (`DispatchSource` on the directories) and reloads on change. A broken file shows an inline error with the file name and the reason; the other files still load.
+### 3.1 Home
 
-### 6.2 `project.json`
+- **Project card.** Name, path (a click copies it), branch, clean or changed state, and buttons for Finder, the editor, the terminal and the repository web page.
+- **Quick actions.** A grid of tiles. The built-ins are Build & Run, Run & Attach, Open in Editor, Open Folder, Terminal, Copy Branch, Repository and New Pull Request. Config actions with the placement `home.quickActions` join the grid. `home.quickActions` in `project.json` sets the order and hides the others.
+- **Config problems.** A file that does not decode shows its name and the reason. The other files still load.
+- **Scripts.** One row per script from `.devhub/scripts` of every config layer. A row has inputs when the header declares them, a Run button, an inline confirmation, a result area and the last run time.
+- **Recent.** The last activity events with an outcome dot.
 
-Describes how the project builds and runs. Everything is optional; missing values are detected.
+Why: the actions a developer repeats every day are one click away, and a team can add its own.
 
-```json
-{
-  "name": "My App",
-  "kind": "xcode",
-  "xcode": { "container": "MyApp.xcworkspace", "scheme": "MyApp", "configuration": "Debug", "bundleID": "com.example.myapp" },
-  "build": { "command": "Scripts/build-sim.sh" },
-  "run": { "command": "Scripts/run-sim.sh" },
-  "git": {
-    "baseBranch": "origin/main",
-    "commitPrefix": { "pattern": "^([A-Z]+-\\d+)", "format": "$1: " },
-    "worktrees": { "folder": ".worktrees", "include": [".env", "Config/Local.xcconfig"], "bootstrap": "Scripts/bootstrap.sh", "bootstrapMarker": "Pods" }
-  },
-  "launch": { "profiles": [ { "id": "staging", "title": "Staging", "env": { "API_ENV": "staging" }, "args": ["-ui-testing"], "defaults": [ { "suite": "group.com.example.myapp", "key": "environment", "value": "staging" } ] } ] },
-  "logs": { "process": "MyApp", "subsystem": "com.example.myapp" },
-  "simulators": { "statusScript": "scripts/sim-status.sh" },
-  "home": { "quickActions": ["builtin.buildRun", "builtin.runAttach", "clean-derived-data", "builtin.terminal"] }
-}
-```
+### 3.2 Git
 
-- `kind`: `xcode` (default when a workspace or project is found) or `command`. With `command`, Build & Run runs `build.command` then `run.command` with the context variables (6.3) instead of `xcodebuild`; the simulator list and the rest of the tab still work. Use this for a project that cannot be built in the generic way, and to run a project through any executable file.
-- `xcode.container`: when missing, the first `.xcworkspace`, else the first `.xcodeproj` in the folder. `scheme`: when missing, the first shared scheme. `bundleID`: when missing, the shortest `PRODUCT_BUNDLE_IDENTIFIER` in the `.pbxproj` that does not contain `Tests`, `Extension`, `Widget`, `Clip` or `$`. The bundle ID of a built app always comes from the built `Info.plist`.
-- `git.baseBranch`: when missing, `refs/remotes/origin/HEAD`, else `origin/main`.
-- `git.worktrees.folder`: relative to the repo. When missing: a sibling folder `<repo>-<branch>` next to the repo. Slashes in branch names become dashes. `include` lists files copied into a new worktree (gitignored config files). `bootstrap` runs when `bootstrapMarker` exists in the main checkout and is missing in the worktree.
+- **Header.** A checkout picker (the main checkout or a worktree), branch and short hash, clean or changed state, ahead and behind the upstream and the base branch, stash count, last fetch time. A banner with Continue and Abort appears during a rebase, merge or cherry-pick.
+- **Request line.** The pull request of the branch: number, state, checks or pipeline, review state.
+- **Action bar.** Fetch, Pull (`--ff-only`), Push, Force Push (`--force-with-lease`, inline confirmation), Rebase on base (`--autostash`), Update base without a switch, Stash and Pop Stash, and config actions with the placement `git.pills`.
+- **Segments.** Local, Remote, History, Reflog, Changes.
+  - Local: branches sorted by your last checkout, with tags for worktree, upstream state, merged and remote deleted. Actions: Switch (with a stash when there are local changes), Update, Run on target, Create worktree, Delete, Copy, open on the web, the pull request. Config actions with the placement `git.branchRow` are in the context menu.
+  - Remote: branches sorted by the last commit. Check out, Run on target, Create worktree.
+  - History: the last commits of the chosen checkout, with a "not pushed" tag.
+  - Reflog: the recent moves of `HEAD`.
+  - Changes: files grouped as conflicts, staged, changed and new, with a diff, stage, unstage, discard and "Open in Editor". A commit box with a prefix from the branch name (`git.commitPrefix`), Amend, Commit (⌘↩) and Commit & Push.
+- The remote is `git.remote` (default `origin`). The base branch is `git.baseBranch`, else `<remote>/HEAD`, else `<remote>/main`.
 
-### 6.3 Actions
+### 3.3 Pull Requests
 
-One JSON file per action, or several in one file. An action is a button somewhere in the UI that runs something.
+- DevHub picks the code host from the remote URL. A host name that contains `github` is GitHub. Any other host is GitLab, unless `git.host.kind` says `github` (for GitHub Enterprise on a company domain).
+- All words follow the host: "Pull Requests" and `#12` on GitHub, "Merge Requests" and `!12` on GitLab, "checks" or "pipeline".
+- The list has four scopes (mine, reviewing, assigned, all), a state filter (open, merged, closed, all) and three styles (Detailed, Calm, Compact).
+- The details show the description, review threads, changed files with diffs, checks or pipeline jobs and merge readiness.
+- Actions: approve and revoke approval, draft and ready, update branch (rebase on GitLab), merge with optional squash and branch removal, auto-merge, re-run and cancel a check run or pipeline, reply to and resolve a thread, create a new request with labels, "Fix threads with AI" (runs `ai.reviewCommand` in a terminal in the worktree). An action that the host or the repository does not allow is hidden.
+- Every 5 minutes DevHub counts the open requests by other people that wait for your review. The count appears next to the menu bar icon (`3 PR` on GitHub, `3 MR` on GitLab) and can post a notification.
+- Config actions with the placement `pullRequests.row` are in the row menus.
 
-```json
-{
-  "id": "clean-derived-data",
-  "title": "Clean DerivedData",
-  "subtitle": "Removes the DerivedData folder of this project",
-  "icon": "trash",
-  "tint": "red",
-  "placements": ["home.quickActions", "git.pills"],
-  "run": { "script": "scripts/clean-derived-data.sh" },
-  "cwd": "checkout",
-  "inputs": [ { "key": "branch", "title": "Branch", "type": "branch", "default": "current", "remember": true } ],
-  "confirm": "Delete DerivedData for this project?",
-  "refresh": ["worktrees"]
-}
-```
+### 3.4 Worktrees
 
-- `run` is one of: `{ "script": "<path relative to the .devhub folder>" }`, `{ "command": ["git", "fetch", "--prune"] }`, `{ "terminal": "make lint" }` (opens the terminal and runs the text there), `{ "open": "https://ci.example.com/{branch}" }` (URL or path; placeholders from the context).
-- `cwd`: `checkout` (the checkout chosen in the Git tab, default), `main` (main checkout), `project` (the project folder), or a path.
-- `inputs[].type`: `text`, `number`, `toggle`, `choice` (with `options`), `branch`, `worktree`, `simulator`, `scheme`, `file`, `folder`. Pickers are searchable. `remember: true` keeps the last value per project. Values reach the script as `DEVHUB_INPUT_<KEY>` and as `{key}` placeholders.
-- `placements`: `home.quickActions`, `home.scripts`, `git.pills`, `git.branchRow`, `worktrees.row`, `simulators.runBar`, `simulators.row`, `logs.toolbar`, `palette` (always included), and `tab.<tabID>` for custom tabs. A row placement gets the row's item in the context (`DEVHUB_BRANCH`, `DEVHUB_WORKTREE_PATH`, `DEVHUB_SIMULATOR_UDID`).
-- `confirm`: inline confirmation text inside the row or tile. No alerts.
-- `refresh`: stores to refresh after success: `git`, `worktrees`, `simulators`, `scripts`, `logs`.
-- `when` (P1): visibility conditions, for example `{ "git": "dirty" }`, `{ "simulator": "booted" }`, `{ "tool": "gh" }`.
+- A toolbar with the base branch, Fetch (`--prune`), Prune (missing folders), Clean Finished (inline confirmation with the list) and New worktree.
+- Rows show branch, path, changed files, merged, remote deleted or not pushed tags, ahead and behind, the DerivedData size, the last commit, a locked tag and a "needs bootstrap" tag.
+- Actions: Build & Run, Use as Build Source, Open in Finder, editor or terminal, Copy Path, Copy Branch Name, Delete (inline confirmation with warnings for uncommitted changes and unpushed commits; optional removal of DerivedData and the branch). Config actions with the placement `worktrees.row` are in the context menu.
+- `git.worktrees.folder`, `include`, `bootstrap` and `bootstrapMarker` control where new worktrees go and how they are prepared.
 
-**Context variables** given to every script and command (also usable as `{name}` placeholders in `open`, `terminal` and `command` strings):
+### 3.5 Simulators and Build & Run
 
-`DEVHUB_PROJECT_PATH`, `DEVHUB_PROJECT_NAME`, `DEVHUB_CHECKOUT_PATH`, `DEVHUB_MAIN_PATH`, `DEVHUB_BRANCH`, `DEVHUB_BASE_BRANCH`, `DEVHUB_SCHEME`, `DEVHUB_CONFIGURATION`, `DEVHUB_BUNDLE_ID`, `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME`, `DEVHUB_APP_PATH` (last built app, may be empty), `DEVHUB_WORKTREE_PATH` (row placements), `DEVHUB_INPUT_<KEY>`, `DEVHUB_CONFIG_DIR` (the folder of the action's file), `DEVHUB_VERSION`.
+- **Run bar.** Scheme, configuration, build source (the main checkout, a worktree or any branch), Fast (no clean), Clean install, the launch profile and the target simulator. Buttons: Build & Run (⌘R), Run & Attach (⇧⌘R), Launch (the installed app, no build), Cancel. Config actions with the placement `simulators.runBar` appear under the target. The options are saved per simulator.
+- **List.** Favourites first, then one section per iOS runtime, newest first. A row shows the state, the runtime, the target tag, the number of installed apps and the line of the status script (`simulators.statusScript`).
+- **Row.** A click on a row makes that simulator the target.
+- **Row buttons.** Build & Run on this simulator, deep link and push (the schemes come from `CFBundleURLTypes` of the installed app), the identity panel (section 3.6), Remove All Installed Apps, and the power button (boot or shut down).
+- **Row menu.** Open in Simulator.app, Stream App Logs, Launch & Attach Xcode, Copy UDID, Erase Content and Settings (inline confirmation), and config actions with the placement `simulators.row`.
+- Remove Apps from All removes the user apps from every simulator, one at a time, with progress and Stop.
+- A build of a branch without a checkout creates a worktree first. The main checkout keeps its branch.
+- A `kind: command` project runs `build.command`, then `run.command`, instead of `xcodebuild`. Run & Attach is off for these projects.
 
-### 6.4 Scripts
+### 3.6 Device identity
 
-Any executable file under `scripts/` is an action with placement `home.scripts` without a JSON file. The header lines define it:
+The identity panel of a simulator row appears only when `launch.identity` is set in `project.json`.
 
-```sh
-#!/bin/zsh
-# devhub: title = Regenerate resources
-# devhub: subtitle = Runs the resource generator after asset changes
-# devhub: icon = wand.and.stars
-# devhub: tint = purple
-# devhub: input = target, Target, choice, App|Widget
-# devhub: input = clean, Clean first, toggle, false
-# devhub: placements = home.scripts, git.pills
-# devhub: confirm = This takes a minute. Continue?
-```
+- It shows what the app on the simulator uses now: the version, the stored profile, the device ID, the user and the host. These values come from the `state` line of the status script and from the app's `Info.plist`.
+- It sets what the next launch uses: a new ID (`launch.identity.idPrefix` plus 8 hex characters), the app's own ID, or a saved ID with an alias. A saved ID can be forgotten.
+- It shows a note when the next launch will reinstall the app (section 5.8).
+- A tag shows whether the app binary contains the hook text (`launch.identity.hookMarker`).
+- Apply & Relaunch launches the installed app again without a build.
 
-The file name is the fallback title. Only executable files count; a non-executable file shows a row with "chmod +x" as the hint.
+Why: a QA flow often needs a fresh device or account ID, or the same ID again later. The app reads the ID only at launch, so DevHub passes it in the environment of the launch.
 
-### 6.5 Script line protocol (a script drives the UI)
+### 3.7 Logs
 
-Lines that start with `@devhub ` followed by one JSON object are directives. Every other line is plain output for the Output panel.
+- One chip per stream. Each chip is one simulator with its own process, subsystem, level and pause state. "+" adds a stream for a booted simulator.
+- The process filter starts with `logs.process`, else `CFBundleExecutable` of the installed app. With `logs.subsystem`, the stream filters by subsystem instead.
+- Per stream: levels (All, Info+, Default+, Errors), search, Pause with a count of waiting lines, Copy visible lines, Clear.
+- 5,000 lines per stream, in memory only. Lines are masked before DevHub keeps them.
+- Config actions with the placement `logs.toolbar` appear in the toolbar.
+
+### 3.8 Network
+
+The Network tab shows only the requests that pass through the DevHub mock server. DevHub does not read any app's own log files.
+
+- **Mode** per simulator: Off (the app talks to its real hosts), Passthrough (DevHub forwards every request and records it) or Mock (the rules of a mock set answer first, the rest is forwarded).
+- **Apply & Relaunch** stops the app and launches it again with the server address. The app reads the address only at launch.
+- **Status line.** It says whether the app was launched through the server on the current port, launched outside DevHub (the traffic may not reach the server), or launched against an old port.
+- **Request list and details.** Method, path, status, duration, request and response headers and bodies, "Copy as cURL", "Copy Response Body" and "Mock This" (a new rule from the request).
+- **Mock sets.** Named lists of rules. A rule matches method, path pattern, query and GraphQL operation name, then answers with a fixed response or patches the real response. The sets are files in `network.mocksFolder`, so a team can keep them in the repository.
+- **GraphQL.** The list shows the operation name with a `query`, `mutation` or `batch` tag. The details show variables and errors.
+- Without `network.baseURLVariable` the mode bar is hidden, and an empty state explains how to enable the mock server.
+
+### 3.9 AI
+
+- Copilot CLI sessions and Claude Code sessions in one list, grouped by day, newest first.
+- Filters: the provider (Copilot, Claude, both) and the scope (This project, All).
+- A row shows the title, date, folder, branch and the last prompt. Resume opens the configured terminal in the session folder and runs `copilot --resume <id>` or `claude --resume <id>`. The menu has "Copy resume command" and "Copy session ID".
+- The usage strip at the top of the panel shows the Claude limits and the Copilot premium requests (section 5.12).
+
+### 3.10 Custom tabs
+
+- Each file in `.devhub/tabs/*.json` adds a tab after the built-in tabs. The first custom tab gets ⌘9. The others have no shortcut.
+- A tab has sections. A section lists actions as rows with inputs and a Run button, or it shows the `view` output of a source script (rows with their own actions, key-value pairs or text).
+- A source script runs when the tab opens (`onOpen`, the default), on a button (`manual`) or every N seconds.
+- Config actions with the placement `tab.<id>` join the tab.
+- A config action whose `when` condition does not match is hidden. A section where every action is hidden is not shown.
+
+Why: a team can build a small tool screen (accounts, devices, feature flags) without a change to the app.
+
+### 3.11 Settings
+
+Settings opens from the gear in the header. It is not in the tab bar.
+
+| Section | Content |
+|---|---|
+| General | launch at login, Dock icon, global shortcut |
+| Notifications | the switch and the permission state |
+| Claude usage | the usage strip, the usage percent in the menu bar |
+| Pull Requests | the review count in the menu bar |
+| Projects | the project list, Add Project, re-detect scheme and bundle ID, manual values |
+| Project config | the three config layers of the project, Create .devhub Example, Reveal .devhub Folder |
+| Global config folder | `~/.devhub` with Reveal |
+| Tools | editor (Xcode, Cursor, VS Code, Zed) and terminal (Terminal, iTerm2, Ghostty, Warp) |
+| Tickets | the default ticket link with `{key}` |
+| Git | fetch when the Git tab opens: never, or when the last fetch is older than N minutes |
+| Doctor | `git`, `xcodebuild`, `xcrun simctl`, `gh`, `glab`, `copilot`, `claude`, `python3`: version, path or the install command; Accessibility and Notifications permissions |
+| About | version |
+
+The Doctor looks for tools in `/opt/homebrew/bin`, `/usr/local/bin`, `~/.local/bin` and the PATH of the app.
+
+---
+
+## 4. Extension system
+
+The full schema with every field, type and default is in `docs/extensions.md`. A complete example folder is in `docs/examples/devhub/`. This section gives the model.
+
+### 4.1 Layers
+
+| Location | Scope |
+|---|---|
+| `<repo>/.devhub/` | the project; the team decides whether to commit it |
+| `~/.devhub/projects/<project folder name>/` | your own additions for one project |
+| `~/.devhub/` | global: actions, scripts and tabs for every project |
+
+Each layer may hold `project.json` (not in the global layer), `actions/*.json`, `scripts/*` and `tabs/*.json`. Items merge by `id`. The user layer wins over the project layer. The project layer wins over the global layer. DevHub watches the folders and reloads on a change, with no restart.
+
+### 4.2 `project.json`
+
+It describes how the project builds, runs and connects. Every field is optional. DevHub detects the missing values.
+
+| Group | What it controls |
+|---|---|
+| `name`, `kind` | the shown name; `xcode` or `command` |
+| `xcode.*` | container, scheme, schemes, configuration, bundle ID, bundle IDs per scheme |
+| `build.command`, `run.command` | the build and run scripts of a `kind: command` project |
+| `git.*` | remote, host kind and name, base branch, protected branches, commit prefix, ticket link, worktree folder and bootstrap, pull request targets, template, stale days, form defaults |
+| `ai.reviewCommand` | the command of "Fix threads with AI" |
+| `launch.profiles[]` | environment, arguments, defaults, storage, upstream, production flag, clean install |
+| `launch.identity.*` | the device ID variable and its rules |
+| `network.*` | `baseURLVariable`, `mocksFolder` |
+| `logs.*` | default process and subsystem |
+| `simulators.statusScript` | the status script |
+| `home.quickActions` | order and visibility of the Home grid |
+
+### 4.3 Actions
+
+An action is a button that runs something. It has a title, an icon, a tint, placements, a `run` shape, a working folder, inputs, an inline confirmation, refresh targets and visibility conditions (`when`).
+
+- `run` is one of `script`, `command` (an argument array), `terminal` (text run in the terminal) or `open` (a URL or a path).
+- Input types: `text`, `number`, `toggle`, `choice`, `branch`, `worktree`, `simulator`, `scheme`, `file`, `folder`. A value reaches a script as `DEVHUB_INPUT_<KEY>` and a `run` string as `{key}`.
+- Every run gets the context variables: `DEVHUB_PROJECT_PATH`, `DEVHUB_CHECKOUT_PATH`, `DEVHUB_BRANCH`, `DEVHUB_SIMULATOR_UDID`, `DEVHUB_BUNDLE_ID` and others.
+
+### 4.4 Placements
+
+| Placement | Where |
+|---|---|
+| `home.quickActions`, `home.scripts` | Home grid, Home scripts list |
+| `git.pills`, `git.branchRow` | Git action bar, branch row context menu |
+| `worktrees.row` | worktree row context menu |
+| `pullRequests.row` | pull request row menus |
+| `simulators.runBar`, `simulators.row` | run bar, simulator row overflow menu |
+| `logs.toolbar` | Logs toolbar |
+| `palette` | the command palette; always added |
+| `tab.<id>` | a custom tab |
+
+A row placement gets the values of its row, for example `DEVHUB_BRANCH` or `DEVHUB_SIMULATOR_UDID`, and `DEVHUB_ROW_ID`. Its inputs and confirmation open under that row.
+
+### 4.5 Scripts with a header
+
+Any file in `scripts/` is an action without a JSON file. Lines `# devhub: <key> = <value>` in the first 20 lines set the title, subtitle, icon, tint, inputs, placements, confirmation, working folder and refresh targets. The id is `script:<file name without extension>`. A file without the executable bit shows the hint "Run chmod +x".
+
+### 4.6 The `@devhub` line protocol
+
+A script drives the UI with lines that start with `@devhub ` and hold one JSON object. Other lines are plain output.
 
 | Directive | Effect |
 |---|---|
-| `{"progress": "Compiling", "fraction": 0.4}` | footer and run bar step text; `fraction` optional |
-| `{"toast": "Done"}` | toast |
-| `{"copy": "text"}` | copies to the clipboard and shows a toast |
-| `{"open": "https://…"}` or a path | opens with the default app |
-| `{"notify": "Build finished", "body": "…"}` | system notification when the panel is closed (P2) |
-| `{"refresh": ["git", "simulators"]}` | refreshes stores |
-| `{"error": "message"}` | marks the run as failed with this message even with exit 0 |
-| `{"view": { "rows": [ { "id": "…", "title": "…", "subtitle": "…", "tags": [{"text": "ok", "tint": "green"}], "actions": [ { "title": "Open", "run": { "open": "…" } } ] } ] }}` | replaces the result area of the action (a custom tab section, or the Output entry) with rows that have their own actions |
-| `{"view": { "keyValues": [ ["Version", "1.2"], ["Build", "345"] ] }}` | a key-value block |
-
-`simulators.statusScript` uses the same protocol: it receives `DEVHUB_SIMULATOR_UDID` and `DEVHUB_BUNDLE_ID`, prints one `{"view": {"keyValues": …}}` or a plain line, and the row shows it under the device name. The app runs it for booted, favourite and target simulators, caches the result and runs it again after a launch.
-
-### 6.6 Custom tabs
-
-```json
-{
-  "id": "qa",
-  "title": "QA",
-  "icon": "wrench.and.screwdriver",
-  "searchPrompt": "Search QA tools",
-  "sections": [
-    { "title": "Accounts", "actions": ["login-as-tester", "reset-account"] },
-    { "title": "Devices", "source": { "script": "scripts/list-devices.sh", "refresh": "onOpen" } }
-  ]
-}
-```
-
-A section lists actions (rendered as rows with inputs) or a `source` script whose `{"view": …}` output renders rows. The tab joins the tab bar after the built-in tabs, gets a ⌘ number and the header search.
+| `progress` | step text and optional fraction in the footer and the run bar |
+| `toast`, `copy`, `open` | a toast, the clipboard, open a URL or a path |
+| `notify` | a macOS notification |
+| `refresh` | refresh stores: `git`, `worktrees`, `simulators`, `scripts`, `logs`, `pullRequests` |
+| `error` | mark the run as failed, even with exit code 0 |
+| `app` | `build.command` and `run.command` only: the `.app` to install and launch |
+| `state` | `simulators.statusScript` only: identity, profile, host, user and version that the app reports |
+| `view` | rows with actions, key-value pairs or text in the result area |
 
 ---
 
-## 7. Architecture
+## 5. Technical playbook
 
-### 7.1 Layers and folders
+Each item here cost at least one failed attempt. Read the matching item before you change the code it describes.
 
-```
-DevHub/
-  App/          DevHubApp.swift (@main, Settings scene only), AppDependencies.swift (composition root), AppEvents.swift
-  Core/         Models/ (value types), Config/ (schema types, decoding, merge), Parsers/ (pure functions), LogRedactor.swift
-  Services/     ShellRunner.swift, CommandLog.swift, Providers.swift (bundle of protocols, .mock and .live)
-                Git/ Xcode/ Simulators/ Logs/ AI/ Config/ Scripts/ Workspace/
-  Shared/       ProjectSession, Navigator, ActivityLog, Toaster, OutputPanelState, SettingsStore, WindowLayout, WorkspaceActions, ActionCatalog
-  Features/<Name>/   <Name>Store.swift and one file per view (screen, toolbar, row, panel)
-  Shell/        AppWindows, RootView, HeaderView, FeatureTabBar, FooterView, ProjectMenu, SearchFilterBar, WindowDragArea, ResizeGrip, CommandPalette
-  UI/           Theme, Components, ActionBar, FlowLayout, Hint, CopyOnClick, SearchablePicker, WindowAppearance, FolderPicker
-Scripts/        build.sh run.sh install.sh make-launcher.sh ai/
-docs/           SPEC.md STATUS.md extensions.md examples/
-```
+### 5.1 Menu bar item and panel
 
-Dependency direction, strict: `App → Shell → Features → Shared → Services → Core`.
+- **Do not use `MenuBarExtra(.window)`.** It moves the panel to the icon on every open and every resize, so a saved position is lost. DevHub uses an `NSStatusItem` and its own borderless `NSPanel` subclass: `canBecomeKey` true, `level = .statusBar`, `hidesOnDeactivate = false`, `collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]`, `animationBehavior = .none`, `isMovable = false`. `AppWindows` owns the status item, the panel, the pinned window and the pull request windows.
+- **Open at once.** DevHub creates the hosting controller on the first open and keeps it. Later opens only set the frame and show the panel. `openCount` grows by one on each open, and the root view uses it to refresh the stores.
+- **Close rules.** A global mouse-down monitor and `NSApplication.didResignActiveNotification` close the panel. The monitor is removed on close.
+- **Position.** `WindowLayout` saves the size and the top-left point. The frame stays 12 points inside the visible frame of the screen. A drag view sets `setFrameOrigin` by itself (`mouseDownCanMoveWindow` is false). The resize grip starts from the saved top-left point, so a moved panel does not jump back.
+- **Light appearance.** `preferredColorScheme` does not reach an AppKit panel. Set `window.appearance = NSAppearance(named: .aqua)` from an `NSViewRepresentable` in the view tree (`WindowAppearance`) and add `.colorScheme(.light)`. Never set `NSApp.appearance`: the menu bar text would turn black on a dark menu bar.
+- **Dock icon:** `NSApp.setActivationPolicy(.regular / .accessory)`. **Launch at login:** `SMAppService.mainApp.register()`. The status `requiresApproval` means: open System Settings → General → Login Items.
+- **Global shortcut:** Carbon `RegisterEventHotKey`. It needs no Accessibility permission.
+- **Ad-hoc signing.** Each rebuild changes the binary, so macOS may ask for Accessibility again. DevHub shows the System Settings path in the activity line.
 
-- `Core` imports Foundation only. No AppKit, no SwiftUI, no `Process`. Everything here works on plain values, so a parser can be checked in a preview or a playground without the app.
-- `Services` run commands and read files. They expose protocols (`GitRepositoryProviding`, `SimulatorProviding`, `BuildProviding`, …) with a `Mock…` and a `Live…` type each, collected in the `Providers` bundle. Only `Services/Workspace/` may import AppKit (openers, hot key, Accessibility).
-- `Shared` holds app-wide state with no feature logic.
-- `Features` hold one `@MainActor @Observable final class <Name>Store` per feature plus its views. A store receives its provider and the lower stores it reads through `init`. Stores never import SwiftUI; a tint is an enum in `Core`, mapped to `Color` in `UI`.
-- `Shell` and `UI` know nothing about features except through `FeatureRegistry` and the environment.
-- `AppDependencies` builds every store once and injects them with `.environment`. `AppDependencies.mock()` feeds previews.
+### 5.2 Hints
 
-### 7.2 Rules
+The system `.help` tooltip is slow and often does not appear in a menu bar panel. `HintCenter` keeps the current hint. The `.hint(_:)` modifier reports the frame of its view. `HintOverlay` draws one bubble, at most 260 points wide, under the item or above it when there is no room. A click, a key or a scroll hides it.
 
-- **Stores depend one way.** `Shared ← Worktrees, Simulators, Usage, Sessions ← Git ← Build`. A lower store never knows a higher one. Cross-feature actions are wired in views (a Git row's "Run on target" calls `navigator.show("simulators")` then `build.run(branch:)`).
-- **Events instead of calls.** When a store changes data that other features show, it posts an `AppEvent` (`projectChanged`, `branchesChanged`, `worktreesChanged`, `simulatorsChanged`, `configChanged`, `commandFailed`). Interested stores subscribe in `init`. Add a case only when a second store needs to react.
-- **Views mutate only their own `@State`.** Every data mutation is a store method. Async work lives in stores (`Task`), never in views.
-- **Providers return values or streams.** Long work returns `AsyncThrowingStream` of events; cancelling the consuming task terminates the process.
-- **Every command through `ShellRunner`.** Never `Process` directly. Never on the main actor.
-- **Every failure is visible.** An `ActivityEvent` with `.failure`, the Output panel opens, no silent `catch`.
-- **No comments in code.** Names and small functions carry the meaning. `// MARK: -` for sections only.
-- **Persistence**: `UserDefaults` through one `AppPreferences` type with named keys; JSON-encoded structs for anything beyond a scalar. Config files are the user's; the app never writes into `.devhub/` except "Create example".
-- **No tests.** The build with zero warnings and a manual run are the check. A parser is checked by running the real command once in the Output panel and comparing with what the screen shows.
+### 5.3 `ShellRunner`
 
-### 7.3 Swift conventions
+- Every process starts through `/usr/bin/env <executable>`. `/opt/homebrew/bin` and `/usr/local/bin` come first in `PATH`.
+- **Deadlock trap.** Blocking pipe reads on the Swift concurrency pool hang when 30 or more commands run at the same time. The blocking read runs on a dedicated concurrent `DispatchQueue`, and stderr is read on that queue while stdout is read.
+- **Streams.** A cancelled task terminates the process. A cancelled stream ends without an error.
+- **Command kinds.** `read` (hidden in the Output panel by default), `action`, `secret` (no output recorded: `security`, `gh auth token`) and `appLog` (`simctl spawn … log`, no lines recorded).
+- **`gh` and `glab` kinds.** Both tools follow one rule. A GraphQL query is a read, a GraphQL mutation is an action. An `api` call with `-X GET` is a read, with another method an action. An `api` call without a method is a read when it sends no fields (`-f`, `-F`, `--field`, `--raw-field`, `--input`). The subcommands `view`, `list`, `checks`, `diff` and `status` are reads.
+- **Terminal.** `open -a <App> <path>` opens a folder. Ghostty needs `open -na Ghostty --args --working-directory=<path>`. To run a command in a terminal, DevHub writes a temporary `.command` script that removes itself, changes to the folder and runs the command in a login shell.
 
-- `guard` for early exit. `== false` instead of `!`.
-- `[weak self]` closures start with `guard let self else { return }` on its own line, then no `self.`.
-- Member order: environment and dependencies, `let` inputs, `@State`, `body`, private computed properties, private functions.
-- Default parameter values only for cosmetic view inputs and `@ViewBuilder` closures.
-- One concern per `extension`. Multi-line calls: first argument on a new line, closing `)` on its own line.
-- Types that must run off the main actor are `actor` or `nonisolated` (default isolation is `MainActor`).
-
-### 7.4 UI conventions
-
-- Horizontal padding 14. Row vertical padding 7 to 8. Dividers between rows inset 56 from the left so they align with the text, not the icon.
-- Rows reveal actions on hover with `opacity`, never with a layout change. Selected rows keep their actions visible. Right-click shows the same actions in a context menu.
-- Destructive actions confirm inline inside the row: the row grows by one line with the consequence text, Cancel and a red button. No alerts, no sheets (they are unreliable inside a menu bar panel).
-- Every icon without text has a hover hint (`.hint`), never `.help` (8.3). Buttons never get cut: `.fixedSize()`, long rows in `ActionBar`, tag rows in `FlowLayout`, cut text gets `.hintWhenTruncated`.
-- Static text a user may paste (paths, branches, hashes, IDs) gets `.copyOnClick(value, label:)`. Copy buttons call `toaster.copy`. Never write to `NSPasteboard` outside `Toaster`.
-- Light scheme forced on the panel window. Near-white `Theme.base` for chrome, white `Theme.surface` for cards and lists, hairline `Theme.border`, `Theme.hover`. Accent colour for selection. Semantic tints: green clean/success/booted, orange dirty/booting, red missing/failure/destructive, blue current/target/branch, purple merged/scripts, indigo project. No hex colours outside `Theme`.
-- Monospaced font for paths, file names, hashes and commands.
-- Shared components (`UI/Components.swift` and friends): `Tag`, `IconTile`, `IconButton`, `OverflowMenu`, `PanelCard`, `SectionHeader`, `SearchField`, `StatusDot`, `ActionBar`, `FlowLayout`, `SearchablePicker`, `InlineConfirm`, `KeyValueBlock`, `EmptyState`. Check the list before writing a new element; a new shared block goes into `UI/` and into the `ui-components` skill.
-- `SearchablePicker`: a button that shows the current value and opens a popover with a search field and a list; arrows and Return select; Esc closes; shows a detail column (for example "local · has a checkout"); caps the list at 200 rows and says how many are hidden.
-
----
-
-## 8. Technical playbook (verified solutions and traps)
-
-### 8.1 Menu bar item and panel
-
-- **Do not use `MenuBarExtra(.window)`.** It puts the panel back under the icon on every open and every resize, so a saved position never holds, and its window cannot be moved. Use an `NSStatusItem` plus an own borderless `NSPanel` subclass (`canBecomeKey` true, `isFloatingPanel`, `level = .statusBar`, `hidesOnDeactivate = false`, `isReleasedWhenClosed = false`, `collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]`, `animationBehavior = .none`, `isMovable = false`, clear background with its own rounded clip and shadow). The SwiftUI app body is `Settings { EmptyView() }` only; `AppDependencies.live()` creates `AppWindows`, which owns the status item, the panel and the pinned window.
-- **Open at once.** Create the hosting controller on the first open and keep it; later opens only set the frame and `makeKeyAndOrderFront`. Increment an `openCount` the root view uses as `.task(id:)` to refresh stores on each open.
-- **Close rules.** A global mouse-down monitor (`NSEvent.addGlobalMonitorForEvents`) and `NSApplication.didResignActiveNotification` close the panel. Remove the monitor on close.
-- **Position.** `WindowLayout` keeps `size` and `panelTopLeft` in `UserDefaults`. `panelFrame(anchor:screen:)` clamps the frame 12 points inside `visibleFrame` of the screen that contains the top-left point, shrinks the size when the screen is smaller, and writes the clamped point back. Move by an `NSView` that overrides `mouseDown` / `mouseDragged` and sets `window.setFrameOrigin` itself (`mouseDownCanMoveWindow` false). Save the top-left corner on mouse up. The resize grip sets the frame from the saved top-left corner, so a moved panel does not jump back.
-- **Pinned window.** `NSWindow` with `level = .floating`, `setFrameAutosaveName`, the same root view with `isPinnedWindow` in the environment; `NSHostingController.sizingOptions = [.minSize]` so the window resizes by its edges.
-- **Light appearance.** `preferredColorScheme` does not reach an AppKit panel. Set `window.appearance = NSAppearance(named: .aqua)` from an `NSViewRepresentable` inside the view tree (`WindowAppearance`) and add `.colorScheme(.light)`. Never set `NSApp.appearance`: the menu bar icon label would turn black on a dark menu bar.
-- **Dock icon toggle**: `NSApp.setActivationPolicy(.regular / .accessory)`. **Launch at login**: `SMAppService.mainApp.register()`; status `requiresApproval` means open System Settings → Login Items.
-- **Global shortcut**: Carbon `RegisterEventHotKey` with `InstallEventHandler(GetApplicationEventTarget(), …)`; needs no Accessibility permission. The handler posts a `Notification` to the main queue. A fixed list of shortcuts (⌥⌘D, ⌃⌥Space, ⌃⌥D) is enough; a recorder is P2.
-- **Ad-hoc signing and permissions.** Each rebuild changes the binary; macOS may ask for Accessibility again. Show a clear activity line with the System Settings path.
-
-### 8.2 Hints
-
-The system `.help` tooltip is slow and often does not appear in a menu bar panel. `HintCenter` holds the current hint; a `.hint(_:)` modifier reports its global frame with `onGeometryChange` and shows after 0.55 s (0.06 s while moving between items); `HintOverlay` draws one bubble in an overlay of the root view, placed below the item or above when there is no room, capped at 260 points wide. A local event monitor hides the hint on click, key or scroll. `hintWhenTruncated` measures the ideal width with a hidden `fixedSize()` copy in the background.
-
-### 8.3 `ShellRunner`
-
-- One `actor ShellRunner` with `run(executable, arguments, cwd, environment) -> ShellResult` and `stream(executable, arguments, cwd, onLine) -> exitCode`. Launch through `/usr/bin/env <executable>` so the user's `PATH` applies; prepend `/opt/homebrew/bin` and `/usr/local/bin`.
-- **Deadlock trap.** Blocking pipe reads on the Swift concurrency pool with a reader on a global GCD queue hang when 30+ commands run in parallel (the whole simulator refresh froze). Run the blocking read on a **dedicated concurrent `DispatchQueue`** and read stderr on that queue too while stdout is read; then `waitUntilExit`.
-- **Streaming.** `process.standardOutput = process.standardError = pipe`; `for try await line in pipe.fileHandleForReading.bytes.lines`; wrap in `withTaskCancellationHandler` whose `onCancel` calls `process.terminate()`. After the loop `try Task.checkCancellation()`: a cancelled stream ends without throwing.
-- **Recording.** Every run sends `started / output / finished` events to `CommandLog` (main actor) through a FIFO hop on the main queue; streamed output is batched every 0.25 s. Commands are classified: `read` (git status, log, for-each-ref, rev-parse, diff, simctl list, listapps, get_app_container, du, ps, grep, xcodebuild -showBuildSettings, gh/glab api), `action`, `secret` (`security`), `appLog` (`simctl spawn … log`). Secret and appLog never record output.
-- Child processes of `simctl launch` get environment through `SIMCTL_CHILD_<NAME>` variables.
-- `open -a <App> <path>` for Finder, Xcode and terminals. Ghostty needs `open -na Ghostty --args --working-directory=<path>`. To run a command in a terminal, write a temporary `.command` script (`rm -f "$0"`, `cd`, `exec "${SHELL:-/bin/zsh}" -i -l -c "<command>; exec \"${SHELL:-/bin/zsh}\" -i -l"`), chmod 700, and open it with the terminal app (Ghostty: `-e <script>`).
-
-### 8.4 Git and worktrees
+### 5.4 Git and worktrees
 
 | Need | Command | Note |
 |---|---|---|
-| Worktrees | `git worktree list --porcelain` | blocks: `worktree`, `HEAD`, `branch refs/heads/…`, `locked`, `prunable`; the first block is the main checkout |
-| Status | `git status --porcelain=v2 --branch` | `# branch.oid`, `# branch.head` (`(detached)`), `# branch.upstream`, `# branch.ab +1 -0`; other lines are changed files |
-| Changed files | `git status --porcelain=v1 -z --untracked-files=all` | `-z`: a renamed entry is followed by its original path as the next NUL field |
-| Branches | `git for-each-ref refs/heads --format='%(refname:short)%09%(upstream:short)%09%(upstream:track,nobracket)%09%(committerdate:unix)%09%(worktreepath)%09%(contents:subject)'` | `track` is `gone`, `ahead N`, `behind N` or both |
-| Remote branches | `git for-each-ref refs/remotes/origin --sort=-committerdate --format=…` | skip `origin/HEAD` |
-| Last visit | `git reflog show --format='%gs%x09%ct' -n 3000 HEAD` | lines `checkout: moving from A to B` give the last visit of B |
-| Merged | `git branch --merged <base> --format='%(refname:short)'` | see the rule below |
-| Base branch | `git symbolic-ref --short refs/remotes/origin/HEAD` | fallback `origin/main`; configurable |
+| Worktrees | `git worktree list --porcelain` | the first block is the main checkout |
+| Status | `git status --porcelain=v2 --branch` | `# branch.ab +1 -0` gives ahead and behind |
+| Branches | `git for-each-ref refs/heads --format=…` | upstream, track state, date, worktree path, subject |
+| Remote branches | `git for-each-ref refs/remotes/<remote> --sort=-committerdate` | skip `<remote>/HEAD` |
+| Last visit | `git reflog show --format='%gs%x09%ct' -n 3000 HEAD` | `checkout: moving from A to B` gives the last visit of B |
+| Merged | `git branch --merged <base>` | see the rule below |
+| Base branch | `git symbolic-ref --short refs/remotes/<remote>/HEAD` | else `<remote>/main`; `git.baseBranch` wins |
 | Distance to base | `git rev-list --left-right --count HEAD...<base>` | |
-| Not pushed commits | `git rev-list -n 150 HEAD --not --remotes=origin` | marks only commits that are on no remote branch; "no upstream" alone does not mean unpushed |
-| Operation in progress | `git rev-parse --git-path rebase-merge` / `rebase-apply` / `MERGE_HEAD` / `CHERRY_PICK_HEAD` and check existence | |
-| Last fetch | mtime of `<git-common-dir>/FETCH_HEAD` | |
-| Web URL | `git remote get-url origin` → `git@host:group/repo.git` → `https://host/group/repo` | GitHub paths `/tree/<b>`, `/compare/<base>...<b>?expand=1`; GitLab `/-/tree/<b>`, `/-/merge_requests/new?merge_request[source_branch]=…` |
-| Update without switching | `git fetch origin <branch>:<branch>` | fails on non-fast-forward, which is wanted; a branch checked out in a worktree gets `git pull --ff-only` inside that worktree |
+| Not pushed | `git rev-list -n 150 HEAD --not --remotes=<remote>` | "no upstream" alone does not mean "not pushed" |
+| Last fetch | modification date of `FETCH_HEAD` | |
+| New branch name | `git check-ref-format --branch <name>` | check before `worktree add` |
 | Continue rebase | `git rebase --continue` with `GIT_EDITOR=true` | |
-| Create worktree | `git worktree add <path> <branch>` (local), `git worktree add --track -b <b> <path> origin/<b>` (remote), `git worktree add --no-track -b <b> <path> <base>` (new) | validate the name first with `git check-ref-format --branch <name>` |
-| Remove worktree | `git worktree remove <path>`, `--force --force` only when dirty or locked and the user confirmed | branch with `git branch -d` only, never `-D` without the second inline confirm |
 
-Rules learned:
-- **"Merged" needs a pushed branch.** A new branch with no commits is technically merged into the base. Treat a branch as merged only when its upstream is `origin/<same name>` and `ahead == 0`. Without this rule Clean Finished deletes fresh worktrees.
-- Clean Finished skips dirty, locked, missing worktrees and the current build source.
-- A branch merged with a squash is not detected as merged until the remote branch is deleted and Fetch runs. Document it, do not try to detect squashes.
-- `git branch --merged` needs the base to exist locally as a remote ref; after a fresh clone run Fetch first.
-- Every git action refreshes the Git state and posts `branchesChanged`; the Worktrees store listens.
+Rules:
 
-### 8.5 Xcode builds and simulators
+1. **"Merged" needs a pushed branch.** A new branch with no commits is technically merged into the base. A branch counts as merged only when it is in `--merged`, its upstream is `<remote>/<same name>` and it is 0 commits ahead. Without this rule, Clean Finished deletes fresh worktrees.
+2. Clean Finished skips the main checkout, dirty, locked and missing worktrees, and the current build source.
+3. A branch merged with a squash counts as merged only after its remote branch is deleted and Fetch runs. DevHub does not try to detect squashes.
+4. A worktree is removed with `git worktree remove`. `--force` is used only for a dirty worktree after the inline confirmation.
+
+### 5.5 Code hosts: `gh` and `glab`
+
+- DevHub never reads or stores a code host token. Every call goes through the CLI of the host, which uses its own login.
+- **GraphQL for reads.** The list, the details and the branch line use GraphQL:
+  - GitHub: `gh api graphql --hostname <host> -f query=… -f name=value` for strings and `-F name=value` for typed values (`Int`, `Boolean`).
+  - GitLab: `glab api graphql --hostname <host> -f query=… -f name=value` for strings and `-F name=value` for `true` and `false`.
+  - The GitLab branch line uses REST: `projects/<path>/merge_requests?source_branch=…` and `projects/<path>/pipelines?ref=…`.
+- **REST and CLI for actions.** GitHub: `gh pr review|ready|merge`, `gh run rerun|cancel`, `gh api -X PUT …/update-branch`, `gh api -X POST repos/<path>/pulls`. GitLab: `glab api -X POST|PUT projects/<path>/merge_requests/<iid>/…` and GraphQL mutations for draft, auto-merge, resolve and pipeline cancel.
+- Changed files come from REST (`…/pulls/<n>/files`, `…/merge_requests/<iid>/diffs`), 100 per page.
+- `gh` gets `--repo <host>/<path>` (only `<path>` on `github.com`). `glab` gets `--hostname <host>`.
+- A missing CLI shows "brew install gh" or "brew install glab". A CLI that is not logged in shows the login command for that host.
+- The GitLab GraphQL names stay as GitLab writes them (`mergeRequests`, `MergeRequestState`).
+
+### 5.6 Xcode builds and simulators
 
 Build pipeline for `kind: xcode`:
 
-1. `xcrun simctl boot <udid>` (exit code **149** means "already booted" and counts as success; same for shutdown).
+1. `xcrun simctl boot <udid>`. Exit code 149 means "already booted" and counts as success.
 2. `xcodebuild clean` when Fast is off.
-3. `xcodebuild -workspace|-project <container> -scheme <s> -configuration <c> -destination id=<udid> ONLY_ACTIVE_ARCH=YES build`, streamed. **No `-derivedDataPath`**: sharing Xcode's DerivedData reuses the cache of the Xcode build of the same checkout.
-4. Locate the `.app`: first from `Touch`, `Validate`, `CodeSign` or `RegisterExecutionPolicyException` lines of the output that end with `.app` under `<Configuration>-iphonesimulator/`; else from the DerivedData folder whose `info.plist` has `WorkspacePath` equal to the container (compare case-insensitively, standardize paths) under `Build/Products/<Configuration>-iphonesimulator`; last resort `xcodebuild -showBuildSettings -json` (slow, about 30 s on a large project) and `TARGET_BUILD_DIR/WRAPPER_NAME` of the entry with `PRODUCT_TYPE == com.apple.product-type.application`. Bundle ID from the app's `Info.plist` (`CFBundleIdentifier`).
-5. Clean install when asked: `simctl terminate`, `simctl uninstall`, `simctl keychain <udid> reset`.
-6. `xcrun simctl install <udid> <app>`; `open -a Simulator --args -CurrentDeviceUDID <udid>`; `xcrun simctl launch --terminate-running-process [--wait-for-debugger] <udid> <bundleID> [args]` with `SIMCTL_CHILD_*` environment. The launch output `…: <pid>` gives the PID.
+3. `xcodebuild -workspace|-project <container> -scheme <s> -configuration <c> -destination id=<udid> ONLY_ACTIVE_ARCH=YES build`, streamed. **No `-derivedDataPath`:** DevHub shares Xcode's DerivedData, so it reuses the cache of the Xcode build of the same checkout.
+4. Locate the `.app`: first from the `Touch`, `Validate`, `CodeSign` or `RegisterExecutionPolicyException` lines of the output; else from the DerivedData folder whose `info.plist` has `WorkspacePath` equal to the container (compared without case) under `Build/Products/<Configuration>-iphonesimulator`; last, `xcodebuild -showBuildSettings -json` (about 30 s on a large project). The bundle ID comes from the `Info.plist` of the app.
+5. Clean install when needed: uninstall the app and run `xcrun simctl keychain <udid> reset`.
+6. `xcrun simctl install`, then write the profile defaults, then `open -a Simulator --args -CurrentDeviceUDID <udid>`, then `xcrun simctl launch --terminate-running-process [--wait-for-debugger] <udid> <bundleID> [args]`. The environment goes through `SIMCTL_CHILD_<NAME>` variables. The launch output `…: <pid>` gives the PID.
 
 Traps:
-- **Never pass `CODE_SIGNING_ALLOWED=NO`** (or other signing overrides) to a build that will run. It skips the ad-hoc signature of embedded frameworks, and dyld on Apple silicon refuses unsigned code even in the simulator: the app dies at launch with "Library not loaded: @rpath/<Framework>". Let `xcodebuild` sign for a simulator destination the way Xcode does.
-- **Progress is indeterminate.** `xcodebuild` reports no total. Show a bar without a value and a step text: the verb from the first token of the line (`SwiftCompile`, `CompileC`, `Ld`, `CodeSign`, `PhaseScriptExecution`, `CompileAssetCatalog`, `CopySwiftLibs`, `ProcessInfoPlistFile`, `Touch`, `Validate` …) mapped to a word, plus the target from `(in target '…')`. The first `error:` line becomes the failure message. Do not fake a percentage.
-- **DerivedData root** respects `IDECustomDerivedDataLocation` from `com.apple.dt.Xcode` preferences (`CFPreferencesCopyAppValue`); a relative value is under the home folder. Delete a DerivedData folder only when its path is under that root. Size with `du -sk`.
-- **Schemes**: names of `.xcscheme` files under `<container>/xcshareddata/xcschemes` and `<container>/xcuserdata/*/xcschemes`; for a workspace also in sibling `.xcodeproj` folders. Fall back to the configured scheme when no file is found.
-- **Simulator list**: `xcrun simctl list devices available -j`; `devices` is keyed by runtime identifier (`com.apple.CoreSimulator.SimRuntime.iOS-26-4`), each device has `udid`, `name`, `state` (`Booted`, `Shutdown`, `Booting`, `Shutting Down`), `deviceTypeIdentifier`, `isAvailable`. Sort runtimes by version, newest first; phones before pads.
-- **Installed app count** without booting: count folders under `~/Library/Developer/CoreSimulator/Devices/<udid>/data/Containers/Bundle/Application`.
-- **App containers on a shut-down simulator**: `simctl get_app_container` fails. Scan `…/data/Containers/Bundle/Application/*/` and `…/data/Containers/Data/Application/*/` for `.com.apple.mobile_container_manager.metadata.plist` whose `MCMMetadataIdentifier` equals the bundle ID.
-- **User apps**: `simctl listapps <udid>` (plist text) filtered by `ApplicationType == User`; uninstall each. A shut-down device is booted first (`boot`, then `bootstatus`), cleaned, shut down again. Many devices take minutes; run one at a time with progress and Stop.
-- **Defaults in the app container**: when booted, `xcrun simctl spawn <udid> defaults write <path to Library/Preferences/<suite>.plist> <key> -string <value>`; when shut down, read and write the plist with `PropertyListSerialization` (binary format).
-- **Clean install without a build**: keep a copy of the installed `.app` (`ditto`) under `~/Library/Caches/DevHub/Apps/<udid>-<bundleID>.app` and reinstall from it; fall back to the last built product.
-- **Run & Attach**: Xcode has no CLI to attach. `open -a Xcode <container>`, wait for a window (`System Events` window count, up to 150 s on a cold start plus a 6 s settle), select the run destination by UDID through Xcode's AppleScript dictionary (`run destinations` of the `workspace document`), then `System Events`: click menu item "Attach to Process by PID or Name…" in the Debug menu, **set the value** of the sheet's text field (keystrokes do not reach it), click Attach. Confirm within 25 s that the process left the stopped state (`ps -o stat= -p <pid>` no longer starts with `T`); else report the PID and the manual steps. Needs Accessibility (`AXIsProcessTrusted`, prompt with `AXIsProcessTrustedWithOptions`) and the Apple Events usage description in `Info.plist`. The menu item name is the contract with Xcode; a renamed item breaks the attach.
-- **Deep link / push**: `simctl openurl <udid> <url>`; `simctl push <udid> <bundleID> <file.apns>` with a JSON body that has an `aps` key.
-- **Build source from a branch**: when the branch has no checkout, create the worktree first (section 6.2 rules), run the bootstrap when the marker says so, then build inside that path. The main checkout never changes.
-- One build at a time; Cancel terminates `xcodebuild` and leaves the state `idle`.
 
-### 8.6 `kind: command` projects
+- **Never pass `CODE_SIGNING_ALLOWED=NO`** or other signing overrides to a build that will run. Embedded frameworks then lose their ad-hoc signature, and dyld on Apple silicon refuses unsigned code even in the simulator. The app dies at launch with "Library not loaded: @rpath/<Framework>".
+- **Progress has no total.** `xcodebuild` reports no percentage. DevHub shows a step text: the verb of the line (`SwiftCompile`, `Ld`, `CodeSign`, …) as a word, and the target from `(in target '…')`. The first `error:` line becomes the failure message.
+- **DerivedData root.** DevHub reads `IDECustomDerivedDataLocation` from the `com.apple.dt.Xcode` preferences. It deletes a DerivedData folder only under that root. It measures the size with `du -sk`.
+- **Simulator list.** `xcrun simctl list devices available -j`. Only iOS runtimes are listed; the parser keeps the platform.
+- **Installed app count** without a boot: the number of folders in `~/Library/Developer/CoreSimulator/Devices/<udid>/data/Containers/Bundle/Application`.
+- **App container of a shut-down simulator.** `simctl get_app_container` fails. DevHub reads `.com.apple.mobile_container_manager.metadata.plist` in each container folder and compares `MCMMetadataIdentifier` with the bundle ID.
+- **Profile defaults.** DevHub gets the data container, or the group container when the suite starts with `group.`, with `simctl get_app_container`. Then it runs `xcrun simctl spawn <udid> defaults write <container>/Library/Preferences/<suite>.plist <key> -string|-bool|-integer|-float <value>`.
+- **Launch without a build.** DevHub keeps a copy of the installed app (`ditto`) in `~/Library/Caches/DevHub/Apps/` and installs it again from there for a clean install.
+- **Run & Attach.** Xcode has no command to attach. DevHub opens the container in Xcode (`xcode.container`, else the first workspace or project of the checkout), waits up to 150 s for a window, chooses the run destination by UDID through Xcode's AppleScript dictionary, then clicks "Attach to Process by PID or Name…" in the Debug menu through `System Events`. It **sets the value** of the text field of the sheet (keystrokes do not reach it) and clicks Attach. Within 25 s, `ps -o stat= -p <pid>` must no longer start with `T`. This needs Accessibility and the Apple Events usage text in `Info.plist`. The menu item name is the contract with Xcode: a renamed item breaks the attach.
+- **Deep link and push.** `simctl openurl <udid> <url>`. `simctl push <udid> <bundleID> <file>` with a JSON body that has an `aps` key.
+- One build at a time. Cancel stops `xcodebuild` and returns to the idle state.
 
-`build.command` and `run.command` are executables run from the project folder with the context variables (6.3). Their output streams to the Output panel and the footer through the line protocol (6.5). When `run.command` prints `@devhub {"app": "/path/App.app"}` the app uses that path for install and launch; otherwise the script is responsible for the launch. This covers projects with a custom build system and projects that are not Xcode projects at all.
+### 5.7 `kind: command` projects
 
-### 8.7 Logs
+`build.command` and `run.command` run in the checkout of the run bar with the context variables. A file without the executable bit runs through `/bin/zsh`, because a fresh clone often loses the bit. Either command may print `@devhub {"app": "<path>"}`. Then DevHub installs and launches that app with the launch profile. A relative path starts at the checkout. Without the line, the script launches the app by itself.
 
-- `xcrun simctl spawn <udid> log stream --style ndjson --level debug --predicate 'process == "<Executable>"'` (or `subsystem == "…"`). Each line is a JSON object with `timestamp` (`yyyy-MM-dd HH:mm:ss.SSSSSSZ`), `messageType` (`Debug`, `Info`, `Default`, `Error`, `Fault`), `subsystem`, `category`, `eventMessage`.
-- Only `os_log` / `Logger` lines arrive. `print()` output does not reach the system log; say so in the empty state.
-- The executable name comes from the installed app's `Info.plist` (`CFBundleExecutable`) through `simctl get_app_container <udid> <bundleID> app`.
-- **Redaction before storage**: mask `Bearer <token>`, JWTs (`eyJ…`.`…`.`…`), and values after keys `authorization`, `x-auth-token`, `access_token`, `refresh_token`, `id_token`, `token`, `password`, `secret`, `api_key` (case-insensitive, `:` or `=`). Lines stay in memory only. The stream's `CommandLog` entry hides output.
-- Batch incoming lines every 150 ms; cap 5 000 lines per stream with a dropped counter; pause keeps a pending queue with a count.
-- A stream that exits with a non-zero code reports "Is the simulator still booted?".
+### 5.8 Launch identities, the `state` directive and the clean install rule
 
-### 8.8 Projects and detection
+- A launch identity is a plan, not stored state. `LaunchPlan` joins the profile, `launch.identity` and the chosen ID. Every launch (Build & Run, Launch, Apply & Relaunch) uses it:
+  - `launch.identity.variable` gets the chosen ID;
+  - `launch.identity.keptVariable` gets the same ID, or an empty string when no ID is chosen;
+  - `launch.identity.args` are added to the arguments.
+- The result of a launch is a `LaunchRecord`: bundle ID, profile, ID and mock server URL. DevHub saves it per simulator.
+- **The `state` directive.** The status script may print `@devhub {"state": {"identity": "…", "profile": "…", "host": "…", "user": "…", "version": "…"}}`. Every field is optional. DevHub keeps the last report per simulator. This is how DevHub learns what the app really uses: DevHub does not read the app's own log files.
+- DevHub reads the status script again 4 s after a launch.
+- **Clean install rule** (`CleanInstallPolicy`). It applies only when `launch.identity.cleanInstallOnChange` is true (the default) and the app is installed.
+  1. The actual ID is the `state` report, else the ID that DevHub set last.
+  2. With a chosen ID: reinstall when the actual ID is different.
+  3. With no chosen ID: reinstall only when the actual ID is one that DevHub set or saved.
+  
+  Why: the app's own ID must not cause a reinstall on every Build & Run. A reinstall ends the user session in the app each time.
+- A profile with `cleanInstall: true`, or the Clean install box, always reinstalls.
 
-- A project is a folder. Detection: `.xcworkspace` first, else `.xcodeproj`; schemes from files; bundle ID from `.pbxproj` as in 6.2; git repository when `.git` exists (file or folder). `kind: command` when `.devhub/project.json` says so.
-- Projects, the selected project, settings and per-simulator run options live in `UserDefaults` as JSON. The selected tab, Logs choices, AI scope, favourites and the target simulator survive a relaunch.
-- Loading saved values must not write defaults back over them (guard with an `isLoading` flag around `didSet` persistence).
+### 5.9 The mock server
 
-### 8.9 AI sessions
+- `NWMockServerRepository` runs one local HTTP server per simulator with Network.framework (`NWListener`). It listens only on `127.0.0.1`.
+- The port is stable per simulator: a hash of the UDID in the range 49152 to 59151 (`MockServerPortPolicy`). When that port is busy, the server uses any free port. DevHub starts the servers again on the same ports after a restart, so apps that were launched earlier still reach them.
+- **Upstream.** The server forwards to the `upstream` URL of the selected launch profile. A profile with no `upstream`, or with `production: true`, cannot use the server. DevHub refuses and says why.
+- **Redirect.** DevHub sets the environment variable named in `network.baseURLVariable` to `http://127.0.0.1:<port>` at launch. The app must read its base URL from that variable. Without `network.baseURLVariable` the server cannot redirect the app, and the mode bar is hidden.
+- A Build & Run on a simulator with a running server also gets the variable. If the profile changed, the server forwards to the new upstream.
+- A rule answers with a fixed response, or forwards and then patches the JSON response (set or remove a key path). A delay is optional.
+- WebSocket upgrades get 501 "WebSocket not mocked yet".
+- An upstream error becomes a 502 with the reason.
+- Request and response data pass through `NetworkRequestRedactor` before DevHub keeps them.
+- Mock sets are JSON files in `network.mocksFolder` (default `~/.devhub/mocks/<project folder name>`). A large body can live in a separate file next to the set.
+
+### 5.10 GraphQL monitoring and mocking
+
+- **Operation name** (`GraphQLParser`):
+  1. a POST body: `operationName`, else the name in the `query` document;
+  2. a GET request: the `operationName` and `query` parameters of the URL;
+  3. a persisted query with no `query` text: `operationName`, when `extensions` is present;
+  4. a batch (a JSON array): every operation.
+- The kind comes from the first word of the document: `query`, `mutation` or `subscription`. A document that starts with `{` is a `query`.
+- A response with an `errors` array counts as failed, even with status 200.
+- **Rule matching** (`MockRuleMatcher`). The first enabled rule that matches wins. A rule matches when the method, the path pattern, the query pairs and the operation name all match.
+  - `*` in `operationName` matches any text, for example `Get*`.
+  - A batch matches when one of its operations matches.
+  - A rule without `operationName` ignores GraphQL.
+  - A rule with `operationName` never matches a request that is not GraphQL.
+
+### 5.11 Logs
+
+- `xcrun simctl spawn <udid> log stream --style ndjson --level debug --predicate 'process == "<name>"'`, or `subsystem == "<name>"` when a subsystem is set.
+- Only `os_log` and `Logger` lines arrive. `print()` output does not reach the system log. The empty state says so.
+- **Masking before storage.** `LogRedactor` masks `Bearer <token>`, JWTs (`eyJ….….…`) and the values after `authorization`, `x-auth-token`, `access_token`, `refresh_token`, `id_token`, `token`, `password`, `secret`, `api_key` (any case, `:` or `=`).
+- New lines are added every 150 ms. A stream keeps 5,000 lines. Pause keeps a queue with a count.
+
+### 5.12 AI sessions and usage
 
 **Copilot CLI** (`~/.copilot/session-state/<uuid>/`):
-- `workspace.yaml`: flat `key: value` lines: `id`, `cwd`, `git_root`, `branch`, `client_name`, `name` (optional, set by the CLI or the user), `summary` (optional), `user_named`, `summary_count`, `created_at`, `updated_at` (ISO 8601 with milliseconds, `Z`). A 30-line parser is enough; no YAML library.
-- `events.jsonl`: one JSON object per line with `type`. Use `user.message` → `data.content` (first one as the fallback title, last one as "last prompt"). Skip the rest. A session folder without `events.jsonl` was never used; skip it.
-- Files `<uuid>.jsonl` next to the folders are exports; ignore them. `session-store.db` is SQLite with WAL; do not read it. `~/.copilot/config.json` is not plain JSON; do not parse it.
-- Resume: `cd <cwd> && copilot --resume <id>`. `copilot --continue` resumes the most recent one. The installed CLI (`copilot sessions`) has no `list` subcommand; listing from disk is the only way.
-- Title precedence: `name`, else `summary`, else the first user message, else the folder name.
 
-**Claude Code** (`~/.claude/projects/<cwd with slashes as dashes>/<uuid>.jsonl`):
-- Scan lines by prefix without decoding every line: `{"type":"custom-title"` → `customTitle`, `{"type":"ai-title"` → `aiTitle`, `{"type":"last-prompt"` → `lastPrompt`, and the first object that has `cwd` (also `gitBranch`, `timestamp`). Title precedence: custom, AI, last prompt. Skip files without `cwd`. Files are large: cache the parsed result per file keyed by modification date.
-- Resume: `cd <cwd> && claude --resume <id>`.
+- `workspace.yaml` has flat `key: value` lines (`id`, `cwd`, `branch`, `name`, `summary`, `created_at`, `updated_at`). A small parser reads it. No YAML library.
+- `events.jsonl`: DevHub reads only the `user.message` lines. A folder without `events.jsonl` was never used and is skipped.
+- Title: `name`, else `summary`, else the first user message, else the folder name.
 
-Both: group by day of `updatedAt`, newest first; scope "This project" filters by `cwd` equal to or under the project folder; collapse titles to one line, cap at 300 characters.
+**Claude Code** (`~/.claude/projects/<folder>/<uuid>.jsonl`):
 
-### 8.10 Claude usage
+- DevHub reads lines by their prefix and does not decode every line: `custom-title`, `ai-title`, `last-prompt`, and the first object with `cwd`. The files are large, so the result is cached per file by modification date.
 
-- Token: `security find-generic-password -s "Claude Code-credentials" -w` (the plain service name, not the ones with a hash suffix) gives JSON `{"claudeAiOauth": {"accessToken", "refreshToken", "expiresAt" (ms), "subscriptionType"}}`; fallback file `~/.claude/.credentials.json`. The `security` binary is already allowed on that item, so no permission dialog.
-- `GET https://api.anthropic.com/api/oauth/usage` with `Authorization: Bearer <token>`, `anthropic-beta: oauth-2025-04-20`, `Accept: application/json`. Response keys `five_hour`, `seven_day`, `seven_day_<model>` each `{ "utilization": 0-100, "resets_at": ISO 8601 }`; ignore `seven_day_oauth_apps`; accept unknown keys with the same shape.
-- **Never refresh the token.** Refreshing rotates the refresh token and can log Claude Code out. An expired token shows "Run `claude` once." The endpoint is undocumented; parse tolerantly and show a Retry.
-- The command is classified `secret`; nothing of it is recorded or logged.
+**Claude usage:**
 
-### 8.11 Copilot usage
+- The token comes from `security find-generic-password -s "Claude Code-credentials" -w`, else from `~/.claude/.credentials.json`.
+- `GET https://api.anthropic.com/api/oauth/usage` with `Authorization: Bearer <token>` and `anthropic-beta: oauth-2025-04-20`.
+- **Never refresh the token.** A refresh rotates the refresh token and can end the Claude Code login. An expired token shows "Run `claude` once."
 
-- Token: Copilot CLI stores its GitHub OAuth token in the login keychain under the generic password service `copilot-cli` (`security find-generic-password -s copilot-cli -w`). Verify the value format once in the session (`| head -c 4` prints `gho_` for a plain token; if it prints `{`, the value is JSON and the token is a field inside). Fallback: `gh auth token` when the GitHub CLI is installed and logged in. Classified `secret`.
-- `GET https://api.github.com/copilot_internal/user` with `Authorization: token <token>` and `Accept: application/json`. Response: `quota_snapshots` with `premium_interactions` (`entitlement`, `remaining`, `percent_remaining`, `unlimited`, `overage_permitted`), also `chat` and `completions`; `quota_reset_date`; `copilot_plan`. Show premium requests used (`entitlement - remaining`), percent, reset date, plan. `unlimited: true` or a missing quota (free plan) hides the bar and shows the plan name only.
-- Undocumented endpoint; GitHub may change it. Tolerant parser, inline error with Retry, never a crash. Enterprise hosts are out of scope.
+**Copilot usage:**
 
-### 8.12 Pull and merge requests
+- The token comes from `gh auth token` first, and from the keychain item `copilot-cli` second. The keychain read stops after 10 s and is not tried again until the app restarts. Why: macOS can show a dialog that asks to allow `/usr/bin/security`, and a background refresh must not show it again and again.
+- `GET https://api.github.com/copilot_internal/user` with `Authorization: token <token>`. DevHub shows the premium requests used, the percent, the reset date and the plan.
 
-- GitHub: `gh pr view <branch> --json number,state,isDraft,url,mergeable,reviewDecision,statusCheckRollup,baseRefName` (exit code 1 with "no pull requests found" means none). GitLab: `glab api --hostname <host> projects/<url-encoded path>/merge_requests?source_branch=<b>&state=all&order_by=updated_at&per_page=5` and `…/pipelines?ref=<b>&per_page=1`. Both are read-only `api`/`view` calls classified `read`; the app never reads or stores a token.
-- Not installed: "brew install gh" / "brew install glab". Not logged in: the login command with the host, with a copy button. Load on demand (when the Git tab shows), cache per branch for 60 s.
+Both usage endpoints are not documented. The parsers accept unknown keys. An error shows inside the strip with Retry. Usage refreshes every 5 minutes, and on panel open when the data is older than 60 s.
 
-### 8.13 Build scripts
+### 5.13 Persistence
 
-- `Scripts/build.sh [Debug|Release]`: `xcodebuild -project DevHub.xcodeproj -scheme DevHub -configuration <c> -destination 'platform=macOS' -derivedDataPath DerivedData -quiet build`, prints the `.app` path. With `-quiet` any output other than the path is a warning or an error and must be fixed.
-- `Scripts/run.sh`: Debug build, `pkill -x DevHub`, `open <app>`. `Scripts/install.sh`: Release build copied to `/Applications/DevHub.app`. `DevHub.command` in the repo root calls `run.sh` so the app starts from Finder with a double click. `Scripts/make-launcher.sh` compiles a small AppleScript app (`osacompile`) that calls `run.sh` and shows an alert when the build fails.
-- Headless smoke check after a build: start the binary inside the `.app`, wait 3 s, `kill -0` confirms it is alive, then kill it.
-- Common failures: scheme not found → open the project once in Xcode; nothing visible after launch → it is a menu bar app, look for the icon, `pgrep -x DevHub`; two icons → two instances, `pkill -x DevHub`; "resource fork, Finder information, or similar detritus not allowed" → `xattr -cr DevHub/`.
+- Projects, the selected project, settings, the selected tab, per-simulator run options, launch settings, log streams, favourites and the target simulator live in `UserDefaults`, through the `KeyValueStore` port.
+- DevHub never writes into a `.devhub/` folder, except "Create .devhub Example" and the mock set files in `network.mocksFolder`.
+
+### 5.14 Build scripts
+
+- `Scripts/build.sh [Debug|Release]` runs the layer check and the anonymity check, then `xcodebuild -quiet` into `DerivedData/`, and prints the `.app` path. Any other output is a warning or an error.
+- `Scripts/test.sh` runs `swift test` on the package and prints one summary line.
+- `Scripts/smoke.sh` starts the Debug build for 3 s and prints `alive` or `dead`.
+- `Scripts/run.sh` builds Debug, quits a running copy of this build and opens the new one. `Scripts/install.sh` copies a Release build to `/Applications/DevHub.app`.
+- The scripts stop only the build of this repository, by its path. Another app with the name DevHub keeps running.
 
 ---
 
-## 9. Documentation duties of the agent
+## 6. Acceptance checklist
 
-The repo is the memory between sessions. Four files and the skills carry it.
+Run these checks by hand on a test repository with a remote and the example folder from `docs/examples/devhub/`. Each check names what you should see.
 
-| File | Content | When |
-|---|---|---|
-| `AGENTS.md` | project facts, layout, conventions, build commands, the rules in section 7 in short form. `CLAUDE.md` imports it with `@AGENTS.md`. | whenever a folder, a convention or a command changes |
-| `CHANGELOG.md` | Keep a Changelog format; `[Unreleased]` collects the session: Added, Changed, Fixed, Removed, Infrastructure; one line per user-visible change, described as behaviour, not as files | before every commit; the agentStop / Stop hook blocks a session that changed code without touching it |
-| `docs/STATUS.md` | stage, what is real and what is mock per screen, decisions that must not be undone (numbered, with the reason), next steps, known gaps | at the end of every milestone |
-| `docs/extensions.md` | the config schema; must match the decoder | whenever a field is added or renamed |
-| `.github/skills/*/SKILL.md` | how to add a feature, the UI components, the provider pattern, the Xcode toolchain traps, the panel window, extensions, build and run, update docs | whenever the thing a skill describes changes |
+### Shell
 
-Hooks: `.github/hooks/devhub.json` (Copilot) and `.claude/settings.json` (Claude Code) run `Scripts/ai/session-brief.sh` at session start (recent commits, uncommitted changes, `[Unreleased]`, `docs/STATUS.md`) and `Scripts/ai/check-changelog.sh` when the agent stops (blocks when code changed without a changelog entry).
+1. Run `Scripts/build.sh`. It prints `layers: ok`, `anonymous: ok` and the app path. `Scripts/smoke.sh` prints `alive`.
+2. Start the app with no project. The panel shows "No project yet" and an Add Project button.
+3. Add the test repository. The header shows the project name and the branch.
+4. Move the panel, resize it, close it and open it again. It opens at the same place and size. A double-click on empty header space moves it under the icon again.
+5. Press the pin button. A floating window opens with the same content and stays open after a click outside.
+6. Choose ⌥⌘D in Settings, close the panel and press ⌥⌘D. The panel opens.
+7. On a clean checkout, press ⌘K, type a branch name and choose "Switch to <branch>". The branch changes, and the command appears in the Output panel. With local changes, the palette shows the Git tab and a toast instead.
+8. Run a command that fails (for example Pull on a branch that has no upstream). The Output panel opens by itself and shows a red entry.
 
----
+### Home
 
-## 10. Acceptance checklist
+9. The project card shows the path, the branch and the clean or changed state.
+10. Run a script with an input from `.devhub/scripts`. The footer shows its progress, a toast appears, and the result area shows its output.
+11. Change `.devhub/project.json` and save it. Home reloads with no restart. Break the JSON. Home shows a config problem with the file name.
 
-- [ ] `Scripts/build.sh` prints only the app path; the app launches and stays alive.
-- [ ] The panel opens from the menu bar in under a second with the last tab, moves, resizes, pins, remembers its place.
-- [ ] Every tab filters by the header search; every picker with many items is searchable; ⌘K finds actions, tabs, simulators, branches and sessions.
-- [ ] Every command appears in the Output panel; `security` output is hidden; log lines are masked.
-- [ ] Home runs a script with an input from `.devhub/scripts`, and its `@devhub` directives drive the footer and toasts.
-- [ ] Git: fetch, pull, push, force push with confirm, rebase on base, update base without switching, stash, switch, check out remote, delete, commit with prefix, commit and push, diff.
-- [ ] Worktrees: list with states, create from local, remote and new, delete with DerivedData and branch, clean finished, bootstrap.
-- [ ] Simulators: build and run the main checkout, a worktree and a branch with no checkout on any simulator with any scheme and configuration; launch profiles apply; Run & Attach attaches Xcode; clean install resets the keychain.
-- [ ] Logs: two simulators stream at once, levels and search work, pause counts, nothing is written to disk.
-- [ ] AI: Copilot and Claude sessions list, scope, resume in the terminal; usage strip shows both quotas or a clear message.
-- [ ] Settings persist; launch at login works; the global shortcut opens the panel.
-- [ ] Custom tab from `.devhub/tabs` appears; editing a config file reloads the UI.
-- [ ] No project name, path, bundle ID or branch name in Swift. `grep -rn` for the owner's own project names returns nothing.
-- [ ] `AGENTS.md`, `CHANGELOG.md`, `docs/STATUS.md`, `docs/extensions.md` and the skills match the code.
-- [ ] Every finished feature is a commit that builds clean and launches; the commits are pushed to the remote when the remote accepts the push, so a clone of the remote at any moment runs.
-- [ ] `README.md` of the new repo tells how to clone and run in three commands.
+### Git
 
----
+12. Fetch, Pull, Push, Stash and Pop Stash work, and each appears in the Output panel.
+13. Switch to another branch with local changes. DevHub stashes the changes first.
+14. In Changes, stage a file, see its diff and commit. The commit box starts with the ticket prefix of the branch.
+15. Create a worktree from a local branch row. The Worktrees tab shows it.
 
-## Appendix A. Reference UI
+### Pull Requests
 
-Described from the earlier tool. Keep the structure; details may change.
+16. On a GitHub repository with `gh` logged in, the tab lists open pull requests in the four scopes.
+17. Open one request. The details show threads, files and checks. Reply to a thread and resolve it.
+18. Create a new pull request with a label from the form. It appears in the list.
+19. Run `gh auth logout` (or test on a machine without `gh`). The tab shows the login or install command. The other tabs still work.
 
-- **Usage strip** (top, 36 points): "Claude" label, "Session" with a thin blue bar and "3%", "Week · all" with a bar and "33%", a chevron at the right. The new version adds a "Copilot" row: "Premium requests" bar with "37% · resets May 1".
-- **Header**: a 36-point indigo icon tile with a cube symbol, the project name in bold, the branch name in small secondary text with an up/down chevron (opens the project menu). Right: a 260-point search field with a magnifier and a per-tab prompt ("Search branches, commits, files", "Search simulators", "Search log lines", "Search sessions", "Search actions and scripts"), a pin icon, a gear.
-- **Tab bar**: pills with icon and title; the selected one is filled accent with white text. When space is short, unselected pills show only icons.
-- **Home**: white project card (icon tile, name, path in monospaced text with a copy icon, blue branch tag, green "clean" tag, buttons Finder, Xcode, Terminal, Repository). "QUICK ACTIONS" section: a 4 × 2 grid of white tiles, each with a coloured 28-point icon tile, a semibold title and a one-line secondary subtitle. "SCRIPTS" section: header with the scripts folder path in monospaced text, a lightbulb, an open-folder icon and a plus; white list with rows (purple icon tile, title, description, "file.sh · ran yesterday", a Run button at the right).
-- **Git**: a white header card. Top row: "Main checkout" picker with a folder icon and a chevron; right "fetched 2 hr. ago" and a refresh icon. Branch name large and semibold with the short hash in monospaced secondary text. A tag row: green "clean", orange "not pushed", blue "1 ahead of origin/main", grey "107 stashed". A PR line: "!1360 draft" tag and a green "pipeline success" tag with a refresh icon at the right. Pills row: Fetch, Pull (disabled when nothing to pull), Push, Force Push…, Rebase on main…, Update main, Pop Stash; at the right small icons for terminal, PR and web. Below the card a segmented control "Local 453 | Remote 200 | History | Changes" with a hint "Click a file to see its diff" at the right. Changes: a commit text box with the ticket prefix pre-filled, an "Amend" checkbox, "Stage files to commit" hint, "Commit & Push" and "Commit" buttons at the right (disabled when nothing is staged). Empty state: a check-circle icon, "No local changes", "The working tree of this checkout is clean."
-- **Simulators**: a white run bar card. Row 1: scheme picker, configuration picker, source picker with a house icon and the branch name, "Fast" and "Clean install" checkboxes, a refresh icon at the right. "Target" label, then the device name in semibold with a runtime tag and the status line under it; at the right "Run & Attach" (bug icon) and a prominent blue "Build & Run". Then the launch profile row (segmented control of profiles) and the profile's fields. An info line explains what the next launch will do. Below the card: "119 simulators" with a blue "36 with apps" tag and "Remove Apps from All…" at the right. Sections "★ Favorites · 3 devices", "iOS 26.5 · 8 devices". Rows: green or grey dot, a phone icon, name in semibold, runtime tag, blue "target" tag, a yellow star, "Booted · 1 app installed", an optional status line; the target row has a light accent background and its icons visible: identity card, paper plane, play, remove-apps, power, ellipsis.
-- **Logs**: toolbar with a simulator picker ("iPhone 17 Pro Max · iOS 26.5"), a monospaced process field, a blue "Start" button; a second row with the level segmented control "All | Info+ | Default+ | Errors" and "Pause", copy and trash icons at the right. Empty state: text-lines icon, "App logs", "Pick a booted simulator and press Start. Tokens and passwords in the lines are masked. Nothing is saved to disk." The new version adds a chip bar for several streams.
-- **AI sessions**: toolbar "245 sessions", a segmented control "This project | All", a refresh icon. Day headers "Today", "Yesterday". Rows: an orange sparkle tile (Claude) or a blue tile (Copilot), the title, "Oct 9, 2026 at 10:50  ~/Projects/app" with the path in monospaced text, a blue branch tag, the last prompt in one secondary line, a "Resume" button with a terminal icon at the right.
-- **Output panel**: a header row "Output · 1 commands", a search field "Search output", a "Show reads" checkbox, "Copy All", "Clear", a collapse chevron. Entries: a green check or red cross, "$ security find-generic-password -s 'Claude Code-credentials' -w" in monospaced text, "42 ms" and a copy icon at the right, then the output lines or "Output hidden: it contains credentials."
-- **Footer**: "● Ready" (or a spinner with the build step) at the left; "⌄ Output", "⌘1–7 tabs", "Quit" and a resize grip at the right.
+### Worktrees
 
-## Appendix B. Ideas backlog (not required)
+20. Create a worktree for a new branch. It appears in `git.worktrees.folder`. Files from `git.worktrees.include` are copied.
+21. Merge a test branch on the remote, Fetch, then Clean Finished. Only finished, clean worktrees are listed and deleted.
 
-- `simctl status_bar override` for clean screenshots; `simctl io screenshot` and `recordVideo`; `simctl ui appearance`; `simctl location`; `simctl privacy grant`.
-- Physical devices through `devicectl`.
-- Create and delete simulators; delete unavailable runtimes.
-- Partial staging (hunks) and conflict resolution.
-- A theme switch (dark) once the panel appearance can follow the system without recolouring the menu bar label.
-- Keyboard navigation in every list (arrows, Return, Delete with confirm).
-- Notifications when a build finishes while the panel is closed.
-- A shortcut recorder for the global hotkey.
+### Simulators and Build & Run
+
+22. Build & Run the main checkout on a shut-down simulator. The simulator boots, the footer shows the steps, and the app launches.
+23. Choose "Other branch…" with a branch that has no checkout, then Build & Run. A new worktree appears, and the main checkout keeps its branch.
+24. Choose a launch profile with `env` and `defaults`. The app receives the values.
+25. Run & Attach. Xcode opens and attaches to the app (Accessibility is needed).
+26. Open a deep link and send a push from the row menu.
+
+### Device identity
+
+27. With `launch.identity` set, open the identity panel of the target simulator. Choose New ID, then Build & Run. The app is installed again, and the `state` line of the status script shows the new ID.
+28. Build & Run again with the same ID. The app is not installed again.
+
+### Logs
+
+29. Start streams on two booted simulators. Both chips show lines at the same time.
+30. Change the level to Errors, search a word, press Pause and Resume. The counter of waiting lines grows while the stream is paused.
+
+### Network
+
+31. With `network.baseURLVariable` and a profile `upstream`, choose Passthrough and press Apply & Relaunch. The list shows the requests of the app.
+32. On a request, press "Mock This", change the body and choose Mock mode. The app gets the mocked answer.
+33. Add a patch rule with `operationName` for a GraphQL request. Only that operation changes.
+34. Choose a profile with `production: true`. The mock server refuses to start and says why.
+
+### AI
+
+35. The tab lists Copilot and Claude sessions grouped by day. The scope "This project" shows only sessions in the project folder and in its worktrees.
+36. Press Resume. The terminal opens in the session folder and resumes the session.
+37. The usage strip shows the Claude limits, and the Copilot premium requests when Copilot is logged in.
+
+### Custom tabs and Settings
+
+38. Add a file to `.devhub/tabs/`. A new tab appears after the built-in tabs and opens with ⌘9.
+39. A source script section shows rows from its `view` output, and a row action runs.
+40. Settings → Doctor lists every tool with a version or an install command, and the state of the Accessibility and Notifications permissions.
+41. Allow notifications. Start a build that fails, and close the panel before the build ends. A notification appears, and the menu bar icon shows a red dot until the panel opens.
+42. Enable "Launch at login" and restart the Mac. DevHub starts.

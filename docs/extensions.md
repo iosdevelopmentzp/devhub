@@ -32,7 +32,7 @@ All fields optional. Missing values are detected (see "default").
 | `xcode.container` | path | first `.xcworkspace`, else first `.xcodeproj` | passed to `xcodebuild -workspace` / `-project` |
 | `xcode.scheme` | string | first shared scheme | default scheme in the run bar |
 | `xcode.configuration` | string | `Debug` | default configuration |
-| `xcode.bundleID` | string | shortest `PRODUCT_BUNDLE_IDENTIFIER` in the pbxproj without `Tests`, `Extension`, `Widget`, `Clip`, `$` | used for log streams, uninstall and clean install when no build ran yet |
+| `xcode.bundleID` | string | shortest `PRODUCT_BUNDLE_IDENTIFIER` in the pbxproj without `Tests`, `Extension`, `Widget`, `Intents`, `Clip`, `Notification`, `$` | used for log streams, deep links, push, uninstall and clean install when no build ran yet |
 | `xcode.schemes` | [string] | every scheme found | the schemes shown in the run bar, in this order; use it to hide test and tool schemes |
 | `xcode.bundleIDs` | {key: string} | — | bundle ID per scheme for white-label projects with one scheme per brand; a key is `<scheme>` or `<scheme>/<configuration>` and the more exact key wins; falls back to `xcode.bundleID` |
 | `build.command` | path | — | `kind: command` only. Runs before `run.command` in the checkout of the run bar, with the variables of section 3.4. Streams output. A file without the executable bit runs through `/bin/zsh`. |
@@ -200,7 +200,7 @@ Any executable under `scripts/` is an action without a JSON file. Header lines, 
 | `cleanInstall` | when true the profile always deletes the app and resets the simulator keychain before install |
 | `storage` | `{"suite": "group.com.example.myapp", "key": "environment"}`: where the app saves its current profile; DevHub reads it to show which profile the installed app uses (same container rule as `defaults`) |
 | `upstream` | the URL of the real server for this profile; the mock server forwards to it in Passthrough mode |
-| `production` | when true the profile is shown in red and the mock server refuses to run with it |
+| `production` | when true the profile tag in the identity panel is red and the mock server refuses to run with it |
 
 The selected profile is saved per simulator. The run bar shows a picker when the project has profiles. Launches from Xcode or the home screen do not get these values; the hint of the profile summary says so. A clean install also removes the defaults that an earlier profile wrote.
 
@@ -222,7 +222,7 @@ A line that starts with `@devhub ` followed by one JSON object is a directive. O
 | `{"toast": "Done"}` | toast |
 | `{"copy": "text"}` | clipboard plus toast |
 | `{"open": "https://… or /path"}` | opens with the default app |
-| `{"notify": "Title", "body": "…"}` | system notification when the panel is closed |
+| `{"notify": "Title", "body": "…"}` | system notification, also while the panel is open, when macOS allows notifications for DevHub |
 | `{"refresh": ["git", "simulators"]}` | refreshes stores |
 | `{"error": "message"}` | the run is marked failed with this message even with exit code 0 |
 | `{"app": "/path/App.app"}` | `build.command` and `run.command` only: the app to install and launch |
@@ -257,7 +257,7 @@ Row actions use the same `run` shapes as actions and get the row's `id` as `DEVH
 
 | Field | Effect |
 |---|---|
-| `id` | tab id; `tab.<id>` placement; ⌘ number after the built-in tabs |
+| `id` | tab id; `tab.<id>` placement; the first custom tab gets ⌘9, the others have no shortcut |
 | `title`, `icon`, `searchPrompt` | tab bar and header search |
 | `sections[].actions` | action ids rendered as rows with their inputs and a Run button |
 | `sections[].source.script` | a script whose `view` directive renders the section; `refresh` is `onOpen` (default), `manual` (a refresh button) or a number of seconds |

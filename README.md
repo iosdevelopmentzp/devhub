@@ -52,9 +52,9 @@ The config schema is in `docs/extensions.md`.
 
 ## Use
 
-- Click the menu bar icon to open the panel. Right-click for Open, Pin, Settings and Quit.
+- Click the menu bar icon to open or close the panel. The pin button in the header keeps it open as a window.
 - Global shortcut: ⌥⌘D (change it in Settings).
-- ⌘1 to ⌘8 switch the built-in tabs; ⌘9 opens the first custom tab. ⌘F focuses the search field. ⌘K opens the command palette. Esc clears the search, then closes the panel.
+- ⌘1 to ⌘8 switch the built-in tabs; ⌘9 opens the first custom tab. ⌘F focuses the search field. ⌘K opens the command palette. Esc clears the search field. A click outside the panel closes it.
 - While the panel is closed, DevHub posts a macOS notification for a finished or failed Build & Run and for new review requests. The menu bar icon shows a red dot after a failed build.
 - Move the panel by its empty header space and resize it from the corner grip. Its position and size are remembered.
 

@@ -638,3 +638,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `7be341c` | M8 | `RepositoryWebLinks` takes `git.host.kind`; squash and delete-branch boxes only on GitLab; "Load N more" from `CodeHostWords.pageSize`. |
 | `574d308` | M8 | `ConfigActionsStore.isVisible` in the palette and custom tabs; palette switch checks `GitStore.hasLocalChanges`. |
 | `c339903` | M8 | Cleanup hint from `git.protectedBranches` and the base branch; chmod menu item copies; Clean Finished sums `reclaimedBytes`. |
+| `2b9656c` | M8 | AI "This project" scope includes worktree sessions (`WorktreeLookup` in `AISessionsStore`). |

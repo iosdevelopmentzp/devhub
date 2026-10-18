@@ -56,6 +56,8 @@ Render actions at a new place:
 - A bar or a toolbar: `ConfigActionBar(placement: .logsToolbar, item: ActionItemContext(simulatorUDID: udid))`. It shows the buttons, the prompt and the result area.
 - A row: the screen builds `ConfigActionItemMapper.models(for: configActions.actions(for: .worktreesRow), isRunning: configActions.isRunning)` and passes them to the row mapper as `configActions:`. The row puts `ConfigActionMenuItems(items: model.configActions, onRun: onConfigAction)` in its menu. The screen calls `configActions.request(id:item:slot:)` with `ActionItemContext(branch:worktreePath:rowID:)` and the slot `Placement.worktreesRow.slot(for: path)`, and draws `ConfigActionPrompt` under the row while `configActions.pending(in: slot)` is not nil.
 
+`actions(for:)` already drops an action whose `when` condition does not match. A list built from `config.resolved.actions` or from action ids must filter with `configActions.isVisible(_:)`, like the command palette and the sections of a custom tab.
+
 Pull request rows pass the closure through `PullRequestDetailActions.runConfigAction`, which sends `ActionItemContext(branch:rowID:pullRequestNumber:pullRequestURL:)` with the slot `Placement.pullRequestsRow.slot(for: number)`.
 
 The item fields reach the script as `DEVHUB_WORKTREE_PATH`, `DEVHUB_BRANCH`, `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME`, `DEVHUB_ROW_ID`, `DEVHUB_PR_NUMBER`, `DEVHUB_PR_URL`.

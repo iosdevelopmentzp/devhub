@@ -1,74 +1,122 @@
 ---
 name: update-docs
-description: "End-of-session documentation pass for DevHub: add CHANGELOG.md entries under [Unreleased], refresh docs/STATUS.md, keep docs/extensions.md equal to the config decoder, sync AGENTS.md tables and the skills with the code, commit and push. Run before finishing any session that changed files, and when the stop hook asks for it."
+description: "End-of-session documentation pass for DevHub: CHANGELOG.md entries under [Unreleased], docs/STATUS.md, the ADR 001 step log (a commit's row lands in the next commit), docs/extensions.md and the example config against the decoder, docs/features pages, docs/ARCHITECTURE.md, AGENTS.md and the skills against the code, the anonymity check, then a local commit. Run before finishing any session that changed files, and when the stop hook asks for it."
 ---
 
 # Update Docs
 
-Keeps history and current state readable for the next session. Six checks, in this order.
+The next session starts from these files. Keep them true. Work in this order. Every text follows the plain English
+rule in `AGENTS.md`: short sentences, common words, no idioms, exact technical terms.
 
 ## 1. See what changed
 
 ```sh
 git status --short
 git diff --stat HEAD
+git log --oneline -5
 ```
 
 ## 2. `CHANGELOG.md`
 
-Add lines under `## [Unreleased]`, grouped as `### Added`, `### Changed`, `### Fixed`, `### Removed`, `### Infrastructure`.
+Add lines under `## [Unreleased]`, in the groups `### Added`, `### Changed`, `### Fixed`, `### Removed`,
+`### Infrastructure`.
 
-- One line per user-visible change. Describe behaviour, not files: "Worktrees: Prune disables when nothing is missing", not "edited WorktreesView.swift".
-- Scripts, hooks, skills and docs go under `### Infrastructure`.
-- Do not create a version section. Releases are cut on request only (step 6).
+- One line per user-visible change. Describe behaviour, not files: "Worktrees: Prune is off when nothing is
+  missing", not "edited WorktreesView.swift".
+- Scripts, hooks, skills, rules and docs go under `### Infrastructure`.
+- Never create a version section. A release is cut only when the owner asks.
+
+The stop hook (`Scripts/ai/check-changelog.sh`) blocks a session that changed `DevHub/`, `Packages/`, `Scripts/`,
+`.github/` or `.claude/rules/` while `CHANGELOG.md` did not change.
 
 ## 3. `docs/STATUS.md`
 
-Update only the parts that moved:
+Change only the parts that moved:
 
-- `Last updated` date.
-- `Stage` when a milestone finished or the goal changed.
-- `Screens` table: planned, mock, real, partial (with what is missing).
-- `Decisions`: a new numbered line for every choice a future session must not undo. What, then why.
+- `Last updated` date and milestone.
+- `Stage` when a milestone finished.
+- `Screens` table: planned, mock, real, partial (say what is missing), hidden. Say how the screen was checked
+  (headless snapshot, debug switch, tests only).
+- `Decisions`: a new numbered entry for every choice a later session must not undo. What, then why. Never renumber.
 - `Next steps`: remove finished items, add new ones in order.
-- `Known gaps`: remove fixed gaps, add new ones found during the session, including a failed push.
+- `Known gaps`: remove fixed gaps, add new ones. A bug that a test pins goes here until its own fix.
 
-## 4. `docs/extensions.md`
+## 4. ADR 001 step log
 
-When `DevHub/Core/Config/` changed: every new or renamed field is in the table with type, default and effect; an example under `docs/examples/devhub/` uses it.
+`docs/adr/001-port-from-main-devhub.md`, section "Step log": one row per commit with the short hash, the milestone and
+what the commit did.
 
-## 5. `AGENTS.md` and skills
+A commit cannot hold its own hash. So the row of a commit lands in the next commit:
 
-- `Layout` block in `AGENTS.md` when a folder or a key file was added.
-- `Architecture rules` or `Conventions` when a new pattern was established.
-- `ui-components` when a shared component was added or its signature changed.
-- `add-feature` when the way to register a screen changed.
-- `providers-and-shell` when `ShellRunner`, classification or the `Providers` bundle changed.
-- `xcode-toolchain` when a command or a trap was learned.
-- `panel-window` when the window code changed.
-- `extensions` when the schema pieces or placements changed.
-- `build-and-run` when a script or a build setting changed.
+1. Commit the step.
+2. Read its hash with `git log --oneline -1`.
+3. Add the row `| \`<hash>\` | M<n> | <what it did> |` and keep it in the working tree. It goes into the next step
+   commit, or into a small `docs:` commit at the end of the session.
 
-## 6. Commit and push
+An ADR that needs a new decision gets a new numbered file (`docs/adr/00N-<topic>.md`). Never rewrite an accepted
+decision in place; add a dated note under it.
 
-The remote must always hold a working app: the owner can clone it at any moment and run it. Gate every commit with a clean build and the smoke check.
+## 5. Config schema
+
+When `DevHubDomain/Models/Config/`, `ConfigDecoding`, `ConfigMergePolicy` or a placement changed:
+
+- `docs/extensions.md`: every new or renamed field with type, default and effect. The file must match the decoder.
+- `docs/examples/devhub/` uses the field once. Then run `Scripts/generate-example-config.sh` (it rewrites
+  `ExampleConfig.swift`) and `Scripts/test.sh`.
+- `docs/adr/002-config-system.md` when the shape of the config system changed.
+
+## 6. Feature pages
+
+`docs/features/<tab>.md` holds one page per tab: what it shows, every action and what it runs, the config fields it
+reads, saved preferences, limits. Update the page of every tab whose behaviour changed. A new tab gets a new page.
+
+## 7. Architecture, AGENTS.md and skills
+
+| File | Update when |
+|---|---|
+| `docs/ARCHITECTURE.md` | a module rule, a folder, a factory or a naming pattern changed; the port and use case counts in sections 2 and 7 |
+| `AGENTS.md` | a command, a folder or a key file changed (`Layout` table), a convention was set, a skill was added or removed (`Skills` list) |
+| `.claude/rules/*.md` | the short form of a rule in `ARCHITECTURE.md` changed |
+| `add-feature` | the way to register a tab or wire a store changed |
+| `add-use-case` | use cases, lookups or `AppEvent` rules changed |
+| `data-layer` | `ShellRunner`, the command log, a runner, `Ports.live` or the Data folders changed |
+| `code-host` | the code host port, `gh` or `glab` handling changed |
+| `testing` | spies, `StoreHarness`, fixtures or `Scripts/test.sh` changed |
+| `ui-components` | a DevHubUI component was added or its signature changed |
+| `panel-window` | `AppWindows`, `WindowLayout`, the status item, hints or the hot key changed |
+| `xcode-toolchain` | a build, simctl, log or attach command or trap was learned |
+| `extensions` | the config schema pieces or placements changed |
+| `build-and-run` | a script, a build setting or a `DEVHUB_*` switch changed |
+
+Check every type, file and command name you write with `grep` in `Packages/DevHubKit/Sources`. A skill keeps valid
+YAML front matter (`name`, `description`); update the description when the content changed.
+
+## 8. Check and commit
 
 ```sh
-APP="$(Scripts/build.sh | tail -1)"
-"$APP/Contents/MacOS/DevHub" & PID=$!; sleep 3; kill -0 $PID && echo alive || echo crashed; kill $PID
-git add -A
-git commit -m "<type>: <what changed in plain English>"
-git remote get-url origin >/dev/null 2>&1 && git push || true
+Scripts/build.sh
+Scripts/test.sh
+Scripts/smoke.sh
 ```
 
-Do this after every finished feature, not only at the end of a session. A build that prints anything but the app path, or a smoke check that says `crashed`, blocks the commit until fixed.
+`layers: ok`, `anonymous: ok`, the app path, one passing test line and `alive`. Then commit locally:
 
-Commit types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`. A push that fails for access reasons is noted once in `docs/STATUS.md` under Known gaps; later commits stay local.
+```sh
+git add -A
+git commit
+```
 
-Release only when asked: rename `## [Unreleased]` to `## [x.y.z] - YYYY-MM-DD`, add a fresh empty `## [Unreleased]` above it, set `MARKETING_VERSION` in `project.pbxproj` (Debug and Release), mention the version in the commit message.
+- Conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, with a plain English body and the
+  attribution lines of the session.
+- `Scripts/check-anonymous.sh` also reads the last commit message. Run it again after the commit; when it fails,
+  amend the message with sample words only.
+- Never push. The repository has no remote (STATUS decision 1).
+- A failing check blocks the commit until it is fixed.
 
 ## Done when
 
-- `git diff CHANGELOG.md` shows the new lines.
-- `docs/STATUS.md` says today's date.
-- Nothing in `AGENTS.md`, `docs/extensions.md` or the skills contradicts the code.
+- `git diff HEAD~1 -- CHANGELOG.md` shows the new lines.
+- `docs/STATUS.md` has today's date.
+- The step log has a row for every commit before the last one.
+- Nothing in `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/extensions.md`, `docs/features/` or the skills contradicts
+  the code.
