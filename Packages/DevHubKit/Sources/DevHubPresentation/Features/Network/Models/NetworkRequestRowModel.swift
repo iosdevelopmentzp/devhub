@@ -7,6 +7,7 @@ struct NetworkRequestRowModel: Identifiable, Equatable {
     var method: String
     var methodTint: Tint
     var path: String
+    var operationTag: TagModel?
     var host: String
     var status: String
     var statusTint: Tint
@@ -22,6 +23,7 @@ struct NetworkRequestRowModel: Identifiable, Equatable {
         method: "GET",
         methodTint: .blue,
         path: "/v1/profile/info",
+        operationTag: nil,
         host: "api-qa.example.com",
         status: "200",
         statusTint: .green,

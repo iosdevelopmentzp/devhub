@@ -11,9 +11,13 @@ struct MockExchangeHandler: Sendable {
     func handle(_ request: MockHTTPRequest, id: Int, startedAt: Date) async -> (response: MockHTTPResponse, exchange: NetworkRequest) {
         let clock = ContinuousClock()
         let start = clock.now
-        let rule = request.isWebSocketUpgrade ? nil : MockRuleMatcher.match(method: request.method, path: request.path, query: request.query, in: rules)
+        let requestBody = Self.text(request.body)
+        let operations = GraphQLParser.exchange(method: request.method, query: request.query, requestBody: requestBody, responseBody: "")?.operationNames ?? []
+        let rule = request.isWebSocketUpgrade ? nil : MockRuleMatcher.match(method: request.method, path: request.path, query: request.query, operationNames: operations, in: rules)
         let (response, error) = await response(for: request, rule: rule)
         let elapsed = clock.now - start
+        let responseBody = Self.text(response.body)
+        let graphQL = GraphQLParser.exchange(method: request.method, query: request.query, requestBody: requestBody, responseBody: responseBody)
         let exchange = NetworkRequest(
             id: id,
             method: request.method,
@@ -24,13 +28,14 @@ struct MockExchangeHandler: Sendable {
             statusText: HTTPResponseSerializer.reasonPhrase(response.status),
             startedAt: startedAt,
             duration: Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18,
-            requestBody: Self.text(request.body),
-            responseBody: Self.text(response.body),
+            requestBody: requestBody,
+            responseBody: responseBody,
             responseHeaders: response.headers,
             error: error,
-            isFailure: error != nil || response.status >= 400,
+            isFailure: error != nil || response.status >= 400 || graphQL?.errors.isEmpty == false,
             mockRuleID: rule?.id,
-            requestHeaders: request.headers
+            requestHeaders: request.headers,
+            graphQL: graphQL
         )
         return (response, NetworkRequestRedactor.redact(exchange))
     }

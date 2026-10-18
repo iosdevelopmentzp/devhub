@@ -12,6 +12,9 @@ struct NetworkRequestDetailModel: Equatable {
     var headers: [HTTPHeader]
     var requestHeaders: [HTTPHeader]
     var sourceNote: String?
+    var graphQLOperations: [String]
+    var graphQLVariables: String?
+    var graphQLErrors: [String]
     var canMock: Bool
     var curl: String
     var rawResponseBody: String
@@ -27,6 +30,9 @@ struct NetworkRequestDetailModel: Equatable {
         headers: [HTTPHeader(name: "Content-Type", value: "application/json")],
         requestHeaders: [HTTPHeader(name: "Accept", value: "application/json")],
         sourceNote: "Forwarded by DevHub to api-qa.example.com",
+        graphQLOperations: [],
+        graphQLVariables: nil,
+        graphQLErrors: [],
         canMock: true,
         curl: "curl 'https://api-qa.example.com/v1/profile/info'",
         rawResponseBody: #"{"data":{"name":"Test User"}}"#,

@@ -95,4 +95,29 @@ import Testing
         #expect(NetworkRequestRowMapper.mockedTag.tint == .purple)
         #expect(NetworkRequestRowMapper.passthroughTag.tint == .indigo)
     }
+
+    @Test func aGraphQLRequestShowsItsOperationAndErrors() {
+        var request = NetworkRequestFixture.profile
+        request.method = "POST"
+        request.path = "/graphql"
+        request.graphQL = GraphQLExchange(operations: [GraphQLOperation(name: "SaveCart", kind: .mutation, variables: nil)], errors: ["Not allowed"])
+
+        let model = NetworkRequestRowMapper.model(for: request, isSelected: false)
+
+        #expect(model.path == "SaveCart")
+        #expect(model.operationTag?.text == "mutation")
+        #expect(model.operationTag?.tint == .orange)
+        #expect(model.tags.last?.text == "1 GraphQL error")
+        #expect(model.statusTint == .red)
+        #expect(model.statusHint == "GraphQL error: Not allowed")
+    }
+
+    @Test func aBatchAndAnAnonymousQueryHaveTitles() {
+        var request = NetworkRequestFixture.profile
+        request.graphQL = GraphQLExchange(operations: [GraphQLOperation(name: nil, kind: .query, variables: nil)], errors: [])
+        #expect(NetworkRequestRowMapper.model(for: request, isSelected: false).path == "anonymous query")
+
+        request.graphQL = GraphQLExchange(operations: [GraphQLOperation(name: "A", kind: .query, variables: nil), GraphQLOperation(name: "B", kind: .query, variables: nil)], errors: [])
+        #expect(NetworkRequestRowMapper.model(for: request, isSelected: false).operationTag?.text == "batch of 2")
+    }
 }

@@ -36,4 +36,12 @@ import Testing
 
         #expect(summary.hasPrefix("Respond 200 · "))
     }
+
+    @Test func aGraphQLRuleShowsItsOperationAfterThePath() {
+        var rule = MockRuleFactory.newRule(id: UUID())
+        rule.pathPattern = "/graphql"
+        rule.operationName = "GetProfile"
+
+        #expect(MockRuleRowMapper.model(for: rule, isEditing: false).path == "/graphql · GetProfile")
+    }
 }

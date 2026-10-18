@@ -7,18 +7,18 @@ import Testing
     @Test func exactPathAndMethodMatch() {
         let rule = MockRuleFixture.respond(method: "GET", path: "/v1/settings/list")
 
-        #expect(MockRuleMatcher.match(method: "GET", path: "/v1/settings/list", query: nil, in: [rule]) == rule)
-        #expect(MockRuleMatcher.match(method: "get", path: "/v1/settings/list/", query: nil, in: [rule]) == rule)
-        #expect(MockRuleMatcher.match(method: "POST", path: "/v1/settings/list", query: nil, in: [rule]) == nil)
-        #expect(MockRuleMatcher.match(method: "GET", path: "/v1/settings", query: nil, in: [rule]) == nil)
+        #expect(MockRuleMatcher.match(method: "GET", path: "/v1/settings/list", query: nil, operationNames: [], in: [rule]) == rule)
+        #expect(MockRuleMatcher.match(method: "get", path: "/v1/settings/list/", query: nil, operationNames: [], in: [rule]) == rule)
+        #expect(MockRuleMatcher.match(method: "POST", path: "/v1/settings/list", query: nil, operationNames: [], in: [rule]) == nil)
+        #expect(MockRuleMatcher.match(method: "GET", path: "/v1/settings", query: nil, operationNames: [], in: [rule]) == nil)
     }
 
     @Test func nilOrEmptyMethodMatchesAnyMethod() {
         let any = MockRuleFixture.respond(method: nil, path: "/v1/x")
         let empty = MockRuleFixture.respond(method: " ", path: "/v1/y")
 
-        #expect(MockRuleMatcher.matches(any, method: "DELETE", path: "/v1/x", query: nil))
-        #expect(MockRuleMatcher.matches(empty, method: "PUT", path: "/v1/y", query: nil))
+        #expect(MockRuleMatcher.matches(any, method: "DELETE", path: "/v1/x", query: nil, operationNames: []))
+        #expect(MockRuleMatcher.matches(empty, method: "PUT", path: "/v1/y", query: nil, operationNames: []))
     }
 
     @Test func singleStarMatchesOneSegment() {
@@ -54,7 +54,22 @@ import Testing
         let first = MockRuleFixture.respond(method: nil, path: "/v1/*")
         let second = MockRuleFixture.respond(method: "GET", path: "/v1/x")
 
-        #expect(MockRuleMatcher.match(method: "GET", path: "/v1/x", query: nil, in: [disabled, first, second]) == first)
-        #expect(MockRuleMatcher.match(method: "GET", path: "/v1/x", query: nil, in: [disabled]) == nil)
+        #expect(MockRuleMatcher.match(method: "GET", path: "/v1/x", query: nil, operationNames: [], in: [disabled, first, second]) == first)
+        #expect(MockRuleMatcher.match(method: "GET", path: "/v1/x", query: nil, operationNames: [], in: [disabled]) == nil)
+    }
+
+    @Test func aGraphQLRuleNeedsItsOperationName() {
+        let rule = MockRule(id: UUID(), isEnabled: true, method: "POST", pathPattern: "/graphql", query: nil, action: .respond(MockResponse(status: 200, headers: [], body: "{}", delay: 0)), operationName: "Get*")
+
+        #expect(MockRuleMatcher.matches(rule, method: "POST", path: "/graphql", query: nil, operationNames: ["GetProfile"]))
+        #expect(MockRuleMatcher.matches(rule, method: "POST", path: "/graphql", query: nil, operationNames: ["UpdateProfile", "GetCart"]))
+        #expect(MockRuleMatcher.matches(rule, method: "POST", path: "/graphql", query: nil, operationNames: ["UpdateProfile"]) == false)
+        #expect(MockRuleMatcher.matches(rule, method: "POST", path: "/graphql", query: nil, operationNames: []) == false)
+    }
+
+    @Test func aRuleWithoutAnOperationIgnoresGraphQL() {
+        #expect(MockRuleMatcher.operationMatches(required: nil, names: ["GetProfile"]))
+        #expect(MockRuleMatcher.operationMatches(required: " ", names: []))
+        #expect(MockRuleMatcher.operationMatches(required: "GetProfile", names: ["getprofile"]) == false)
     }
 }

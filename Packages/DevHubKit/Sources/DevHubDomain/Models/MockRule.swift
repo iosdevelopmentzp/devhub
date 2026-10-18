@@ -7,13 +7,15 @@ package struct MockRule: Identifiable, Hashable, Sendable {
     package var pathPattern: String
     package var query: String?
     package var action: MockAction
+    package var operationName: String? = nil
 
-    package init(id: UUID, isEnabled: Bool, method: String?, pathPattern: String, query: String?, action: MockAction) {
+    package init(id: UUID, isEnabled: Bool, method: String?, pathPattern: String, query: String?, action: MockAction, operationName: String? = nil) {
         self.id = id
         self.isEnabled = isEnabled
         self.method = method
         self.pathPattern = pathPattern
         self.query = query
         self.action = action
+        self.operationName = operationName
     }
 }

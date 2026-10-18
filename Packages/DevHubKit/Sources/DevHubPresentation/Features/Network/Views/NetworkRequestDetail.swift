@@ -33,7 +33,7 @@ struct NetworkRequestDetail: View {
                     Button("Mock This", systemImage: "theatermasks", action: onMockThis)
                         .fixedSize()
                         .disabled(model.canMock == false)
-                        .hint("Add a rule to the current mock set that answers this method and path with this status and body. The rule opens in the editor.")
+                        .hint("Add a rule to the current mock set that answers this method and path (and GraphQL operation) with this status and body. The rule opens in the editor.")
                 }
             }
             .controlSize(.small)
@@ -47,6 +47,27 @@ struct NetworkRequestDetail: View {
                     .font(.caption)
                     .foregroundStyle(.red)
                     .textSelection(.enabled)
+            }
+            if model.graphQLOperations.isEmpty == false {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("GraphQL")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    ForEach(model.graphQLOperations, id: \.self) { operation in
+                        Text(operation)
+                            .font(.caption.monospaced())
+                            .textSelection(.enabled)
+                    }
+                    ForEach(model.graphQLErrors, id: \.self) { error in
+                        Label(error, systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(Tint.red.color)
+                            .textSelection(.enabled)
+                    }
+                }
+            }
+            if let variables = model.graphQLVariables {
+                section("GraphQL variables", text: variables)
             }
             if let requestBody = model.requestBody {
                 section("Request body", text: requestBody)

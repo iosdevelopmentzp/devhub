@@ -137,6 +137,15 @@ import Testing
                 pathPattern: "/v1/profile/**",
                 query: nil,
                 action: .patch(MockPatch(operations: [JSONPatchOperation(keyPath: "data.isVIP", value: "true"), JSONPatchOperation(keyPath: "data.banner", value: nil)], delay: 0))
+            ),
+            MockRule(
+                id: UUID(),
+                isEnabled: true,
+                method: "POST",
+                pathPattern: "/graphql",
+                query: nil,
+                action: .respond(MockResponse(status: 200, headers: [], body: #"{"data":{"profile":{"name":"sam"}}}"#, delay: 0)),
+                operationName: "GetProfile"
             )
         ])
     }

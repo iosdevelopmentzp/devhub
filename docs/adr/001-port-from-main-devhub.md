@@ -623,3 +623,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `8a48973` | M6 | `NetworkEmptyStateMapper` with the "no `network.baseURLVariable`" state; the mock server bar is hidden without the variable; `restoreServers` reads the config first and skips production upstreams. |
 | `0bf12f7` | M6 | The example `.devhub` folder sets `launch.identity`, profile `upstream`, `storage` and `production`, `network.*`; its status script prints a `state` line. |
 | `2a6ce2e` | M6 | M6 closed: STATUS stage and screens; `DEVHUB_MOCK` debug switch; checked on a sample app with a local upstream (passthrough, patch rule from `network.mocksFolder`). |
+| `4f8d412` | M7 | Step 7.1: custom tabs: `TabID` (built-in or `tab.<id>`), `TabItemMapper`, `CustomTabMapper` and `CustomTabPolicy` (source refresh modes); `CustomTabView` runs rows through `ConfigActionsStore` (STATUS decision 31). |

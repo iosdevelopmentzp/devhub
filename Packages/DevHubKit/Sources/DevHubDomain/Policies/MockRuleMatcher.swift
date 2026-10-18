@@ -2,15 +2,22 @@ import Foundation
 
 package enum MockRuleMatcher {
 
-    package static func match(method: String, path: String, query: String?, in rules: [MockRule]) -> MockRule? {
-        rules.first { $0.isEnabled && matches($0, method: method, path: path, query: query) }
+    package static func match(method: String, path: String, query: String?, operationNames: [String], in rules: [MockRule]) -> MockRule? {
+        rules.first { $0.isEnabled && matches($0, method: method, path: path, query: query, operationNames: operationNames) }
     }
 
-    package static func matches(_ rule: MockRule, method: String, path: String, query: String?) -> Bool {
+    package static func matches(_ rule: MockRule, method: String, path: String, query: String?, operationNames: [String]) -> Bool {
         if let ruleMethod = rule.method?.trimmed, ruleMethod.isEmpty == false, ruleMethod.caseInsensitiveCompare(method) != .orderedSame {
             return false
         }
-        return pathMatches(pattern: rule.pathPattern, path: path) && queryMatches(required: rule.query, query: query)
+        return pathMatches(pattern: rule.pathPattern, path: path)
+            && queryMatches(required: rule.query, query: query)
+            && operationMatches(required: rule.operationName, names: operationNames)
+    }
+
+    package static func operationMatches(required: String?, names: [String]) -> Bool {
+        guard let required = required?.trimmed, required.isEmpty == false else { return true }
+        return names.contains { segmentMatches(pattern: Substring(required), segment: Substring($0)) }
     }
 
     package static func pathMatches(pattern: String, path: String) -> Bool {

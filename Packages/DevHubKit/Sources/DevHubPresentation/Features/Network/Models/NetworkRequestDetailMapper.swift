@@ -16,6 +16,9 @@ enum NetworkRequestDetailMapper {
             headers: request.responseHeaders,
             requestHeaders: request.requestHeaders,
             sourceNote: sourceNote(for: request),
+            graphQLOperations: request.graphQL?.operations.map { "\($0.kind.rawValue) \($0.name ?? "(no name)")" } ?? [],
+            graphQLVariables: request.graphQL.flatMap(variables),
+            graphQLErrors: request.graphQL?.errors ?? [],
             canMock: request.method.isEmpty == false && (request.path.isEmpty == false || request.url.isEmpty == false),
             curl: CurlCommandBuilder.command(for: request),
             rawResponseBody: request.responseBody,
@@ -28,6 +31,11 @@ enum NetworkRequestDetailMapper {
             return "Answered by a DevHub mock rule"
         }
         return "Forwarded by DevHub to \(request.host)"
+    }
+
+    private static func variables(_ graphQL: GraphQLExchange) -> String? {
+        let all = graphQL.operations.compactMap(\.variables)
+        return all.isEmpty ? nil : all.joined(separator: "\n")
     }
 
     private static func statusLine(for request: NetworkRequest) -> String {

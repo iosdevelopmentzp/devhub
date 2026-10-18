@@ -16,7 +16,8 @@ package enum MockRuleFactory {
                 headers: contentType.map { [$0] } ?? [],
                 body: request.responseBody,
                 delay: 0
-            ))
+            )),
+            operationName: request.graphQL?.operationNames.first
         )
     }
 

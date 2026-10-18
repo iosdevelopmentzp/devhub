@@ -12,11 +12,16 @@ struct NetworkRequestRow: View {
                 Tag(model.method, tint: model.methodTint.color)
                     .frame(width: 52, alignment: .leading)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(model.path)
-                        .font(.callout.monospaced())
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .hintWhenTruncated(model.path)
+                    HStack(spacing: 6) {
+                        if let operationTag = model.operationTag {
+                            ModelTag(model: operationTag)
+                        }
+                        Text(model.path)
+                            .font(.callout.monospaced())
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .hintWhenTruncated(model.path)
+                    }
                     HStack(spacing: 6) {
                         Text(model.host)
                             .font(.caption)

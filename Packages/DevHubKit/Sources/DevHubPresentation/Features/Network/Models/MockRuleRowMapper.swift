@@ -10,12 +10,18 @@ enum MockRuleRowMapper {
             id: rule.id,
             method: method.isEmpty ? "ANY" : method,
             methodTint: method.isEmpty ? .gray : NetworkRequestRowMapper.methodTint(method),
-            path: rule.query.map { "\(rule.pathPattern)?\($0)" } ?? rule.pathPattern,
+            path: path(of: rule),
             summary: summary(of: rule.action),
             summaryTint: rule.isEnabled ? .purple : .secondary,
             isEnabled: rule.isEnabled,
             isEditing: isEditing
         )
+    }
+
+    static func path(of rule: MockRule) -> String {
+        let path = rule.query.map { "\(rule.pathPattern)?\($0)" } ?? rule.pathPattern
+        guard let operation = rule.operationName else { return path }
+        return "\(path) · \(operation)"
     }
 
     static func summary(of action: MockAction) -> String {

@@ -22,6 +22,7 @@ struct MockRuleDraft: Equatable {
     var method: String
     var path: String
     var query: String
+    var operationName: String
     var kind: Kind
     var status: String
     var contentType: String
@@ -33,6 +34,7 @@ struct MockRuleDraft: Equatable {
         method = rule.method?.uppercased() ?? Self.anyMethod
         path = rule.pathPattern
         query = rule.query ?? ""
+        operationName = rule.operationName ?? ""
         delayMilliseconds = rule.action.delay > 0 ? String(Int((rule.action.delay * 1000).rounded())) : ""
         switch rule.action {
         case .respond(let response):
@@ -95,13 +97,15 @@ struct MockRuleDraft: Equatable {
         }
         let trimmedMethod = method.trimmed.uppercased()
         let trimmedQuery = query.trimmed
+        let trimmedOperation = operationName.trimmed
         return MockRule(
             id: id,
             isEnabled: isEnabled,
             method: trimmedMethod.isEmpty || trimmedMethod == Self.anyMethod ? nil : trimmedMethod,
             pathPattern: path.trimmed,
             query: trimmedQuery.isEmpty ? nil : trimmedQuery,
-            action: action
+            action: action,
+            operationName: trimmedOperation.isEmpty ? nil : trimmedOperation
         )
     }
 

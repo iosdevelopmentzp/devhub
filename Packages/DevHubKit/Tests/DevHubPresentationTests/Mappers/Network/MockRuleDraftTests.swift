@@ -125,4 +125,16 @@ import Testing
         #expect(respond.rule(id: id, isEnabled: true) == nil)
         #expect(patch.validationError == "The patch has typographic quotes (“ ”) next to JSON punctuation. Use straight quotes (\").")
     }
+
+    @Test func theGraphQLOperationRoundTrips() throws {
+        var rule = MockRuleFactory.newRule(id: UUID())
+        rule.operationName = "GetProfile"
+        var draft = MockRuleDraft(rule: rule)
+
+        #expect(draft.operationName == "GetProfile")
+        #expect(try #require(draft.rule(id: rule.id, isEnabled: true)).operationName == "GetProfile")
+
+        draft.operationName = "  "
+        #expect(try #require(draft.rule(id: rule.id, isEnabled: true)).operationName == nil)
+    }
 }

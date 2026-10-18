@@ -38,6 +38,13 @@ struct MockRuleEditor: View {
                     .hint("Every key=value pair here must be in the request query. A key without a value only has to be present.")
             }
             HStack(spacing: 8) {
+                FieldLabel("GraphQL")
+                TextField("operation name (optional), * allowed", text: $draft.operationName)
+                    .font(.callout.monospaced())
+                    .textFieldStyle(.roundedBorder)
+                    .hint("The rule matches only a GraphQL request with this operation name, for example GetProfile or Get*. Leave it empty for REST.")
+            }
+            HStack(spacing: 8) {
                 FieldLabel("Action")
                 Picker("Action", selection: $draft.kind) {
                     ForEach(MockRuleDraft.Kind.allCases) { kind in

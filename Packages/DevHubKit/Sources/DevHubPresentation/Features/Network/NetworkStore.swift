@@ -69,7 +69,7 @@ final class NetworkStore {
 
     var shownRequests: [NetworkRequest] {
         allRequests.filter { request in
-            filter.matches(request) && session.matchesSearch(request.method, request.path, request.statusCode.map(String.init) ?? "", request.host)
+            filter.matches(request) && session.matchesSearch(request.method, request.path, request.statusCode.map(String.init) ?? "", request.host, request.graphQL?.title ?? "")
         }
     }
 

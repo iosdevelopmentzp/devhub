@@ -15,6 +15,7 @@ enum MockSetFileCoder {
             var object: [String: Any] = ["id": rule.id.uuidString, "enabled": rule.isEnabled, "path": rule.pathPattern]
             object["method"] = rule.method
             object["query"] = rule.query
+            object["operationName"] = rule.operationName
             switch rule.action {
             case .respond(let response):
                 var respond: [String: Any] = [
@@ -24,7 +25,7 @@ enum MockSetFileCoder {
                 ]
                 let body = LogRedactor.redact(response.body)
                 if body.count > inlineBodyLimit {
-                    let file = uniqueName(MockRouteName.fileName(method: rule.method, path: rule.pathPattern), taken: bodies.keys, folder: bodyFolder)
+                    let file = uniqueName(MockRouteName.fileName(method: rule.method, path: rule.operationName.map { "graphql/\($0)" } ?? rule.pathPattern), taken: bodies.keys, folder: bodyFolder)
                     bodies[file] = Data(body.utf8)
                     respond["bodyFile"] = file
                 } else {
@@ -86,7 +87,8 @@ enum MockSetFileCoder {
             method: (object["method"] as? String).flatMap { $0.isEmpty ? nil : $0.uppercased() },
             pathPattern: path,
             query: (object["query"] as? String).flatMap { $0.isEmpty ? nil : $0 },
-            action: action
+            action: action,
+            operationName: (object["operationName"] as? String).flatMap { $0.trimmed.isEmpty ? nil : $0.trimmed }
         )
     }
 

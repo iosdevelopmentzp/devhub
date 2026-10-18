@@ -43,4 +43,16 @@ import Testing
         #expect(rule.method == "GET")
         #expect(rule.action.delay == 0)
     }
+
+    @Test func aGraphQLRequestGivesARuleForItsOperation() {
+        var request = NetworkRequestFixture.request(statusCode: 200, duration: 0.1, isFailure: false)
+        request.method = "POST"
+        request.path = "/graphql"
+        request.graphQL = GraphQLExchange(operations: [GraphQLOperation(name: "GetProfile", kind: .query, variables: nil)], errors: [])
+
+        let rule = MockRuleFactory.respondRule(from: request, id: UUID())
+
+        #expect(rule.pathPattern == "/graphql")
+        #expect(rule.operationName == "GetProfile")
+    }
 }

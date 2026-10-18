@@ -66,4 +66,16 @@ import Testing
         #expect(NetworkRequestDetailMapper.model(for: NetworkRequestFixture.profile).canMock)
         #expect(NetworkRequestDetailMapper.model(for: NetworkRequestFixture.with(method: "", statusCode: nil, error: "x", isFailure: true, duration: nil)).canMock == false)
     }
+
+    @Test func aGraphQLRequestListsItsOperationsVariablesAndErrors() {
+        var request = NetworkRequestFixture.profile
+        request.graphQL = GraphQLExchange(operations: [GraphQLOperation(name: "GetProfile", kind: .query, variables: "{\"id\":1}")], errors: ["Not found"])
+
+        let model = NetworkRequestDetailMapper.model(for: request)
+
+        #expect(model.graphQLOperations == ["query GetProfile"])
+        #expect(model.graphQLVariables == "{\"id\":1}")
+        #expect(model.graphQLErrors == ["Not found"])
+        #expect(NetworkRequestDetailMapper.model(for: NetworkRequestFixture.profile).graphQLOperations.isEmpty)
+    }
 }

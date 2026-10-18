@@ -17,6 +17,7 @@ package struct NetworkRequest: Identifiable, Hashable, Sendable {
     package var isFailure: Bool
     package var mockRuleID: MockRule.ID? = nil
     package var requestHeaders: [HTTPHeader] = []
+    package var graphQL: GraphQLExchange? = nil
 
     package init(
         id: Int,
@@ -34,7 +35,8 @@ package struct NetworkRequest: Identifiable, Hashable, Sendable {
         error: String?,
         isFailure: Bool,
         mockRuleID: MockRule.ID? = nil,
-        requestHeaders: [HTTPHeader] = []
+        requestHeaders: [HTTPHeader] = [],
+        graphQL: GraphQLExchange? = nil
     ) {
         self.id = id
         self.method = method
@@ -52,5 +54,6 @@ package struct NetworkRequest: Identifiable, Hashable, Sendable {
         self.isFailure = isFailure
         self.mockRuleID = mockRuleID
         self.requestHeaders = requestHeaders
+        self.graphQL = graphQL
     }
 }

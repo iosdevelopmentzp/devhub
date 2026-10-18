@@ -83,6 +83,33 @@ import Testing
         #expect(result.exchange.error?.hasPrefix("Upstream \(host) failed") == true)
     }
 
+    @Test func aGraphQLRuleAnswersOnlyItsOperation() async {
+        var rule = rule(.respond(MockResponse(status: 200, headers: [], body: #"{"data":{"profile":{"name":"sam"}}}"#, delay: 0)))
+        rule.method = "POST"
+        rule.pathPattern = "/graphql"
+        rule.operationName = "GetProfile"
+        let profile = #"{"operationName":"GetProfile","query":"query GetProfile { profile { name } }","variables":{"id":"1"}}"#
+        let cart = #"{"query":"query GetCart { cart { total } }"}"#
+
+        let mocked = await handler(rules: [rule]).handle(HTTPRequestFixture.request("POST", "/graphql", headers: [], body: profile), id: 1, startedAt: Date())
+        let forwarded = await handler(rules: [rule]).handle(HTTPRequestFixture.request("POST", "/graphql", headers: [], body: cart), id: 2, startedAt: Date())
+
+        #expect(mocked.exchange.mockRuleID == rule.id)
+        #expect(mocked.exchange.graphQL?.operationNames == ["GetProfile"])
+        #expect(forwarded.exchange.mockRuleID == nil)
+        #expect(forwarded.exchange.graphQL?.operationNames == ["GetCart"])
+    }
+
+    @Test func graphQLErrorsMarkTheExchangeAsFailed() async {
+        let rule = MockRule(id: UUID(), isEnabled: true, method: "POST", pathPattern: "/graphql", query: nil, action: .respond(MockResponse(status: 200, headers: [], body: #"{"errors":[{"message":"Not allowed"}]}"#, delay: 0)))
+
+        let result = await handler(rules: [rule]).handle(HTTPRequestFixture.request("POST", "/graphql", headers: [], body: #"{"query":"mutation Save { save }"}"#), id: 1, startedAt: Date())
+
+        #expect(result.response.status == 200)
+        #expect(result.exchange.isFailure)
+        #expect(result.exchange.graphQL?.errors == ["Not allowed"])
+    }
+
     private func handler(rules: [MockRule]) -> MockExchangeHandler {
         let body = Data(upstreamBody.utf8)
         let session = StubURLProtocol.session(host: host) { request in

@@ -263,3 +263,32 @@ Row actions use the same `run` shapes as actions and get the row's `id` as `DEVH
 | `sections[].source.script` | a script whose `view` directive renders the section; `refresh` is `onOpen` (default), `manual` (a refresh button) or a number of seconds |
 
 The header search filters rows by title, subtitle and tags.
+
+## 9. Mock set files
+
+The Network tab saves each mock set as `<set name>.json` in `network.mocksFolder` (default `~/.devhub/mocks/<project folder name>`). A team can keep the folder in the repository and edit the files by hand. DevHub reloads them when the panel opens.
+
+```json
+{
+  "version": 1,
+  "id": "6B1F7C2A-1111-4C2B-9D3E-000000000001",
+  "name": "VIP user",
+  "rules": [
+    { "id": "…", "enabled": true, "method": "GET", "path": "/v1/profile/**", "query": "lang=en",
+      "respond": { "status": 200, "delay": 0.2, "headers": { "Content-Type": "application/json" }, "body": "{\"vip\":true}" } },
+    { "id": "…", "enabled": true, "method": "POST", "path": "/graphql", "operationName": "GetProfile",
+      "patch": { "delay": 0, "operations": [ { "path": "data.profile.vip", "value": true }, { "path": "data.profile.banner", "remove": true } ] } }
+  ]
+}
+```
+
+| Field | Effect |
+|---|---|
+| `method` | HTTP method; empty or missing matches every method |
+| `path` | exact path, or a pattern: `*` is one segment, `**` is any number of segments |
+| `query` | `key=value` pairs that must be in the request query; a key without a value only has to be present |
+| `operationName` | GraphQL only: the rule matches a request whose operation has this name (`*` allowed, for example `Get*`). The name comes from `operationName` in the body, else from the query document; a batch matches when one of its operations matches. Without the field the rule ignores GraphQL |
+| `respond` | the answer: `status`, `headers`, `body` (or `bodyFile`, a path next to the set file for a large body), `delay` in seconds |
+| `patch` | the request goes to the real host, then each operation sets (`value`) or removes (`remove: true`) a key path in the JSON response |
+
+The first enabled rule that matches wins. The Network list shows a GraphQL request by its operation name with a `query`, `mutation` or `batch` tag; a response with an `errors` array counts as failed even with status 200.
