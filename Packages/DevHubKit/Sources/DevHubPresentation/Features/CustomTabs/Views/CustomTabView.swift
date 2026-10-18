@@ -9,7 +9,7 @@ struct CustomTabView: View {
     let tab: TabConfig
 
     var body: some View {
-        let sections = CustomTabMapper.sections(for: tab, resolved: config.resolved, placed: store.actions(for: .tab(tab.id)))
+        let sections = CustomTabMapper.sections(for: tab, resolved: config.resolved, placed: store.actions(for: .tab(tab.id)), isVisible: store.isVisible)
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 if sections.isEmpty {

@@ -33,6 +33,17 @@ import DevHubTestSupport
         try await waitUntil { harness.postCount("branchesChanged") == posted + 1 }
     }
 
+    @Test func hasLocalChangesFollowsTheSnapshot() async {
+        await load(GitStateSample.state)
+        #expect(store.hasLocalChanges == false)
+
+        var dirty = GitStateSample.state
+        dirty.snapshot.changedFiles = 3
+        await load(dirty)
+
+        #expect(store.hasLocalChanges)
+    }
+
     // MARK: Bulk delete
 
     @Test func mergedSectionStartsCollapsedAndRemembersTheChoice() {

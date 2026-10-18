@@ -100,7 +100,7 @@ struct CommandPalette: View {
     }
 
     private var paletteActions: [CatalogAction] {
-        BuiltinAction.allCases.map(CatalogAction.builtin) + config.resolved.actions.filter { $0.origin.isExecutable }.map(CatalogAction.config)
+        BuiltinAction.allCases.map(CatalogAction.builtin) + config.resolved.actions.filter { $0.origin.isExecutable }.map(CatalogAction.config).filter(configActions.isVisible)
     }
 
     private func run(_ matches: [PaletteItem]) {

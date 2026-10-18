@@ -74,6 +74,11 @@ final class ConfigActionsStore {
         checkout.currentBranch ?? worktrees.worktree(atPath: checkout.checkoutPath)?.branch ?? worktrees.mainWorktree?.branch
     }
 
+    func isVisible(_ action: CatalogAction) -> Bool {
+        guard let config = action.resolved?.config else { return true }
+        return ActionCatalogPolicy.isVisible(config, facts: facts)
+    }
+
     func actions(for placement: Placement) -> [CatalogAction] {
         ActionCatalogPolicy.actions(for: placement, resolved: config.resolved, facts: facts)
     }

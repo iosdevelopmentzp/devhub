@@ -148,6 +148,10 @@ final class GitStore: CheckoutContext {
         Set((state?.localBranches ?? []).map(\.name))
     }
 
+    var hasLocalChanges: Bool {
+        (snapshot?.changedFiles ?? 0) > 0
+    }
+
     var isMainCheckoutClean: Bool {
         selectedCheckoutPath == nil && snapshot?.changedFiles == 0
     }

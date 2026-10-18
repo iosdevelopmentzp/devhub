@@ -256,4 +256,15 @@ import DevHubTestSupport
 
         #expect(store.actions(for: .homeScripts).map(\.id) == ["gh"])
     }
+
+    @Test func isVisibleChecksTheConditionAndKeepsBuiltins() async {
+        harness.spies.tools.installedTools = ["gh"]
+        let gh = ConfigSample.action("gh", when: ActionCondition(tool: "gh"))
+        let glab = ConfigSample.action("glab", when: ActionCondition(tool: "glab"))
+        await load([gh, glab])
+
+        #expect(store.isVisible(.config(gh)))
+        #expect(store.isVisible(.config(glab)) == false)
+        #expect(store.isVisible(.builtin(.terminal)))
+    }
 }

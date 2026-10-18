@@ -17,7 +17,7 @@ import Testing
             TabSection(title: "Devices", source: TabSource(script: "scripts/list-devices.sh", refresh: "manual")),
         ])
 
-        let sections = CustomTabMapper.sections(for: tab, resolved: resolved, placed: [])
+        let sections = CustomTabMapper.sections(for: tab, resolved: resolved, placed: [], isVisible: { _ in true })
 
         #expect(sections == [
             CustomTabSectionModel(id: 0, title: "Project", content: .actions([.config(clean), .builtin(.terminal)], missing: ["gone"])),
@@ -28,14 +28,25 @@ import Testing
     @Test func aMissingSourceScriptIsNamed() {
         let tab = TabConfig(id: "qa", title: "QA", sections: [TabSection(title: "Devices", source: TabSource(script: "scripts/none.sh"))])
 
-        #expect(CustomTabMapper.sections(for: tab, resolved: resolved, placed: []).first?.content == .missingSource("scripts/none.sh"))
+        #expect(CustomTabMapper.sections(for: tab, resolved: resolved, placed: [], isVisible: { _ in true }).first?.content == .missingSource("scripts/none.sh"))
     }
 
     @Test func actionsPlacedOnTheTabAreAddedOnce() {
         let tab = TabConfig(id: "qa", title: "QA", sections: [TabSection(title: "Project", actions: ["clean"])])
 
-        let sections = CustomTabMapper.sections(for: tab, resolved: resolved, placed: [.config(clean), .config(placed)])
+        let sections = CustomTabMapper.sections(for: tab, resolved: resolved, placed: [.config(clean), .config(placed)], isVisible: { _ in true })
 
         #expect(sections.last == CustomTabSectionModel(id: 1, title: "Actions", content: .actions([.config(placed)], missing: [])))
+    }
+
+    @Test func hiddenActionsAreLeftOutAndAnEmptySectionIsDropped() {
+        let tab = TabConfig(id: "qa", title: "QA", sections: [
+            TabSection(title: "Project", actions: ["clean", "builtin.terminal"]),
+            TabSection(title: "Only clean", actions: ["clean"]),
+        ])
+
+        let sections = CustomTabMapper.sections(for: tab, resolved: resolved, placed: [], isVisible: { $0.id != "clean" })
+
+        #expect(sections == [CustomTabSectionModel(id: 0, title: "Project", content: .actions([.builtin(.terminal)], missing: []))])
     }
 }

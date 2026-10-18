@@ -167,7 +167,12 @@ final class AppActions {
     }
 
     func switchToBranch(_ branch: String) {
-        git.switchTo(branch, plan: .switchOnly)
+        guard git.hasLocalChanges else {
+            git.switchTo(branch, plan: .switchOnly)
+            return
+        }
+        navigator.show(.git)
+        toaster.show("The checkout has local changes. Use Switch or Stash & Switch in the row of \(branch).")
     }
 
     func useCheckoutInGitTab(path: String) {

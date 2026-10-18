@@ -70,6 +70,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- The command palette and custom tabs hide a config action whose `when` condition does not match, like Home and the rows do. A custom tab section with only hidden actions is not shown.
+- "Switch to <branch>" in the command palette no longer runs `git switch` over local changes. It opens the Git tab and asks you to choose Switch or Stash & Switch in the branch row.
 - Branch, commit and new request links in the Git tab follow `git.host.kind`. Before, a GitHub Enterprise host without "github" in its name got GitLab paths.
 - The new request form shows "Delete source branch after merge" and "Squash" only on GitLab. GitHub does not take them when a request is created.
 - "Load more" in the request list names the real page size: 50 on GitHub, 100 on GitLab.
