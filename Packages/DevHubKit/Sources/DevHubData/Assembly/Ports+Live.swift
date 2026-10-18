@@ -27,7 +27,7 @@ extension Ports {
             messaging: SimctlMessagingRepository(shell: shell),
             codeHost: RoutingCodeHostRepository(
                 gitHub: GhPullRequestRepository(client: GhClient(shell: shell)),
-                pullRequests: GlabPullRequestRepository(client: GlabClient(shell: shell))
+                gitLab: GlabPullRequestRepository(client: GlabClient(shell: shell))
             ),
             aiSessions: CompositeAISessionRepository(repositories: [
                 ClaudeTranscriptSessionRepository(root: home.appendingPathComponent(".claude/projects", isDirectory: true)),

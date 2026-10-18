@@ -3,7 +3,7 @@ import DevHubDomain
 
 struct RoutingCodeHostRepository: CodeHostRepository {
     let gitHub: any CodeHostRepository
-    let pullRequests: any CodeHostRepository
+    let gitLab: any CodeHostRepository
 
     func status(branch: String, repository: CodeHost) async throws -> PullRequestStatus {
         try await target(repository).status(branch: branch, repository: repository)
@@ -80,7 +80,7 @@ struct RoutingCodeHostRepository: CodeHostRepository {
     private func target(_ repository: CodeHost) -> any CodeHostRepository {
         switch repository.kind {
         case .github: gitHub
-        case .gitlab: pullRequests
+        case .gitlab: gitLab
         }
     }
 }

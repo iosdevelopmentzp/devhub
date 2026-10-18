@@ -612,3 +612,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `957cc82` | M5 | Log chips: one `LogStream` per simulator with its own process, subsystem, level and pause state, saved as `LogStreamSettings`; `AppLogFilter` and `AppLogPredicatePolicy` (subsystem wins over process); `DEVHUB_LOG_STREAMS`. |
 | `c6b99ff` | M5 | Deep link schemes from `CFBundleURLTypes` of the installed app (`AppURLSchemeParser`, `SimulatorMessagingRepository.urlSchemes`); the push alert template takes the project name (STATUS decision 24). |
 | `6d5ae8d` | M5 | Rename `ClaudeSession*` to `AISession*`, the feature folder `Features/AI`, the tab id `ai`. |
+| `8d8db17` | M5 | Copilot CLI sessions: `WorkspaceYAMLParser`, `CopilotEventScanner`, `CopilotSessionParser`, `CopilotSessionRepository`, `CompositeAISessionRepository`; `AIProvider` on `AISession`; the provider filter in the AI tab (STATUS decision 25). |
