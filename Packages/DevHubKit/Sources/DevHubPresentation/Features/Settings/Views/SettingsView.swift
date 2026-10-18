@@ -27,6 +27,8 @@ struct SettingsView: View {
                 .hint("A global key combination that opens the menu bar panel, or brings the pinned window to the front")
             }
 
+            NotificationsSection()
+
             Section("Claude usage") {
                 Toggle("Show usage strip at the top", isOn: $settings.values.showUsageStrip)
                 Toggle("Show session usage in the menu bar", isOn: $settings.values.showUsageInMenuBar)

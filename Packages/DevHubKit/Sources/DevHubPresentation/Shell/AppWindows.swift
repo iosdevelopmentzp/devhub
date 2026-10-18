@@ -12,6 +12,7 @@ package final class AppWindows: NSObject {
     private var pullRequestWindows: [PullRequestSummary.ID: NSWindow] = [:]
     private var clickMonitor: Any?
     private var resignObserver: NSObjectProtocol?
+    private var pinnedCloseObserver: NSObjectProtocol?
     private var lastPanelTopLeft: CGPoint?
 
     private var layout: WindowLayout {
@@ -108,6 +109,7 @@ package final class AppWindows: NSObject {
         panel.invalidateShadow()
         statusItem.button?.highlight(true)
         installClickMonitor()
+        updatePanelShown()
     }
 
     private func closePanel() {
@@ -118,6 +120,15 @@ package final class AppWindows: NSObject {
             NSEvent.removeMonitor(clickMonitor)
             self.clickMonitor = nil
         }
+        updatePanelShown()
+    }
+
+    private func pinnedWindowWillClose() {
+        assembly.notifier.panelShown(panel.isVisible)
+    }
+
+    private func updatePanelShown() {
+        assembly.notifier.panelShown(panel.isVisible || isPinnedVisible)
     }
 
     private func installClickMonitor() {
@@ -151,6 +162,7 @@ package final class AppWindows: NSObject {
         window.setFrameAutosaveName(WindowLayout.pinnedAutosaveName)
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
+        updatePanelShown()
     }
 
     private func makePinnedWindow() -> NSWindow {
@@ -165,6 +177,11 @@ package final class AppWindows: NSObject {
         window.isReleasedWhenClosed = false
         window.contentMinSize = WindowLayout.minimumSize
         window.contentViewController = hostingController(isPinned: true)
+        pinnedCloseObserver = NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.pinnedWindowWillClose()
+            }
+        }
         return window
     }
 
@@ -229,9 +246,8 @@ package final class AppWindows: NSObject {
         withObservationTracking {
             let usage = assembly.usage
             let settings = assembly.settings
-            let image = NSImage(systemSymbolName: "hammer.fill", accessibilityDescription: "DevHub")
-            image?.isTemplate = true
-            statusItem.button?.image = image
+            let state = StatusItemState.state(isBuilding: assembly.build.isRunning, hasUnseenFailure: assembly.notifier.hasUnseenFailure)
+            statusItem.button?.image = StatusItemImage.image(for: state)
             statusItem.button?.title = StatusItemTitle.text(
                 usage: settings.values.showUsageInMenuBar ? usage.usage?.limits.first?.percentText : nil,
                 reviewCount: settings.values.showReviewCountInMenuBar ? assembly.openPullRequests.reviewCount : nil

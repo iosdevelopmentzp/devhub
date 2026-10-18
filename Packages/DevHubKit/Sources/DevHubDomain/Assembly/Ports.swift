@@ -23,6 +23,7 @@ package struct Ports: Sendable {
     package let config: any ConfigRepository
     package let scripts: any ScriptRunning
     package let tools: any ToolLocating
+    package let notifications: any UserNotificationRepository
 
     package init(
         usage: any ClaudeUsageRepository,
@@ -46,7 +47,8 @@ package struct Ports: Sendable {
         reviewPrompts: any ReviewPromptRepository,
         config: any ConfigRepository,
         scripts: any ScriptRunning,
-        tools: any ToolLocating
+        tools: any ToolLocating,
+        notifications: any UserNotificationRepository
     ) {
         self.usage = usage
         self.copilotUsage = copilotUsage
@@ -70,5 +72,6 @@ package struct Ports: Sendable {
         self.config = config
         self.scripts = scripts
         self.tools = tools
+        self.notifications = notifications
     }
 }

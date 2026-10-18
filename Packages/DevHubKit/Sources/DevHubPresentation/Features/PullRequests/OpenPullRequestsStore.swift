@@ -12,6 +12,7 @@ final class OpenPullRequestsStore {
     @ObservationIgnored private let repository: CodeHostRepository
     @ObservationIgnored private let remote: any CodeHostLookup
     @ObservationIgnored private let activity: ActivityLog
+    @ObservationIgnored private let notifier: Notifier
     @ObservationIgnored private let refreshTask = RefreshTask()
     @ObservationIgnored private var loadedAt: Date?
     @ObservationIgnored private var loggedError: String?
@@ -26,10 +27,11 @@ final class OpenPullRequestsStore {
         remote.words
     }
 
-    init(repository: CodeHostRepository, remote: any CodeHostLookup, activity: ActivityLog, events: AppEvents) {
+    init(repository: CodeHostRepository, remote: any CodeHostLookup, activity: ActivityLog, notifier: Notifier, events: AppEvents) {
         self.repository = repository
         self.remote = remote
         self.activity = activity
+        self.notifier = notifier
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             switch event {
@@ -93,6 +95,9 @@ final class OpenPullRequestsStore {
         }
         let count = ReviewQueuePolicy.count(in: loaded.requests, username: loaded.username)
         if count != reviewCount {
+            if count > reviewCount, loadedAt != nil {
+                notifier.postWhenClosed(title: count == 1 ? "1 request waits for your review" : "\(count) requests wait for your review", body: nil)
+            }
             reviewCount = count
         }
         loadedAt = .now

@@ -23,6 +23,7 @@ package struct PortSpies: Sendable {
     package let config = SpyConfigRepository()
     package let scripts = SpyScriptRunner()
     package let tools = SpyToolLocator()
+    package let notifications = SpyUserNotificationRepository()
 
     package init() {}
 }

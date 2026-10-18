@@ -23,6 +23,7 @@ final class BuildStore: BuildLookup {
     @ObservationIgnored let identity: any IdentityLookup
     @ObservationIgnored let attacher: any XcodeAttaching
     @ObservationIgnored let activity: ActivityLog
+    @ObservationIgnored private let notifier: Notifier
     @ObservationIgnored let events: AppEvents
     @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private var runOptions: [String: SimulatorRunOptions]
@@ -44,6 +45,7 @@ final class BuildStore: BuildLookup {
         identity: any IdentityLookup,
         attacher: any XcodeAttaching,
         activity: ActivityLog,
+        notifier: Notifier,
         events: AppEvents,
         store: any KeyValueStore
     ) {
@@ -58,6 +60,7 @@ final class BuildStore: BuildLookup {
         self.identity = identity
         self.attacher = attacher
         self.activity = activity
+        self.notifier = notifier
         self.events = events
         self.store = store
         runOptions = store.decode([String: SimulatorRunOptions].self, forKey: Self.runOptionsKey) ?? [:]
@@ -231,6 +234,7 @@ final class BuildStore: BuildLookup {
                 state.phase = .succeeded(.now)
                 let sourceName = prepared.worktreeName ?? prepared.path.abbreviatingHome
                 activity.log(attachDebugger ? "Launched \(scheme), Xcode attached" : "Launched \(scheme)", detail: "\(simulator.name) · \(configuration) · \(sourceName)\(profileTitle)", outcome: .success)
+                notifier.buildFinished(title: "Launched \(scheme)", detail: "\(simulator.name) · \(sourceName)", failed: false)
             } catch is CancellationError {
                 state.phase = .idle
                 activity.log("Build cancelled", detail: scheme, outcome: .info)
@@ -238,6 +242,7 @@ final class BuildStore: BuildLookup {
                 logCheckoutFailure(error)
                 state.phase = .failed(error.localizedDescription)
                 activity.log("Build failed", detail: error.localizedDescription, outcome: .failure)
+                notifier.buildFinished(title: "Build failed: \(scheme)", detail: error.localizedDescription, failed: true)
             }
             buildTask = nil
             events.post(.buildFinished(simulatorID: simulator.id, launch: launchRecord))

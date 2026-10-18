@@ -26,7 +26,8 @@ extension Ports {
             reviewPrompts: MockReviewPromptRepository(),
             config: MockConfigRepository(),
             scripts: MockScriptRunner(),
-            tools: MockToolLocator()
+            tools: MockToolLocator(),
+            notifications: MockUserNotificationRepository()
         )
     }
 }

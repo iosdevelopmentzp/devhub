@@ -11,6 +11,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
     package var terminal = "Terminal"
     package var ticketURLTemplate = ""
     package var autoFetchMinutes = 0
+    package var notifyWhenPanelClosed = true
 
     package init(
         showDockIcon: Bool = false,
@@ -22,7 +23,8 @@ package struct AppSettings: Hashable, Codable, Sendable {
         editor: String = "Xcode",
         terminal: String = "Terminal",
         ticketURLTemplate: String = "",
-        autoFetchMinutes: Int = 0
+        autoFetchMinutes: Int = 0,
+        notifyWhenPanelClosed: Bool = true
     ) {
         self.showDockIcon = showDockIcon
         self.showUsageStrip = showUsageStrip
@@ -34,6 +36,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         self.terminal = terminal
         self.ticketURLTemplate = ticketURLTemplate
         self.autoFetchMinutes = autoFetchMinutes
+        self.notifyWhenPanelClosed = notifyWhenPanelClosed
     }
 }
 
@@ -51,7 +54,8 @@ extension AppSettings {
             editor: try container.decodeIfPresent(String.self, forKey: .editor) ?? defaults.editor,
             terminal: try container.decodeIfPresent(String.self, forKey: .terminal) ?? defaults.terminal,
             ticketURLTemplate: try container.decodeIfPresent(String.self, forKey: .ticketURLTemplate) ?? defaults.ticketURLTemplate,
-            autoFetchMinutes: try container.decodeIfPresent(Int.self, forKey: .autoFetchMinutes) ?? defaults.autoFetchMinutes
+            autoFetchMinutes: try container.decodeIfPresent(Int.self, forKey: .autoFetchMinutes) ?? defaults.autoFetchMinutes,
+            notifyWhenPanelClosed: try container.decodeIfPresent(Bool.self, forKey: .notifyWhenPanelClosed) ?? defaults.notifyWhenPanelClosed
         )
     }
 }

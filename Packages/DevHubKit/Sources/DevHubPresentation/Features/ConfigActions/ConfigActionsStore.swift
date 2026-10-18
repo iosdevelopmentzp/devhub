@@ -22,6 +22,7 @@ final class ConfigActionsStore {
     @ObservationIgnored let workspace: WorkspaceActions
     @ObservationIgnored let toaster: Toaster
     @ObservationIgnored let activity: ActivityLog
+    @ObservationIgnored let notifier: Notifier
     @ObservationIgnored let events: AppEvents
     @ObservationIgnored let store: any KeyValueStore
     @ObservationIgnored let appVersion: String
@@ -40,6 +41,7 @@ final class ConfigActionsStore {
         workspace: WorkspaceActions,
         toaster: Toaster,
         activity: ActivityLog,
+        notifier: Notifier,
         events: AppEvents,
         store: any KeyValueStore,
         appVersion: String,
@@ -56,6 +58,7 @@ final class ConfigActionsStore {
         self.workspace = workspace
         self.toaster = toaster
         self.activity = activity
+        self.notifier = notifier
         self.events = events
         self.store = store
         self.appVersion = appVersion

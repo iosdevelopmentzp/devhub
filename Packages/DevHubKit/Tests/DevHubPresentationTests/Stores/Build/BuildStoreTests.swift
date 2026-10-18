@@ -262,6 +262,16 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.outcome == .failure)
     }
 
+    @Test func aFailedBuildWhileThePanelIsClosedNotifiesAndMarksTheIcon() async throws {
+        harness.spies.build.buildError = BuildError.failed("Compile error")
+
+        store.run()
+
+        try await waitUntil { hasFinished }
+        #expect(harness.notifier.hasUnseenFailure)
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "Build failed: App", body: "Compile error")] }
+    }
+
     @Test func cancelReturnsToIdle() async throws {
         store.run()
         store.cancel()

@@ -25,7 +25,8 @@ package extension Ports {
             reviewPrompts: spies.reviewPrompts,
             config: spies.config,
             scripts: spies.scripts,
-            tools: spies.tools
+            tools: spies.tools,
+            notifications: spies.notifications
         )
         return (ports, spies)
     }

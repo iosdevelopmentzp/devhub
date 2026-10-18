@@ -11,6 +11,7 @@ package final class PresentationAssembly {
     let navigator: Navigator
     let activity: ActivityLog
     let toaster: Toaster
+    let notifier: Notifier
     let hints: HintCenter
     let output: OutputPanelState
     let layout: WindowLayout
@@ -62,6 +63,7 @@ package final class PresentationAssembly {
         layout = WindowLayout(store: store)
         settings = SettingsStore(values: initialSettings, store: store)
         workspace = WorkspaceActions(settings: settings, activity: activity, opener: ports.opener)
+        notifier = Notifier(repository: ports.notifications, settings: settings, activity: activity)
         usage = UsageStore(repository: ports.usage, copilotRepository: ports.copilotUsage)
         worktrees = WorktreesStore(
             repository: ports.worktrees,
@@ -100,7 +102,7 @@ package final class PresentationAssembly {
         branchPullRequest = BranchPullRequestStore(repository: ports.codeHost, checkout: git, events: events)
         codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
         pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
-        openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events)
+        openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
         pullRequestDetails = PullRequestDetailStore(repository: ports.codeHost, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
         newPullRequest = NewPullRequestStore(
             git: ports.git,
@@ -135,6 +137,7 @@ package final class PresentationAssembly {
             identity: identity,
             attacher: ports.attacher,
             activity: activity,
+            notifier: notifier,
             events: events,
             store: store
         )
@@ -159,6 +162,7 @@ package final class PresentationAssembly {
             workspace: workspace,
             toaster: toaster,
             activity: activity,
+            notifier: notifier,
             events: events,
             store: store,
             appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "",

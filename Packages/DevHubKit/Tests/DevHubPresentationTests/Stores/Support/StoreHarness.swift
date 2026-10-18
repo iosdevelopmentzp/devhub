@@ -65,11 +65,14 @@ final class StoreHarness {
         workspace: workspace,
         toaster: toaster,
         activity: activity,
+        notifier: notifier,
         events: events,
         store: store,
         appVersion: "1.0",
         home: "/Users/alex"
     )
+
+    lazy var notifier = Notifier(repository: ports.notifications, settings: settings, activity: activity)
 
     lazy var workspace = WorkspaceActions(settings: settings, activity: activity, opener: ports.opener)
 
@@ -119,7 +122,7 @@ final class StoreHarness {
 
     lazy var pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
 
-    lazy var openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events)
+    lazy var openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
 
     lazy var pullRequestDetails = PullRequestDetailStore(repository: ports.codeHost, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
 
@@ -161,6 +164,7 @@ final class StoreHarness {
         identity: identity,
         attacher: ports.attacher,
         activity: activity,
+        notifier: notifier,
         events: events,
         store: store
     )

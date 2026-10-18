@@ -41,7 +41,8 @@ extension Ports {
             reviewPrompts: FileReviewPromptRepository(root: home.appendingPathComponent(".devhub/prompts", isDirectory: true)),
             config: FileConfigRepository(home: home, pollInterval: .seconds(2)),
             scripts: ShellScriptRunner(shell: shell),
-            tools: tools
+            tools: tools,
+            notifications: SystemUserNotificationRepository()
         )
     }
 }

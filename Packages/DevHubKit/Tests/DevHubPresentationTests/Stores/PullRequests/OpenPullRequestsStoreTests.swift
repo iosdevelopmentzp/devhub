@@ -32,6 +32,16 @@ import DevHubTestSupport
         #expect(harness.spies.codeHost.calls == [.openRequests(repository: remote)])
     }
 
+    @Test func moreRequestsForReviewNotifyAfterTheFirstLoad() async throws {
+        script([])
+        await store.refresh()
+        script([PullRequestSummaryFixture.open])
+
+        await store.refresh()
+
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "1 request waits for your review", body: nil)] }
+    }
+
     @Test func refreshIfStaleLoadsOnce() async {
         script([PullRequestSummaryFixture.open])
 

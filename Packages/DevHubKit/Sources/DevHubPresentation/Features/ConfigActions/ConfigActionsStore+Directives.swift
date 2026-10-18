@@ -29,6 +29,7 @@ extension ConfigActionsStore {
             _ = workspace.openTarget(target, relativeTo: ProjectPath(session.selectedProject.path).expanded)
         case let .notify(notification, body):
             activity.log(notification, detail: body ?? title, outcome: .info)
+            notifier.post(title: notification, body: body ?? title)
         case let .refresh(targets):
             outcome.refresh.formUnion(targets)
         case let .error(message):

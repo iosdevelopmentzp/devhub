@@ -192,6 +192,17 @@ import DevHubTestSupport
         #expect(store.runs["dir"]?.view?.text == "All good")
     }
 
+    @Test func aNotifyDirectivePostsANotification() async throws {
+        harness.spies.scripts.events = [.output(#"@devhub {"notify": "Done", "body": "Resources ready"}"#), .exited(0)]
+        let action = ConfigSample.action("note")
+        await load([action])
+
+        store.request(action, item: .none, slot: "s")
+        try await finish("note")
+
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "Done", body: "Resources ready")] }
+    }
+
     @Test func refreshPostsTheTargetsAfterSuccess() async throws {
         harness.spies.scripts.events = [.output(#"@devhub {"refresh": ["git"]}"#), .exited(0)]
         let action = ConfigSample.action("ref", refresh: [.worktrees])
