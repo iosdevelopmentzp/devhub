@@ -46,9 +46,9 @@ final class WorkspaceActions {
         NSWorkspace.shared.open(ProjectPath(path).url)
     }
 
-    func openInXcode(path: String) {
+    func openInXcode(path: String, container: String?) {
         Task { [weak self, opener] in
-            let failure = await opener.openInXcode(path)
+            let failure = await opener.openInXcode(path, container: container)
             guard let self, let failure else { return }
             activity.log("Could not open Xcode", detail: failure, outcome: .failure)
         }

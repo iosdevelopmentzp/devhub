@@ -33,7 +33,7 @@ package struct AppInstallStep: Sendable {
         guard let pid else { throw BuildError.failed("simctl launch did not report a process ID.") }
         continuation.yield(.output("Waiting for debugger, pid \(pid)"))
         continuation.yield(.step("Attaching Xcode to pid \(pid)", progress: nil))
-        try await attacher.attach(pid: pid, simulatorUDID: request.simulatorUDID, projectPath: request.projectPath)
+        try await attacher.attach(pid: pid, simulatorUDID: request.simulatorUDID, projectPath: request.projectPath, container: request.container)
     }
 
     private func launch(

@@ -75,15 +75,16 @@ import Testing
     @Test func openInXcodeLogsOnlyFailures() async throws {
         let actions = makeActions()
 
-        actions.openInXcode(path: "/tmp/ok")
+        actions.openInXcode(path: "/tmp/ok", container: "App.xcworkspace")
         try await waitUntil { opener.calls.count == 1 }
         opener.openInXcodeResult = "No Xcode project"
-        actions.openInXcode(path: "/tmp/bad")
+        actions.openInXcode(path: "/tmp/bad", container: nil)
         try await waitUntil { activity.events.isEmpty == false && opener.calls.count == 2 }
 
         #expect(activity.events.count == 1)
         #expect(activity.events.first?.title == "Could not open Xcode")
         #expect(activity.events.first?.detail == "No Xcode project")
+        #expect(opener.calls == [.openInXcode("/tmp/ok", container: "App.xcworkspace"), .openInXcode("/tmp/bad", container: nil)])
     }
 
     @Test func openInEditorLogsOnlyFailures() async throws {

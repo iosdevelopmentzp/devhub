@@ -70,6 +70,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- Run & Attach, Launch & Attach and "Open in Xcode" open the workspace or project from `xcode.container`. Before, they opened the first one in the folder.
 - "Duplicate" of a mock set keeps the GraphQL operation name of each rule. Before, the copy matched every request on the path.
 - The Network tab names the real mock set folder (`network.mocksFolder` or `~/.devhub/mocks/<project>`) in the delete question and the picker hint. The mock server info and the "Copy as cURL" hints describe what DevHub does today.
 - Deep links, push, "Uninstall" in a simulator row and the process name of a new log stream use the bundle ID from `xcode.bundleID`, `xcode.bundleIDs` or the last launch, like the identity panel. Before, they used only the bundle ID from Settings.

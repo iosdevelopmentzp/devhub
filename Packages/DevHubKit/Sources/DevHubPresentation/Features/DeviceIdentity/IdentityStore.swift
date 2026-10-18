@@ -239,6 +239,7 @@ final class IdentityStore: IdentityLookup {
             plan: plan(for: id, profile: profile, identity: identity),
             attachDebugger: attachDebugger,
             projectPath: projectPath,
+            container: config.config.xcode?.container,
             fallbackAppPath: fallbackAppPath
         )
         rememberDesiredDeviceID(for: id)

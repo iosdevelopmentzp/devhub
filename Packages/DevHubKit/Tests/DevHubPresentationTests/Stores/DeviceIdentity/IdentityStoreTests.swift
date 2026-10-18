@@ -311,8 +311,19 @@ import DevHubTestSupport
 
         try await waitUntil { store.isApplying(simulator.id) == false }
         #expect(lastLaunch == .launch(udid: simulator.id, bundleID: bundleID, waitForDebugger: true, environment: [:]))
-        #expect(harness.spies.attacher.calls == [.attach(pid: 42, simulatorUDID: simulator.id, projectPath: ProjectSample.path)])
+        #expect(harness.spies.attacher.calls == [.attach(pid: 42, simulatorUDID: simulator.id, projectPath: ProjectSample.path, container: nil)])
         #expect(harness.lastActivity?.detail == "own ID · Xcode attached")
+    }
+
+    @Test func attachOpensTheContainerOfTheConfig() async throws {
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(xcode: XcodeConfig(container: "App.xcworkspace")), actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+        harness.spies.simulators.launchResult = .success(42)
+
+        store.launchInstalledApp(on: simulator, profile: nil, attachDebugger: true, forceCleanInstall: false, projectPath: ProjectSample.path, fallbackAppPath: nil)
+
+        try await waitUntil { store.isApplying(simulator.id) == false }
+        #expect(harness.spies.attacher.calls == [.attach(pid: 42, simulatorUDID: simulator.id, projectPath: ProjectSample.path, container: "App.xcworkspace")])
     }
 
     @Test func launchInstalledAppAsksForAccessibilityFirst() {

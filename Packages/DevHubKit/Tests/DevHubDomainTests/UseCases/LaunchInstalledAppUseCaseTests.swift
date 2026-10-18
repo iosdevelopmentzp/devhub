@@ -56,7 +56,7 @@ import Testing
         _ = try await launch(ports, request, cleanInstall: false)
 
         #expect(spies.simulators.calls.last == .launch(udid: udid, bundleID: bundleID, waitForDebugger: true, environment: [:]))
-        #expect(spies.attacher.calls == [.attach(pid: 4242, simulatorUDID: udid, projectPath: "/repo")])
+        #expect(spies.attacher.calls == [.attach(pid: 4242, simulatorUDID: udid, projectPath: "/repo", container: nil)])
     }
 
     @Test func attachWithoutAProcessIDFails() async {

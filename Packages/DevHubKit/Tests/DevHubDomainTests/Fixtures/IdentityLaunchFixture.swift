@@ -12,6 +12,7 @@ enum IdentityLaunchFixture {
         plan: .none,
         attachDebugger: false,
         projectPath: "/repo",
+        container: nil,
         fallbackAppPath: "/derived/App.app"
     )
 

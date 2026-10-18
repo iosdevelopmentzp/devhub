@@ -81,7 +81,7 @@ import Testing
             .launch(udid: udid, bundleID: product.bundleID, waitForDebugger: true, environment: ["APP_DEVICE_ID": "QA-DEVICE"]),
         ])
         #expect(spies.simulators.launchArguments == [["-skipOnboarding"]])
-        #expect(spies.attacher.calls == [.attach(pid: 77, simulatorUDID: udid, projectPath: "/repo")])
+        #expect(spies.attacher.calls == [.attach(pid: 77, simulatorUDID: udid, projectPath: "/repo", container: nil)])
     }
 
     @Test func cleanBuildCleansBeforeBuilding() async {
@@ -140,7 +140,7 @@ import Testing
             "step: Attaching Xcode to pid 55",
         ])
         #expect(spies.simulators.calls.last == .launch(udid: udid, bundleID: product.bundleID, waitForDebugger: true, environment: [:]))
-        #expect(spies.attacher.calls == [.attach(pid: 55, simulatorUDID: udid, projectPath: "/repo")])
+        #expect(spies.attacher.calls == [.attach(pid: 55, simulatorUDID: udid, projectPath: "/repo", container: nil)])
     }
 
     @Test func attachWithoutAProcessIDFails() async {

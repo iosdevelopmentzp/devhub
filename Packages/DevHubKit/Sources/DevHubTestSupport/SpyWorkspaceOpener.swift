@@ -6,7 +6,7 @@ package final class SpyWorkspaceOpener: WorkspaceOpening, @unchecked Sendable {
         case openTerminal(String, path: String)
         case runInTerminal(String, path: String, command: String)
         case openInEditor(String, path: String)
-        case openInXcode(String)
+        case openInXcode(String, container: String?)
         case openFile(String, line: Int?, editor: String)
     }
 
@@ -56,8 +56,8 @@ package final class SpyWorkspaceOpener: WorkspaceOpening, @unchecked Sendable {
         record(.openInEditor(editor, path: path)) { _openInEditorResult }
     }
 
-    package func openInXcode(_ path: String) async -> String? {
-        record(.openInXcode(path)) { _openInXcodeResult }
+    package func openInXcode(_ path: String, container: String?) async -> String? {
+        record(.openInXcode(path, container: container)) { _openInXcodeResult }
     }
 
     package var openFileResult: String? {

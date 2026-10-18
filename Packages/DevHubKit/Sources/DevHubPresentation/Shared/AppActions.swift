@@ -16,6 +16,7 @@ final class AppActions {
     @ObservationIgnored private let identity: IdentityStore
     @ObservationIgnored private let logs: LogsStore
     @ObservationIgnored private let session: ProjectSession
+    @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let workspace: WorkspaceActions
     @ObservationIgnored private let toaster: Toaster
 
@@ -30,6 +31,7 @@ final class AppActions {
         identity: IdentityStore,
         logs: LogsStore,
         session: ProjectSession,
+        config: ConfigStore,
         workspace: WorkspaceActions,
         toaster: Toaster
     ) {
@@ -43,6 +45,7 @@ final class AppActions {
         self.identity = identity
         self.logs = logs
         self.session = session
+        self.config = config
         self.workspace = workspace
         self.toaster = toaster
     }
@@ -237,7 +240,7 @@ final class AppActions {
     }
 
     func openInXcode(path: String) {
-        workspace.openInXcode(path: path)
+        workspace.openInXcode(path: path, container: config.config.xcode?.container)
     }
 
     func openInEditor(path: String, editor: String) {

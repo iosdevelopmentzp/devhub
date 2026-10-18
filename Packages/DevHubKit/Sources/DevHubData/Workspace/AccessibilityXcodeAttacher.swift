@@ -14,12 +14,12 @@ struct AccessibilityXcodeAttacher: XcodeAttaching {
         _ = AXIsProcessTrustedWithOptions(options)
     }
 
-    func attach(pid: Int32, simulatorUDID: String, projectPath: String) async throws {
+    func attach(pid: Int32, simulatorUDID: String, projectPath: String, container preferred: String?) async throws {
         guard isTrusted else {
             requestTrust()
             throw XcodeAttachError.accessibilityNotGranted
         }
-        guard let container = try? XcodeContainer.locate(in: projectPath, preferred: nil) else {
+        guard let container = try? XcodeContainer.locate(in: projectPath, preferred: preferred) else {
             throw XcodeAttachError.noProject(projectPath)
         }
         let hadWindows = await windowCount() > 0

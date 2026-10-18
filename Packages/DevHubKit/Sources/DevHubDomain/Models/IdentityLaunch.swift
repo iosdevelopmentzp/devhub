@@ -6,6 +6,7 @@ package struct IdentityLaunch: Sendable {
     package var plan: LaunchPlan
     package var attachDebugger: Bool
     package var projectPath: String
+    package var container: String?
     package var fallbackAppPath: String?
 
     package init(
@@ -14,6 +15,7 @@ package struct IdentityLaunch: Sendable {
         plan: LaunchPlan,
         attachDebugger: Bool,
         projectPath: String,
+        container: String?,
         fallbackAppPath: String?
     ) {
         self.simulator = simulator
@@ -21,6 +23,7 @@ package struct IdentityLaunch: Sendable {
         self.plan = plan
         self.attachDebugger = attachDebugger
         self.projectPath = projectPath
+        self.container = container
         self.fallbackAppPath = fallbackAppPath
     }
 }

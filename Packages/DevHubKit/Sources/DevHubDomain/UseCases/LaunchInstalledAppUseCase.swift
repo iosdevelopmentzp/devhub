@@ -29,7 +29,7 @@ package struct LaunchInstalledAppUseCase: Sendable {
         let record = plan.record(bundleID: request.bundleID, baseURL: mocks.baseURL, date: .now)
         guard request.attachDebugger else { return record }
         guard let pid else { throw XcodeAttachError.script("simctl launch did not report a process ID.") }
-        try await attacher.attach(pid: pid, simulatorUDID: udid, projectPath: request.projectPath)
+        try await attacher.attach(pid: pid, simulatorUDID: udid, projectPath: request.projectPath, container: request.container)
         return record
     }
 }

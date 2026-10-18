@@ -15,7 +15,7 @@ struct MockWorkspaceOpener: WorkspaceOpening {
         nil
     }
 
-    func openInXcode(_ path: String) async -> String? {
+    func openInXcode(_ path: String, container: String?) async -> String? {
         nil
     }
 

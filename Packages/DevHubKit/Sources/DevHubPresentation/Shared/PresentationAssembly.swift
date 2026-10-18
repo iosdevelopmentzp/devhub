@@ -199,6 +199,7 @@ package final class PresentationAssembly {
             identity: identity,
             logs: logs,
             session: session,
+            config: config,
             workspace: workspace,
             toaster: toaster
         )
