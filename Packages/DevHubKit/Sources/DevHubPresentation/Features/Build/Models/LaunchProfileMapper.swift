@@ -4,15 +4,22 @@ import DevHubUI
 
 enum LaunchProfileMapper {
     static let maxSegments = 4
+    static let productionTag = TagModel(
+        "production",
+        tint: .red,
+        systemImage: "exclamationmark.triangle.fill",
+        hint: "This profile uses the production server: real data and real users"
+    )
 
     static func model(profiles: [LaunchProfile], selected: LaunchProfile?) -> LaunchProfileModel? {
         guard let selected else { return nil }
         return LaunchProfileModel(
-            options: profiles.map { LaunchProfileModel.Option(id: $0.id, title: $0.title) },
+            options: profiles.map { LaunchProfileModel.Option(id: $0.id, title: $0.title, isProduction: $0.isProduction) },
             selectedID: selected.id,
             usesSegments: profiles.count <= maxSegments,
             summary: summary(selected),
-            details: details(selected)
+            details: details(selected),
+            productionTag: selected.isProduction ? productionTag : nil
         )
     }
 

@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- The run bar profile picker marks a `production: true` profile with a warning sign, and shows a red "production" tag next to the picker while that profile is selected.
 - DevHub has an app icon: a `</>` sign on an indigo square. It shows in Finder, in the Dock when the Dock icon is on, and in notifications.
 - Settings → Projects: the circle arrows button finds the scheme and bundle ID of a project again in the project files. Settings → Global config folder shows `~/.devhub` with Reveal, or "not created".
 - Settings → Doctor lists git, xcodebuild, simctl, gh, glab, copilot, claude and python3 with the version and path, or "missing" with the install command. It also shows the Accessibility and Notifications permissions. "Check Again" reads them again.

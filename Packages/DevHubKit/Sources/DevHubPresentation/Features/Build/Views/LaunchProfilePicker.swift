@@ -13,6 +13,9 @@ struct LaunchProfilePicker: View {
                 .foregroundStyle(.secondary)
             picker
                 .fixedSize()
+            if let tag = model.productionTag {
+                ModelTag(model: tag)
+            }
             Text(model.summary)
                 .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
@@ -30,7 +33,7 @@ struct LaunchProfilePicker: View {
         if model.usesSegments {
             Picker("Launch profile", selection: selection) {
                 ForEach(model.options) { option in
-                    Text(option.title).tag(option.id)
+                    optionLabel(option).tag(option.id)
                 }
             }
             .pickerStyle(.segmented)
@@ -38,10 +41,19 @@ struct LaunchProfilePicker: View {
         } else {
             Picker("Launch profile", selection: selection) {
                 ForEach(model.options) { option in
-                    Text(option.title).tag(option.id)
+                    optionLabel(option).tag(option.id)
                 }
             }
             .labelsHidden()
+        }
+    }
+
+    @ViewBuilder
+    private func optionLabel(_ option: LaunchProfileModel.Option) -> some View {
+        if option.isProduction {
+            Label(option.title, systemImage: "exclamationmark.triangle.fill")
+        } else {
+            Text(option.title)
         }
     }
 }

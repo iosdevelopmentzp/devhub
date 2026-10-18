@@ -83,7 +83,6 @@ The rewrite plan (ADR 001, M0 to M8) is complete. Open items wait for the owner:
 
 1. Schema additions that need approval: the `network.toolbar` placement and the context variables of ADR 001 section 5.2 (`DEVHUB_APP_CONTAINER`, `DEVHUB_DATA_CONTAINER`, `DEVHUB_PROFILE`, `DEVHUB_HOST`).
 2. A run on a GitLab host to check the merge request flows and the boolean GraphQL variables.
-3. A red mark for a `production` profile in the run bar picker.
 
 ## Known gaps
 
@@ -92,7 +91,6 @@ The rewrite plan (ADR 001, M0 to M8) is complete. Open items wait for the owner:
 - `network.toolbar` from ADR 001 Appendix B.3 is not a placement yet. It is not in `docs/extensions.md`; adding it changes the schema, so it waits for the owner.
 - Auto-merge on GitHub was not seen working: the test repository is private on a free plan, which has no branch protection and no auto-merge. The action stays hidden there (`autoMergeAllowed` is false).
 - The GitLab flows were not clicked through after the M4 rename: that needs a GitLab host of the owner. The `glab` code and its tests did not change in behaviour.
-- The run bar profile picker does not mark a `production` profile. Only the profile tag in the identity panel is red, and the mock server refuses the profile.
 - The context variables `DEVHUB_APP_CONTAINER`, `DEVHUB_DATA_CONTAINER`, `DEVHUB_PROFILE` and `DEVHUB_HOST` from ADR 001 section 5.2 do not exist yet. Adding them changes the schema, so they wait for the owner.
 - Push on a branch with an upstream runs plain `git push`, so git uses its own upstream and `git.remote` does not apply there.
 - macOS notifications were checked by tests only: the permission prompt was not accepted in this session, so no banner was seen.
