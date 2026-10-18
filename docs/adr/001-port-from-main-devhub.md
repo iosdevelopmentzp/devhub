@@ -624,3 +624,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `0bf12f7` | M6 | The example `.devhub` folder sets `launch.identity`, profile `upstream`, `storage` and `production`, `network.*`; its status script prints a `state` line. |
 | `2a6ce2e` | M6 | M6 closed: STATUS stage and screens; `DEVHUB_MOCK` debug switch; checked on a sample app with a local upstream (passthrough, patch rule from `network.mocksFolder`). |
 | `4f8d412` | M7 | Step 7.1: custom tabs: `TabID` (built-in or `tab.<id>`), `TabItemMapper`, `CustomTabMapper` and `CustomTabPolicy` (source refresh modes); `CustomTabView` runs rows through `ConfigActionsStore` (STATUS decision 31). |
+| `309fd46` | M7 | GraphQL in the Network tab (owner request): `GraphQLParser`, `GraphQLExchange` on `NetworkRequest`, `MockRule.operationName` with `*`, GraphQL errors count as failed; mock set file format in `docs/extensions.md` section 9. |

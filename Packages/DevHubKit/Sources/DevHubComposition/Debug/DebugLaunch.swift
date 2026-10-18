@@ -45,6 +45,9 @@ enum DebugLaunch {
         if let tab = environment["DEVHUB_TAB"] {
             assembly.debugShowTab(tab)
         }
+        if let query = environment["DEVHUB_PALETTE"] {
+            assembly.debugOpenPalette(query: query)
+        }
         if environment["DEVHUB_SHOW_OUTPUT"] == "1" {
             assembly.debugShowOutput()
         }

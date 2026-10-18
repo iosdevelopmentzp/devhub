@@ -12,6 +12,11 @@ package extension PresentationAssembly {
         navigator.selection = tab
     }
 
+    func debugOpenPalette(query: String) {
+        navigator.paletteQuery = query
+        navigator.isPaletteOpen = true
+    }
+
     func debugShowOutput() {
         output.isVisible = true
     }

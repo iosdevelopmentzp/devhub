@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Command palette (⌘K or the ⌘ button in the header): one search over tabs, built-in and config actions, simulators (Build & Run on, make target), local branches (switch, Build & Run, create worktree), worktrees (open, Build & Run), pull requests and AI sessions (resume). Arrow keys move, Enter runs, Esc closes. An action with inputs asks for them inside the palette.
 - GraphQL in the Network tab: a request shows its operation name and a `query`, `mutation` or `batch` tag, the details list the operations, variables and errors, and a response with `errors` counts as failed. A mock rule can match a GraphQL operation name (`*` allowed), and "Mock This" on a GraphQL request fills it in. The mock set file format is documented in `docs/extensions.md` section 9.
 - Custom tabs from `.devhub/tabs/*.json` appear after the built-in tabs (⌘9 for the first one). A section lists its actions with Run, inputs and results, or the rows that its source script prints, read again on open, by hand or every N seconds. Actions placed at `tab.<id>` get their own section. The header search filters the rows.
 - Launch identities from `launch.identity` in `.devhub/project.json`: the identity panel of a simulator and the run bar choose an ID (New, Saved, Own) and an alias. Build & Run and "Launch" pass the ID in `launch.identity.variable` (and `keptVariable`) with `launch.identity.args`. When the app on the simulator has another ID, the launch reinstalls it and resets the simulator keychain; "Own" reinstalls only when the app still carries an ID that DevHub set.
@@ -75,6 +76,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- Debug launch switch `DEVHUB_PALETTE=<query>` opens the command palette.
 - Debug launch switches `DEVHUB_LAUNCH_ID=<id>` (the launch identity for `DEVHUB_BUILD_RUN`) and `DEVHUB_MOCK=<simulator>,<mode>[,<set>]` (Apply & Relaunch of the mock server).
 - `DEVHUB_BUILD_RUN`, `DEVHUB_BUILD_PROFILE` and `DEVHUB_BUILD_BRANCH` run Build & Run headless in Debug builds.
 - `MergeDetail`, `PipelineStatus` and `PullRequestThread` are `MergeReadiness`, `CheckStatus` and `ReviewThread`. `PullRequestsStore` is split into the store, `PullRequestsStore+Filter`, `PullRequestListCache`, `PullRequestActionTexts` and `PullRequestsPreferenceKeys`.

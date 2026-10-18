@@ -41,6 +41,18 @@ struct RootView: View {
             Divider()
             FooterView()
         }
+        .overlay(alignment: .top) {
+            if navigator.isPaletteOpen, session.hasProject {
+                ZStack(alignment: .top) {
+                    Color.black.opacity(0.12)
+                        .onTapGesture { navigator.isPaletteOpen = false }
+                    CommandPalette(onClose: { navigator.isPaletteOpen = false })
+                        .background(Theme.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .shadow(color: Theme.shadow, radius: 12, y: 4)
+                        .padding(.top, 96)
+                }
+            }
+        }
         .overlay {
             if let hintCenter {
                 HintOverlay(center: hintCenter)

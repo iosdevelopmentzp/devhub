@@ -13,6 +13,9 @@ final class Navigator {
         }
     }
 
+    var isPaletteOpen = false
+    var paletteQuery = ""
+
     @ObservationIgnored private let store: any KeyValueStore
 
     private static let selectionKey = "navigator.selection"
@@ -29,5 +32,10 @@ final class Navigator {
 
     func show(tab id: String) {
         selection = .custom(id)
+    }
+
+    func togglePalette() {
+        paletteQuery = ""
+        isPaletteOpen.toggle()
     }
 }

@@ -55,4 +55,16 @@ import Testing
         #expect(store.string(forKey: "navigator.selection") == "tab.qa")
         #expect(Navigator(store: store).selection == .custom("qa"))
     }
+
+    @Test func togglingThePaletteClearsTheQuery() {
+        let navigator = Navigator(store: store)
+        navigator.paletteQuery = "old"
+
+        navigator.togglePalette()
+
+        #expect(navigator.isPaletteOpen)
+        #expect(navigator.paletteQuery == "")
+        navigator.togglePalette()
+        #expect(navigator.isPaletteOpen == false)
+    }
 }

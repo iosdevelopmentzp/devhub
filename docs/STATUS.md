@@ -30,7 +30,7 @@ The app is being rewritten on the package architecture of the main DevHub. The p
 | AI | real | Copilot CLI and Claude Code sessions with a provider and a scope filter and Resume. The usage strip shows Claude and, when logged in, Copilot. Checked with headless snapshots on the real session folders |
 | Settings | real | From the package. Doctor and launch at login come in M7 |
 | Custom tabs | real | `.devhub/tabs/*.json` after the built-in tabs: action sections, source script sections (`onOpen`, `manual`, seconds), actions placed at `tab.<id>`, search. Checked with a headless snapshot of the example `qa` tab |
-| Command palette | planned | M7 |
+| Command palette | real | ⌘K overlay in the panel over tabs, actions, simulators, branches, worktrees, pull requests and AI sessions. Checked with `DEVHUB_PALETTE` and a headless snapshot |
 
 States: planned, mock, real, partial (say what is missing), hidden.
 

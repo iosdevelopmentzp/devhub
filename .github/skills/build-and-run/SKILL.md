@@ -57,6 +57,7 @@ Debug builds only. `DevHubComposition/Debug/DebugLaunch.swift` reads them and ca
 | `DEVHUB_LOG_STREAMS=<udid or name>[,<udid or name>]` | starts a log stream on each simulator; the Logs tab shows one chip per stream |
 | `DEVHUB_OPEN_PANEL=1` | opens the panel at launch |
 | `DEVHUB_TAB=<id>` | selects a tab (saved) |
+| `DEVHUB_PALETTE=<query>` | opens the command palette with that text (empty text is allowed) |
 | `DEVHUB_SHOW_OUTPUT=1` | opens the Output panel (saved) |
 | `DEVHUB_SNAPSHOT=<png path>` | writes a picture of the panel |
 | `DEVHUB_SNAPSHOT_DELAY=<seconds>` | waits longer before the picture (default 1) |

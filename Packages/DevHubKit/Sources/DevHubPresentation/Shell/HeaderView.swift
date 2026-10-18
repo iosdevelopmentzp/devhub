@@ -32,6 +32,10 @@ struct HeaderView: View {
                             .allowsHitTesting(false)
                     )
             }
+            IconButton(systemImage: "command", help: "Command palette (⌘K): tabs, actions, branches, simulators, worktrees, requests, sessions") {
+                navigator.togglePalette()
+            }
+            .keyboardShortcut("k", modifiers: .command)
             IconButton(
                 systemImage: isPinnedWindow ? "pin.fill" : "pin",
                 help: isPinnedWindow ? "Unpin: close this window, use the menu bar panel" : "Pin: keep DevHub open in a floating window",
