@@ -97,6 +97,12 @@ import Testing
         #expect(CommandKind.classify("security", ["find-generic-password", "-w"]) == .secret)
     }
 
+    @Test func ghAuthTokenIsASecret() {
+        #expect(CommandKind.classify("gh", ["auth", "token"]) == .secret)
+        #expect(CommandKind.classify("gh", ["auth", "status"]) == .action)
+        #expect(CommandKind.classify("gh", ["pr", "merge", "12"]) == .action)
+    }
+
     @Test(arguments: ["open", "/bin/zsh", "rm", "claude"])
     func otherExecutablesAreActions(executable: String) {
         #expect(CommandKind.classify(executable, []) == .action)

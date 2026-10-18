@@ -22,6 +22,7 @@ extension PresentationAssembly {
         assembly.simulators.groups = MockData.simulatorGroups
         assembly.identity.identities = MockData.identities
         assembly.usage.usage = MockData.usage
+        assembly.usage.copilot = MockData.copilotUsage
         return assembly
     }
 }

@@ -8,13 +8,17 @@ import DevHubUI
 final class UsageStore {
     var usage: ClaudeUsage?
     private(set) var error: String?
+    var copilot: CopilotUsage?
+    private(set) var copilotError: String?
     private(set) var isRefreshing = false
 
     @ObservationIgnored private let repository: ClaudeUsageRepository
+    @ObservationIgnored private let copilotRepository: CopilotUsageRepository
     @ObservationIgnored private var pollingTask: Task<Void, Never>?
 
-    init(repository: ClaudeUsageRepository) {
+    init(repository: ClaudeUsageRepository, copilotRepository: CopilotUsageRepository) {
         self.repository = repository
+        self.copilotRepository = copilotRepository
     }
 
     func startPolling() {
@@ -37,11 +41,26 @@ final class UsageStore {
         guard isRefreshing == false else { return }
         isRefreshing = true
         defer { isRefreshing = false }
+        async let claude: Void = refreshClaude()
+        async let copilot: Void = refreshCopilot()
+        _ = await (claude, copilot)
+    }
+
+    private func refreshClaude() async {
         do {
             usage = try await repository.fetch()
             error = nil
         } catch {
             self.error = error.localizedDescription
+        }
+    }
+
+    private func refreshCopilot() async {
+        do {
+            copilot = try await copilotRepository.fetch()
+            copilotError = nil
+        } catch {
+            copilotError = error.localizedDescription
         }
     }
 }

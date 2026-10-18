@@ -13,8 +13,10 @@ extension Ports {
         let worktrees = ShellWorktreeRepository(shell: shell)
         let git = ShellGitRepository(shell: shell, worktrees: worktrees)
         let home = FileManager.default.homeDirectoryForCurrentUser
+        let tools = PathToolLocator()
         return Ports(
             usage: AnthropicUsageRepository(credentialsReader: ClaudeCredentialsReader(shell: shell)),
+            copilotUsage: GitHubCopilotUsageRepository(tokenReader: CopilotTokenReader(shell: shell, tools: tools)),
             simulators: simulators,
             build: build,
             worktrees: worktrees,
@@ -40,7 +42,7 @@ extension Ports {
             reviewPrompts: FileReviewPromptRepository(root: home.appendingPathComponent(".devhub/prompts", isDirectory: true)),
             config: FileConfigRepository(home: home, pollInterval: .seconds(2)),
             scripts: ShellScriptRunner(shell: shell),
-            tools: PathToolLocator()
+            tools: tools
         )
     }
 }

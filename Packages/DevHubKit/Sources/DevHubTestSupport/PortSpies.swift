@@ -2,6 +2,7 @@ import DevHubDomain
 
 package struct PortSpies: Sendable {
     package let usage = SpyClaudeUsageRepository()
+    package let copilotUsage = SpyCopilotUsageRepository()
     package let simulators = SpySimulatorRepository()
     package let build = SpyBuildRepository()
     package let worktrees = SpyWorktreeRepository()

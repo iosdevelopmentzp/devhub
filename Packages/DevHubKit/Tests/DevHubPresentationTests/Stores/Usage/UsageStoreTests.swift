@@ -58,4 +58,28 @@ import DevHubTestSupport
 
         #expect(harness.spies.usage.calls == [.fetch])
     }
+
+    @Test func copilotUsageIsReadNextToClaude() async {
+        let copilot = CopilotUsage(plan: "Business", limits: [UsageFixture.week], updatedAt: UsageFixture.now)
+        harness.spies.copilotUsage.fetchResult = .success(copilot)
+
+        await store.refresh()
+
+        #expect(store.copilot == copilot)
+        #expect(store.copilotError == nil)
+        #expect(harness.spies.copilotUsage.calls == [.fetch])
+        #expect(harness.spies.usage.calls.count == 1)
+    }
+
+    @Test func aCopilotFailureDoesNotTouchClaude() async {
+        harness.spies.usage.fetchResult = .success(fresh)
+        harness.spies.copilotUsage.fetchResult = .failure(CopilotUsageError.rejected)
+
+        await store.refresh()
+
+        #expect(store.usage == fresh)
+        #expect(store.error == nil)
+        #expect(store.copilot == nil)
+        #expect(store.copilotError == CopilotUsageError.rejected.localizedDescription)
+    }
 }

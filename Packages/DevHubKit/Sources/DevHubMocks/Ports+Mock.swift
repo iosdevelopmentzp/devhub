@@ -6,6 +6,7 @@ extension Ports {
     package static func mock() -> Ports {
         Ports(
             usage: MockClaudeUsageRepository(),
+            copilotUsage: MockCopilotUsageRepository(),
             simulators: MockSimulatorRepository(),
             build: MockBuildRepository(),
             worktrees: MockWorktreeRepository(),

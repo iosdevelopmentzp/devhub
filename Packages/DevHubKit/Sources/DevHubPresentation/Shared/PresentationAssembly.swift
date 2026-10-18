@@ -62,7 +62,7 @@ package final class PresentationAssembly {
         layout = WindowLayout(store: store)
         settings = SettingsStore(values: initialSettings, store: store)
         workspace = WorkspaceActions(settings: settings, activity: activity, opener: ports.opener)
-        usage = UsageStore(repository: ports.usage)
+        usage = UsageStore(repository: ports.usage, copilotRepository: ports.copilotUsage)
         worktrees = WorktreesStore(
             repository: ports.worktrees,
             derivedData: ports.derivedData,

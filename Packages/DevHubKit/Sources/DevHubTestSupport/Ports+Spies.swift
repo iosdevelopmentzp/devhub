@@ -5,6 +5,7 @@ package extension Ports {
         let spies = PortSpies()
         let ports = Ports(
             usage: spies.usage,
+            copilotUsage: spies.copilotUsage,
             simulators: spies.simulators,
             build: spies.build,
             worktrees: spies.worktrees,

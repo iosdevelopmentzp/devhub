@@ -2,6 +2,7 @@ import Foundation
 
 package struct Ports: Sendable {
     package let usage: any ClaudeUsageRepository
+    package let copilotUsage: any CopilotUsageRepository
     package let simulators: any SimulatorRepository
     package let build: any BuildRepository
     package let worktrees: any WorktreeRepository
@@ -25,6 +26,7 @@ package struct Ports: Sendable {
 
     package init(
         usage: any ClaudeUsageRepository,
+        copilotUsage: any CopilotUsageRepository,
         simulators: any SimulatorRepository,
         build: any BuildRepository,
         worktrees: any WorktreeRepository,
@@ -47,6 +49,7 @@ package struct Ports: Sendable {
         tools: any ToolLocating
     ) {
         self.usage = usage
+        self.copilotUsage = copilotUsage
         self.simulators = simulators
         self.build = build
         self.worktrees = worktrees

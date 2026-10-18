@@ -9,42 +9,19 @@ struct UsageStrip: View {
     @State private var isHovered = false
 
     var body: some View {
-        let summary = store.usage.map { UsageSummaryMapper.model(for: $0, now: .now) }
+        let providers = UsageProviderMapper.models(
+            claude: store.usage,
+            claudeError: store.error,
+            copilot: store.copilot,
+            copilotError: store.copilotError,
+            now: .now
+        )
         return VStack(spacing: 0) {
             HStack(spacing: 12) {
-                Text("Claude")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                if let summary {
-                    ForEach(summary.meters) { meter in
-                        UsageMeter(model: meter)
-                            .hint(meter.resetText)
+                VStack(spacing: 6) {
+                    ForEach(providers) { provider in
+                        UsageProviderRow(model: provider, isRefreshing: store.isRefreshing, onRetry: refresh)
                     }
-                    if let error = store.error {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
-                            .hint(error)
-                    }
-                } else if store.isRefreshing {
-                    ProgressView()
-                        .controlSize(.mini)
-                    Text("Loading Claude usage…")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                } else {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                    Text(store.error ?? "Claude usage unavailable")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Spacer()
-                    Button("Retry", action: refresh)
-                    .buttonStyle(LinkButtonStyle(.accent))
                 }
                 Image(systemName: "chevron.down")
                     .font(.caption2.weight(.semibold))
@@ -61,12 +38,7 @@ struct UsageStrip: View {
             .onHover { isHovered = $0 }
 
             if isExpanded {
-                UsageDetails(
-                    summary: summary,
-                    error: store.error,
-                    isRefreshing: store.isRefreshing,
-                    onRefresh: refresh
-                )
+                UsageDetails(providers: providers, isRefreshing: store.isRefreshing, onRefresh: refresh)
             }
         }
         .animation(.snappy(duration: 0.18), value: isExpanded)

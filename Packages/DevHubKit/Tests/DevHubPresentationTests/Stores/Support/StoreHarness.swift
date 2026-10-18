@@ -73,7 +73,7 @@ final class StoreHarness {
 
     lazy var workspace = WorkspaceActions(settings: settings, activity: activity, opener: ports.opener)
 
-    lazy var usage = UsageStore(repository: ports.usage)
+    lazy var usage = UsageStore(repository: ports.usage, copilotRepository: ports.copilotUsage)
 
     lazy var worktrees = WorktreesStore(
         repository: ports.worktrees,

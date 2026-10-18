@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- The usage strip has a Copilot row when Copilot is logged in: the premium request meter with its reset date, or "No premium request limit". The expanded strip shows the plan and an "Open Usage" link for each provider. The Copilot token comes from `gh auth token`, else from the `copilot-cli` keychain item.
 - The AI tab lists Copilot CLI sessions (`~/.copilot/session-state`) next to Claude Code sessions. A provider filter (Copilot, Claude, Both) is saved. Each row shows its provider, and Resume runs `copilot --resume` or `claude --resume` in the session folder.
 - The Logs tab streams several simulators at once: one chip per simulator, `+` adds a booted simulator, `×` closes a stream. Each stream keeps its own process, subsystem, level, pause state and lines, and the streams come back after a restart. A new stream starts with `logs.process` and `logs.subsystem` from `.devhub/project.json`; with a subsystem the stream filters by subsystem instead of process.
 - `simulators.statusScript` shows its result under the name of the booted, favourite and target simulators, and under the target of the run bar. The line is read again after each launch and on refresh. A failure, a missing script or a timeout shows in red.
@@ -27,6 +28,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- The Output panel hides the output of `gh auth token`, like the output of `security`.
 - The Claude tab is the AI tab (tab id `ai`).
 - The deep link menu of the simulator messaging panel lists the URL schemes of the installed app (`CFBundleURLTypes` in its `Info.plist`) instead of fixed example schemes. The push alert template uses the project name as its title.
 - Build & Run follows `xcode.*` in `.devhub/project.json`: the run bar lists `xcode.schemes` in their order, starts with `xcode.scheme` and `xcode.configuration` when the simulator has no saved choice, and `xcodebuild` uses `xcode.container` (also inside worktrees).

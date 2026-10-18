@@ -21,6 +21,8 @@ package enum CommandKind: Sendable {
         switch executable {
         case "security":
             return .secret
+        case "gh":
+            return arguments.starts(with: ["auth", "token"]) ? .secret : .action
         case "git":
             return gitKind(arguments)
         case "xcrun":

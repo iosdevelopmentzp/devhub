@@ -12,6 +12,12 @@ extension MockData {
         updatedAt: now
     )
 
+    package static let copilotUsage = CopilotUsage(
+        plan: "Business",
+        limits: [UsageLimit(id: "premium", title: "Premium", usedFraction: 0.42, resetsAt: now.addingTimeInterval(12 * 86400))],
+        updatedAt: now
+    )
+
     private static let nextSundayMorning: Date = {
         let components = DateComponents(hour: 9, minute: 0, weekday: 1)
         return Calendar.current.nextDate(after: now, matching: components, matchingPolicy: .nextTime) ?? now.addingTimeInterval(5 * 86400)
