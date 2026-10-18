@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-18 (rewrite, milestone M4)
+Last updated: 2026-10-18 (rewrite, milestone M6)
 
 ## Stage
 
@@ -12,7 +12,7 @@ The app is being rewritten on the package architecture of the main DevHub. The p
 - M3 done: Git from config. `git.remote`, `git.baseBranch`, `git.protectedBranches`, `git.commitPrefix`, `git.ticketURL`, `git.worktrees.*`; "Open in Editor" on file rows; `DEVHUB_GIT_OPS`. Checked on a throwaway repository with a bare remote called `upstream`. About 1,600 tests.
 - M4 done: one code host port for GitHub (`gh`) and GitLab (`glab`), ADR 003. The Pull Requests tab, the Git status line and branch tags use the words of the host. `git.host.*`, `git.pullRequests.*`, `ai.reviewCommand`, the `pullRequests.row` placement, `when.host` and the `pullRequests` refresh target. Checked on a private GitHub test repository: the list in four scopes, details with a thread, files, draft and ready, update branch, merge with branch removal, create with labels, reply, resolve, re-run and cancel a check run. About 1,650 tests.
 - M5 done: Build & Run from config. `xcode.*` in the run bar and in `xcodebuild`, launch profiles (environment, arguments, `defaults` in the app or group container, clean install), `kind: command` projects, the `simulators.statusScript` line, deep link schemes from the installed app, log chips with one stream per simulator, Copilot CLI sessions and Copilot usage. Checked on a sample app: the main checkout, a worktree, a branch without a checkout, both profiles, a command project, two log streams at once, the status line, the AI tab with Copilot and Claude sessions and the usage strip with both providers. About 1,715 tests.
-- M6 in progress: launch identities and the network config (ADR 001 sections 7.6, 7.7 and Appendix A). Done: the config keys, the `state` directive, launch identities in Build & Run, the identity panel and the run bar, the mock server with profile upstreams and `network.baseURLVariable`, `network.mocksFolder`, the Network empty states and the example config. Next: close M6 with a check on a sample app (patch rule, production refusal).
+- M6 done: launch identities and the network config (ADR 001 sections 7.6, 7.7 and Appendix A). `launch.identity`, profile `storage`, `upstream` and `production`, the `state` line of the status script, the identity panel and the run bar, the clean install rule, the mock server with profile upstreams, `network.baseURLVariable` and `network.mocksFolder`, the Network empty states, the example config. Checked on a sample app with a local upstream: Build & Run with an ID and a profile, the `state` report in the panel, Passthrough lists the request of the app, a patch rule from `network.mocksFolder` changes two fields of the response. The production refusal was checked by tests only. About 1,740 tests.
 
 ## Screens
 
@@ -70,7 +70,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 30. The bundle ID of the identity panel and the mock server is the one of the last launch on that simulator when the project config knows it, else the effective bundle ID of the project. Why: `IdentityStore` sits below `BuildStore` and cannot read the run bar scheme; the last launch records what Build & Run really installed.
 ## Next steps
 
-1. M6 (ADR 001 sections 7.6 and 7.7): launch identities from config and the `state` directive, the network base URL variable and upstreams from config.
+1. M7 (ADR 001 sections 7.8 and 7.10): custom tabs, the command palette, notifications, the menu bar state, Settings with launch at login and Doctor; delete `legacy/`.
 2. Rewrite the skills that still describe the first generic app (`add-feature`, `providers-and-shell`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`) when the milestone that touches their area lands.
 3. `docs/SPEC.md` still describes the first generic app; M8 refreshes it.
 

@@ -26,6 +26,11 @@ enum DebugLaunch {
                 await assembly.debugBuildRun(target: target, profile: environment["DEVHUB_BUILD_PROFILE"], identity: environment["DEVHUB_LAUNCH_ID"], branch: environment["DEVHUB_BUILD_BRANCH"])
             }
         }
+        if let mocks = environment["DEVHUB_MOCK"] {
+            Task {
+                await assembly.debugApplyMocks(mocks)
+            }
+        }
         if let streams = environment["DEVHUB_LOG_STREAMS"] {
             Task {
                 await assembly.debugStreamLogs(streams.split(separator: ",").map(String.init))

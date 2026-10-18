@@ -53,6 +53,7 @@ Debug builds only. `DevHubComposition/Debug/DebugLaunch.swift` reads them and ca
 | `DEVHUB_REQUEST_ACTION=<id>` | opens the input prompt of one action on Home |
 | `DEVHUB_GIT_OPS=<step>,<step>` | runs git and worktree steps and waits until the stores are idle after each one: `fetch`, `pull`, `push`, `forcepush`, `rebase`, `continueop`, `abortop`, `updatebase`, `stash:<msg>`, `popstash`, `switch:<b>`, `switchstash:<b>`, `update:<b>`, `delete-branch:<b>`, `checkout-remote:<remote/b>`, `select:<path>\|main`, `stage:<path>`, `unstage:<path>`, `discard:<path>`, `stageall`, `unstageall`, `commit:<msg>`, `commitpush:<msg>`, `amend:<msg>`, `action:<id>`, `wt-create:<b>`, `wt-delete:<b>`, `wt-prune`, `wt-fetch`, `sleep:<s>`. It writes to the repository: use a throwaway one |
 | `DEVHUB_BUILD_RUN=<udid or name>` | runs Build & Run on that simulator and waits until it ends; `DEVHUB_BUILD_PROFILE=<id>` picks a launch profile, `DEVHUB_LAUNCH_ID=<id>` sets the launch identity of that simulator, `DEVHUB_BUILD_BRANCH=<branch>` builds that branch (a worktree is created when it has no checkout) |
+| `DEVHUB_MOCK=<udid or name>,<off\|passthrough\|mock>[,<set name>]` | sets the mock server mode (and the set) of that simulator, runs Apply & Relaunch and selects the simulator in the Network tab |
 | `DEVHUB_LOG_STREAMS=<udid or name>[,<udid or name>]` | starts a log stream on each simulator; the Logs tab shows one chip per stream |
 | `DEVHUB_OPEN_PANEL=1` | opens the panel at launch |
 | `DEVHUB_TAB=<id>` | selects a tab (saved) |

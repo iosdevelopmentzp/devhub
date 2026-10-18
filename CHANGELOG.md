@@ -73,6 +73,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- Debug launch switches `DEVHUB_LAUNCH_ID=<id>` (the launch identity for `DEVHUB_BUILD_RUN`) and `DEVHUB_MOCK=<simulator>,<mode>[,<set>]` (Apply & Relaunch of the mock server).
 - `DEVHUB_BUILD_RUN`, `DEVHUB_BUILD_PROFILE` and `DEVHUB_BUILD_BRANCH` run Build & Run headless in Debug builds.
 - `MergeDetail`, `PipelineStatus` and `PullRequestThread` are `MergeReadiness`, `CheckStatus` and `ReviewThread`. `PullRequestsStore` is split into the store, `PullRequestsStore+Filter`, `PullRequestListCache`, `PullRequestActionTexts` and `PullRequestsPreferenceKeys`.
 - `GhIntegrationTests` reads a GitHub test repository through `gh` when `DEVHUB_PLAYGROUND=owner/repo` is set.
