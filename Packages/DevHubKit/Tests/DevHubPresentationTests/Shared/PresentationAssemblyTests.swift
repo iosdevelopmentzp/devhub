@@ -25,7 +25,7 @@ import Testing
 
         #expect(assembly.session.projects == MockData.projects)
         #expect(assembly.session.selectedProject == MockData.projects[0])
-        #expect(assembly.navigator.selection == .home)
+        #expect(assembly.navigator.selection == .feature(.home))
         #expect(assembly.settings.values == AppSettings())
         #expect(assembly.commandLog.entries.isEmpty)
         #expect(assembly.output.isVisible == false)

@@ -142,13 +142,13 @@ import Testing
         let session = makeSession(selected: nil)
         session.searchText = "login"
 
-        session.switchSearch(from: .git, to: .logs)
+        session.switchSearch(from: .feature(.git), to: .feature(.logs))
         #expect(session.searchText == "")
         session.searchText = "error"
-        session.switchSearch(from: .logs, to: .git)
+        session.switchSearch(from: .feature(.logs), to: .feature(.git))
 
         #expect(session.searchText == "login")
-        session.switchSearch(from: .git, to: .logs)
+        session.switchSearch(from: .feature(.git), to: .feature(.logs))
         #expect(session.searchText == "error")
     }
 

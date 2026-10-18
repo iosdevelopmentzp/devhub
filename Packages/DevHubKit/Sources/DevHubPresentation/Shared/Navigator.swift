@@ -6,7 +6,7 @@ import DevHubUI
 @MainActor
 @Observable
 final class Navigator {
-    var selection: FeatureID {
+    var selection: TabID {
         didSet {
             guard selection != oldValue else { return }
             store.set(selection.rawValue, forKey: Self.selectionKey)
@@ -20,10 +20,14 @@ final class Navigator {
     init(store: any KeyValueStore) {
         self.store = store
         let stored = store.string(forKey: Self.selectionKey)
-        selection = stored.flatMap(FeatureID.init(rawValue:)) ?? FeatureRegistry.defaultFeatureID
+        selection = stored.flatMap(TabID.init(rawValue:)) ?? .feature(FeatureRegistry.defaultFeatureID)
     }
 
     func show(_ id: FeatureID) {
-        selection = id
+        selection = .feature(id)
+    }
+
+    func show(tab id: String) {
+        selection = .custom(id)
     }
 }

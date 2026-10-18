@@ -11,7 +11,7 @@ import Testing
 
         assembly.appActions.showPullRequest(iid: 1839)
 
-        #expect(assembly.navigator.selection == .pullRequests)
+        #expect(assembly.navigator.selection == .feature(.pullRequests))
         try await waitUntil { assembly.pullRequests.expandedID == 1839 }
         #expect(assembly.pullRequests.revealedID == 1839)
     }
@@ -21,7 +21,7 @@ import Testing
 
         assembly.appActions.useCheckoutInGitTab(path: "/tmp/worktree")
 
-        #expect(assembly.navigator.selection == .git)
+        #expect(assembly.navigator.selection == .feature(.git))
         #expect(assembly.git.selectedCheckoutPath == "/tmp/worktree")
     }
 

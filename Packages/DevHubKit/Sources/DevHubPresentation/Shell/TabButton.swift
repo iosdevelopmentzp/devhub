@@ -3,9 +3,7 @@ import DevHubDomain
 import DevHubUI
 
 struct TabButton: View {
-    @Environment(\.codeHostWords) private var words
-
-    let feature: Feature
+    let item: TabItem
     let isSelected: Bool
     let shortcutIndex: Int
     let showsTitle: Bool
@@ -17,9 +15,9 @@ struct TabButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                Image(systemName: feature.systemImage)
+                Image(systemName: item.systemImage)
                 if showsTitle {
-                    Text(feature.title(words))
+                    Text(item.title)
                         .lineLimit(1)
                         .fixedSize()
                 }
@@ -46,9 +44,14 @@ struct TabButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .keyboardShortcut(KeyEquivalent(Character(String(shortcutIndex))), modifiers: .command)
+        .keyboardShortcut(shortcut)
         .onHover { isHovered = $0 }
-        .hint("\(feature.title(words)) (⌘\(shortcutIndex))")
+        .hint(shortcutIndex <= 9 ? "\(item.title) (⌘\(shortcutIndex))" : item.title)
+    }
+
+    private var shortcut: KeyboardShortcut? {
+        guard shortcutIndex <= 9 else { return nil }
+        return KeyboardShortcut(KeyEquivalent(Character(String(shortcutIndex))), modifiers: .command)
     }
 
     private var backgroundColor: Color {

@@ -6,13 +6,14 @@ struct HeaderView: View {
     @Environment(ProjectSession.self) private var session
     @Environment(Navigator.self) private var navigator
     @Environment(AppActions.self) private var appActions
+    @Environment(ConfigStore.self) private var config
     @Environment(\.isPinnedWindow) private var isPinnedWindow
     @Environment(\.togglePin) private var togglePin
     @Environment(\.codeHostWords) private var words
     @FocusState private var isSearchFocused: Bool
 
     private var searchPrompt: String? {
-        FeatureRegistry.feature(navigator.selection).searchPrompt(words)
+        TabItemMapper.item(for: navigator.selection, customTabs: config.resolved.tabs, words: words).searchPrompt
     }
 
     var body: some View {
@@ -41,7 +42,7 @@ struct HeaderView: View {
             IconButton(
                 systemImage: "gearshape",
                 help: "Settings",
-                tint: navigator.selection == .settings ? .accentColor : .primary
+                tint: navigator.selection == .feature(.settings) ? .accentColor : .primary
             ) {
                 appActions.openSettings()
             }

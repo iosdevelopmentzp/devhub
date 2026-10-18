@@ -8,8 +8,8 @@ package extension PresentationAssembly {
     }
 
     func debugShowTab(_ rawValue: String) {
-        guard let feature = FeatureID(rawValue: rawValue) else { return }
-        navigator.show(feature)
+        guard let tab = TabID(rawValue: rawValue) else { return }
+        navigator.selection = tab
     }
 
     func debugShowOutput() {

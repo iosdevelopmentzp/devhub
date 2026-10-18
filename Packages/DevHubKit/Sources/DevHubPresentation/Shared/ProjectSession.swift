@@ -17,7 +17,7 @@ final class ProjectSession {
         }
     }
     var searchText = ""
-    @ObservationIgnored private var savedSearches: [FeatureID: String] = [:]
+    @ObservationIgnored private var savedSearches: [TabID: String] = [:]
 
     @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private let store: any KeyValueStore
@@ -39,9 +39,9 @@ final class ProjectSession {
         projects.isEmpty == false
     }
 
-    func switchSearch(from oldFeatureID: FeatureID, to newFeatureID: FeatureID) {
-        savedSearches[oldFeatureID] = searchText
-        searchText = savedSearches[newFeatureID] ?? ""
+    func switchSearch(from oldTab: TabID, to newTab: TabID) {
+        savedSearches[oldTab] = searchText
+        searchText = savedSearches[newTab] ?? ""
     }
 
     func matchesSearch(_ fields: String...) -> Bool {

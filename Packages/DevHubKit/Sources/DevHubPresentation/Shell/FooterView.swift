@@ -5,6 +5,7 @@ import DevHubUI
 struct FooterView: View {
     @Environment(BuildStore.self) private var build
     @Environment(ConfigActionsStore.self) private var configActions
+    @Environment(ConfigStore.self) private var config
     @Environment(\.isPinnedWindow) private var isPinnedWindow
 
     var body: some View {
@@ -16,7 +17,7 @@ struct FooterView: View {
             }
             Spacer()
             OutputToggle()
-            Text("⌘1–\(FeatureRegistry.tabBarFeatures.count) tabs")
+            Text("⌘1–\(min(FeatureRegistry.tabBarFeatures.count + config.resolved.tabs.count, 9)) tabs")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             Button("Quit") {

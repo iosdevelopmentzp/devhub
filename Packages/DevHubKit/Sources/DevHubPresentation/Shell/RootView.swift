@@ -66,9 +66,22 @@ struct RootView: View {
         }
     }
 
+    @ViewBuilder
+    private var selectedView: some View {
+        switch navigator.selection {
+        case .feature(let id):
+            FeatureRegistry.feature(id).makeView()
+        case .custom(let id):
+            if let tab = config.resolved.tabs.first(where: { $0.id == id }) {
+                CustomTabView(tab: tab)
+            } else {
+                FeatureRegistry.feature(FeatureRegistry.defaultFeatureID).makeView()
+            }
+        }
+    }
+
     private var featureView: some View {
-        FeatureRegistry.feature(navigator.selection)
-                .makeView()
+        selectedView
                 .id(navigator.selection)
                 .environment(\.panelOpenCount, layout.openCount)
                 .onChange(of: navigator.selection) { old, new in

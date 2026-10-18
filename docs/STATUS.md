@@ -29,7 +29,8 @@ The app is being rewritten on the package architecture of the main DevHub. The p
 | Network | real | Shows the requests that pass through the DevHub mock server only (the session log source is gone). The upstream comes from the launch profile, the URL goes into `network.baseURLVariable`, the sets live in `network.mocksFolder`. Without the variable the bar is hidden and an empty state says how to turn the mocks on |
 | AI | real | Copilot CLI and Claude Code sessions with a provider and a scope filter and Resume. The usage strip shows Claude and, when logged in, Copilot. Checked with headless snapshots on the real session folders |
 | Settings | real | From the package. Doctor and launch at login come in M7 |
-| Custom tabs, command palette | planned | M7 |
+| Custom tabs | real | `.devhub/tabs/*.json` after the built-in tabs: action sections, source script sections (`onOpen`, `manual`, seconds), actions placed at `tab.<id>`, search. Checked with a headless snapshot of the example `qa` tab |
+| Command palette | planned | M7 |
 
 States: planned, mock, real, partial (say what is missing), hidden.
 
@@ -68,6 +69,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 28. A launch identity is a plan, not stored state: `LaunchPlan` joins the profile, `launch.identity` and the chosen ID, and every launch (Build & Run, Launch, Apply & Relaunch) goes through `simulators.launch` with its environment and arguments. The result is a `LaunchRecord` (bundle ID, profile, ID, mock server URL) that `IdentityStore` saves per simulator under `simulators.launchSettings`. The old key `simulators.identity` is not migrated. Why: the old settings held an environment name and a hard-coded device ID format that no longer exist; a reset costs one choice per simulator.
 29. The clean install rule (`CleanInstallPolicy`): with a chosen ID, reinstall when the actual ID (the `state` report, else the last ID DevHub set) differs. With no chosen ID, reinstall only when the actual ID is one that DevHub set or saved. Why: the app's own ID must not cause a reinstall on every Build & Run; that would lose the session each time.
 30. The bundle ID of the identity panel and the mock server is the one of the last launch on that simulator when the project config knows it, else the effective bundle ID of the project. Why: `IdentityStore` sits below `BuildStore` and cannot read the run bar scheme; the last launch records what Build & Run really installed.
+31. A custom tab has no store of its own: `CustomTabMapper` turns the tab config into sections, and the rows run through `ConfigActionsStore` like the scripts on Home. A source script is the header script action `script:<file name>`, so its run, result and last run time are shared with Home. Why: one place runs config scripts and keeps their results; a second store would copy that state.
 ## Next steps
 
 1. M7 (ADR 001 sections 7.8 and 7.10): custom tabs, the command palette, notifications, the menu bar state, Settings with launch at login and Doctor; delete `legacy/`.

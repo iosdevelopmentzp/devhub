@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Custom tabs from `.devhub/tabs/*.json` appear after the built-in tabs (⌘9 for the first one). A section lists its actions with Run, inputs and results, or the rows that its source script prints, read again on open, by hand or every N seconds. Actions placed at `tab.<id>` get their own section. The header search filters the rows.
 - Launch identities from `launch.identity` in `.devhub/project.json`: the identity panel of a simulator and the run bar choose an ID (New, Saved, Own) and an alias. Build & Run and "Launch" pass the ID in `launch.identity.variable` (and `keptVariable`) with `launch.identity.args`. When the app on the simulator has another ID, the launch reinstalls it and resets the simulator keychain; "Own" reinstalls only when the app still carries an ID that DevHub set.
 - The identity panel shows the profile, host, user, ID and version that the status script reports in a `state` line, the hook tag found in the app binary (`hookMarker`, `keptVariable`) and the time of the last launch from DevHub.
 - The mock server takes its upstream from the `upstream` of the launch profile the app uses (the reported profile, else the stored one, else the run bar profile), refuses a `production` profile, and passes its URL in `network.baseURLVariable`. "Apply & Relaunch" also writes the `defaults` of that profile. The Network bar tells when the app was launched without DevHub, points to an old server, or uses another profile than the server.
