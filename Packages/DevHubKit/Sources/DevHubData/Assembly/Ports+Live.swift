@@ -29,7 +29,7 @@ extension Ports {
                 gitHub: GhPullRequestRepository(client: GhClient(shell: shell)),
                 pullRequests: GlabPullRequestRepository(client: GlabClient(shell: shell))
             ),
-            claudeSessions: ClaudeTranscriptSessionRepository(root: home.appendingPathComponent(".claude/projects", isDirectory: true)),
+            aiSessions: ClaudeTranscriptSessionRepository(root: home.appendingPathComponent(".claude/projects", isDirectory: true)),
             derivedData: derivedData,
             opener: ShellWorkspaceOpener(shell: shell),
             attacher: attacher,

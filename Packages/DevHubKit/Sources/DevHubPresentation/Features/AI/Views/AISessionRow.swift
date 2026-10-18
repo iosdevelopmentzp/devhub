@@ -2,11 +2,11 @@ import SwiftUI
 import DevHubDomain
 import DevHubUI
 
-struct ClaudeSessionRow: View {
+struct AISessionRow: View {
     @Environment(Toaster.self) private var toaster
     @Environment(AppActions.self) private var appActions
 
-    let model: ClaudeSessionRowModel
+    let model: AISessionRowModel
 
     var body: some View {
         RowContainer { isHovered in
@@ -88,6 +88,6 @@ struct ClaudeSessionRow: View {
 }
 
 #Preview {
-    ClaudeSessionRow(model: .preview)
+    AISessionRow(model: .preview)
         .previewEnvironment()
 }

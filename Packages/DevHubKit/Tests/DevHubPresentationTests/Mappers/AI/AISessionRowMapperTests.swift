@@ -4,11 +4,11 @@ import Foundation
 import Testing
 @testable import DevHubPresentation
 
-@Suite struct ClaudeSessionRowMapperTests {
+@Suite struct AISessionRowMapperTests {
     @Test func sessionWithExistingFolder() {
-        let session = ClaudeSessionFixture.session
+        let session = AISessionFixture.session
 
-        let model = ClaudeSessionRowMapper.model(for: session)
+        let model = AISessionRowMapper.model(for: session)
 
         #expect(model.id == session.id)
         #expect(model.title == "Fix the worktree delete confirmation")
@@ -29,11 +29,11 @@ import Testing
     }
 
     @Test func sessionWithMissingFolder() {
-        var session = ClaudeSessionFixture.session
+        var session = AISessionFixture.session
         session.folderExists = false
         session.gitBranch = nil
 
-        let model = ClaudeSessionRowMapper.model(for: session)
+        let model = AISessionRowMapper.model(for: session)
 
         #expect(model.iconTint == .secondary)
         #expect(model.branchTag == nil)
@@ -45,19 +45,19 @@ import Testing
     }
 
     @Test func lastPromptEqualToTitleIsHidden() {
-        var session = ClaudeSessionFixture.session
+        var session = AISessionFixture.session
         session.lastPrompt = session.title
 
-        #expect(ClaudeSessionRowMapper.model(for: session).lastPrompt == nil)
+        #expect(AISessionRowMapper.model(for: session).lastPrompt == nil)
 
         session.lastPrompt = nil
-        #expect(ClaudeSessionRowMapper.model(for: session).lastPrompt == nil)
+        #expect(AISessionRowMapper.model(for: session).lastPrompt == nil)
     }
 
     @Test func noBranchAndExistingFolderHasNoTags() {
-        var session = ClaudeSessionFixture.session
+        var session = AISessionFixture.session
         session.gitBranch = nil
 
-        #expect(ClaudeSessionRowMapper.model(for: session).hasTags == false)
+        #expect(AISessionRowMapper.model(for: session).hasTags == false)
     }
 }

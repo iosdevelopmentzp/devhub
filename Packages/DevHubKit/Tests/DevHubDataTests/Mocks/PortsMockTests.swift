@@ -9,7 +9,7 @@ import Testing
 
         #expect(try await ports.simulators.list() == MockData.simulatorGroups)
         #expect(try await ports.worktrees.list(projectPath: "~/App", settings: .standard) == MockData.worktrees)
-        #expect(await ports.claudeSessions.sessions() == MockData.claudeSessions)
+        #expect(await ports.aiSessions.sessions() == MockData.aiSessions)
         #expect(ports.projectDetector.isGitRepository(URL(fileURLWithPath: "/tmp")))
         #expect(await ports.config.load(projectPath: "~/App") == MockData.resolvedConfig)
         #expect(MockData.resolvedConfig.issues.isEmpty)

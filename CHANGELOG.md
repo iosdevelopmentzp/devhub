@@ -26,6 +26,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- The Claude tab is the AI tab (tab id `ai`).
 - The deep link menu of the simulator messaging panel lists the URL schemes of the installed app (`CFBundleURLTypes` in its `Info.plist`) instead of fixed example schemes. The push alert template uses the project name as its title.
 - Build & Run follows `xcode.*` in `.devhub/project.json`: the run bar lists `xcode.schemes` in their order, starts with `xcode.scheme` and `xcode.configuration` when the simulator has no saved choice, and `xcodebuild` uses `xcode.container` (also inside worktrees).
 - "Fix Threads with Claude" is "Fix Threads with AI": it runs `ai.reviewCommand`.

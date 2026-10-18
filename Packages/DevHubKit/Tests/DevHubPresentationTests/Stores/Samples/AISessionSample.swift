@@ -1,7 +1,7 @@
 import Foundation
 import DevHubDomain
 
-enum ClaudeSessionSample {
+enum AISessionSample {
     static let root = session(id: "root", cwd: ProjectSample.path)
     static let nested = session(id: "nested", cwd: ProjectSample.path + "/Sources")
     static let sibling = session(id: "sibling", cwd: ProjectSample.path + "-feature")
@@ -9,8 +9,8 @@ enum ClaudeSessionSample {
 
     static let all = [root, nested, sibling, elsewhere]
 
-    static func session(id: String, cwd: String) -> ClaudeSession {
-        ClaudeSession(
+    static func session(id: String, cwd: String) -> AISession {
+        AISession(
             id: id,
             title: "Session \(id)",
             lastPrompt: nil,

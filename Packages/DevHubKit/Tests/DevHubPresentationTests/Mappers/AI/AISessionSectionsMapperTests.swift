@@ -4,7 +4,7 @@ import Foundation
 import Testing
 @testable import DevHubPresentation
 
-@Suite struct ClaudeSessionSectionsMapperTests {
+@Suite struct AISessionSectionsMapperTests {
     @Test func groupsByDayNewestFirst() throws {
         let calendar = Calendar.current
         let now = Date.now
@@ -17,7 +17,7 @@ import Testing
             session("today-2", updatedAt: now)
         ]
 
-        let sections = ClaudeSessionSectionsMapper.sections(for: sessions)
+        let sections = AISessionSectionsMapper.sections(for: sessions)
 
         #expect(sections.map(\.title).prefix(2) == ["Today", "Yesterday"])
         #expect(sections.count == 3)
@@ -29,21 +29,21 @@ import Testing
     }
 
     @Test func rowsUseTheRowMapper() {
-        let sections = ClaudeSessionSectionsMapper.sections(for: [ClaudeSessionFixture.session])
+        let sections = AISessionSectionsMapper.sections(for: [AISessionFixture.session])
 
-        #expect(sections.first?.rows == [ClaudeSessionRowMapper.model(for: ClaudeSessionFixture.session)])
+        #expect(sections.first?.rows == [AISessionRowMapper.model(for: AISessionFixture.session)])
     }
 
     @Test func noSessionsGiveNoSections() {
-        #expect(ClaudeSessionSectionsMapper.sections(for: []).isEmpty)
+        #expect(AISessionSectionsMapper.sections(for: []).isEmpty)
     }
 
-    private func session(_ id: String, updatedAt: Date) -> ClaudeSession {
-        ClaudeSession(
+    private func session(_ id: String, updatedAt: Date) -> AISession {
+        AISession(
             id: id,
             title: "Session \(id)",
             lastPrompt: nil,
-            cwd: ClaudeSessionFixture.session.cwd,
+            cwd: AISessionFixture.session.cwd,
             gitBranch: nil,
             startedAt: nil,
             updatedAt: updatedAt,

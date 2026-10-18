@@ -2,9 +2,9 @@ import Foundation
 import DevHubDomain
 import DevHubUI
 
-struct ClaudeSessionSection: Identifiable, Equatable {
+struct AISessionSection: Identifiable, Equatable {
     var title: String
-    var rows: [ClaudeSessionRowModel]
+    var rows: [AISessionRowModel]
 
     var id: String { title }
 }

@@ -1,8 +1,8 @@
 import DevHubDomain
 import Foundation
 
-enum ClaudeSessionFixture {
-    static let session = ClaudeSession(
+enum AISessionFixture {
+    static let session = AISession(
         id: "5f0c2d8e-1b7a-4c3e-9a51-0e2f6b7d9c41",
         title: "Fix the worktree delete confirmation",
         lastPrompt: "Now run the build again",

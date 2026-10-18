@@ -13,7 +13,7 @@ enum FeatureRegistry {
         Feature(id: .simulators, title: "Simulators", systemImage: "iphone", searchPrompt: "Search simulators") { SimulatorsView() },
         Feature(id: .logs, title: "Logs", systemImage: "text.alignleft", searchPrompt: "Search log lines") { LogsView() },
         Feature(id: .network, title: "Network", systemImage: "network", searchPrompt: "Filter requests") { NetworkView() },
-        Feature(id: .claude, title: "Claude", systemImage: "sparkles", searchPrompt: "Search sessions") { ClaudeSessionsView() },
+        Feature(id: .ai, title: "AI", systemImage: "sparkles", searchPrompt: "Search sessions") { AISessionsView() },
         Feature(id: .settings, title: "Settings", systemImage: "gearshape", showsInTabBar: false, searchPrompt: nil) { SettingsView() }
     ]
 

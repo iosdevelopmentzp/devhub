@@ -13,7 +13,7 @@ package struct Ports: Sendable {
     package let mockSets: any MockSetRepository
     package let messaging: any SimulatorMessagingRepository
     package let codeHost: any CodeHostRepository
-    package let claudeSessions: any ClaudeSessionRepository
+    package let aiSessions: any AISessionRepository
     package let derivedData: any DerivedDataRepository
     package let opener: any WorkspaceOpening
     package let attacher: any XcodeAttaching
@@ -36,7 +36,7 @@ package struct Ports: Sendable {
         mockSets: any MockSetRepository,
         messaging: any SimulatorMessagingRepository,
         codeHost: any CodeHostRepository,
-        claudeSessions: any ClaudeSessionRepository,
+        aiSessions: any AISessionRepository,
         derivedData: any DerivedDataRepository,
         opener: any WorkspaceOpening,
         attacher: any XcodeAttaching,
@@ -58,7 +58,7 @@ package struct Ports: Sendable {
         self.mockSets = mockSets
         self.messaging = messaging
         self.codeHost = codeHost
-        self.claudeSessions = claudeSessions
+        self.aiSessions = aiSessions
         self.derivedData = derivedData
         self.opener = opener
         self.attacher = attacher

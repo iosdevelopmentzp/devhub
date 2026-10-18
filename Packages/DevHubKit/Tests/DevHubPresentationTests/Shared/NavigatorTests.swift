@@ -32,10 +32,10 @@ import Testing
     @Test func showSelectsTheFeature() {
         let navigator = Navigator(store: store)
 
-        navigator.show(.claude)
+        navigator.show(.ai)
 
-        #expect(navigator.selection == .claude)
-        #expect(store.string(forKey: "navigator.selection") == "claude")
+        #expect(navigator.selection == .ai)
+        #expect(store.string(forKey: "navigator.selection") == "ai")
     }
 
     @Test func settingTheSameValueDoesNotWrite() {

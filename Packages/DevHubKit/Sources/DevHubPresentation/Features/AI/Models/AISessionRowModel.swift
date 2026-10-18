@@ -2,8 +2,8 @@ import Foundation
 import DevHubDomain
 import DevHubUI
 
-struct ClaudeSessionRowModel: Identifiable, Equatable {
-    let id: ClaudeSession.ID
+struct AISessionRowModel: Identifiable, Equatable {
+    let id: AISession.ID
     var title: String
     var icon: String
     var iconTint: Tint
@@ -23,7 +23,7 @@ struct ClaudeSessionRowModel: Identifiable, Equatable {
         branchTag != nil || statusTags.isEmpty == false
     }
 
-    static let preview = ClaudeSessionRowModel(
+    static let preview = AISessionRowModel(
         id: "5f0c2d8e-1b7a-4c3e-9a51-0e2f6b7d9c41",
         title: "Fix the worktree delete confirmation",
         icon: "sparkles",

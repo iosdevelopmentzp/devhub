@@ -2,9 +2,9 @@ import Foundation
 import DevHubDomain
 
 extension MockData {
-    package static let claudeSessions: [ClaudeSession] = [
-        ClaudeSession(id: "4d24d22c-f5ad-40e5-b94c-2ed1a330f4f1", title: "DevHub: feature stores and hover hints", lastPrompt: "add a Claude tab with all sessions", cwd: "/Users/dev/Documents/Projects/DevHub", gitBranch: "main", startedAt: ago(days: 2), updatedAt: ago(minutes: 4), folderExists: true),
-        ClaudeSession(id: "6e5462e5-bfaa-4bf3-bb37-74efa955acb4", title: "ABC-2395 age verification alert", lastPrompt: "open the MR", cwd: "/Users/dev/Documents/Projects/example-app/.worktrees/ABC-2395-age-verification-alert", gitBranch: "ABC-2395-age-verification-alert", startedAt: ago(days: 1), updatedAt: ago(hours: 3), folderExists: true),
-        ClaudeSession(id: "dc31ca40-0b73-42a6-9d36-252f1aa41ab8", title: "Socket audit notes", lastPrompt: nil, cwd: "/Users/dev/Documents/Projects/example-app/docs/socket-audit", gitBranch: nil, startedAt: ago(days: 6), updatedAt: ago(days: 5), folderExists: false)
+    package static let aiSessions: [AISession] = [
+        AISession(id: "4d24d22c-f5ad-40e5-b94c-2ed1a330f4f1", title: "DevHub: feature stores and hover hints", lastPrompt: "add a Claude tab with all sessions", cwd: "/Users/dev/Documents/Projects/DevHub", gitBranch: "main", startedAt: ago(days: 2), updatedAt: ago(minutes: 4), folderExists: true),
+        AISession(id: "6e5462e5-bfaa-4bf3-bb37-74efa955acb4", title: "ABC-2395 age verification alert", lastPrompt: "open the MR", cwd: "/Users/dev/Documents/Projects/example-app/.worktrees/ABC-2395-age-verification-alert", gitBranch: "ABC-2395-age-verification-alert", startedAt: ago(days: 1), updatedAt: ago(hours: 3), folderExists: true),
+        AISession(id: "dc31ca40-0b73-42a6-9d36-252f1aa41ab8", title: "Socket audit notes", lastPrompt: nil, cwd: "/Users/dev/Documents/Projects/example-app/docs/socket-audit", gitBranch: nil, startedAt: ago(days: 6), updatedAt: ago(days: 5), folderExists: false)
     ]
 }

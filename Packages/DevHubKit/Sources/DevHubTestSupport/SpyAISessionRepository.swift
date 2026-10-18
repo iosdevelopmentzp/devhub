@@ -1,14 +1,14 @@
 import DevHubDomain
 import Foundation
 
-package final class SpyClaudeSessionRepository: ClaudeSessionRepository, @unchecked Sendable {
+package final class SpyAISessionRepository: AISessionRepository, @unchecked Sendable {
     package enum Call: Hashable {
         case sessions
     }
 
     private let lock = NSLock()
     private var _calls: [Call] = []
-    private var _sessionsResult: [ClaudeSession] = []
+    private var _sessionsResult: [AISession] = []
 
     package init() {}
 
@@ -16,12 +16,12 @@ package final class SpyClaudeSessionRepository: ClaudeSessionRepository, @unchec
         lock.withLock { _calls }
     }
 
-    package var sessionsResult: [ClaudeSession] {
+    package var sessionsResult: [AISession] {
         get { lock.withLock { _sessionsResult } }
         set { lock.withLock { _sessionsResult = newValue } }
     }
 
-    package func sessions() async -> [ClaudeSession] {
+    package func sessions() async -> [AISession] {
         record(.sessions) { _sessionsResult }
     }
 

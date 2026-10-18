@@ -9,6 +9,6 @@ enum FeatureID: String, CaseIterable, Hashable {
     case simulators
     case logs
     case network
-    case claude
+    case ai
     case settings
 }

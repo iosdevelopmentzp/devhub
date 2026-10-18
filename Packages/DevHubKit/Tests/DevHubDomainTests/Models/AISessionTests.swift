@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import DevHubDomain
 
-@Suite struct ClaudeSessionTests {
+@Suite struct AISessionTests {
     @Test func folderNameIsTheLastComponentOfTheWorkingFolder() {
         #expect(session(cwd: "/Users/me/Projects/DevHub").folderName == "DevHub")
     }
@@ -15,8 +15,8 @@ import Testing
         #expect(session(cwd: "/Users/me/Bob's").resumeCommand == #"cd '/Users/me/Bob'\''s' && claude --resume abc-123"#)
     }
 
-    private func session(cwd: String) -> ClaudeSession {
-        ClaudeSession(
+    private func session(cwd: String) -> AISession {
+        AISession(
             id: "abc-123",
             title: "Session",
             lastPrompt: nil,

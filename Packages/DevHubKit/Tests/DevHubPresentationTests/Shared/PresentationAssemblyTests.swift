@@ -40,7 +40,7 @@ import Testing
             assembly.toaster, assembly.hints, assembly.output, assembly.layout, assembly.settings,
             assembly.workspace, assembly.usage, assembly.worktrees, assembly.git, assembly.changes,
             assembly.branchPullRequest, assembly.simulators, assembly.identity, assembly.build,
-            assembly.logs, assembly.messaging, assembly.claudeSessions, assembly.appActions
+            assembly.logs, assembly.messaging, assembly.aiSessions, assembly.appActions
         ]
 
         #expect(Set(stores.map(ObjectIdentifier.init)).count == 25)

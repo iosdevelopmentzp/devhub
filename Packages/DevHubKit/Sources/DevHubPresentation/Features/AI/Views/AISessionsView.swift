@@ -2,14 +2,14 @@ import SwiftUI
 import DevHubDomain
 import DevHubUI
 
-struct ClaudeSessionsView: View {
+struct AISessionsView: View {
     @Environment(ProjectSession.self) private var session
-    @Environment(ClaudeSessionsStore.self) private var claude
+    @Environment(AISessionsStore.self) private var claude
     @Environment(\.panelOpenCount) private var openCount
 
     var body: some View {
         VStack(spacing: 0) {
-            ClaudeSessionsToolbar(count: visible.count)
+            AISessionsToolbar(count: visible.count)
             Divider()
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -20,7 +20,7 @@ struct ClaudeSessionsView: View {
         }
     }
 
-    private var visible: [ClaudeSession] {
+    private var visible: [AISession] {
         claude.scoped.filter { session.matchesSearch($0.title, $0.cwd, $0.gitBranch ?? "", $0.lastPrompt ?? "") }
     }
 
@@ -34,10 +34,10 @@ struct ClaudeSessionsView: View {
         ) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(ClaudeSessionSectionsMapper.sections(for: visible)) { section in
+                    ForEach(AISessionSectionsMapper.sections(for: visible)) { section in
                         ListSectionHeader(section.title)
                         ForEach(section.rows) { row in
-                            ClaudeSessionRow(model: row)
+                            AISessionRow(model: row)
                             if row.id != section.rows.last?.id {
                                 Divider()
                                     .padding(.leading, 56)
@@ -62,6 +62,6 @@ struct ClaudeSessionsView: View {
 }
 
 #Preview {
-    ClaudeSessionsView()
+    AISessionsView()
         .previewEnvironment()
 }

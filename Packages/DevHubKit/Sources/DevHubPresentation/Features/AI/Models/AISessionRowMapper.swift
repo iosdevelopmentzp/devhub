@@ -2,10 +2,10 @@ import Foundation
 import DevHubDomain
 import DevHubUI
 
-enum ClaudeSessionRowMapper {
+enum AISessionRowMapper {
 
-    static func model(for item: ClaudeSession) -> ClaudeSessionRowModel {
-        ClaudeSessionRowModel(
+    static func model(for item: AISession) -> AISessionRowModel {
+        AISessionRowModel(
             id: item.id,
             title: item.title,
             icon: "sparkles",

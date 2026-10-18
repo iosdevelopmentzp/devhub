@@ -2,8 +2,8 @@ import SwiftUI
 import DevHubDomain
 import DevHubUI
 
-struct ClaudeSessionsToolbar: View {
-    @Environment(ClaudeSessionsStore.self) private var claude
+struct AISessionsToolbar: View {
+    @Environment(AISessionsStore.self) private var claude
 
     let count: Int
 
@@ -20,7 +20,7 @@ struct ClaudeSessionsToolbar: View {
                         .controlSize(.mini)
                 }
                 Picker("Scope", selection: $claude.scope) {
-                    ForEach(ClaudeSessionsStore.Scope.allCases) { scope in
+                    ForEach(AISessionsStore.Scope.allCases) { scope in
                         Text(scope.rawValue).tag(scope)
                     }
                 }

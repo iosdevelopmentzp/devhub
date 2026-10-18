@@ -2,15 +2,15 @@ import Foundation
 import DevHubDomain
 import DevHubUI
 
-enum ClaudeSessionSectionsMapper {
+enum AISessionSectionsMapper {
 
-    static func sections(for sessions: [ClaudeSession]) -> [ClaudeSessionSection] {
+    static func sections(for sessions: [AISession]) -> [AISessionSection] {
         let calendar = Calendar.current
         let groups = Dictionary(grouping: sessions) { calendar.startOfDay(for: $0.updatedAt) }
         return groups.keys.sorted(by: >).map { day in
-            ClaudeSessionSection(
+            AISessionSection(
                 title: dayTitle(day, calendar: calendar),
-                rows: (groups[day] ?? []).map { ClaudeSessionRowMapper.model(for: $0) }
+                rows: (groups[day] ?? []).map { AISessionRowMapper.model(for: $0) }
             )
         }
     }

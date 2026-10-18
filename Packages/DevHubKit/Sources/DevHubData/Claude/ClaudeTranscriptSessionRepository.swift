@@ -1,10 +1,10 @@
 import Foundation
 import DevHubDomain
 
-actor ClaudeTranscriptSessionRepository: ClaudeSessionRepository {
+actor ClaudeTranscriptSessionRepository: AISessionRepository {
     private struct CacheEntry {
         let modified: Date
-        let session: ClaudeSession?
+        let session: AISession?
     }
 
     private let root: URL
@@ -14,9 +14,9 @@ actor ClaudeTranscriptSessionRepository: ClaudeSessionRepository {
         self.root = root
     }
 
-    func sessions() async -> [ClaudeSession] {
+    func sessions() async -> [AISession] {
         let files = Self.transcriptFiles(in: root)
-        var result: [ClaudeSession] = []
+        var result: [AISession] = []
         var seen = Set<String>()
         for (url, modified) in files {
             let path = url.path
@@ -51,7 +51,7 @@ actor ClaudeTranscriptSessionRepository: ClaudeSessionRepository {
         }
     }
 
-    nonisolated private static func session(url: URL, modified: Date) -> ClaudeSession? {
+    nonisolated private static func session(url: URL, modified: Date) -> AISession? {
         guard let data = try? Data(contentsOf: url, options: .mappedIfSafe) else { return nil }
         let lines = data.split(separator: 0x0A, omittingEmptySubsequences: true).map { String(decoding: $0, as: UTF8.self) }
         guard var session = ClaudeTranscriptParser.parse(lines: lines, url: url, modified: modified) else { return nil }

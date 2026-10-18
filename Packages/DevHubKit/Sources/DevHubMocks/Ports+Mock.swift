@@ -17,7 +17,7 @@ extension Ports {
             mockSets: MockSetStoreRepository(),
             messaging: MockSimulatorMessagingRepository(),
             codeHost: MockCodeHostRepository(),
-            claudeSessions: MockClaudeSessionRepository(),
+            aiSessions: MockAISessionRepository(),
             derivedData: MockDerivedDataRepository(),
             opener: MockWorkspaceOpener(),
             attacher: MockXcodeAttacher(),

@@ -2,7 +2,7 @@ import Foundation
 import DevHubDomain
 
 enum ClaudeTranscriptParser {
-    static func parse(lines: [String], url: URL, modified: Date) -> ClaudeSession? {
+    static func parse(lines: [String], url: URL, modified: Date) -> AISession? {
         let id = url.deletingPathExtension().lastPathComponent
         var customTitle: String?
         var aiTitle: String?
@@ -28,7 +28,7 @@ enum ClaudeTranscriptParser {
         guard let cwd else { return nil }
         let prompt = lastPrompt.map(singleLine)
         guard let title = customTitle ?? aiTitle ?? prompt, title.isEmpty == false else { return nil }
-        return ClaudeSession(
+        return AISession(
             id: id,
             title: singleLine(title),
             lastPrompt: prompt,

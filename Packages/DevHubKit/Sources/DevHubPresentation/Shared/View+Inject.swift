@@ -35,7 +35,7 @@ extension View {
             .environment(assembly.mockServer)
             .environment(assembly.network)
             .environment(assembly.messaging)
-            .environment(assembly.claudeSessions)
+            .environment(assembly.aiSessions)
             .environment(assembly.appActions)
             .modifier(CodeHostWordsModifier(remote: assembly.codeHostRemote))
             .environment(\.hintCenter, assembly.hints)

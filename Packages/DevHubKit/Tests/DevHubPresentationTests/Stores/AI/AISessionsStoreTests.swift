@@ -4,11 +4,11 @@ import DevHubTestSupport
 @testable import DevHubMocks
 @testable import DevHubPresentation
 
-@Suite struct ClaudeSessionsStoreTests {
+@Suite struct AISessionsStoreTests {
     private let harness = StoreHarness()
 
-    private var store: ClaudeSessionsStore {
-        harness.claudeSessions
+    private var store: AISessionsStore {
+        harness.aiSessions
     }
 
     @Test func scopeDefaultsToTheProject() {
@@ -19,7 +19,7 @@ import DevHubTestSupport
         let saved = InMemoryKeyValueStore()
         saved.set("All", forKey: "claude.scope")
 
-        #expect(StoreHarness(store: saved).claudeSessions.scope == .all)
+        #expect(StoreHarness(store: saved).aiSessions.scope == .all)
     }
 
     @Test func scopeIsWrittenOnChange() {
@@ -29,25 +29,25 @@ import DevHubTestSupport
     }
 
     @Test func refreshLoadsTheSessions() async {
-        harness.spies.claudeSessions.sessionsResult = ClaudeSessionSample.all
+        harness.spies.aiSessions.sessionsResult = AISessionSample.all
         #expect(store.hasLoaded == false)
 
         await store.refresh()
 
-        #expect(store.sessions == ClaudeSessionSample.all)
+        #expect(store.sessions == AISessionSample.all)
         #expect(store.hasLoaded)
         #expect(store.isLoading == false)
-        #expect(harness.spies.claudeSessions.calls == [.sessions])
+        #expect(harness.spies.aiSessions.calls == [.sessions])
     }
 
     @Test func projectScopeKeepsSessionsInsideTheProjectFolder() async {
-        harness.spies.claudeSessions.sessionsResult = ClaudeSessionSample.all
+        harness.spies.aiSessions.sessionsResult = AISessionSample.all
         await store.refresh()
 
-        #expect(store.scoped == [ClaudeSessionSample.root, ClaudeSessionSample.nested])
+        #expect(store.scoped == [AISessionSample.root, AISessionSample.nested])
 
         store.scope = .all
 
-        #expect(store.scoped == ClaudeSessionSample.all)
+        #expect(store.scoped == AISessionSample.all)
     }
 }

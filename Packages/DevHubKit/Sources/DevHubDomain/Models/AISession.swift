@@ -1,6 +1,6 @@
 import Foundation
 
-package struct ClaudeSession: Identifiable, Hashable, Sendable {
+package struct AISession: Identifiable, Hashable, Sendable {
     package let id: String
     package var title: String
     package var lastPrompt: String?

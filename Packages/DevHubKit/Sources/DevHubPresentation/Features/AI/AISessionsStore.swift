@@ -5,7 +5,7 @@ import DevHubUI
 
 @MainActor
 @Observable
-final class ClaudeSessionsStore {
+final class AISessionsStore {
     enum Scope: String, CaseIterable, Identifiable {
         case project = "This project"
         case all = "All"
@@ -13,7 +13,7 @@ final class ClaudeSessionsStore {
         var id: String { rawValue }
     }
 
-    private(set) var sessions: [ClaudeSession] = []
+    private(set) var sessions: [AISession] = []
     private(set) var isLoading = false
     private(set) var hasLoaded = false
     var scope: Scope {
@@ -23,14 +23,14 @@ final class ClaudeSessionsStore {
         }
     }
 
-    @ObservationIgnored private let repository: ClaudeSessionRepository
+    @ObservationIgnored private let repository: AISessionRepository
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private let refreshTask = RefreshTask()
 
     private static let scopeKey = "claude.scope"
 
-    init(repository: ClaudeSessionRepository, session: ProjectSession, store: any KeyValueStore) {
+    init(repository: AISessionRepository, session: ProjectSession, store: any KeyValueStore) {
         self.repository = repository
         self.session = session
         self.store = store
@@ -38,7 +38,7 @@ final class ClaudeSessionsStore {
         scope = stored.flatMap(Scope.init(rawValue:)) ?? .project
     }
 
-    var scoped: [ClaudeSession] {
+    var scoped: [AISession] {
         guard scope == .project else { return sessions }
         let root = ProjectPath(session.selectedProject.path).expanded
         return sessions.filter { $0.cwd == root || $0.cwd.hasPrefix(root + "/") }

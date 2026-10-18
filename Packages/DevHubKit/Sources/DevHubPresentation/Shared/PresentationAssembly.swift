@@ -37,7 +37,7 @@ package final class PresentationAssembly {
     let mockServer: MockServerStore
     let network: NetworkStore
     let messaging: MessagingStore
-    let claudeSessions: ClaudeSessionsStore
+    let aiSessions: AISessionsStore
     let appActions: AppActions
 
     package init(
@@ -170,7 +170,7 @@ package final class PresentationAssembly {
         )
         network = NetworkStore(session: session, simulators: simulators, mockTraffic: mockServer, events: events, store: store)
         messaging = MessagingStore(repository: ports.messaging, session: session, activity: activity, events: events, store: store)
-        claudeSessions = ClaudeSessionsStore(repository: ports.claudeSessions, session: session, store: store)
+        aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, store: store)
         appActions = AppActions(
             navigator: navigator,
             build: build,

@@ -6,7 +6,7 @@ import Testing
 @Suite struct MockDataTests {
     @Test func staticsAreNotEmpty() {
         #expect(MockData.recentEvents.isEmpty == false)
-        #expect(MockData.claudeSessions.isEmpty == false)
+        #expect(MockData.aiSessions.isEmpty == false)
         #expect(MockData.identities.isEmpty == false)
         #expect(MockData.projects.isEmpty == false)
         #expect(MockData.simulatorGroups.flatMap(\.simulators).isEmpty == false)

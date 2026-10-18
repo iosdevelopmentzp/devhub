@@ -11,7 +11,7 @@ import Testing
     }
 
     @Test func claudePreviewsBuild() {
-        #expect(ClaudeSessionRowModel.preview.hasTags)
+        #expect(AISessionRowModel.preview.hasTags)
     }
 
     @Test func deviceIdentityPreviewsBuild() {

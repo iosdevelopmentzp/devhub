@@ -17,7 +17,7 @@ import Testing
             ClaudeTranscriptFixture.lastPrompt,
         ]))
 
-        #expect(session == ClaudeSession(
+        #expect(session == AISession(
             id: "1F0C5E2A-0000-4000-8000-000000000001",
             title: "Custom title",
             lastPrompt: "Fix the bug",
@@ -87,7 +87,7 @@ import Testing
         #expect(parse(["", "{broken", "not json"]) == nil)
     }
 
-    private func parse(_ lines: [String]) -> ClaudeSession? {
+    private func parse(_ lines: [String]) -> AISession? {
         ClaudeTranscriptParser.parse(lines: lines, url: url, modified: modified)
     }
 }
