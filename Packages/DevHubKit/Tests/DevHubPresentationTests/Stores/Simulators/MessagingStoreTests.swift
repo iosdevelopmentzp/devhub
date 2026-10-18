@@ -85,16 +85,26 @@ import DevHubTestSupport
         store.payload = "{}"
         #expect(store.payloadError == "The payload needs an \"aps\" key")
 
-        store.payload = MessagingStore.alertTemplate
+        store.payload = store.alertTemplate
         #expect(store.payloadError == nil)
 
         store.payload = MessagingStore.silentTemplate
         #expect(store.payloadError == nil)
     }
 
-    @Test func schemesNeedAnIdentityConfig() {
+    @Test func schemesComeFromTheInstalledApp() async {
+        harness.spies.messaging.urlSchemesResult = ["myapp", "myapp-chat"]
         #expect(store.schemes.isEmpty)
-        #expect(StoreHarness(projects: [ProjectSample.identified]).messaging.schemes == ["example://", "example-chat://"])
+
+        await store.loadSchemes(for: simulator)
+
+        #expect(store.schemes == ["myapp://", "myapp-chat://"])
+        #expect(harness.spies.messaging.calls == [.urlSchemes(bundleID: "com.example.app", udid: simulator.id)])
+    }
+
+    @Test func theAlertTemplateUsesTheProjectName() {
+        #expect(store.payload == MessagingStore.alertTemplate(title: ProjectSample.app.name))
+        #expect(store.alertTemplate.contains("\"title\": \"\(ProjectSample.app.name)\""))
     }
 
     // MARK: Sending
@@ -126,7 +136,7 @@ import DevHubTestSupport
 
         #expect(store.isBusy(simulator.id))
         try await waitUntil { store.busyIDs.isEmpty }
-        #expect(harness.spies.messaging.calls == [.sendPush(MessagingStore.alertTemplate, bundleID: "com.example.app", udid: simulator.id)])
+        #expect(harness.spies.messaging.calls == [.sendPush(store.alertTemplate, bundleID: "com.example.app", udid: simulator.id)])
         #expect(harness.lastActivity?.title == "Sent push to com.example.app")
     }
 

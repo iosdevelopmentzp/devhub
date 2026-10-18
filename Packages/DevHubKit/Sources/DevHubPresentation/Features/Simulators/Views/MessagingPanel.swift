@@ -20,7 +20,7 @@ struct MessagingPanel: View {
                 Text("Deep link")
                     .font(.caption.weight(.semibold))
                     .frame(width: 70, alignment: .leading)
-                TextField("example://…", text: $messaging.url)
+                TextField(messaging.schemes.first.map { $0 + "…" } ?? "myapp://…", text: $messaging.url)
                     .textFieldStyle(.roundedBorder)
                     .font(.callout.monospaced())
                     .onSubmit { messaging.openURL(on: simulator) }
@@ -63,7 +63,7 @@ struct MessagingPanel: View {
                         .lineLimit(1)
                     Spacer()
                     Menu("Templates") {
-                        Button("Alert") { messaging.payload = MessagingStore.alertTemplate }
+                        Button("Alert") { messaging.payload = messaging.alertTemplate }
                         Button("Silent (content-available)") { messaging.payload = MessagingStore.silentTemplate }
                         if messaging.payloadHistory.isEmpty == false {
                             Section("Recent") {
@@ -117,6 +117,9 @@ struct MessagingPanel: View {
         .background(Color.teal.opacity(0.05), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Color.teal.opacity(0.2)))
         .controlSize(.small)
+        .task(id: simulator.id) {
+            await messaging.loadSchemes(for: simulator)
+        }
     }
 
     private func preview(_ payload: String) -> String {

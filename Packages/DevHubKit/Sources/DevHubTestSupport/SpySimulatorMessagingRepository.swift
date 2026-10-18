@@ -5,12 +5,14 @@ package final class SpySimulatorMessagingRepository: SimulatorMessagingRepositor
     package enum Call: Hashable {
         case openURL(String, udid: String)
         case sendPush(String, bundleID: String, udid: String)
+        case urlSchemes(bundleID: String, udid: String)
     }
 
     private let lock = NSLock()
     private var _calls: [Call] = []
     private var _openURLError: (any Error)? = nil
     private var _sendPushError: (any Error)? = nil
+    private var _urlSchemesResult: [String] = []
 
     package init() {}
 
@@ -26,6 +28,15 @@ package final class SpySimulatorMessagingRepository: SimulatorMessagingRepositor
     package var sendPushError: (any Error)? {
         get { lock.withLock { _sendPushError } }
         set { lock.withLock { _sendPushError = newValue } }
+    }
+
+    package var urlSchemesResult: [String] {
+        get { lock.withLock { _urlSchemesResult } }
+        set { lock.withLock { _urlSchemesResult = newValue } }
+    }
+
+    package func urlSchemes(bundleID: String, udid: String) async -> [String] {
+        record(.urlSchemes(bundleID: bundleID, udid: udid)) { _urlSchemesResult }
     }
 
     package func openURL(_ url: String, udid: String) async throws {

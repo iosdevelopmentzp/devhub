@@ -7,7 +7,7 @@ import DevHubUI
 @Observable
 final class MessagingStore {
     var url = ""
-    var payload = MessagingStore.alertTemplate
+    var payload: String
     private(set) var urlHistory: [String] {
         didSet { store.set(urlHistory, forKey: Keys.urls) }
     }
@@ -15,6 +15,7 @@ final class MessagingStore {
         didSet { store.set(payloadHistory, forKey: Keys.payloads) }
     }
     private(set) var busyIDs: Set<Simulator.ID> = []
+    private(set) var schemes: [String] = []
 
     @ObservationIgnored private let repository: SimulatorMessagingRepository
     @ObservationIgnored private let session: ProjectSession
@@ -30,10 +31,18 @@ final class MessagingStore {
         self.store = store
         urlHistory = store.strings(forKey: Keys.urls) ?? []
         payloadHistory = store.strings(forKey: Keys.payloads) ?? []
+        payload = Self.alertTemplate(title: session.selectedProject.name)
     }
 
-    var schemes: [String] {
-        session.selectedProject.identity == nil ? [] : ["example://", "example-chat://"]
+    var alertTemplate: String {
+        Self.alertTemplate(title: session.selectedProject.name)
+    }
+
+    func loadSchemes(for simulator: Simulator) async {
+        let found = await repository.urlSchemes(bundleID: session.selectedProject.bundleID, udid: simulator.id)
+        let values = found.map { $0 + "://" }
+        guard values != schemes else { return }
+        schemes = values
     }
 
     var payloadError: String? {
@@ -88,18 +97,20 @@ final class MessagingStore {
         )
     }
 
-    static let alertTemplate = """
-    {
-      "aps": {
-        "alert": {
-          "title": "ExampleApp",
-          "body": "Test notification from DevHub"
-        },
-        "sound": "default",
-        "badge": 1
-      }
+    static func alertTemplate(title: String) -> String {
+        """
+        {
+          "aps": {
+            "alert": {
+              "title": "\(title.replacingOccurrences(of: "\"", with: "\\\""))",
+              "body": "Test notification from DevHub"
+            },
+            "sound": "default",
+            "badge": 1
+          }
+        }
+        """
     }
-    """
 
     static let silentTemplate = """
     {

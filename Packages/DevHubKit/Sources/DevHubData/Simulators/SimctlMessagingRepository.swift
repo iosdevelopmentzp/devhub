@@ -18,4 +18,10 @@ struct SimctlMessagingRepository: SimulatorMessagingRepository {
         defer { try? FileManager.default.removeItem(at: file) }
         try await simctl.run(["push", udid, bundleID, file.path], failure: SimulatorError.command)
     }
+
+    func urlSchemes(bundleID: String, udid: String) async -> [String] {
+        guard let result = try? await simctl.run(["get_app_container", udid, bundleID, "app"], failure: SimulatorError.command) else { return [] }
+        let app = URL(fileURLWithPath: result.stdout.trimmed)
+        return AppURLSchemeParser.schemes(in: PlistReader.dictionary(at: app.appendingPathComponent("Info.plist")))
+    }
 }
