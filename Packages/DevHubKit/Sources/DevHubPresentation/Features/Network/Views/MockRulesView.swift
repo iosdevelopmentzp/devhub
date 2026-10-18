@@ -14,6 +14,7 @@ struct MockRulesView: View {
                 sets: MockServerBarMapper.model(settings: .off, state: nil, sets: mockSets.sets, hasSimulator: false, isApplying: false, needsApply: false, error: nil, app: nil, report: nil, lastLaunch: nil, profiles: []).sets,
                 selectedSetID: current?.id,
                 selectedName: current?.name,
+                folder: MockServerBarMapper.folderText(for: mockSets.location),
                 onSelect: select,
                 onCreate: { select(mockSets.createSet(name: "New set")) },
                 onRename: { name in

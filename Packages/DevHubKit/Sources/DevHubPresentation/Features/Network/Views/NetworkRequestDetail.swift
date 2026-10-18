@@ -23,7 +23,7 @@ struct NetworkRequestDetail: View {
                     toaster.copy(model.curl, label: "cURL command")
                 }
                 .fixedSize()
-                .hint("Copy a curl command for this request. Request headers are not in the log, so add the token by hand.")
+                .hint("Copy a curl command for this request. The command has no request headers, so add the token by hand.")
                 Button("Copy Response Body", systemImage: "doc.on.doc") {
                     toaster.copy(model.rawResponseBody, label: "response body")
                 }

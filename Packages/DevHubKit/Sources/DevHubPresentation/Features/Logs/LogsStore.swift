@@ -18,6 +18,7 @@ final class LogsStore {
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let simulators: any SimulatorLookup
+    @ObservationIgnored private let identity: any IdentityLookup
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private var tasks: [Simulator.ID: Task<Void, Never>] = [:]
@@ -27,11 +28,12 @@ final class LogsStore {
 
     private static let batchInterval: Duration = .milliseconds(150)
 
-    init(repository: AppLogRepository, session: ProjectSession, config: ConfigStore, simulators: any SimulatorLookup, activity: ActivityLog, store: any KeyValueStore) {
+    init(repository: AppLogRepository, session: ProjectSession, config: ConfigStore, simulators: any SimulatorLookup, identity: any IdentityLookup, activity: ActivityLog, store: any KeyValueStore) {
         self.repository = repository
         self.session = session
         self.config = config
         self.simulators = simulators
+        self.identity = identity
         self.activity = activity
         self.store = store
         streams = (store.decode([LogStreamSettings].self, forKey: Keys.streams) ?? []).map(LogStream.init(settings:))
@@ -155,7 +157,7 @@ final class LogsStore {
         guard let stream = stream(id) else { return false }
         guard stream.filter.isEmpty else { return true }
         let project = session.selectedProject
-        let name = await repository.executableName(udid: id, bundleID: project.bundleID) ?? project.scheme
+        let name = await repository.executableName(udid: id, bundleID: identity.bundleID(for: id)) ?? project.scheme
         guard name.trimmed.isEmpty == false else {
             let message = "No process name. Type one in the Process field."
             activity.log("Log stream", detail: message, outcome: .failure)

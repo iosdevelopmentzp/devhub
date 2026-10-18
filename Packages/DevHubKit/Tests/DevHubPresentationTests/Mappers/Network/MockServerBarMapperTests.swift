@@ -89,4 +89,9 @@ import DevHubTestSupport
     private func model(settings: MockSimulatorSettings, state: MockServerState?, isApplying: Bool, needsApply: Bool) -> MockServerBarModel {
         MockServerBarMapper.model(settings: settings, state: state, sets: [set], hasSimulator: true, isApplying: isApplying, needsApply: needsApply, error: nil, app: nil, report: nil, lastLaunch: nil, profiles: [])
     }
+
+    @Test func folderTextNamesTheDefaultOrTheConfiguredFolder() {
+        #expect(MockServerBarMapper.folderText(for: .defaultFolder(project: "example-app")) == "~/.devhub/mocks/example-app")
+        #expect(MockServerBarMapper.folderText(for: .folder("/repo/Mocks")) == "/repo/Mocks")
+    }
 }

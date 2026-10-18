@@ -91,7 +91,7 @@ struct SimulatorsView: View {
             mockState: mockServerStore.states[simulator.id],
             isUninstalling: simulators.isUninstalling(simulator.id),
             buildIsRunning: build.isRunning,
-            bundleID: session.selectedProject.bundleID,
+            bundleID: identityStore.bundleID(for: simulator.id),
             isConfirmingErase: confirmingEraseID == simulator.id,
             isEditingIdentity: editingIdentityID == simulator.id,
             isMessaging: messagingID == simulator.id,
@@ -118,7 +118,7 @@ struct SimulatorsView: View {
             onOpenInSimulator: { simulators.openInSimulatorApp(id: id) },
             onToggleFavorite: { simulators.toggleFavorite(id: id) },
             onLaunchAndAttach: { launchInstalledApp(on: id, attachDebugger: true) },
-            onUninstall: { simulators.uninstall(bundleID: session.selectedProject.bundleID, from: id) },
+            onUninstall: { simulators.uninstall(bundleID: identityStore.bundleID(for: id), from: id) },
             onRequestErase: { confirmingEraseID = id },
             onCancelErase: { confirmingEraseID = nil },
             onConfirmErase: {

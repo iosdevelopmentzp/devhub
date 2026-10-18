@@ -58,6 +58,17 @@ import DevHubTestSupport
         try await waitUntil { harness.spies.mockSets.calls.contains(.delete(id: MockSetSample.empty.id, in: location)) }
     }
 
+    @Test func duplicateKeepsTheGraphQLOperationName() async throws {
+        var graphQL = MockSetSample.rule
+        graphQL.operationName = "GetProfile"
+        harness.spies.mockSets.listResult = .success([MockSet(id: MockSetSample.vip.id, name: "VIP", rules: [graphQL])])
+        await store.load()
+
+        let copy = try #require(store.duplicateSet(id: MockSetSample.vip.id))
+
+        #expect(store.set(id: copy)?.rules.first?.operationName == "GetProfile")
+    }
+
     @Test func addRuleOpensItAndSaveRuleClosesTheEditor() async throws {
         await load()
 

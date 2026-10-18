@@ -57,7 +57,7 @@ struct MessagingPanel: View {
                 HStack(spacing: 8) {
                     Text("Push")
                         .font(.caption.weight(.semibold))
-                    Text("to \(session.selectedProject.bundleID)")
+                    Text("to \(messaging.bundleID(for: simulator))")
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -109,7 +109,7 @@ struct MessagingPanel: View {
                     .buttonStyle(.borderedProminent)
                     .fixedSize()
                     .disabled(isBooted == false || messaging.payloadError != nil || messaging.isBusy(simulator.id))
-                    .hint("xcrun simctl push <udid> \(session.selectedProject.bundleID) <payload>")
+                    .hint("xcrun simctl push <udid> \(messaging.bundleID(for: simulator)) <payload>")
                 }
             }
         }

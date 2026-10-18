@@ -170,7 +170,7 @@ package final class PresentationAssembly {
             appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "",
             home: FileManager.default.homeDirectoryForCurrentUser.path
         )
-        logs = LogsStore(repository: ports.logs, session: session, config: config, simulators: simulators, activity: activity, store: store)
+        logs = LogsStore(repository: ports.logs, session: session, config: config, simulators: simulators, identity: identity, activity: activity, store: store)
         mockSets = MockSetsStore(repository: ports.mockSets, session: session, config: config, activity: activity, events: events)
         mockServer = MockServerStore(
             relaunch: useCases.relaunchWithMocks,
@@ -186,7 +186,7 @@ package final class PresentationAssembly {
             store: store
         )
         network = NetworkStore(session: session, simulators: simulators, mockTraffic: mockServer, events: events, store: store)
-        messaging = MessagingStore(repository: ports.messaging, session: session, activity: activity, events: events, store: store)
+        messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, events: events, store: store)
         aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, store: store)
         appActions = AppActions(
             navigator: navigator,

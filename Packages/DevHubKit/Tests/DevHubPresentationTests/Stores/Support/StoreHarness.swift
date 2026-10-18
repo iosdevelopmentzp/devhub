@@ -171,7 +171,7 @@ final class StoreHarness {
         store: store
     )
 
-    lazy var logs = LogsStore(repository: ports.logs, session: session, config: config, simulators: simulators, activity: activity, store: store)
+    lazy var logs = LogsStore(repository: ports.logs, session: session, config: config, simulators: simulators, identity: identity, activity: activity, store: store)
 
     lazy var mockSets = MockSetsStore(repository: ports.mockSets, session: session, config: config, activity: activity, events: events)
 
@@ -191,7 +191,7 @@ final class StoreHarness {
 
     lazy var network = NetworkStore(session: session, simulators: simulators, mockTraffic: mockServer, events: events, store: store)
 
-    lazy var messaging = MessagingStore(repository: ports.messaging, session: session, activity: activity, events: events, store: store)
+    lazy var messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, events: events, store: store)
 
     lazy var aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, store: store)
 

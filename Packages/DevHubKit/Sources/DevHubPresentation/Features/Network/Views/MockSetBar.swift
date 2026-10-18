@@ -6,6 +6,7 @@ struct MockSetBar: View {
     let sets: [MockServerBarModel.SetOption]
     let selectedSetID: MockSet.ID?
     let selectedName: String?
+    let folder: String
     let onSelect: (MockSet.ID?) -> Void
     let onCreate: () -> Void
     let onRename: (String) -> Void
@@ -42,7 +43,7 @@ struct MockSetBar: View {
                 }
                 if isConfirmingDelete {
                     InlineConfirmation(
-                        "Delete the mock set \(selectedName ?? "")? Its file and body files are removed from ~/.devhub/mocks.",
+                        "Delete the mock set \(selectedName ?? "")? Its file and body files are removed from \(folder).",
                         confirmTitle: "Delete",
                         confirmRole: .destructive,
                         onCancel: { isConfirmingDelete = false },
@@ -67,7 +68,7 @@ struct MockSetBar: View {
         }
         .labelsHidden()
         .fixedSize()
-        .hint("Sets are JSON files in ~/.devhub/mocks/<project>/")
+        .hint("Sets are JSON files in \(folder)")
     }
 
     private func renameField(_ name: String) -> some View {
@@ -96,6 +97,7 @@ struct MockSetBar: View {
         sets: MockServerBarModel.preview.sets,
         selectedSetID: MockServerBarModel.preview.sets.first?.id,
         selectedName: "VIP user",
+        folder: "~/.devhub/mocks/example-app",
         onSelect: { _ in },
         onCreate: {},
         onRename: { _ in },

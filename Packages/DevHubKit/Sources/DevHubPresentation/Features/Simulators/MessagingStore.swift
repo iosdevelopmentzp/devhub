@@ -19,13 +19,15 @@ final class MessagingStore {
 
     @ObservationIgnored private let repository: SimulatorMessagingRepository
     @ObservationIgnored private let session: ProjectSession
+    @ObservationIgnored private let identity: any IdentityLookup
     @ObservationIgnored private let runner: ActionRunner
     @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private let store: any KeyValueStore
 
-    init(repository: SimulatorMessagingRepository, session: ProjectSession, activity: ActivityLog, events: AppEvents, store: any KeyValueStore) {
+    init(repository: SimulatorMessagingRepository, session: ProjectSession, identity: any IdentityLookup, activity: ActivityLog, events: AppEvents, store: any KeyValueStore) {
         self.repository = repository
         self.session = session
+        self.identity = identity
         runner = ActionRunner(activity: activity)
         self.events = events
         self.store = store
@@ -38,8 +40,12 @@ final class MessagingStore {
         Self.alertTemplate(title: session.selectedProject.name)
     }
 
+    func bundleID(for simulator: Simulator) -> String {
+        identity.bundleID(for: simulator.id)
+    }
+
     func loadSchemes(for simulator: Simulator) async {
-        let found = await repository.urlSchemes(bundleID: session.selectedProject.bundleID, udid: simulator.id)
+        let found = await repository.urlSchemes(bundleID: bundleID(for: simulator), udid: simulator.id)
         let values = found.map { $0 + "://" }
         guard values != schemes else { return }
         schemes = values
@@ -65,7 +71,7 @@ final class MessagingStore {
     func sendPush(to simulator: Simulator) {
         guard payloadError == nil else { return }
         let value = payload
-        let bundleID = session.selectedProject.bundleID
+        let bundleID = bundleID(for: simulator)
         remember(value, in: \.payloadHistory, limit: 10)
         perform("Sent push to \(bundleID)", on: simulator) { [repository] in
             try await repository.sendPush(value, bundleID: bundleID, udid: simulator.id)

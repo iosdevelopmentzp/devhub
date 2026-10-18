@@ -29,7 +29,7 @@ struct MockServerBarModel: Equatable {
     var appHint: String
     var error: String?
 
-    static let limitsHint = "Debug builds only. REST and Socket.IO move to DevHub; CDN images, uploads and SDK traffic do not. Prod cannot be mocked. Switching needs a relaunch. While the server runs, session-log rows for this simulator are hidden, so every request shows once."
+    static let limitsHint = "Only requests to the base URL in network.baseURLVariable pass through DevHub. Other hosts, such as CDN images and SDK traffic, do not. A production profile cannot be mocked. A change of mode or set needs a relaunch of the app."
 
     static let preview = MockServerBarModel(
         modes: MockServerBarMapper.modeOptions,

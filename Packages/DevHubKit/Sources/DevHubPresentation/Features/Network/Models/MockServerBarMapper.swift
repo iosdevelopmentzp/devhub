@@ -98,4 +98,11 @@ enum MockServerBarMapper {
             return ("Server failed", .red, message)
         }
     }
+
+    static func folderText(for location: MockSetLocation) -> String {
+        switch location {
+        case .defaultFolder(let project): "~/.devhub/mocks/\(project)"
+        case .folder(let path): path.abbreviatingHome
+        }
+    }
 }

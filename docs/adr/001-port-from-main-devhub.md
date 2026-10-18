@@ -630,3 +630,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `c0c3f05` | M7 | Step 7.4: Settings → Doctor: `DoctorPolicy` (tool list, version pattern, install commands), `CheckToolsUseCase` over `ToolLocating.path(of:)` and `ShellRunner`, `DoctorStore`, Accessibility and Notifications rows. |
 | `0a53a33` | M7 | Step 7.5: Settings → Projects re-detect (`ProjectSession.redetect(id:)`) and the Global config folder section (`ConfigStore.globalLayer`). |
 | `11b0254` | M7 | `legacy/` deleted, AGENTS.md updated, M7 closed in STATUS. |
+| `fe1ce55` | M8 | App icon (`Scripts/make-app-icon.swift`) and README refresh: documentation table, Doctor tools, first project steps. |

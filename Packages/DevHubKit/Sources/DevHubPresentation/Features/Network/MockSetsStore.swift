@@ -95,7 +95,7 @@ final class MockSetsStore: MockSetLookup {
         let copy = MockSet(
             id: UUID(),
             name: uniqueName("\(original.name) copy"),
-            rules: original.rules.map { MockRule(id: UUID(), isEnabled: $0.isEnabled, method: $0.method, pathPattern: $0.pathPattern, query: $0.query, action: $0.action) }
+            rules: original.rules.map { MockRule(id: UUID(), isEnabled: $0.isEnabled, method: $0.method, pathPattern: $0.pathPattern, query: $0.query, action: $0.action, operationName: $0.operationName) }
         )
         sets.append(copy)
         persist(copy, title: "Duplicated mock set")

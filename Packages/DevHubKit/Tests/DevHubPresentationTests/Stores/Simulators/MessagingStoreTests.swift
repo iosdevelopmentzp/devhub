@@ -102,6 +102,21 @@ import DevHubTestSupport
         #expect(harness.spies.messaging.calls == [.urlSchemes(bundleID: "com.example.app", udid: simulator.id)])
     }
 
+    @Test func theBundleIDOfTheConfigWinsOverTheProjectSettings() async throws {
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(xcode: XcodeConfig(bundleID: "com.example.app.dev")), actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+
+        await store.loadSchemes(for: simulator)
+        store.sendPush(to: simulator)
+
+        try await waitUntil { store.busyIDs.isEmpty }
+        #expect(store.bundleID(for: simulator) == "com.example.app.dev")
+        #expect(harness.spies.messaging.calls == [
+            .urlSchemes(bundleID: "com.example.app.dev", udid: simulator.id),
+            .sendPush(store.payload, bundleID: "com.example.app.dev", udid: simulator.id),
+        ])
+    }
+
     @Test func theAlertTemplateUsesTheProjectName() {
         #expect(store.payload == MessagingStore.alertTemplate(title: ProjectSample.app.name))
         #expect(store.alertTemplate.contains("\"title\": \"\(ProjectSample.app.name)\""))
