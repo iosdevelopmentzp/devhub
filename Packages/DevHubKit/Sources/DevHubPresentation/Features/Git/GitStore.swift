@@ -345,7 +345,7 @@ final class GitStore: CheckoutContext {
 
     func branchURL(_ branch: String) -> URL? {
         guard let base = snapshot?.webURL else { return nil }
-        return RepositoryWebLinks.branchURL(base: base, branch: branch, remote: remote)
+        return RepositoryWebLinks.branchURL(base: base, kind: gitSettings.hostKind, branch: branch, remote: remote)
     }
 
     func newPullRequestURL(_ branch: String) -> URL? {
@@ -354,7 +354,7 @@ final class GitStore: CheckoutContext {
 
     func newPullRequestURL(_ branch: String, target: String) -> URL? {
         guard let base = snapshot?.webURL else { return nil }
-        return RepositoryWebLinks.newPullRequestURL(base: base, branch: branch, baseName: target, remote: remote)
+        return RepositoryWebLinks.newPullRequestURL(base: base, kind: gitSettings.hostKind, branch: branch, baseName: target, remote: remote)
     }
 
     func localBranch(named name: String) -> GitBranch? {

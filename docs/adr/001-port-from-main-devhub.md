@@ -634,3 +634,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `61bcf46` | M8 | Fixes from the doc review: bundle ID through `IdentityLookup` for deep links, push, uninstall and logs; `operationName` kept on duplicate; mock folder text and two hints. |
 | `ad52757` | M8 | `xcode.container` passed to `XcodeAttaching.attach` and `WorkspaceOpening.openInXcode`. |
 | `91d8e8b` | M8 | Menu bar "PR"/"MR" from `CodeHostWords.shortRequest`; `CommandKind.codeHostKind` for `gh` and `glab`; booleans with `-F` in `GlabClient`. |
+| `bf13b68` | M8 | No `MainActor.assumeIsolated`; `check-layers.sh` reports it. |

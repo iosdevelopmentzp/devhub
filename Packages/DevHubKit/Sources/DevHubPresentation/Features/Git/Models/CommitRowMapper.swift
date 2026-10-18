@@ -11,7 +11,7 @@ enum CommitRowMapper {
         let diffs: [CommitFileKey: GitDiff]
     }
 
-    static func model(for commit: GitCommit, webBase: URL?, expansion: Expansion?) -> CommitRowModel {
+    static func model(for commit: GitCommit, webBase: URL?, hostKind: CodeHostKind?, expansion: Expansion?) -> CommitRowModel {
         CommitRowModel(
             id: commit.id,
             hash: commit.hash,
@@ -21,7 +21,7 @@ enum CommitRowMapper {
             tags: tags(for: commit),
             author: commit.author,
             dateText: commit.date?.relativeDescription,
-            webURL: commit.isPushed ? webBase.flatMap { RepositoryWebLinks.commitURL(base: $0, hash: commit.hash) } : nil,
+            webURL: commit.isPushed ? webBase.flatMap { RepositoryWebLinks.commitURL(base: $0, kind: hostKind, hash: commit.hash) } : nil,
             files: expansion.map { files(for: commit.hash, $0) }
         )
     }

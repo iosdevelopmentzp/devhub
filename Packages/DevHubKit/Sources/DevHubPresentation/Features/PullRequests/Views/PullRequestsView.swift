@@ -189,7 +189,7 @@ struct PullRequestsView: View {
                 ProgressView()
                     .controlSize(.small)
             }
-            Button("Load 100 more", systemImage: "arrow.down.circle") {
+            Button("Load \(words.pageSize) more", systemImage: "arrow.down.circle") {
                 Task { await pullRequests.loadMore() }
             }
             .controlSize(.small)

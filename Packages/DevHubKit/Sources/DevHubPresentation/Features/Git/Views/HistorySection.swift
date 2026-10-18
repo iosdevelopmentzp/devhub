@@ -51,7 +51,7 @@ struct HistorySection: View {
         let source = history.scope == .branch ? history.branchCommits : git.state?.history ?? []
         return source
             .filter { session.matchesSearch($0.subject, $0.shortHash, $0.author, $0.refs.map(\.name).joined(separator: " ")) }
-            .map { CommitRowMapper.model(for: $0, webBase: git.webURL, expansion: expansion(row: $0.hash, hash: $0.hash)) }
+            .map { CommitRowMapper.model(for: $0, webBase: git.webURL, hostKind: git.gitSettings.hostKind, expansion: expansion(row: $0.hash, hash: $0.hash)) }
     }
 
     private var reflogRows: [ReflogRowModel] {

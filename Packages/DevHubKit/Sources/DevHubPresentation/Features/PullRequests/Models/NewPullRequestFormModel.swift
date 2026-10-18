@@ -7,6 +7,7 @@ struct NewPullRequestFormModel: Equatable {
     var canCreate: Bool
     var isBusy: Bool
     var busyText: String?
+    var showsMergeOptions: Bool
 
     static let preview = NewPullRequestFormModel(
         heading: "New merge request from feature/ABC-2324-paid-call",
@@ -14,6 +15,7 @@ struct NewPullRequestFormModel: Equatable {
         createHint: "Push the branch with git push -u <remote> feature/ABC-2324-paid-call, then create the merge request",
         canCreate: true,
         isBusy: false,
-        busyText: nil
+        busyText: nil,
+        showsMergeOptions: true
     )
 }

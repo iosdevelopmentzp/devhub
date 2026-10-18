@@ -8,7 +8,7 @@ import Testing
     private let base = URL(string: "https://gitlab.example.com/org/app")
 
     @Test func pushedCommitWithoutDate() {
-        let model = CommitRowMapper.model(for: GitBranchFixture.commit, webBase: base, expansion: nil)
+        let model = CommitRowMapper.model(for: GitBranchFixture.commit, webBase: base, hostKind: nil, expansion: nil)
 
         #expect(model.id == "a1b2c3d4e5f6")
         #expect(model.hash == "a1b2c3d4e5f6")
@@ -27,7 +27,7 @@ import Testing
         commit.isPushed = false
         commit.date = Date(timeIntervalSinceNow: -3_600)
 
-        let model = CommitRowMapper.model(for: commit, webBase: base, expansion: nil)
+        let model = CommitRowMapper.model(for: commit, webBase: base, hostKind: nil, expansion: nil)
 
         #expect(model.tags == [TagModel("not pushed", tint: .orange)])
         #expect(model.dateText?.isEmpty == false)
@@ -40,22 +40,22 @@ import Testing
         commit.isMerge = true
         commit.isPushed = false
 
-        let model = CommitRowMapper.model(for: commit, webBase: nil, expansion: nil)
+        let model = CommitRowMapper.model(for: commit, webBase: nil, hostKind: nil, expansion: nil)
 
         #expect(model.refTags.map(\.text) == ["HEAD", "main"])
         #expect(model.tags.map(\.text) == ["merge", "not pushed"])
     }
 
     @Test func expandedCommitWaitsForItsFiles() {
-        let model = CommitRowMapper.model(for: GitBranchFixture.commit, webBase: nil, expansion: expansion(files: nil))
+        let model = CommitRowMapper.model(for: GitBranchFixture.commit, webBase: nil, hostKind: nil, expansion: expansion(files: nil))
 
         #expect(model.files == .loading)
         #expect(model.isExpanded)
     }
 
     @Test func expandedCommitShowsAnErrorOrAnEmptyNote() {
-        let failed = CommitRowMapper.model(for: GitBranchFixture.commit, webBase: nil, expansion: expansion(files: nil, error: "bad object"))
-        let empty = CommitRowMapper.model(for: GitBranchFixture.commit, webBase: nil, expansion: expansion(files: []))
+        let failed = CommitRowMapper.model(for: GitBranchFixture.commit, webBase: nil, hostKind: nil, expansion: expansion(files: nil, error: "bad object"))
+        let empty = CommitRowMapper.model(for: GitBranchFixture.commit, webBase: nil, hostKind: nil, expansion: expansion(files: []))
 
         #expect(failed.files == .note("Cannot read the files: bad object"))
         #expect(empty.files == .note("No file changes in this commit"))
@@ -70,6 +70,7 @@ import Testing
         let model = CommitRowMapper.model(
             for: GitBranchFixture.commit,
             webBase: nil,
+            hostKind: nil,
             expansion: expansion(files: [open, closed], expandedFiles: [key], diffs: [key: diff])
         )
 

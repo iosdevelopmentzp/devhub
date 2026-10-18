@@ -26,7 +26,8 @@ enum NewPullRequestMapper {
             createHint: createHint(draft, words: words),
             canCreate: isBusy == false && draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false && draft.targetBranch.isEmpty == false,
             isBusy: isBusy,
-            busyText: draft.isCreating ? "Creating…" : (draft.isLoading ? "Reading commits and labels…" : nil)
+            busyText: draft.isCreating ? "Creating…" : (draft.isLoading ? "Reading commits and labels…" : nil),
+            showsMergeOptions: words.kind == .gitlab
         )
     }
 

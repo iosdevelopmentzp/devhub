@@ -70,6 +70,9 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- Branch, commit and new request links in the Git tab follow `git.host.kind`. Before, a GitHub Enterprise host without "github" in its name got GitLab paths.
+- The new request form shows "Delete source branch after merge" and "Squash" only on GitLab. GitHub does not take them when a request is created.
+- "Load more" in the request list names the real page size: 50 on GitHub, 100 on GitLab.
 - The menu bar shows "PR" on GitHub and "MR" on GitLab next to the review count. Before, it showed "MR" for every host.
 - The Output panel sorts `gh` and `glab` calls the same way: GraphQL queries, GET calls and `view`, `list`, `checks`, `diff` and `status` count as reads; mutations and calls that send data count as actions. Before, every `glab api` call was a read and every `gh` call was an action.
 - GitLab GraphQL calls send `true` and `false` as booleans (`-F`), so draft, auto-merge and resolve mutations get the type GitLab expects.

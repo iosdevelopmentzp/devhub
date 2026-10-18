@@ -24,6 +24,11 @@ import Testing
         #expect(NewPullRequestMapper.description(template: nil, branch: "feature/ABC-9", subjects: [], ticket: .standard) == "Ticket: ABC-9")
     }
 
+    @Test func onlyGitLabShowsTheMergeOptions() {
+        #expect(NewPullRequestMapper.model(for: .preview, words: .gitLab).showsMergeOptions)
+        #expect(NewPullRequestMapper.model(for: .preview, words: .gitHub).showsMergeOptions == false)
+    }
+
     @Test func theButtonSaysWhenItPushes() {
         var draft = NewPullRequestDraft.preview
         #expect(NewPullRequestMapper.model(for: draft, words: .gitLab).createTitle == "Push & Create")

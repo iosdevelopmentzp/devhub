@@ -38,8 +38,10 @@ struct NewPullRequestForm: View {
                 .overlay(RoundedRectangle(cornerRadius: 5).stroke(Theme.border))
             FlowLayout(spacing: 10, lineSpacing: 4) {
                 Toggle("Draft", isOn: binding(\.isDraft))
-                Toggle("Delete source branch after merge", isOn: binding(\.removeSourceBranch))
-                Toggle("Squash", isOn: binding(\.squash))
+                if model.showsMergeOptions {
+                    Toggle("Delete source branch after merge", isOn: binding(\.removeSourceBranch))
+                    Toggle("Squash", isOn: binding(\.squash))
+                }
             }
             .toggleStyle(.checkbox)
             .font(.caption)
