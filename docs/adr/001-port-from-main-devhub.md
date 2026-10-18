@@ -615,3 +615,4 @@ One row per commit: the short hash and what the commit did. A commit cannot hold
 | `8d8db17` | M5 | Copilot CLI sessions: `WorkspaceYAMLParser`, `CopilotEventScanner`, `CopilotSessionParser`, `CopilotSessionRepository`, `CompositeAISessionRepository`; `AIProvider` on `AISession`; the provider filter in the AI tab (STATUS decision 25). |
 | `2991fdd` | M5 | `RoutingCodeHostRepository` field `pullRequests` back to `gitLab` (a leftover of the M4 rename). |
 | `f9d594b` | M5 | Copilot usage: `CopilotUsageRepository` port, `GitHubCopilotUsageRepository`, `CopilotUsageParser`, `CopilotTokenReader` (`gh auth token` first, keychain with a 10 s timeout, STATUS decision 26); `UsageProviderModel` rows in the usage strip; `gh auth token` is a secret command. |
+| `2936ab8` | M5 | `BuildStore+Queries.swift` takes the read-only members; `BuildStore.swift` has 326 lines. |

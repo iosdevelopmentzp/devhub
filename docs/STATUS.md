@@ -11,7 +11,8 @@ The app is being rewritten on the package architecture of the main DevHub. The p
 - M2 done: the `.devhub/` config system inside the modules (ADR 002): Home quick actions and scripts, config problems, hot reload, placements in the Git header, branch, worktree and simulator rows, the run bar and the Logs toolbar. About 1,570 tests.
 - M3 done: Git from config. `git.remote`, `git.baseBranch`, `git.protectedBranches`, `git.commitPrefix`, `git.ticketURL`, `git.worktrees.*`; "Open in Editor" on file rows; `DEVHUB_GIT_OPS`. Checked on a throwaway repository with a bare remote called `upstream`. About 1,600 tests.
 - M4 done: one code host port for GitHub (`gh`) and GitLab (`glab`), ADR 003. The Pull Requests tab, the Git status line and branch tags use the words of the host. `git.host.*`, `git.pullRequests.*`, `ai.reviewCommand`, the `pullRequests.row` placement, `when.host` and the `pullRequests` refresh target. Checked on a private GitHub test repository: the list in four scopes, details with a thread, files, draft and ready, update branch, merge with branch removal, create with labels, reply, resolve, re-run and cancel a check run. About 1,650 tests.
-- Next: M5, Build & Run and launch profiles (ADR 001 section 7.5).
+- M5 done: Build & Run from config. `xcode.*` in the run bar and in `xcodebuild`, launch profiles (environment, arguments, `defaults` in the app or group container, clean install), `kind: command` projects, the `simulators.statusScript` line, deep link schemes from the installed app, log chips with one stream per simulator, Copilot CLI sessions and Copilot usage. Checked on a sample app: the main checkout, a worktree, a branch without a checkout, both profiles, a command project, two log streams at once, the status line, the AI tab with Copilot and Claude sessions and the usage strip with both providers. About 1,715 tests.
+- Next: M6, launch identities and the network config (ADR 001 sections 7.6 and 7.7).
 
 ## Screens
 
@@ -22,11 +23,11 @@ The app is being rewritten on the package architecture of the main DevHub. The p
 | Git | real | Local, Remote, History, Reflog, Changes, stash, commit box, switch with local changes, request line. The remote is `git.remote` (default `origin`); the base branch is `git.baseBranch`, else `<remote>/HEAD`, else `<remote>/main`. Checked with a headless snapshot on a throwaway repository with a bare remote called `upstream`. Config actions: `git.pills` in the header, `git.branchRow` in the branch context menu |
 | Pull Requests | real | GitHub through `gh`, GitLab through `glab`, chosen by the remote or `git.host.kind`. Title, `#`/`!`, checks or pipeline and the open-in-browser words follow the host. Config actions in the row menus (`pullRequests.row`). The toolbar wraps on a narrow panel. Checked with headless snapshots and `gh` on a private GitHub test repository |
 | Worktrees | real | Config actions in the row context menu (`worktrees.row`). Folder, include list and bootstrap script from `git.worktrees`. Checked with a headless snapshot: a worktree in `.worktrees/` shows "needs bootstrap" when `Pods` exists only in the main checkout |
-| Simulators, Build & Run | real | From the package. Config actions in the run bar (`simulators.runBar`) and in the row overflow menu (`simulators.row`). Launch profiles and `kind: command` projects come in M5 |
+| Simulators, Build & Run | real | Config actions in the run bar (`simulators.runBar`) and in the row overflow menu (`simulators.row`). `xcode.*`, launch profiles, `kind: command` projects, the `simulators.statusScript` line under rows and the run bar target, deep link schemes from the installed app. Checked with `DEVHUB_BUILD_RUN` on a sample app and a command project |
 | Device identity | hidden | No project has an identity config: the presets are gone. Launch identities from config come in M6 |
-| Logs | real | One stream at a time. Config actions in the toolbar (`logs.toolbar`). Chips for several streams come in M5 |
+| Logs | real | One chip and one stream per simulator, each with its own process, subsystem, level and pause state; saved. `logs.process` and `logs.subsystem` give the defaults of a new stream. Config actions in the toolbar (`logs.toolbar`). Checked with `DEVHUB_LOG_STREAMS` on two booted simulators |
 | Network | partial | Shows the requests that pass through the DevHub mock server only. The session log source is gone. The base URL variable and upstreams from config come in M6 |
-| Claude | real | Claude sessions and usage. Copilot comes in M5 |
+| AI | real | Copilot CLI and Claude Code sessions with a provider and a scope filter and Resume. The usage strip shows Claude and, when logged in, Copilot. Checked with headless snapshots on the real session folders |
 | Settings | real | From the package. Doctor and launch at login come in M7 |
 | Custom tabs, command palette | planned | M7 |
 
@@ -65,7 +66,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 26. The Copilot token comes from `gh auth token` first and from the `copilot-cli` keychain item second. The keychain read stops after 10 s and is not tried again until the app restarts. Why: macOS can ask the user to allow `/usr/bin/security` to read that item; a background refresh every 5 minutes must not keep that dialog open or show it again and again.
 ## Next steps
 
-1. M5 (ADR 001 section 7.5): Build & Run, launch profiles, `kind: command` projects, the simulator status rows, log chips, Copilot sessions.
+1. M6 (ADR 001 sections 7.6 and 7.7): launch identities from config and the `state` directive, the network base URL variable and upstreams from config.
 2. Rewrite the skills that still describe the first generic app (`add-feature`, `providers-and-shell`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`) when the milestone that touches their area lands.
 3. `docs/SPEC.md` still describes the first generic app; M8 refreshes it.
 
@@ -79,4 +80,6 @@ Numbered. What, then why. A later session must not undo these without a new numb
 - The Doctor rows for `gh` and `glab` come with the Doctor section in M7.
 - The context menus of rows were checked by tests only: a headless snapshot does not open a menu.
 - The identity panel is hidden for every project (no identity config) until M6.
+- The first read of the AI tab takes several seconds when `~/.claude/projects` and `~/.copilot/session-state` hold about 1 GB; later reads use the cache.
+- The messaging panel and Resume in the AI tab were checked by tests only: a headless snapshot cannot open the panel or click a button.
 - The status item click, the global shortcut and the right-click menu were not exercised with real clicks in this session; only headless snapshots.
