@@ -63,6 +63,12 @@ if [ -n "$matches" ]; then
     printf '%s\n' "$matches" | sed "s#^$ROOT/#  #"
 fi
 
+matches="$(grep -rEn --include='*.swift' 'MainActor\.assumeIsolated' "$SRC" "$HOST" || true)"
+if [ -n "$matches" ]; then
+    report 'MainActor.assumeIsolated used; hop with Task { @MainActor in } or DispatchQueue.main.async { @MainActor in }'
+    printf '%s\n' "$matches" | sed "s#^$ROOT/#  #"
+fi
+
 matches="$(grep -rEn --include='*.swift' '@testable' "$SRC" "$HOST" || true)"
 if [ -n "$matches" ]; then
     report '@testable used outside Packages/DevHubKit/Tests'

@@ -48,7 +48,7 @@ package final class AppWindows: NSObject {
             assembly.mockServer.restoreServers()
         }
         resignObserver = NotificationCenter.default.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated {
+            Task { @MainActor in
                 self?.closePanel()
             }
         }
@@ -134,7 +134,7 @@ package final class AppWindows: NSObject {
     private func installClickMonitor() {
         guard clickMonitor == nil else { return }
         clickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] _ in
-            MainActor.assumeIsolated {
+            Task { @MainActor in
                 self?.closePanel()
             }
         }
@@ -178,7 +178,7 @@ package final class AppWindows: NSObject {
         window.contentMinSize = WindowLayout.minimumSize
         window.contentViewController = hostingController(isPinned: true)
         pinnedCloseObserver = NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated {
+            Task { @MainActor in
                 self?.pinnedWindowWillClose()
             }
         }

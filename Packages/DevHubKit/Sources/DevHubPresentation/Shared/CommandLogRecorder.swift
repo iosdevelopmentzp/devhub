@@ -10,10 +10,8 @@ nonisolated package struct CommandLogRecorder: CommandRecording {
     }
 
     package func record(_ event: CommandEvent) {
-        DispatchQueue.main.async {
-            MainActor.assumeIsolated {
-                log.handle(event)
-            }
+        DispatchQueue.main.async { @MainActor in
+            log.handle(event)
         }
     }
 }

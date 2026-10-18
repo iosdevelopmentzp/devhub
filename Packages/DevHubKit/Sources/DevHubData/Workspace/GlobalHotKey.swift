@@ -12,7 +12,7 @@ package final class GlobalHotKey {
         self.action = action
         installHandler()
         observer = NotificationCenter.default.addObserver(forName: .devHubHotKeyPressed, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated {
+            Task { @MainActor in
                 self?.action()
             }
         }

@@ -87,6 +87,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- `Scripts/check-layers.sh` fails on `MainActor.assumeIsolated`. The three window observers, the hot key and the command log hop to the main actor with `Task { @MainActor in }` or `DispatchQueue.main.async { @MainActor in }`.
 - `Scripts/make-app-icon.swift <folder>` draws the app icon PNGs in every size. Run it on `DevHub/Assets.xcassets/AppIcon.appiconset`.
 - README: a documentation table, the tools that Doctor checks, "First project in two minutes", ⌘K, ⌘9 and notifications.
 - Deleted `legacy/`, the sources of the first generic app. Everything it did now lives in the package.
