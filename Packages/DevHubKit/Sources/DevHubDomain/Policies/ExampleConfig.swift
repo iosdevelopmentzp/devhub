@@ -40,10 +40,12 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
   },
   "launch": {
     "profiles": [
-      { "id": "staging", "title": "Staging", "env": { "API_ENV": "staging" }, "defaults": [ { "suite": "group.com.example.app", "key": "environment", "value": "staging" } ] },
-      { "id": "production", "title": "Production", "env": { "API_ENV": "production" }, "cleanInstall": true }
-    ]
+      { "id": "staging", "title": "Staging", "env": { "API_ENV": "staging" }, "defaults": [ { "suite": "group.com.example.app", "key": "environment", "value": "staging" } ], "storage": { "suite": "group.com.example.app", "key": "environment" }, "upstream": "https://api-qa.example.com" },
+      { "id": "production", "title": "Production", "env": { "API_ENV": "production" }, "cleanInstall": true, "upstream": "https://api.example.com", "production": true }
+    ],
+    "identity": { "variable": "APP_DEVICE_ID", "keptVariable": "APP_KEEP_DEVICE_ID", "args": ["-skipOnboarding", "YES"], "idPrefix": "devhub-" }
   },
+  "network": { "baseURLVariable": "APP_BASE_URL", "mocksFolder": "Tests/Mocks" },
   "logs": { "subsystem": "com.example.app" },
   "simulators": { "statusScript": "scripts/sim-status.sh" },
   "home": { "quickActions": ["builtin.buildRun", "builtin.runAttach", "clean-derived-data", "open-ci", "builtin.terminal", "builtin.copyBranch"] }
@@ -169,7 +171,8 @@ echo "@devhub {\"toast\": \"Resources generated\"}"
 #!/bin/zsh
 # devhub: title = Simulator status
 # devhub: placements = palette
-# Prints one key-value block for the simulator row. Replace the body with what your app stores.
+# Prints the state of the app for the identity panel and one key-value block for the simulator row.
+# Replace the body with what your app stores.
 set -u
 DATA="$(xcrun simctl get_app_container "$DEVHUB_SIMULATOR_UDID" "$DEVHUB_BUNDLE_ID" data 2>/dev/null || true)"
 if [ -z "$DATA" ]; then
@@ -177,7 +180,9 @@ if [ -z "$DATA" ]; then
     exit 0
 fi
 ENVIRONMENT="$(/usr/libexec/PlistBuddy -c 'Print :environment' "$DATA/Library/Preferences/group.com.example.app.plist" 2>/dev/null || echo "default")"
-echo "@devhub {\"view\": {\"keyValues\": [[\"Environment\", \"$ENVIRONMENT\"]]}}"
+DEVICE_ID="$(/usr/libexec/PlistBuddy -c 'Print :deviceID' "$DATA/Library/Preferences/group.com.example.app.plist" 2>/dev/null || true)"
+echo "@devhub {\"state\": {\"identity\": \"$DEVICE_ID\", \"profile\": \"$ENVIRONMENT\"}}"
+echo "@devhub {\"view\": {\"keyValues\": [[\"Environment\", \"$ENVIRONMENT\"], [\"ID\", \"$DEVICE_ID\"]]}}"
 """#, isExecutable: true),
         ExampleFile(path: "tabs/qa.json", text: #"""
 {

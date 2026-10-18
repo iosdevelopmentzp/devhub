@@ -25,10 +25,12 @@
   },
   "launch": {
     "profiles": [
-      { "id": "staging", "title": "Staging", "env": { "API_ENV": "staging" }, "defaults": [ { "suite": "group.com.example.app", "key": "environment", "value": "staging" } ] },
-      { "id": "production", "title": "Production", "env": { "API_ENV": "production" }, "cleanInstall": true }
-    ]
+      { "id": "staging", "title": "Staging", "env": { "API_ENV": "staging" }, "defaults": [ { "suite": "group.com.example.app", "key": "environment", "value": "staging" } ], "storage": { "suite": "group.com.example.app", "key": "environment" }, "upstream": "https://api-qa.example.com" },
+      { "id": "production", "title": "Production", "env": { "API_ENV": "production" }, "cleanInstall": true, "upstream": "https://api.example.com", "production": true }
+    ],
+    "identity": { "variable": "APP_DEVICE_ID", "keptVariable": "APP_KEEP_DEVICE_ID", "args": ["-skipOnboarding", "YES"], "idPrefix": "devhub-" }
   },
+  "network": { "baseURLVariable": "APP_BASE_URL", "mocksFolder": "Tests/Mocks" },
   "logs": { "subsystem": "com.example.app" },
   "simulators": { "statusScript": "scripts/sim-status.sh" },
   "home": { "quickActions": ["builtin.buildRun", "builtin.runAttach", "clean-derived-data", "open-ci", "builtin.terminal", "builtin.copyBranch"] }

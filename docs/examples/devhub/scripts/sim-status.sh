@@ -1,7 +1,8 @@
 #!/bin/zsh
 # devhub: title = Simulator status
 # devhub: placements = palette
-# Prints one key-value block for the simulator row. Replace the body with what your app stores.
+# Prints the state of the app for the identity panel and one key-value block for the simulator row.
+# Replace the body with what your app stores.
 set -u
 DATA="$(xcrun simctl get_app_container "$DEVHUB_SIMULATOR_UDID" "$DEVHUB_BUNDLE_ID" data 2>/dev/null || true)"
 if [ -z "$DATA" ]; then
@@ -9,4 +10,6 @@ if [ -z "$DATA" ]; then
     exit 0
 fi
 ENVIRONMENT="$(/usr/libexec/PlistBuddy -c 'Print :environment' "$DATA/Library/Preferences/group.com.example.app.plist" 2>/dev/null || echo "default")"
-echo "@devhub {\"view\": {\"keyValues\": [[\"Environment\", \"$ENVIRONMENT\"]]}}"
+DEVICE_ID="$(/usr/libexec/PlistBuddy -c 'Print :deviceID' "$DATA/Library/Preferences/group.com.example.app.plist" 2>/dev/null || true)"
+echo "@devhub {\"state\": {\"identity\": \"$DEVICE_ID\", \"profile\": \"$ENVIRONMENT\"}}"
+echo "@devhub {\"view\": {\"keyValues\": [[\"Environment\", \"$ENVIRONMENT\"], [\"ID\", \"$DEVICE_ID\"]]}}"
