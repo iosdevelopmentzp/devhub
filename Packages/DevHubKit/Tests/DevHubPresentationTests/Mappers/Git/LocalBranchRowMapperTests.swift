@@ -13,6 +13,13 @@ import Testing
         #expect(model.icon == "arrow.triangle.branch")
         #expect(model.iconHint == "Local branch")
         #expect(model.usesAccentIcon == false)
+        #expect(model.isPinned == false)
+        #expect(model.pinIcon == "star")
+        #expect(model.pinHint == "Pin to the top of the list")
+        #expect(model.pinMenuTitle == "Pin to Top")
+        #expect(model.labels.isEmpty)
+        #expect(model.note == nil)
+        #expect(model.markMenuTitle == "Add Labels & Note…")
         #expect(model.tags.isEmpty)
         #expect(model.dateText == nil)
         #expect(model.subject == "ABC-1: Login screen")
@@ -179,6 +186,7 @@ import Testing
             for: GitBranchFixture.feature,
             currentBranch: nil,
             worktree: nil,
+            mark: BranchMark(),
             openPullRequest: nil,
             baseName: "dev",
             changedFiles: 0,
@@ -207,11 +215,34 @@ import Testing
         #expect(row(GitBranchFixture.feature, current: "dev", worktree: nil, changedFiles: 1).switchConfirmation?.hasPrefix("You have 1 changed file.") == true)
     }
 
-    private func row(_ branch: GitBranch, current: String?, worktree: Worktree?, openPullRequest: PullRequestSummary? = nil, changedFiles: Int = 0, configActions: [ConfigActionItemModel] = []) -> LocalBranchRowModel {
+    @Test func pinnedBranchWithLabelsAndNote() {
+        let mark = BranchMark(isPinned: true, labels: ["review"], note: "Ask sam")
+
+        let model = row(GitBranchFixture.feature, current: "dev", worktree: nil, mark: mark)
+
+        #expect(model.isPinned)
+        #expect(model.pinIcon == "star.fill")
+        #expect(model.pinHint == "Unpin: return the branch to its usual place")
+        #expect(model.pinMenuTitle == "Unpin")
+        #expect(model.labels == [TagModel("review", tint: BranchLabelMapper.tint(for: "review"), systemImage: "tag")])
+        #expect(model.note == "Ask sam")
+        #expect(model.markMenuTitle == "Edit Labels & Note…")
+    }
+
+    private func row(
+        _ branch: GitBranch,
+        current: String?,
+        worktree: Worktree?,
+        mark: BranchMark = BranchMark(),
+        openPullRequest: PullRequestSummary? = nil,
+        changedFiles: Int = 0,
+        configActions: [ConfigActionItemModel] = []
+    ) -> LocalBranchRowModel {
         LocalBranchRowMapper.model(
             for: branch,
             currentBranch: current,
             worktree: worktree,
+            mark: mark,
             openPullRequest: openPullRequest,
             baseName: "dev",
             changedFiles: changedFiles,

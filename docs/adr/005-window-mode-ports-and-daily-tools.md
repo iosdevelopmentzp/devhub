@@ -28,7 +28,7 @@ The owner also asked for more comfort when working from any project: an easier p
 - [x] P2. Keep Mac awake: a Home card, a palette command, a cup on the menu bar icon.
 - [x] P3. Favorite AI sessions.
 - [x] P4. Drag to reorder favorite simulators.
-- [ ] P5. Pin, label and add a note to local branches.
+- [x] P5. Pin, label and add a note to local branches.
 - [ ] W1. Window mode setting and the main window.
 - [ ] W2. Right-click menu on the menu bar icon.
 - [ ] R1. Top-level comment and Request Changes.
@@ -47,3 +47,6 @@ The owner also asked for more comfort when working from any project: an easier p
 | `54d15db` | P1 | `ClaudeUsageParser` reads `weekly_scoped` entries of the `limits` list after the flat keys; a flat value wins. Copied from the main DevHub `f38add6`. |
 | `ee543d5` | P2 | `SleepPreventing` port (`IOKitSleepPreventer`, mock, spy), `KeepAwakeStore`, `KeepAwakeCard` on Home, the palette item, `StatusItemState.awake` (a cup). From the main DevHub `b53e0ad` and `de13128`. |
 | `a6c5393` | P3 | `AISessionsStore.favoriteIDs` and `toggleFavorite` (key `ai.favorites`), a favorite stays in the project scope; `AISessionSectionsMapper` puts a Favorites section first; the row star and badge; favorites first in the palette. |
+| `476b51a` | P4 | `FavoriteOrder`, `SimulatorsStore.favoriteOrder` and `moveFavorite(id:onto:)`, the sections mapper sorts favorites by the saved order, drag and drop on favorite rows. From the main DevHub `9dda0f0`. |
+| `1de7a78` | — | `ShellRunnerIntegrationTests.cancellingStreamTerminatesTheProcess` allows 5 s: it failed under load with 1 s. |
+| `fa97a37` | — | The snapshot recipe starts the app with `$PWD/$APP`, so its `pkill` matches. |

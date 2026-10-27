@@ -5,6 +5,7 @@ import DevHubUI
 struct GitView: View {
     @Environment(ProjectSession.self) private var session
     @Environment(GitStore.self) private var git
+    @Environment(BranchMarksStore.self) private var marks
     @Environment(CommitHistoryStore.self) private var history
     @Environment(BuildStore.self) private var build
     @Environment(OpenPullRequestsStore.self) private var openPullRequests
@@ -19,6 +20,7 @@ struct GitView: View {
     @State private var confirmingSwitchName: String?
     @State private var pullRequestBranchName: String?
     @State private var launchBranchName: String?
+    @State private var editingMarkName: String?
 
     var body: some View {
         @Bindable var git = git
@@ -68,6 +70,7 @@ struct GitView: View {
         .background(Theme.surface)
         .animation(.snappy(duration: 0.18), value: confirmingDeleteName)
         .animation(.snappy(duration: 0.18), value: pullRequestBranchName)
+        .animation(.snappy(duration: 0.18), value: editingMarkName)
         .onChange(of: git.stashes.isEmpty) { _, isEmpty in
             guard isEmpty, git.section == .stash else { return }
             git.section = .local
@@ -82,15 +85,19 @@ struct GitView: View {
     }
 
     private var filteredLocals: [GitBranch] {
-        (git.state?.localBranches ?? []).filter { session.matchesSearch($0.name, $0.subject) }
+        (git.state?.localBranches ?? []).filter { branch in
+            let mark = marks.mark(for: branch.name)
+            return session.matchesSearch(branch.name, branch.subject, mark.note, mark.labels.joined(separator: " "))
+        }
     }
 
     private var localSections: [LocalBranchSectionModel] {
-        LocalBranchSectionsMapper.sections(for: filteredLocals, currentBranch: git.currentBranch) { branch in
+        LocalBranchSectionsMapper.sections(for: filteredLocals, currentBranch: git.currentBranch, pinnedNames: marks.pinnedNames) { branch in
             LocalBranchRowMapper.model(
                 for: branch,
                 currentBranch: git.currentBranch,
                 worktree: git.worktree(atPath: branch.worktreePath),
+                mark: marks.mark(for: branch.name),
                 openPullRequest: openPullRequests.request(forBranch: branch.name),
                 baseName: git.baseName,
                 changedFiles: git.snapshot?.changedFiles ?? 0,
@@ -114,7 +121,7 @@ struct GitView: View {
     }
 
     private var cleanupCandidates: [GitBranch] {
-        BranchCleanupPolicy.candidates(branches: filteredLocals, currentBranch: git.currentBranch, baseName: git.baseName, protected: git.gitSettings.protectedBranches)
+        BranchCleanupPolicy.candidates(branches: filteredLocals, currentBranch: git.currentBranch, baseName: git.baseName, protected: git.gitSettings.protectedBranches + marks.pinnedNames.sorted())
     }
 
     private var remotes: [RemoteBranchRowModel] {
@@ -216,6 +223,20 @@ struct GitView: View {
         if isCollapsed == false {
             ForEach(section.rows) { model in
                 localRow(model)
+                if editingMarkName == model.name {
+                    BranchMarkEditor(
+                        branch: model.name,
+                        draft: BranchMarkDraft(mark: marks.mark(for: model.name)),
+                        knownLabels: marks.knownLabels,
+                        onCancel: { editingMarkName = nil },
+                        onSave: { labels, note in
+                            marks.setLabels(labels, note: note, for: model.name)
+                            editingMarkName = nil
+                        }
+                    )
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 8)
+                }
                 if let pending = configActions.pending(in: Placement.gitBranchRow.slot(for: model.name)) {
                     ConfigActionPrompt(pending: pending)
                         .padding(.horizontal, 14)
@@ -277,6 +298,13 @@ struct GitView: View {
                     item: ActionItemContext(branch: model.name, worktreePath: model.worktreePath, rowID: model.name),
                     slot: Placement.gitBranchRow.slot(for: model.name)
                 )
+            },
+            onTogglePin: { marks.togglePin(model.name) },
+            onEditMark: {
+                confirmingDeleteName = nil
+                pullRequestBranchName = nil
+                launchBranchName = nil
+                editingMarkName = model.name
             }
         )
     }

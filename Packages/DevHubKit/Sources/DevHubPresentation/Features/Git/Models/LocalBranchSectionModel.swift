@@ -4,6 +4,7 @@ import DevHubUI
 
 struct LocalBranchSectionModel: Identifiable, Equatable {
     enum Kind: String {
+        case pinned
         case checkedOut
         case active
         case merged

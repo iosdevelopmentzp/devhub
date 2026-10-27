@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Git: pin, label and add a note to a local branch. The star (or "Pin to Top" in the menu) moves the branch into a "Pinned" group at the top of Local, and "Delete all…" never offers it. "Add Labels & Note…" opens a form under the row; labels show as coloured tags, the note under the subject, and the search finds both. The marks stay in DevHub, per project.
 - Simulators: drag a favorite row onto another favorite row to change the order of the Favorites section. The order is saved, and a new favorite goes to the end.
 - AI tab: a star on a session row adds it to the favorites. Favorites come first in their own section, stay visible in the "This project" scope, and come first in the ⌘K palette.
 - Home has a "Keep Mac awake" switch. While it is on, the Mac does not go to sleep when idle, and the menu bar icon shows a cup. The ⌘K palette turns it on and off. Quitting DevHub turns it off.

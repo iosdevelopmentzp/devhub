@@ -3,11 +3,11 @@ import DevHubDomain
 import DevHubUI
 
 enum LocalBranchRowMapper {
-
     static func model(
         for branch: GitBranch,
         currentBranch: String?,
         worktree: Worktree?,
+        mark: BranchMark,
         openPullRequest: PullRequestSummary?,
         baseName: String,
         changedFiles: Int,
@@ -27,6 +27,13 @@ enum LocalBranchRowMapper {
             icon: isCurrent ? "checkmark.circle.fill" : (isCheckedOut ? "rectangle.stack" : "arrow.triangle.branch"),
             iconHint: isCurrent ? "Checked out here" : (isCheckedOut ? "Checked out in another worktree" : "Local branch"),
             usesAccentIcon: isCurrent,
+            isPinned: mark.isPinned,
+            pinIcon: mark.isPinned ? "star.fill" : "star",
+            pinHint: mark.isPinned ? "Unpin: return the branch to its usual place" : "Pin to the top of the list",
+            pinMenuTitle: mark.isPinned ? "Unpin" : "Pin to Top",
+            labels: BranchLabelMapper.tags(for: mark.labels),
+            note: mark.note.isEmpty ? nil : mark.note,
+            markMenuTitle: mark.labels.isEmpty && mark.note.isEmpty ? "Add Labels & Note…" : "Edit Labels & Note…",
             tags: checkoutTags(isCurrent: isCurrent, worktree: worktree) + trackingTags(branch, baseName: baseName, words: words),
             pullRequest: BranchPullRequestMapper.model(for: openPullRequest, words: words),
             ticket: TicketMapper.model(for: [branch.name], ticket: ticket),

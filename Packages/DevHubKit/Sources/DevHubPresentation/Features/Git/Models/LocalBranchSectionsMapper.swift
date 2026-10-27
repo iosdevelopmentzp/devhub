@@ -7,12 +7,16 @@ enum LocalBranchSectionsMapper {
     static func sections(
         for branches: [GitBranch],
         currentBranch: String?,
+        pinnedNames: Set<String>,
         rowModel: (GitBranch) -> LocalBranchRowModel
     ) -> [LocalBranchSectionModel] {
+        let pinned = branches.filter { pinnedNames.contains($0.name) }
+        let unpinned = branches.filter { pinnedNames.contains($0.name) == false }
         let isCheckedOut: (GitBranch) -> Bool = { $0.name == currentBranch || $0.worktreePath != nil }
-        let others = branches.filter { isCheckedOut($0) == false }
+        let others = unpinned.filter { isCheckedOut($0) == false }
         let groups: [(kind: LocalBranchSectionModel.Kind, title: String, items: [GitBranch])] = [
-            (.checkedOut, "Checked out", branches.filter { $0.name == currentBranch } + branches.filter { $0.name != currentBranch && isCheckedOut($0) }),
+            (.pinned, "Pinned", pinned),
+            (.checkedOut, "Checked out", unpinned.filter { $0.name == currentBranch } + unpinned.filter { $0.name != currentBranch && isCheckedOut($0) }),
             (.active, "Active", others.filter { BranchCleanupPolicy.isFinished($0) == false }),
             (.merged, "Merged · safe to delete", others.filter(BranchCleanupPolicy.isFinished)),
         ]

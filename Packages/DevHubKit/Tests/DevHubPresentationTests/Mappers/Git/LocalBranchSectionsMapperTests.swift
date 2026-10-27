@@ -16,7 +16,7 @@ import Testing
             branch("merged-in-worktree", merged: true, worktree: "/wt/b"),
         ]
 
-        let sections = LocalBranchSectionsMapper.sections(for: branches, currentBranch: "current", rowModel: model)
+        let sections = LocalBranchSectionsMapper.sections(for: branches, currentBranch: "current", pinnedNames: [], rowModel: model)
 
         #expect(sections.map(\.id) == [.checkedOut, .active, .merged])
         #expect(sections.map(\.title) == ["Checked out", "Active", "Merged · safe to delete"])
@@ -26,8 +26,31 @@ import Testing
         #expect(sections[2].rows.map(\.name) == ["merged", "gone"])
     }
 
+    @Test func pinnedBranchesGoFirstAndLeaveTheirSections() {
+        let branches = [
+            branch("active"),
+            branch("pinned-merged", merged: true),
+            branch("current"),
+            branch("pinned-active"),
+        ]
+
+        let sections = LocalBranchSectionsMapper.sections(
+            for: branches,
+            currentBranch: "current",
+            pinnedNames: ["pinned-merged", "pinned-active", "deleted"],
+            rowModel: model
+        )
+
+        #expect(sections.map(\.id) == [.pinned, .checkedOut, .active])
+        #expect(sections[0].title == "Pinned")
+        #expect(sections[0].detail == "2")
+        #expect(sections[0].rows.map(\.name) == ["pinned-merged", "pinned-active"])
+        #expect(sections[1].rows.map(\.name) == ["current"])
+        #expect(sections[2].rows.map(\.name) == ["active"])
+    }
+
     @Test func emptySectionsHide() {
-        let sections = LocalBranchSectionsMapper.sections(for: [branch("a"), branch("b")], currentBranch: nil, rowModel: model)
+        let sections = LocalBranchSectionsMapper.sections(for: [branch("a"), branch("b")], currentBranch: nil, pinnedNames: [], rowModel: model)
 
         #expect(sections.map(\.id) == [.active])
     }

@@ -8,6 +8,13 @@ struct LocalBranchRowModel: Identifiable, Equatable {
     var icon: String
     var iconHint: String
     var usesAccentIcon: Bool
+    var isPinned: Bool
+    var pinIcon: String
+    var pinHint: String
+    var pinMenuTitle: String
+    var labels: [TagModel]
+    var note: String?
+    var markMenuTitle: String
     var tags: [TagModel]
     var pullRequest: BranchPullRequestModel?
     var ticket: TicketModel?
@@ -37,6 +44,13 @@ struct LocalBranchRowModel: Identifiable, Equatable {
         icon: "arrow.triangle.branch",
         iconHint: "Local branch",
         usesAccentIcon: false,
+        isPinned: true,
+        pinIcon: "star.fill",
+        pinHint: "Unpin: return the branch to its usual place",
+        pinMenuTitle: "Unpin",
+        labels: [TagModel("demo", tint: .teal, systemImage: "tag")],
+        note: "Waits for the backend fix in ABC-124",
+        markMenuTitle: "Edit Labels & Note…",
         tags: [
             TagModel("local only", tint: .orange, systemImage: "icloud.slash", hint: "Never pushed: the commits exist only on this Mac"),
             TagModel("↑2", tint: .blue, hint: "2 commits not pushed")

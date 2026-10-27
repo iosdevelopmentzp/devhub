@@ -25,6 +25,8 @@ struct LocalBranchRow: View {
     let onRequestLaunch: () -> Void
     let onCancelLaunch: () -> Void
     let onConfigAction: (ConfigActionItemModel.ID) -> Void
+    let onTogglePin: () -> Void
+    let onEditMark: () -> Void
 
     @State private var force = false
 
@@ -50,7 +52,13 @@ struct LocalBranchRow: View {
                             .lineLimit(1)
                             .truncationMode(.middle)
                             .copyOnClick(model.name, label: model.name)
-                        ForEach(model.tags, id: \.self) { tag in
+                        if model.isPinned {
+                            Image(systemName: "star.fill")
+                                .font(.caption2)
+                                .foregroundStyle(.yellow)
+                                .hint("Pinned")
+                        }
+                        ForEach(model.labels + model.tags, id: \.self) { tag in
                             ModelTag(model: tag)
                         }
                         if let pullRequest = model.pullRequest {
@@ -71,6 +79,9 @@ struct LocalBranchRow: View {
                             .copyOnClick(model.subject, label: model.subject)
                     }
                     .foregroundStyle(.secondary)
+                    if let note = model.note {
+                        noteLine(note)
+                    }
                 }
                 Spacer(minLength: 4)
                 actions(isHovered: isHovered)
@@ -118,7 +129,10 @@ struct LocalBranchRow: View {
     }
 
     private func actions(isHovered: Bool) -> some View {
-        HoverActions(isVisible: isHovered && isShowingInlinePanel == false, count: 6, spacing: 2) {
+        HoverActions(isVisible: isHovered && isShowingInlinePanel == false, count: 7, spacing: 2) {
+            IconButton(systemImage: model.pinIcon, help: model.pinHint, tint: .yellow) {
+                onTogglePin()
+            }
             IconButton(systemImage: "arrow.right.circle", help: model.switchHint) {
                 requestSwitch()
             }
@@ -145,6 +159,22 @@ struct LocalBranchRow: View {
             .disabled(model.canDelete == false)
         }
         .disabled(model.areActionsEnabled == false)
+    }
+
+    private func noteLine(_ note: String) -> some View {
+        Button(action: onEditMark) {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Image(systemName: "note.text")
+                    .foregroundStyle(.secondary)
+                Text(note)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+            .font(.caption)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .hint("Edit the note")
     }
 
     private var isShowingInlinePanel: Bool {
@@ -195,6 +225,9 @@ struct LocalBranchRow: View {
             Button("Create Worktree", systemImage: "plus.rectangle.on.folder") { appActions.createWorktree(branch: model.name) }
         }
         Divider()
+        Button(model.pinMenuTitle, systemImage: model.pinIcon) { onTogglePin() }
+        Button(model.markMenuTitle, systemImage: "tag") { onEditMark() }
+        Divider()
         Button("Copy Name", systemImage: "doc.on.doc") { toaster.copy(model.name) }
         Button("Open on Web", systemImage: "globe") { appActions.openBranchOnWeb(model.name) }
         Button(model.pullRequestMenuTitle, systemImage: "arrow.triangle.pull") { onRequestPullRequest() }
@@ -230,7 +263,9 @@ struct LocalBranchRow: View {
         onCancelPullRequest: {},
         onRequestLaunch: {},
         onCancelLaunch: {},
-        onConfigAction: { _ in }
+        onConfigAction: { _ in },
+        onTogglePin: {},
+        onEditMark: {}
     )
     .previewEnvironment()
 }

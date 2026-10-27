@@ -29,7 +29,7 @@ A segmented control selects one section. The choice is saved.
 
 | Section | What it lists |
 |---|---|
-| Local N | Local branches in three groups: "Checked out" (current branch first, then branches in other worktrees), "Active", "Merged · safe to delete" (merged into the base branch, or the remote branch was deleted). The merged group is collapsed by default. Each row shows tags (`current`, `main checkout`, `worktree`, `N changed there`, `remote deleted`, `local only`, `merged`, `↑N`, `↓N`), the open request, the ticket chip, "visited … · committed … by …" and the last commit subject |
+| Local N | Local branches in up to four groups: "Pinned" (your pinned branches, at the top), "Checked out" (current branch first, then branches in other worktrees), "Active", "Merged · safe to delete" (merged into the base branch, or the remote branch was deleted). The merged group is collapsed by default. Each row shows tags (`current`, `main checkout`, `worktree`, `N changed there`, `remote deleted`, `local only`, `merged`, `↑N`, `↓N`), the open request, the ticket chip, "visited … · committed … by …", the last commit subject, your labels as coloured tags and your note. The header search also finds a branch by its labels and note |
 | Remote N | Branches of `<remote>`, newest commit first. Tag `local` when a local copy exists, the open request, the ticket chip, the date, the author and the subject |
 | History | Scope "All": the last 150 commits of HEAD. Scope "This branch": the commits in `<base>..HEAD`. Each row shows the hash, the refs (HEAD, branches, tags), the subject, the author, the date and the tags `merge` and `not pushed` |
 | Reflog | The last 200 moves of HEAD |
@@ -72,6 +72,8 @@ Hover buttons, the same items in the context menu (right-click):
 
 | Action | What it does | Command |
 |---|---|---|
+| Pin (star) / Pin to Top, Unpin (menu) | Moves the branch into the "Pinned" group at the top, or back | — |
+| Add Labels & Note…, Edit Labels & Note… (menu) | Opens a form under the row: tick labels used before, type new ones separated by commas, and write a note. A click on the note opens the form too | — |
 | Switch | Switches the checkout to the branch | `git switch <branch>` |
 | Stash & Switch | Shown instead when the checkout has changes. Stashes the changes, switches and restores the changes. "Switch Anyway" switches without a stash | `git stash push --include-untracked -m "DevHub: switch to <branch>"`, `git switch <branch>`, `git stash pop` |
 | Update (fast-forward) | Only for a branch with a live upstream. The current branch: `git pull --ff-only`. A branch in another worktree: `git pull --ff-only` in that worktree. Any other branch: a fetch into it without a switch | `git fetch <remote> <upstream name>:<branch>` (the upstream name without the remote) |
@@ -87,7 +89,7 @@ Hover buttons, the same items in the context menu (right-click):
 
 When a stash pop after a switch fails, the changes stay in the stash and a red Recent row says so. When the switch itself fails, DevHub runs `git stash pop` to restore the changes.
 
-"Delete all…" in the header of the merged group deletes every merged or remote-deleted branch that is not current, not checked out, not the base branch and not in `git.protectedBranches`. It asks first. Its hint names the branches that stay: the base branch and `git.protectedBranches`. A box "Force-delete branches whose remote was deleted (-D)" uses `-D` for the remote-deleted ones. Each branch runs `git branch -d <branch>` (or `-D`). The result shows how many branches git refused.
+"Delete all…" in the header of the merged group deletes every merged or remote-deleted branch that is not current, not checked out, not the base branch, not pinned and not in `git.protectedBranches`. It asks first. Its hint names the branches that stay: the base branch and `git.protectedBranches`. A box "Force-delete branches whose remote was deleted (-D)" uses `-D` for the remote-deleted ones. Each branch runs `git branch -d <branch>` (or `-D`). The result shows how many branches git refused.
 
 ### Remote branch row
 
@@ -169,6 +171,7 @@ When the panel opens on the Git tab, DevHub reads the repository. When "Auto fet
 |---|---|---|
 | `git.section` | The selected section | Local |
 | `git.mergedCollapsed` | Whether the merged group is collapsed | collapsed |
+| `git.branchMarks.<project id>` | Pins, labels and notes of local branches, per project. Nothing goes to git or the code host | — |
 | `git.historyScope` | "This branch" or "All" in History | All |
 | `app.settings` | `autoFetchMinutes`, `ticketURLTemplate` (the fallback ticket link), `editor`, `terminal` | — |
 
