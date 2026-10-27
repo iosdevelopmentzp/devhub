@@ -87,7 +87,11 @@ Environment values for the shell: `\.isPinnedWindow` (DevHubUI), `\.togglePin`, 
   button and installs a global mouse-down monitor (`.leftMouseDown`, `.rightMouseDown`, `.otherMouseDown`).
 - The panel closes on a click outside DevHub (the monitor), on `didResignActiveNotification`, and on a second click
   on the status item. `closePanel()` removes the monitor.
-- Left and right click on the status item both toggle the panel. There is no status item menu.
+- A left click on the status item calls `toggle()`. A right click closes the panel and opens a menu built from
+  `StatusMenuMapper.items(projects:selectedID:isKeepAwakeOn:)`: Show DevHub, the project list (only with two or more
+  projects; a click selects the project and shows DevHub), Keep Mac Awake, Settings…, Quit DevHub. The menu is set on
+  the status item only for that click (`statusItem.menu = menu; performClick; statusItem.menu = nil`), so a left
+  click still reaches `statusItemClicked`.
 - `Notifier.panelShown(_:)` hears every open and close, so notifications show only while the panel and the pinned
   window are closed. The main window counts as shown only while it is visible, not minimized and DevHub is the
   active app.

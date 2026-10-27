@@ -94,5 +94,5 @@ The rewrite plan (ADR 001, M0 to M8) is complete, with the schema additions of s
 - Launch & Attach in a simulator row needs `launch.identity`: without it DevHub does not read whether the app is installed.
 - The first read of the AI tab takes several seconds when `~/.claude/projects` and `~/.copilot/session-state` hold about 1 GB; later reads use the cache.
 - The messaging panel and Resume in the AI tab were checked by tests only: a headless snapshot cannot open the panel or click a button.
-- The status item has no menu: a left or a right click opens or closes the panel. The click and the global shortcut were checked only with headless snapshots, not with real clicks.
+- The global shortcut was checked only with headless snapshots, not with a real key press. The right-click menu of the status item was checked with a synthetic right click (ADR 005 W2).
 - Esc clears the search field but does not close the panel. A click outside the panel closes it.

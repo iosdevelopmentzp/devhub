@@ -181,7 +181,75 @@ package final class AppWindows: NSObject, NSWindowDelegate {
     }
 
     @objc private func statusItemClicked() {
-        toggle()
+        guard NSApp.currentEvent?.type == .rightMouseDown else {
+            toggle()
+            return
+        }
+        closePanel()
+        statusItem.menu = statusMenu()
+        statusItem.button?.performClick(nil)
+        statusItem.menu = nil
+    }
+
+    private func statusMenu() -> NSMenu {
+        let menu = NSMenu()
+        let items = StatusMenuMapper.items(
+            projects: assembly.session.projects,
+            selectedID: assembly.session.selectedProjectID,
+            isKeepAwakeOn: assembly.keepAwake.isActive
+        )
+        for item in items {
+            menu.addItem(menuItem(for: item))
+        }
+        return menu
+    }
+
+    private func menuItem(for item: StatusMenuItem) -> NSMenuItem {
+        switch item {
+        case .show:
+            return menuItem("Show DevHub", action: #selector(menuShow))
+        case .projectsHeader:
+            return NSMenuItem.sectionHeader(title: "Projects")
+        case let .project(id, title, isSelected):
+            let entry = menuItem(title, action: #selector(menuSelectProject(_:)))
+            entry.representedObject = id
+            entry.state = isSelected ? .on : .off
+            return entry
+        case .keepAwake(let isOn):
+            let entry = menuItem("Keep Mac Awake", action: #selector(menuKeepAwake))
+            entry.state = isOn ? .on : .off
+            return entry
+        case .settings:
+            return menuItem("Settings…", key: ",", action: #selector(menuSettings))
+        case .quit:
+            return menuItem("Quit DevHub", key: "q", action: #selector(menuQuit))
+        case .separator:
+            return .separator()
+        }
+    }
+
+    private func menuItem(_ title: String, key: String = "", action: Selector) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: action, keyEquivalent: key)
+        item.target = self
+        return item
+    }
+
+    @objc private func menuShow() {
+        show()
+    }
+
+    @objc private func menuSelectProject(_ sender: NSMenuItem) {
+        guard let id = sender.representedObject as? Project.ID else { return }
+        assembly.session.selectedProjectID = id
+        show()
+    }
+
+    @objc private func menuKeepAwake() {
+        assembly.keepAwake.toggle()
+    }
+
+    @objc private func menuQuit() {
+        NSApp.terminate(nil)
     }
 
     // MARK: NSWindowDelegate

@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- A right click on the menu bar icon opens a menu: Show DevHub, the list of projects (a click switches to the project and shows DevHub), Keep Mac Awake, Settings… and Quit DevHub. A left click still opens or closes DevHub.
 - Settings → General → Window: "Normal window" turns DevHub into a window app. It gets a title bar, a Dock icon and a main menu (DevHub, File, Edit, Window). The close button and ⌘W hide the window and DevHub keeps running. The menu bar icon, the global shortcut and a click on the Dock icon show the window on the current desktop; the icon and the shortcut hide it when it is already in front. The window opens at launch when it was open at quit. "Menu bar panel" stays the default.
 - Git: pin, label and add a note to a local branch. The star (or "Pin to Top" in the menu) moves the branch into a "Pinned" group at the top of Local, and "Delete all…" never offers it. "Add Labels & Note…" opens a form under the row; labels show as coloured tags, the note under the subject, and the search finds both. The marks stay in DevHub, per project.
 - Simulators: drag a favorite row onto another favorite row to change the order of the Favorites section. The order is saved, and a new favorite goes to the end.
