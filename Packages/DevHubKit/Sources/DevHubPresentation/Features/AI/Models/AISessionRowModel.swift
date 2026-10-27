@@ -20,6 +20,10 @@ struct AISessionRowModel: Identifiable, Equatable {
     var canResume: Bool
     var resumeHint: String
     var canShowFolder: Bool
+    var isFavorite: Bool
+    var favoriteIcon: String
+    var favoriteTint: Tint
+    var favoriteHint: String
 
     static let preview = AISessionRowModel(
         id: "5f0c2d8e-1b7a-4c3e-9a51-0e2f6b7d9c41",
@@ -38,6 +42,10 @@ struct AISessionRowModel: Identifiable, Equatable {
         terminalTitle: "Resumed Claude session",
         canResume: true,
         resumeHint: "Open the terminal in DevHub and run claude --resume",
-        canShowFolder: true
+        canShowFolder: true,
+        isFavorite: true,
+        favoriteIcon: "star.fill",
+        favoriteTint: .yellow,
+        favoriteHint: "Remove from favorites"
     )
 }

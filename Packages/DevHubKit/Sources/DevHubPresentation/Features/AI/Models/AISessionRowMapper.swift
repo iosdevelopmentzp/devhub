@@ -3,8 +3,7 @@ import DevHubDomain
 import DevHubUI
 
 enum AISessionRowMapper {
-
-    static func model(for item: AISession) -> AISessionRowModel {
+    static func model(for item: AISession, isFavorite: Bool) -> AISessionRowModel {
         let name = title(for: item.provider)
         return AISessionRowModel(
             id: item.id,
@@ -25,7 +24,11 @@ enum AISessionRowMapper {
             resumeHint: item.folderExists
                 ? "Open the terminal in \(item.folderName) and run \(item.provider.executable) --resume"
                 : "The folder of this session no longer exists",
-            canShowFolder: item.folderExists
+            canShowFolder: item.folderExists,
+            isFavorite: isFavorite,
+            favoriteIcon: isFavorite ? "star.fill" : "star",
+            favoriteTint: isFavorite ? .yellow : .secondary,
+            favoriteHint: isFavorite ? "Remove from favorites" : "Add to favorites: the session stays at the top of the list"
         )
     }
 

@@ -8,7 +8,7 @@ import Testing
     @Test func sessionWithExistingFolder() {
         let session = AISessionFixture.session
 
-        let model = AISessionRowMapper.model(for: session)
+        let model = AISessionRowMapper.model(for: session, isFavorite: false)
 
         #expect(model.id == session.id)
         #expect(model.title == "Fix the worktree delete confirmation")
@@ -34,7 +34,7 @@ import Testing
         session.folderExists = false
         session.gitBranch = nil
 
-        let model = AISessionRowMapper.model(for: session)
+        let model = AISessionRowMapper.model(for: session, isFavorite: false)
 
         #expect(model.iconTint == .secondary)
         #expect(model.branchTag == nil)
@@ -48,22 +48,34 @@ import Testing
         var session = AISessionFixture.session
         session.lastPrompt = session.title
 
-        #expect(AISessionRowMapper.model(for: session).lastPrompt == nil)
+        #expect(AISessionRowMapper.model(for: session, isFavorite: false).lastPrompt == nil)
 
         session.lastPrompt = nil
-        #expect(AISessionRowMapper.model(for: session).lastPrompt == nil)
+        #expect(AISessionRowMapper.model(for: session, isFavorite: false).lastPrompt == nil)
     }
 
     @Test func aCopilotSessionResumesWithCopilot() {
         var session = AISessionFixture.session
         session.provider = .copilot
 
-        let model = AISessionRowMapper.model(for: session)
+        let model = AISessionRowMapper.model(for: session, isFavorite: false)
 
         #expect(model.icon == "chevron.left.forwardslash.chevron.right")
         #expect(model.providerTag == TagModel("Copilot", tint: .secondary))
         #expect(model.terminalCommand == "copilot --resume 5f0c2d8e-1b7a-4c3e-9a51-0e2f6b7d9c41")
         #expect(model.terminalTitle == "Resumed Copilot session")
         #expect(model.resumeHint == "Open the terminal in DevHub and run copilot --resume")
+    }
+
+    @Test func aFavoriteHasAFilledYellowStar() {
+        let favorite = AISessionRowMapper.model(for: AISessionFixture.session, isFavorite: true)
+        let plain = AISessionRowMapper.model(for: AISessionFixture.session, isFavorite: false)
+
+        #expect(favorite.isFavorite)
+        #expect(favorite.favoriteIcon == "star.fill")
+        #expect(favorite.favoriteTint == .yellow)
+        #expect(favorite.favoriteHint == "Remove from favorites")
+        #expect(plain.favoriteIcon == "star")
+        #expect(plain.favoriteTint == .secondary)
     }
 }

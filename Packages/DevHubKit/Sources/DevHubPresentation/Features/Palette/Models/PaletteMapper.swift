@@ -103,12 +103,17 @@ enum PaletteMapper {
     }
 
     private static func sessionItems(_ sources: PaletteSources) -> [PaletteItem] {
-        sources.sessions.filter(\.folderExists).prefix(20).map { session in
-            PaletteItem(
+        let available = sources.sessions.filter(\.folderExists)
+        let favorites = available.filter { sources.favoriteSessionIDs.contains($0.id) }
+        let others = available.filter { sources.favoriteSessionIDs.contains($0.id) == false }
+        return (favorites + others).prefix(20).map { session in
+            let isFavorite = sources.favoriteSessionIDs.contains(session.id)
+            let provider = AISessionRowMapper.title(for: session.provider)
+            return PaletteItem(
                 id: "session:\(session.id)",
                 title: "Resume \(session.title)",
-                subtitle: "\(AISessionRowMapper.title(for: session.provider)) · \(session.folderName)",
-                systemImage: "sparkles",
+                subtitle: isFavorite ? "Favorite · \(provider) · \(session.folderName)" : "\(provider) · \(session.folderName)",
+                systemImage: isFavorite ? "star.fill" : "sparkles",
                 section: "AI sessions",
                 command: .resumeSession(command: session.terminalCommand, folder: session.cwd, title: "Resumed \(AISessionRowMapper.title(for: session.provider)) session")
             )

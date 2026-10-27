@@ -34,10 +34,12 @@ struct AISessionsView: View {
         ) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(AISessionSectionsMapper.sections(for: visible)) { section in
-                        ListSectionHeader(section.title)
+                    ForEach(AISessionSectionsMapper.sections(for: visible, favorites: sessions.favoriteIDs)) { section in
+                        ListSectionHeader(section.title, systemImage: section.systemImage, iconTint: section.iconTint.color, detail: section.detail)
                         ForEach(section.rows) { row in
-                            AISessionRow(model: row)
+                            AISessionRow(model: row) {
+                                sessions.toggleFavorite(row.id)
+                            }
                             if row.id != section.rows.last?.id {
                                 Divider()
                                     .padding(.leading, 56)

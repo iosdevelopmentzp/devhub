@@ -16,6 +16,7 @@ import Testing
             worktrees: [WorktreeFixture.main, WorktreeFixture.linked],
             pullRequests: [PullRequestSummaryFixture.open],
             sessions: [AISessionFixture.session],
+            favoriteSessionIDs: [],
             isKeepAwakeOn: false,
             requestNumber: CodeHostWords.gitHub.reference
         )
@@ -72,5 +73,18 @@ import Testing
 
         #expect(items.first { $0.command == .toggleKeepAwake }?.title == "Keep Mac awake")
         #expect(PaletteMapper.items(from: awake) { $0.id }.first { $0.command == .toggleKeepAwake }?.title == "Let the Mac sleep")
+    }
+
+    @Test func favoriteSessionsComeFirstWithAStar() {
+        let second = AISessionSample.session(id: "favorite", cwd: AISessionFixture.session.cwd)
+        var favored = sources
+        favored.sessions = [AISessionFixture.session, second]
+        favored.favoriteSessionIDs = ["favorite"]
+
+        let sessions = PaletteMapper.items(from: favored) { $0.id }.filter { $0.section == "AI sessions" }
+
+        #expect(sessions.map(\.id) == ["session:favorite", "session:\(AISessionFixture.session.id)"])
+        #expect(sessions.first?.systemImage == "star.fill")
+        #expect(sessions.first?.subtitle.hasPrefix("Favorite · ") == true)
     }
 }

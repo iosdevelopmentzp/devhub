@@ -25,7 +25,7 @@ The items come in this order. With an empty query the palette shows the first 60
 | Branches | For each local branch except the current one: "Switch to <branch>", "Build & Run <branch>", "Create a worktree for <branch>" | — |
 | Worktrees | For each linked worktree: "Open worktree <name>", "Build & Run worktree <name>" | The path |
 | Pull requests | The requests that the Pull Requests tab has loaded: `#12 <title>` or `!12 <title>` | `<source> → <target> · <author>` |
-| AI sessions | "Resume <session>" for up to 20 sessions in the current scope of the AI tab whose folder still exists | The provider and the folder |
+| AI sessions | "Resume <session>" for up to 20 sessions in the current scope of the AI tab whose folder still exists. Favorite sessions come first, with a star | "Favorite" for a favorite, the provider and the folder |
 
 ### Search
 

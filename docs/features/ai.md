@@ -9,11 +9,11 @@ Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/AI/`, `Features/
 ### Session list
 
 1. **The toolbar:** the number of sessions, the provider filter (Copilot, Claude, Both), the scope (This project, All) and a refresh button.
-2. **The list**, grouped by day: "Today", "Yesterday", then the weekday and date. The newest session is first.
+2. **The list.** Favorite sessions come first, in a "Favorites" section with a yellow star and a count. The other sessions are grouped by day: "Today", "Yesterday", then the weekday and date. The newest session is first.
 
 Each row shows:
 
-1. an icon for the provider (orange when the folder exists, gray when it is missing);
+1. an icon for the provider (orange when the folder exists, gray when it is missing), with a small yellow star when the session is a favorite;
 2. the title;
 3. the date and time of the last change, and the folder of the session (click to copy);
 4. a provider tag (`Claude` or `Copilot`), the git branch tag (click to copy), and a red `folder missing` tag when the folder no longer exists;
@@ -21,7 +21,7 @@ Each row shows:
 
 The header search filters by title, folder, branch, last prompt and provider name.
 
-**This project** shows sessions whose folder is the project folder, a worktree of the project, or a folder inside one of them. A worktree folder next to the project folder counts too. **All** shows every session.
+**This project** shows sessions whose folder is the project folder, a worktree of the project, or a folder inside one of them. A worktree folder next to the project folder counts too. A favorite session shows in every scope. **All** shows every session.
 
 ### Where the sessions come from
 
@@ -50,6 +50,7 @@ The Claude line is always there. The Copilot line appears only when DevHub found
 
 | Action | What it does | Command |
 |---|---|---|
+| Star | Adds the session to the favorites or removes it. The star shows on hover, and always on a favorite | none |
 | Resume | Opens the terminal of Settings in the session folder and resumes the session. Off when the folder is missing | `claude --resume <id>` or `copilot --resume <id>` |
 | Copy resume command | Copies the command with the folder | `cd '<folder>' && claude --resume <id>` (or `copilot`) |
 | Copy session ID | Copies the ID | none |
@@ -102,6 +103,7 @@ The terminal app comes from Settings → Tools → Terminal ([Settings](settings
 |---|---|---|
 | `claude.scope` | `This project` or `All` | `AISessionsStore` |
 | `ai.provider` | `copilot`, `claude` or `both` | `AISessionsStore` |
+| `ai.favorites` | The IDs of the favorite sessions | `AISessionsStore` |
 | `app.settings` → `showUsageStrip` | Shows the usage strip | `SettingsStore` |
 | `app.settings` → `showUsageInMenuBar` | Shows the session usage next to the menu bar icon | `SettingsStore` |
 

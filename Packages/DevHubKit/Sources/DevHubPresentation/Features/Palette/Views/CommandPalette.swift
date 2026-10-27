@@ -94,6 +94,7 @@ struct CommandPalette: View {
                 worktrees: worktrees.worktrees,
                 pullRequests: pullRequests.requests,
                 sessions: sessions.scoped,
+                favoriteSessionIDs: sessions.favoriteIDs,
                 isKeepAwakeOn: keepAwake.isActive,
                 requestNumber: words.reference
             ),

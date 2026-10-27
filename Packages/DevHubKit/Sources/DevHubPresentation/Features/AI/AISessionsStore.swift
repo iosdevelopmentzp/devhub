@@ -32,6 +32,7 @@ final class AISessionsStore {
     private(set) var sessions: [AISession] = []
     private(set) var isLoading = false
     private(set) var hasLoaded = false
+    private(set) var favoriteIDs: Set<AISession.ID>
     var scope: Scope {
         didSet {
             guard scope != oldValue else { return }
@@ -54,6 +55,7 @@ final class AISessionsStore {
 
     private static let scopeKey = "claude.scope"
     private static let providerKey = "ai.provider"
+    private static let favoritesKey = "ai.favorites"
 
     init(repository: AISessionRepository, session: ProjectSession, worktrees: any WorktreeLookup, store: any KeyValueStore) {
         self.repository = repository
@@ -63,6 +65,7 @@ final class AISessionsStore {
         let stored = store.string(forKey: Self.scopeKey)
         scope = stored.flatMap(Scope.init(rawValue:)) ?? .project
         providerFilter = store.string(forKey: Self.providerKey).flatMap(ProviderFilter.init(rawValue:)) ?? .both
+        favoriteIDs = Set(store.strings(forKey: Self.favoritesKey) ?? [])
     }
 
     var scoped: [AISession] {
@@ -70,8 +73,15 @@ final class AISessionsStore {
         guard scope == .project else { return filtered }
         let roots = Set(([session.selectedProject.path] + worktrees.worktrees.map(\.path)).map { ProjectPath($0).expanded })
         return filtered.filter { session in
-            roots.contains { session.cwd == $0 || session.cwd.hasPrefix($0 + "/") }
+            favoriteIDs.contains(session.id) || roots.contains { session.cwd == $0 || session.cwd.hasPrefix($0 + "/") }
         }
+    }
+
+    func toggleFavorite(_ id: AISession.ID) {
+        if favoriteIDs.remove(id) == nil {
+            favoriteIDs.insert(id)
+        }
+        store.set(favoriteIDs.sorted(), forKey: Self.favoritesKey)
     }
 
     func refresh() async {

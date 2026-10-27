@@ -76,4 +76,27 @@ import DevHubTestSupport
         saved.set("claude", forKey: "ai.provider")
         #expect(StoreHarness(store: saved).aiSessions.providerFilter == .claude)
     }
+
+    @Test func aFavoriteIsSavedAndStaysInTheProjectScope() async throws {
+        harness.spies.aiSessions.sessionsResult = AISessionSample.all
+        await store.refresh()
+        let outside = try #require(AISessionSample.all.first { store.scoped.contains($0) == false })
+
+        store.toggleFavorite(outside.id)
+
+        #expect(store.favoriteIDs == [outside.id])
+        #expect(store.scoped.contains(outside))
+        #expect(harness.store.strings(forKey: "ai.favorites") == [outside.id])
+        let saved = InMemoryKeyValueStore()
+        saved.set([outside.id], forKey: "ai.favorites")
+        #expect(StoreHarness(store: saved).aiSessions.favoriteIDs == [outside.id])
+    }
+
+    @Test func aSecondToggleRemovesTheFavorite() {
+        store.toggleFavorite("root")
+        store.toggleFavorite("root")
+
+        #expect(store.favoriteIDs.isEmpty)
+        #expect(harness.store.strings(forKey: "ai.favorites") == [])
+    }
 }
