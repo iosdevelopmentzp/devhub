@@ -24,6 +24,7 @@ package struct PortSpies: Sendable {
     package let scripts = SpyScriptRunner()
     package let tools = SpyToolLocator()
     package let sleep = SpySleepPreventer()
+    package let simulatorSettings = SpySimulatorSettingsRepository()
     package let notifications = SpyUserNotificationRepository()
 
     package init() {}

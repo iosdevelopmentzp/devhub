@@ -9,6 +9,7 @@ struct SimulatorRow<Panels: View>: View {
     let model: SimulatorRowModel
     let onToggleIdentity: () -> Void
     let onToggleMessaging: () -> Void
+    let onToggleQA: () -> Void
     let onRemoveApps: () -> Void
     let onTogglePower: () -> Void
     let onOpenInSimulator: () -> Void
@@ -100,6 +101,9 @@ struct SimulatorRow<Panels: View>: View {
             IconButton(systemImage: "paperplane", help: "Open a deep link or send a push to the app", tint: .teal) {
                 onToggleMessaging()
             }
+            IconButton(systemImage: "slider.horizontal.3", help: "QA settings: appearance, text size, status bar, location, language, permissions, screenshot", tint: .purple) {
+                onToggleQA()
+            }
             IconButton(systemImage: "play.fill", help: "Build & Run on this simulator", tint: .green) {
                 appActions.buildAndRun(on: model.id)
             }
@@ -166,6 +170,7 @@ struct SimulatorRow<Panels: View>: View {
         model: .preview,
         onToggleIdentity: {},
         onToggleMessaging: {},
+        onToggleQA: {},
         onRemoveApps: {},
         onTogglePower: {},
         onOpenInSimulator: {},

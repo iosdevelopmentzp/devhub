@@ -1,0 +1,127 @@
+import SwiftUI
+import DevHubDomain
+import DevHubUI
+
+struct SimulatorQAPanel: View {
+    @Environment(SimulatorQAStore.self) private var qa
+    @Environment(AppActions.self) private var appActions
+
+    let simulator: Simulator
+    let bundleID: String
+    let onClose: () -> Void
+
+    @State private var service = PrivacyService.photos
+
+    private var isBooted: Bool {
+        simulator.state == .booted
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            line("Appearance") {
+                Button("Light", systemImage: "sun.max") { apply(.appearance(.light)) }
+                Button("Dark", systemImage: "moon") { apply(.appearance(.dark)) }
+            }
+            line("Text size") {
+                Menu("Choose…") {
+                    ForEach(SimulatorTextSize.allCases, id: \.self) { size in
+                        Button(SimulatorQAText.title(for: size)) { apply(.textSize(size)) }
+                    }
+                }
+                .fixedSize()
+            }
+            line("Status bar") {
+                Button("Clean 9:41", systemImage: "wand.and.stars") { apply(.cleanStatusBar) }
+                    .hint("Full battery, full signal, Wi-Fi and 9:41, for screenshots")
+                Button("Real", systemImage: "arrow.uturn.backward") { apply(.resetStatusBar) }
+            }
+            line("Location") {
+                Menu("Set…") {
+                    ForEach(SimulatorQAText.locations, id: \.title) { location in
+                        Button(location.title) { apply(.location(latitude: location.latitude, longitude: location.longitude)) }
+                    }
+                }
+                .fixedSize()
+                Button("Clear") { apply(.clearLocation) }
+            }
+            line("Language") {
+                Menu("Set…") {
+                    ForEach(SimulatorQAText.languages, id: \.code) { language in
+                        Button(language.title) { apply(.language(code: language.code, locale: language.locale)) }
+                    }
+                }
+                .fixedSize()
+                if qa.needsReboot.contains(simulator.id) {
+                    Text("Shut down and boot the simulator to see it")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+            }
+            line("Permission") {
+                Picker("Service", selection: $service) {
+                    ForEach(PrivacyService.allCases, id: \.self) { service in
+                        Text(SimulatorQAText.title(for: service)).tag(service)
+                    }
+                }
+                .labelsHidden()
+                .fixedSize()
+                ForEach(PrivacyChange.allCases, id: \.self) { change in
+                    Button(change.rawValue.capitalized) { apply(.privacy(change, service: service, bundleID: bundleID)) }
+                }
+                .disabled(bundleID.isEmpty)
+            }
+            line("Screenshot") {
+                Button("Save to Desktop", systemImage: "camera") { qa.screenshot(simulator) }
+                if let path = qa.screenshots[simulator.id] {
+                    Button((path as NSString).lastPathComponent) { appActions.openInFinder(path: path) }
+                        .buttonStyle(LinkButtonStyle(.accent))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .hint("Show in Finder")
+                }
+            }
+            HStack {
+                Text(isBooted ? "For \(bundleID.isEmpty ? "the simulator" : bundleID)" : "Boot the simulator first")
+                    .font(.caption)
+                    .foregroundStyle(isBooted ? Color.secondary : .orange)
+                Spacer()
+                if qa.isBusy(simulator.id) {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+                Button("Close", action: onClose)
+                    .controlSize(.small)
+            }
+        }
+        .controlSize(.small)
+        .disabled(isBooted == false)
+        .padding(10)
+        .background(Theme.base, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .onChange(of: simulator.state) { _, state in
+            guard state == .shutdown else { return }
+            qa.rebooted(simulator.id)
+        }
+    }
+
+    private func apply(_ setting: SimulatorSetting) {
+        qa.apply(setting, to: simulator)
+    }
+
+    private func line<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        HStack(spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .frame(width: 80, alignment: .leading)
+            FlowLayout(spacing: 6) {
+                content()
+            }
+        }
+    }
+}
+
+#Preview {
+    SimulatorQAPanel(simulator: Simulator(id: "preview", name: "iPhone 17", kind: .phone, state: .booted, isFavorite: false), bundleID: "com.example.app", onClose: {})
+        .previewEnvironment()
+        .padding()
+        .frame(width: 640)
+}

@@ -16,6 +16,7 @@ struct SimulatorsView: View {
     @State private var isConfirmingBulkRemove = false
     @State private var editingIdentityID: Simulator.ID?
     @State private var messagingID: Simulator.ID?
+    @State private var qaID: Simulator.ID?
     @State private var dropTargetID: Simulator.ID?
 
     var body: some View {
@@ -57,6 +58,7 @@ struct SimulatorsView: View {
                     .animation(.snappy(duration: 0.18), value: confirmingEraseID)
                     .animation(.snappy(duration: 0.18), value: editingIdentityID)
                     .animation(.snappy(duration: 0.18), value: messagingID)
+                    .animation(.snappy(duration: 0.18), value: qaID)
                 }
             }
         }
@@ -146,6 +148,7 @@ struct SimulatorsView: View {
             model: model,
             onToggleIdentity: { editingIdentityID = editingIdentityID == id ? nil : id },
             onToggleMessaging: { messagingID = messagingID == id ? nil : id },
+            onToggleQA: { qaID = qaID == id ? nil : id },
             onRemoveApps: { simulators.uninstallUserApps(id: id) },
             onTogglePower: { simulators.togglePower(id: id) },
             onOpenInSimulator: { simulators.openInSimulatorApp(id: id) },
@@ -171,6 +174,9 @@ struct SimulatorsView: View {
         }
         if model.isMessaging, let simulator = simulators.simulator(id: model.id) {
             MessagingPanel(simulator: simulator, onClose: { messagingID = nil })
+        }
+        if qaID == model.id, let simulator = simulators.simulator(id: model.id) {
+            SimulatorQAPanel(simulator: simulator, bundleID: identityStore.bundleID(for: model.id), onClose: { qaID = nil })
         }
         if model.isEditingIdentity, let context = identityStore.context(for: model.id) {
             identityPanel(id: model.id, context: context)

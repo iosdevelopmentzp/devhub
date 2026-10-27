@@ -27,7 +27,8 @@ package extension Ports {
             scripts: spies.scripts,
             tools: spies.tools,
             notifications: spies.notifications,
-            sleep: spies.sleep
+            sleep: spies.sleep,
+            simulatorSettings: spies.simulatorSettings
         )
         return (ports, spies)
     }

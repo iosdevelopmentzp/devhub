@@ -37,7 +37,7 @@ The owner also asked for more comfort when working from any project: an easier p
 - [x] S1. Create .devhub Starter.
 - [x] S2. Switch project from the palette and with ⌃⌘1 to ⌃⌘9.
 - [x] H1. Home "Today" card.
-- [ ] Q1. Simulator QA settings.
+- [x] Q1. Simulator QA settings.
 - [ ] B1. Build log viewer.
 
 ## Step log
@@ -57,4 +57,5 @@ The owner also asked for more comfort when working from any project: an easier p
 | `a51c3c5` | R3 | `PipelineJob.id` and `status`, `PullRequestDetails.jobs` (GitHub from the check rollup with `databaseId`, GitLab from every job of the head pipeline), `CodeHostRepository.jobLog` and `retryJob`, `GhClient.log` with `--allow-escape-sequences`, `JobLogTail`, `PipelineJobRowMapper`, `PipelineJobRow` with the log, Retry and the browser link. Checked: a headless snapshot of a request with a failed check; `gh api …/actions/jobs/<id>/logs` on the test repository. |
 | `cc05fba` | S1 | `StarterConfigFacts`, `StarterConfigPolicy.projectJSON`, `ConfigRepository.createStarter` (refuses an existing `project.json`, `ConfigError.starterExists`), `ConfigStore.createStarter`, the button in Settings → Project config (the three buttons wrap in a `FlowLayout`). Checked by tests: the written file loads without issues. |
 | `b1fdeb0` | S2 | `ProjectSwitchItem`, `ProjectSwitchMapper`, `ProjectShortcuts` (hidden buttons for ⌃⌘1 to ⌃⌘9), `ProjectShortcutModifier` on the project menu items, palette items "Switch to project …". Checked: a real ⌃⌘1 key press switched the project; a headless snapshot of the palette. |
+| `36d2675` | H1 | `TodayTarget`, `TodayItemModel`, `TodayCardMapper` (review count, own requests with failed checks, finished worktrees, booted simulators), `TodayCard` on Home, `OpenPullRequestsStore.requests`, `AppActions.open(_:)` and `showPullRequests(scope:)`. Checked with a headless snapshot of the GitHub test repository. |
 | `fa97a37` | — | The snapshot recipe starts the app with `$PWD/$APP`, so its `pkill` matches. |

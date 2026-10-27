@@ -28,7 +28,8 @@ extension Ports {
             scripts: MockScriptRunner(),
             tools: MockToolLocator(),
             notifications: MockUserNotificationRepository(),
-            sleep: MockSleepPreventer()
+            sleep: MockSleepPreventer(),
+            simulatorSettings: MockSimulatorSettingsRepository()
         )
     }
 }

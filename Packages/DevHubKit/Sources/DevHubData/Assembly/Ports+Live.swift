@@ -43,7 +43,8 @@ extension Ports {
             scripts: ShellScriptRunner(shell: shell),
             tools: tools,
             notifications: SystemUserNotificationRepository(),
-            sleep: IOKitSleepPreventer()
+            sleep: IOKitSleepPreventer(),
+            simulatorSettings: SimctlSettingsRepository(shell: shell)
         )
     }
 }

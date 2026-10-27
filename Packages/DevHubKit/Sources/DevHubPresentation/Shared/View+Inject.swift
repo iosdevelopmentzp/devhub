@@ -15,6 +15,7 @@ extension View {
             .environment(assembly.notifier)
             .environment(assembly.doctor)
             .environment(assembly.keepAwake)
+            .environment(assembly.simulatorQA)
             .environment(assembly.output)
             .environment(assembly.layout)
             .environment(assembly.settings)

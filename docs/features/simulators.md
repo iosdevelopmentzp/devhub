@@ -149,6 +149,22 @@ Both buttons need a booted simulator. The URL scheme menu, Send Push and "Uninst
 3. `xcode.bundleID`;
 4. the bundle ID of the Projects section in Settings.
 
+### QA settings
+
+The sliders button in a row opens a panel under the row. Every control works only on a booted simulator, and every change shows in Recent.
+
+| Control | What it does | Command |
+|---|---|---|
+| Appearance: Light, Dark | The system appearance | `xcrun simctl ui <udid> appearance light\|dark` |
+| Text size | Dynamic Type size, from "Extra small" to "Accessibility XXXL" | `xcrun simctl ui <udid> content_size <size>` |
+| Status bar: Clean 9:41, Real | 9:41, full battery, full signal and Wi-Fi for screenshots; Real removes the override | `xcrun simctl status_bar <udid> override --time 9:41 …`, `status_bar <udid> clear` |
+| Location: Set…, Clear | A city from a short list (Cupertino, New York, London, Berlin, Kyiv, Tokyo, Sydney) | `xcrun simctl location <udid> set <lat>,<lon>`, `location <udid> clear` |
+| Language: Set… | Writes the language and the region of the simulator. Shut it down and boot it to see the change; the panel says so until the simulator shuts down | `xcrun simctl spawn <udid> defaults write -g AppleLanguages -array <code>`, `… AppleLocale -string <locale>` |
+| Permission | Grant, Revoke or Reset one privacy service for the app of the row (the bundle ID of the last launch, else the project). `simctl` has no camera service | `xcrun simctl privacy <udid> grant\|revoke\|reset <service> <bundle ID>` |
+| Screenshot: Save to Desktop | Saves `~/Desktop/<simulator> <date time>.png` (UTC). The file name then shows as a link that reveals it in Finder | `xcrun simctl io <udid> screenshot <path>` |
+
+Video recording is not there yet: `simctl io recordVideo` needs SIGINT to finish the file, and `ShellRunner` stops a process with SIGTERM.
+
 ### Status script line
 
 When `simulators.statusScript` is set, DevHub runs the script for each simulator that is booted, a favorite or the target.
