@@ -206,7 +206,7 @@ Scripts/build.sh
 APP=DerivedData/Build/Products/Debug/DevHub.app
 SHOT=/path/in/your/scratch/folder/git.png
 DEVHUB_PROJECT=/path/to/a/throwaway/repo DEVHUB_OPEN_PANEL=1 DEVHUB_TAB=git \
-DEVHUB_SNAPSHOT="$SHOT" DEVHUB_SNAPSHOT_DELAY=3 "$APP/Contents/MacOS/DevHub" &
+DEVHUB_SNAPSHOT="$SHOT" DEVHUB_SNAPSHOT_DELAY=3 "$PWD/$APP/Contents/MacOS/DevHub" &
 for i in $(seq 1 40); do [ -f "$SHOT" ] && break; sleep 0.25; done
 pkill -f "^$PWD/$APP/Contents/MacOS/DevHub"
 ```

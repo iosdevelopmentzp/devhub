@@ -103,6 +103,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- The headless snapshot recipe in the `build-and-run` skill and `docs/testing.md` starts the app with its full path, so the `pkill` line at the end really stops it. Before, every snapshot left a DevHub copy running in the menu bar.
 - ADR 005 plans the window mode, the ports from the main DevHub, pull request comments, checks, project setup and daily tools.
 - `GlabIntegrationTests`: with `DEVHUB_GITLAB_PLAYGROUND=<host>/<owner>/<project>` it creates a merge request on a GitLab test project and runs draft, ready, a thread with a reply, resolve and merge through the real `glab` code. The first run on a real host confirmed that GitLab rejected the old string booleans.
 - Documentation for the finished rewrite: `docs/features/<tab>.md` for every tab, a new `docs/SPEC.md`, `docs/adr/004-launch-identities-and-network.md`, `docs/testing.md`, the `code-host` skill, and rewritten `add-feature`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`, `data-layer` and `testing` skills. The `providers-and-shell` skill is merged into `data-layer`.
