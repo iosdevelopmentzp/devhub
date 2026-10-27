@@ -13,6 +13,7 @@ package final class PresentationAssembly {
     let toaster: Toaster
     let notifier: Notifier
     let doctor: DoctorStore
+    let keepAwake: KeepAwakeStore
     let hints: HintCenter
     let output: OutputPanelState
     let layout: WindowLayout
@@ -66,6 +67,7 @@ package final class PresentationAssembly {
         workspace = WorkspaceActions(settings: settings, activity: activity, opener: ports.opener)
         notifier = Notifier(repository: ports.notifications, settings: settings, activity: activity)
         doctor = DoctorStore(checkTools: useCases.checkTools, attacher: ports.attacher)
+        keepAwake = KeepAwakeStore(preventer: ports.sleep, activity: activity)
         usage = UsageStore(repository: ports.usage, copilotRepository: ports.copilotUsage)
         worktrees = WorktreesStore(
             repository: ports.worktrees,

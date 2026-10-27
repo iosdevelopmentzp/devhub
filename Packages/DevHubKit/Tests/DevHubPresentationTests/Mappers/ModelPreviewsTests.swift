@@ -62,6 +62,7 @@ import Testing
         #expect(SimulatorSectionModel.preview.rows.count == 1)
         #expect(UsageMeterModel.preview.levelTint == .orange)
         #expect(UsageSummaryModel.preview.meters.count == 2)
+        #expect(KeepAwakeCardModel.preview.isActive)
         #expect(WorktreeRowModel.preview.canDelete)
         #expect(WorktreeSectionModel.preview.id == "In progress")
     }

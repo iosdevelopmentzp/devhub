@@ -6,11 +6,16 @@ struct HomeView: View {
     @Environment(ProjectSession.self) private var session
     @Environment(ActivityLog.self) private var activity
     @Environment(WorktreesStore.self) private var worktrees
+    @Environment(KeepAwakeStore.self) private var keepAwake
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 ProjectCard(model: projectCard)
+
+                KeepAwakeCard(model: KeepAwakeCardMapper.model(isActive: keepAwake.isActive)) {
+                    keepAwake.toggle()
+                }
 
                 ConfigIssuesSection()
 

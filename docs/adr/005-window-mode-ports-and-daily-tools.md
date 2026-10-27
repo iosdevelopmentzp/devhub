@@ -25,7 +25,7 @@ The owner also asked for more comfort when working from any project: an easier p
 ## Plan
 
 - [x] P1. Claude usage: read the per-model weekly limits from the `limits` list.
-- [ ] P2. Keep Mac awake: a Home card, a palette command, a cup on the menu bar icon.
+- [x] P2. Keep Mac awake: a Home card, a palette command, a cup on the menu bar icon.
 - [ ] P3. Favorite AI sessions.
 - [ ] P4. Drag to reorder favorite simulators.
 - [ ] P5. Pin, label and add a note to local branches.
@@ -44,3 +44,4 @@ The owner also asked for more comfort when working from any project: an easier p
 
 | Commit | Step | What it did |
 |---|---|---|
+| `54d15db` | P1 | `ClaudeUsageParser` reads `weekly_scoped` entries of the `limits` list after the flat keys; a flat value wins. Copied from the main DevHub `f38add6`. |

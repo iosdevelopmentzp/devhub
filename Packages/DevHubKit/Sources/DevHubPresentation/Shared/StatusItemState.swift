@@ -5,10 +5,12 @@ enum StatusItemState: Equatable {
     case idle
     case building
     case failed
+    case awake
 
-    static func state(isBuilding: Bool, hasUnseenFailure: Bool) -> StatusItemState {
+    static func state(isBuilding: Bool, hasUnseenFailure: Bool, isKeepingAwake: Bool) -> StatusItemState {
         if isBuilding { return .building }
-        return hasUnseenFailure ? .failed : .idle
+        if hasUnseenFailure { return .failed }
+        return isKeepingAwake ? .awake : .idle
     }
 
     var symbolName: String {
@@ -16,6 +18,7 @@ enum StatusItemState: Equatable {
         case .idle: "hammer.fill"
         case .building: "hammer.circle.fill"
         case .failed: "hammer.fill"
+        case .awake: "cup.and.saucer.fill"
         }
     }
 

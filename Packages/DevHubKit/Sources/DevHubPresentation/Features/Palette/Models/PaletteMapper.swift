@@ -7,7 +7,7 @@ enum PaletteMapper {
 
     static func items(from sources: PaletteSources, actionTitle: (CatalogAction) -> String) -> [PaletteItem] {
         tabItems(sources) + actionItems(sources, title: actionTitle) + simulatorItems(sources) + branchItems(sources)
-            + worktreeItems(sources) + pullRequestItems(sources) + sessionItems(sources) + [settingsItem]
+            + worktreeItems(sources) + pullRequestItems(sources) + sessionItems(sources) + [keepAwakeItem(sources), settingsItem]
     }
 
     static func matches(_ items: [PaletteItem], query: String) -> [PaletteItem] {
@@ -24,6 +24,18 @@ enum PaletteMapper {
     }
 
     private static let settingsItem = PaletteItem(id: "settings", title: "Settings", subtitle: "Open the settings of DevHub", systemImage: "gearshape", section: "Tabs", command: .openSettings)
+
+    private static func keepAwakeItem(_ sources: PaletteSources) -> PaletteItem {
+        let card = KeepAwakeCardMapper.model(isActive: sources.isKeepAwakeOn)
+        return PaletteItem(
+            id: "keepAwake",
+            title: sources.isKeepAwakeOn ? "Let the Mac sleep" : "Keep Mac awake",
+            subtitle: card.subtitle,
+            systemImage: card.systemImage,
+            section: "Actions",
+            command: .toggleKeepAwake
+        )
+    }
 
     private static func tabItems(_ sources: PaletteSources) -> [PaletteItem] {
         sources.tabs.map { tab in

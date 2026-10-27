@@ -12,5 +12,6 @@ struct PaletteSources {
     var worktrees: [Worktree]
     var pullRequests: [PullRequestSummary]
     var sessions: [AISession]
+    var isKeepAwakeOn: Bool
     var requestNumber: (Int) -> String
 }

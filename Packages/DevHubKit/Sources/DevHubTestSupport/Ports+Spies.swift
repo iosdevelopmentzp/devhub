@@ -26,7 +26,8 @@ package extension Ports {
             config: spies.config,
             scripts: spies.scripts,
             tools: spies.tools,
-            notifications: spies.notifications
+            notifications: spies.notifications,
+            sleep: spies.sleep
         )
         return (ports, spies)
     }

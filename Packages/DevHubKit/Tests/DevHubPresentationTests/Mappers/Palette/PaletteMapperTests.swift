@@ -16,6 +16,7 @@ import Testing
             worktrees: [WorktreeFixture.main, WorktreeFixture.linked],
             pullRequests: [PullRequestSummaryFixture.open],
             sessions: [AISessionFixture.session],
+            isKeepAwakeOn: false,
             requestNumber: CodeHostWords.gitHub.reference
         )
     }
@@ -63,5 +64,13 @@ import Testing
         #expect(PaletteMapper.matches(items, query: "git").first?.command == .showTab(.feature(.git)))
         #expect(PaletteMapper.matches(items, query: "nothing like this").isEmpty)
         #expect(PaletteMapper.matches(items, query: " ").count == min(items.count, PaletteMapper.limit))
+    }
+
+    @Test func keepAwakeItemNamesTheNextState() {
+        var awake = sources
+        awake.isKeepAwakeOn = true
+
+        #expect(items.first { $0.command == .toggleKeepAwake }?.title == "Keep Mac awake")
+        #expect(PaletteMapper.items(from: awake) { $0.id }.first { $0.command == .toggleKeepAwake }?.title == "Let the Mac sleep")
     }
 }

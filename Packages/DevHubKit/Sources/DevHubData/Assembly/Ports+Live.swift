@@ -42,7 +42,8 @@ extension Ports {
             config: FileConfigRepository(home: home, pollInterval: .seconds(2)),
             scripts: ShellScriptRunner(shell: shell),
             tools: tools,
-            notifications: SystemUserNotificationRepository()
+            notifications: SystemUserNotificationRepository(),
+            sleep: IOKitSleepPreventer()
         )
     }
 }

@@ -246,7 +246,11 @@ package final class AppWindows: NSObject {
         withObservationTracking {
             let usage = assembly.usage
             let settings = assembly.settings
-            let state = StatusItemState.state(isBuilding: assembly.build.isRunning, hasUnseenFailure: assembly.notifier.hasUnseenFailure)
+            let state = StatusItemState.state(
+                isBuilding: assembly.build.isRunning,
+                hasUnseenFailure: assembly.notifier.hasUnseenFailure,
+                isKeepingAwake: assembly.keepAwake.isActive
+            )
             statusItem.button?.image = StatusItemImage.image(for: state)
             statusItem.button?.title = StatusItemTitle.text(
                 usage: settings.values.showUsageInMenuBar ? usage.usage?.limits.first?.percentText : nil,
