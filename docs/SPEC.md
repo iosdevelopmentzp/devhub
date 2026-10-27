@@ -57,8 +57,9 @@ Details: `docs/features/output.md` (Output panel) and `docs/features/palette.md`
 
 ### 2.1 Status item and menu bar icon
 
-- DevHub has no Dock icon by default (`LSUIElement`). Settings can show one.
-- The status item shows a hammer icon. A click (left or right) opens or closes the panel.
+- DevHub has no Dock icon by default (`LSUIElement`). Settings can show one, and the "Normal window" mode always has one.
+- The status item shows a hammer icon. A left click opens or closes the panel (or shows and hides the window in window mode). A right click opens a menu: Show DevHub, the projects, Keep Mac Awake, Settings…, Quit DevHub.
+- While Keep Mac awake is on and nothing else needs the icon, it shows a cup (`cup.and.saucer.fill`).
 - The icon shows the build state:
 
   | State | Icon |
@@ -77,11 +78,12 @@ Details: `docs/features/output.md` (Output panel) and `docs/features/palette.md`
 - A click outside the panel or a switch to another app closes the panel.
 - The pin button in the header opens the same content in a normal floating window. That window stays open, keeps its frame and does not close on a click outside.
 - A pull request can open in its own window (860 × 720 by default).
+- Settings → General → Window "Normal window" replaces the panel with one window that has a title bar, a Dock icon and a main menu. The close button hides it, and it comes to the current desktop when shown. The pin button is hidden in this mode.
 
 ### 2.3 Layout from top to bottom
 
 1. **Usage strip** (a switch in Settings). One row per AI provider that is logged in. Claude shows the session and week limits. Copilot shows the premium requests of the month. A click shows reset times and a Refresh button.
-2. **Header.** The project menu (switch project, Add Project), the current branch under the project name, the search field with a prompt per tab (⌘F), the palette button (⌘K), the pin button and the settings button.
+2. **Header.** The project menu (switch project, Add Project), the current branch under the project name, the search field with a prompt per tab (⌘F), the palette button (⌘K), the pin button (panel mode only) and the settings button. ⌃⌘1 to ⌃⌘9 select the first nine projects.
 3. **Tab bar.** The built-in tabs, then the custom tabs. ⌘1 to ⌘9 select the first nine tabs. The selected tab has the accent colour. When the titles do not fit, the other tabs show only icons.
 4. **Search filter bar.** A thin bar with "Clear search" appears only when the current tab is filtered. Without it, a saved query could hide most of a list without a sign.
 5. **The view of the selected tab.**

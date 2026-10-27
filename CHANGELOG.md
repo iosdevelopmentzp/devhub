@@ -114,6 +114,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- `docs/STATUS.md`, `docs/SPEC.md` and ADR 005 describe the window mode and the new features. Decisions 37 to 40 are new.
 - The `DEVHUB_PULL_REQUEST=<n>` debug switch opens a request in the Pull Requests tab for a headless snapshot.
 - `AppContainer` is the app delegate (`@NSApplicationDelegateAdaptor`), so a click on the Dock icon shows DevHub. The `DEVHUB_WINDOW_MODE` debug switch sets the window mode.
 - The headless snapshot recipe in the `build-and-run` skill and `docs/testing.md` starts the app with its full path, so the `pkill` line at the end really stops it. Before, every snapshot left a DevHub copy running in the menu bar.

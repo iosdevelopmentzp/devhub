@@ -1,6 +1,6 @@
 # ADR 005: Window mode, ports from the main DevHub, and daily tools
 
-- **Status**: in progress, started 2026-10-27.
+- **Status**: done, 2026-10-27.
 - **Scope**: `Packages/DevHubKit` (Shell, Settings, Home, Git, Pull Requests, Simulators, Build, AI, Palette), `DevHub.xcodeproj`, docs.
 
 ## Context
@@ -59,4 +59,5 @@ The owner also asked for more comfort when working from any project: an easier p
 | `b1fdeb0` | S2 | `ProjectSwitchItem`, `ProjectSwitchMapper`, `ProjectShortcuts` (hidden buttons for ⌃⌘1 to ⌃⌘9), `ProjectShortcutModifier` on the project menu items, palette items "Switch to project …". Checked: a real ⌃⌘1 key press switched the project; a headless snapshot of the palette. |
 | `36d2675` | H1 | `TodayTarget`, `TodayItemModel`, `TodayCardMapper` (review count, own requests with failed checks, finished worktrees, booted simulators), `TodayCard` on Home, `OpenPullRequestsStore.requests`, `AppActions.open(_:)` and `showPullRequests(scope:)`. Checked with a headless snapshot of the GitHub test repository. |
 | `5cecd27` | Q1 | `SimulatorSetting` and its enums, the `SimulatorSettingsRepository` port (`SimctlSettingsRepository`, mock, spy), `SimulatorQAStore`, `SimulatorQAText`, `SimulatorQAPanel` and the row button. Checked: the simctl option names against `xcrun simctl … help`, a real status bar override, screenshot and clear on a booted simulator. The panel itself was checked by tests only. No video recording. |
+| `51f3775` | B1 | `BuildIssue`, `BuildEvent.issue`, `BuildOutputParser.issue`, `BuildStore.issues` (at most 200, no repeats, cleared on a new build), `BuildIssuesMapper`, `BuildIssuesList` in the run bar, `AppActions.openFile(path:line:)`. Checked by parser tests with xcodebuild lines. |
 | `fa97a37` | — | The snapshot recipe starts the app with `$PWD/$APP`, so its `pkill` matches. |
