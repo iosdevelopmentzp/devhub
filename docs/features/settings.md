@@ -88,6 +88,7 @@ The project name is the folder name. `.devhub/project.json` can override the sch
 | Item | What it does |
 |---|---|
 | Layers | Lists the three config folders of the selected project with their paths: user, project and global. A folder that does not exist shows "(none)" |
+| Create .devhub Starter | Writes `.devhub/project.json` into the selected project with what DevHub found: `name`, `kind`, `xcode.scheme` and `xcode.bundleID` (only for an Xcode project), `git.remote`, `git.host.kind` (after the first read of the remote) and `git.baseBranch`. Then it opens the file in the editor from Settings. Nothing is written when the file exists |
 | Create .devhub Example | Writes an example `.devhub` folder into the selected project: `project.json`, actions, scripts and a custom tab. When the folder exists, nothing is written and the error shows in a toast |
 | Reveal .devhub Folder | Opens the first config folder that exists, in this order: project, user, global. Without one, a toast says "No .devhub folder yet" |
 

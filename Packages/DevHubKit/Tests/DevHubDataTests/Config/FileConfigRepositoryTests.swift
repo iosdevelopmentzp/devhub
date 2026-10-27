@@ -69,4 +69,18 @@ import Testing
         _ = try project.write("{}", to: ".devhub/project.json")
         #expect(await repository.existingFolder(projectPath: project.url.path) == project.url.path + "/.devhub")
     }
+
+    @Test func createStarterWritesTheProjectFileOnceAndTheConfigLoads() async throws {
+        let json = StarterConfigPolicy.projectJSON(StarterConfigFacts(name: "Example App", scheme: "ExampleApp", bundleID: "com.example.app", remote: "origin", hostKind: .github, baseBranch: "main"))
+
+        let file = try await repository.createStarter(projectPath: project.url.path, projectJSON: json)
+
+        #expect(file == project.url.path + "/.devhub/project.json")
+        let loaded = await repository.load(projectPath: project.url.path)
+        #expect(loaded.issues.isEmpty)
+        #expect(loaded.project.name == "Example App")
+        await #expect(throws: ConfigError.starterExists(file)) {
+            try await repository.createStarter(projectPath: project.url.path, projectJSON: json)
+        }
+    }
 }

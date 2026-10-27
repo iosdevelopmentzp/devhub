@@ -35,6 +35,20 @@ struct FileConfigRepository: ConfigRepository {
         return folder
     }
 
+    func createStarter(projectPath: String, projectJSON: String) async throws -> String {
+        let folder = ProjectPath(projectPath).expanded + "/" + ConfigPaths.folderName
+        let file = folder + "/project.json"
+        try await Task.detached {
+            let manager = FileManager.default
+            guard manager.fileExists(atPath: file) == false else {
+                throw ConfigError.starterExists(file)
+            }
+            try manager.createDirectory(atPath: folder, withIntermediateDirectories: true)
+            try (projectJSON + "\n").write(toFile: file, atomically: true, encoding: .utf8)
+        }.value
+        return file
+    }
+
     func existingFolder(projectPath: String) async -> String? {
         let infos = layers(projectPath)
         return await Task.detached {

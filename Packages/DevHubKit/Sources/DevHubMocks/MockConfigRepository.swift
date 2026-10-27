@@ -14,6 +14,10 @@ struct MockConfigRepository: ConfigRepository {
         projectPath + "/" + ConfigPaths.folderName
     }
 
+    func createStarter(projectPath: String, projectJSON: String) async throws -> String {
+        projectPath + "/" + ConfigPaths.folderName + "/project.json"
+    }
+
     func existingFolder(projectPath: String) async -> String? {
         projectPath + "/" + ConfigPaths.folderName
     }

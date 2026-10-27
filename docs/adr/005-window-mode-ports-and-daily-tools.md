@@ -34,7 +34,7 @@ The owner also asked for more comfort when working from any project: an easier p
 - [x] R1. Top-level comment and Request Changes.
 - [x] R2. New thread on a diff line.
 - [x] R3. Checks and pipeline jobs in the details.
-- [ ] S1. Create .devhub Starter.
+- [x] S1. Create .devhub Starter.
 - [ ] S2. Switch project from the palette and with ⌃⌘1 to ⌃⌘9.
 - [ ] H1. Home "Today" card.
 - [ ] Q1. Simulator QA settings.
@@ -54,4 +54,5 @@ The owner also asked for more comfort when working from any project: an easier p
 | `25f1ad1` | W2 | `StatusMenuItem`, `StatusMenuMapper`, the right-click menu in `AppWindows.statusItemClicked`. Checked with a synthetic right click: the menu lists Show DevHub, the projects, Keep Mac Awake, Settings…, Quit DevHub. |
 | `5884995` | R1 | `CodeHostRepository.comment` and `requestChanges`, `PullRequestPermissions.canRequestChanges` (GitHub: not the author), `PullRequestCommentBox` under the threads, drafts per request in `PullRequestDetailStore`; `DEVHUB_PULL_REQUEST`. Checked with a headless snapshot of the GitHub test repository: the box shows, Request Changes stays hidden on an own request. No comment was posted. |
 | `65b49e9` | R2 | `PullRequestLineComment`, `CodeHostRepository.addLineComment` (GitHub review comment with `commit_id`, `line`, `side`; GitLab discussion with a `position` from `diff_refs`, `GlabDiffRefsParser`), `LineCommentDraft` in `PullRequestDetailStore`, `LineCommentComposer` under the line, a hover button and a context menu item on `DiffLine`. Checked by tests only: a headless snapshot cannot click a line. |
+| `a51c3c5` | R3 | `PipelineJob.id` and `status`, `PullRequestDetails.jobs` (GitHub from the check rollup with `databaseId`, GitLab from every job of the head pipeline), `CodeHostRepository.jobLog` and `retryJob`, `GhClient.log` with `--allow-escape-sequences`, `JobLogTail`, `PipelineJobRowMapper`, `PipelineJobRow` with the log, Retry and the browser link. Checked: a headless snapshot of a request with a failed check; `gh api …/actions/jobs/<id>/logs` on the test repository. |
 | `fa97a37` | — | The snapshot recipe starts the app with `$PWD/$APP`, so its `pkill` matches. |

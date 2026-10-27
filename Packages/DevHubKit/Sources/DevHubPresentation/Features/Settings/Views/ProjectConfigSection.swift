@@ -8,6 +8,8 @@ struct ProjectConfigSection: View {
     @Environment(AppActions.self) private var appActions
     @Environment(Toaster.self) private var toaster
     @Environment(ActivityLog.self) private var activity
+    @Environment(GitStore.self) private var git
+    @Environment(\.codeHostWords) private var words
 
     var body: some View {
         Section {
@@ -23,7 +25,12 @@ struct ProjectConfigSection: View {
                     }
                 }
             }
-            HStack {
+            FlowLayout(spacing: 8) {
+                Button("Create .devhub Starter", systemImage: "wand.and.stars") {
+                    createStarter()
+                }
+                .fixedSize()
+                .hint("Writes .devhub/project.json with what DevHub found: the name, the scheme, the bundle ID, the remote, the code host and the base branch. Edit it later. Nothing is written when the file exists.")
                 Button("Create .devhub Example", systemImage: "doc.badge.plus") {
                     createExample()
                 }
@@ -41,6 +48,20 @@ struct ProjectConfigSection: View {
             Text("DevHub reads .devhub from the project, from ~/.devhub/projects/<folder name> and from ~/.devhub. The schema is in docs/extensions.md.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    private func createStarter() {
+        Task {
+            do {
+                let file = try await config.createStarter(remote: git.remote, hostKind: words.kind, baseBranch: git.baseName)
+                activity.log("Created .devhub/project.json", detail: file, outcome: .success)
+                toaster.show("Created \(file.abbreviatingHome)")
+                appActions.openFile(path: file)
+            } catch {
+                activity.log("Could not create .devhub/project.json", detail: error.localizedDescription, outcome: .failure)
+                toaster.show(error.localizedDescription)
+            }
         }
     }
 

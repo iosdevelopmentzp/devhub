@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Settings → Project config → "Create .devhub Starter" writes `.devhub/project.json` with the values DevHub found for the project (name, scheme, bundle ID, remote, code host, base branch) and opens it in the editor. A good first step for a new project; the example folder stays for a full reference.
 - Pull request details list every check or pipeline job of the last commit, failed first. The log button shows the last 200 lines of a job log inside DevHub, with Copy Log. Retry runs one failed or cancelled job again. Works for GitHub Actions and GitLab jobs.
 - Pull request diffs: hover a line and click the bubble with a plus (or right-click it, "Comment on This Line…") to start a new review thread on that line, on GitHub and GitLab. The box opens under the line; ⌘Return posts, Esc closes.
 - Pull request details have a comment box. "Comment" (⌘Return) posts a comment on the request on GitHub and GitLab. "Request Changes" sends the text as a review that asks for changes, on GitHub, for a request by someone else. A failed post keeps the text.

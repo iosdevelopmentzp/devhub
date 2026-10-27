@@ -87,6 +87,14 @@ final class ConfigStore {
         return folder
     }
 
+    func createStarter(remote: String, hostKind: CodeHostKind?, baseBranch: String?) async throws -> String {
+        let project = session.selectedProject
+        let facts = StarterConfigFacts(name: project.name, scheme: project.scheme, bundleID: project.bundleID, remote: remote, hostKind: hostKind, baseBranch: baseBranch)
+        let file = try await repository.createStarter(projectPath: project.path, projectJSON: StarterConfigPolicy.projectJSON(facts))
+        await reload()
+        return file
+    }
+
     func existingFolder() async -> String? {
         await repository.existingFolder(projectPath: session.selectedProject.path)
     }

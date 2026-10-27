@@ -102,4 +102,13 @@ import DevHubTestSupport
         #expect(effective.baseBranch == "origin/develop")
         #expect(effective.scheme == "App")
     }
+
+    @Test func createStarterWritesTheFactsOfTheProject() async throws {
+        let file = try await store.createStarter(remote: "upstream", hostKind: .gitlab, baseBranch: "develop")
+
+        #expect(file == "/repo/.devhub/project.json")
+        let project = harness.session.selectedProject
+        let json = StarterConfigPolicy.projectJSON(StarterConfigFacts(name: project.name, scheme: project.scheme, bundleID: project.bundleID, remote: "upstream", hostKind: .gitlab, baseBranch: "develop"))
+        #expect(harness.spies.config.calls.contains(.createStarter(projectPath: ProjectSample.path, projectJSON: json)))
+    }
 }

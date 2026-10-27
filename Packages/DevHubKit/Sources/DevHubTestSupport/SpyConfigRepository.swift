@@ -7,6 +7,7 @@ package final class SpyConfigRepository: ConfigRepository, @unchecked Sendable {
         case changes(projectPath: String)
         case createExample(projectPath: String)
         case existingFolder(projectPath: String)
+        case createStarter(projectPath: String, projectJSON: String)
     }
 
     private let lock = NSLock()
@@ -49,6 +50,10 @@ package final class SpyConfigRepository: ConfigRepository, @unchecked Sendable {
 
     package func createExample(projectPath: String) async throws -> String {
         try record(.createExample(projectPath: projectPath)) { try _createExampleResult.get() }
+    }
+
+    package func createStarter(projectPath: String, projectJSON: String) async throws -> String {
+        try record(.createStarter(projectPath: projectPath, projectJSON: projectJSON)) { try _createExampleResult.get() + "/project.json" }
     }
 
     package func existingFolder(projectPath: String) async -> String? {
