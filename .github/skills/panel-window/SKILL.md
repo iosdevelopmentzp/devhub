@@ -13,39 +13,61 @@ Paths are relative to `Packages/DevHubKit/Sources/`. The window code lives in `D
 
 `MenuBarExtra(.window)` puts its panel back under the icon on every open and every resize, and the user cannot move
 it. DevHub draws its own status item and panel. The SwiftUI `App` in `DevHub/DevHubApp.swift` has only an empty
-`Settings` scene and keeps `AppContainer.live()` alive.
+`Settings` scene and `@NSApplicationDelegateAdaptor(AppContainer.self)`: `AppContainer` is the app delegate.
 
 ## Start
 
-`AppContainer.live()` (DevHubComposition) builds `PresentationAssembly`, then `startSystemIntegration()`:
+`AppContainer.init()` (DevHubComposition) builds `PresentationAssembly`. `applicationDidFinishLaunching(_:)` then
+starts the shell:
 
 ```swift
 let windows = AppWindows(assembly: assembly)
-let hotKey = GlobalHotKey { windows.showPinnedOrPanel() }
+let hotKey = GlobalHotKey { windows.toggle() }
 settings.onShortcutChange = { hotKey.register($0) }
-DispatchQueue.main.async { [settings, assembly] in
-    windows.start()
-    hotKey.register(settings.values.globalShortcut)
-    if settings.values.showDockIcon {
-        settings.applyDockIcon()
-    }
-    #if DEBUG
-    DebugLaunch.apply(assembly: assembly, windows: windows)
-    #endif
-}
+windows.start()
+hotKey.register(settings.values.globalShortcut)
+#if DEBUG
+DebugLaunch.apply(assembly: assembly, windows: windows)
+#endif
 ```
 
-`AppWindows.start()` sets the status item button, starts the observation of the layout and the status label, starts
-the usage and review polling, loads the config and the mock sets, and closes the panel on
-`NSApplication.didResignActiveNotification`.
+`applicationShouldHandleReopen(_:hasVisibleWindows:)` (a click on the Dock icon, or `open` on the running app) calls
+`windows.show()`.
+
+`AppWindows.start()` sets the status item button, starts the observation of the layout, the status label and the app
+activation, sets the activation policy (`SettingsStore.applyDockIcon()`), installs the main menu in window mode,
+starts the usage and review polling, loads the config and the mock sets, and closes the panel on
+`NSApplication.didResignActiveNotification`. In window mode it shows the main window when `layout.isWindowOpen` is
+true (the window was open when DevHub quit).
+
+## Two window modes
+
+`AppSettings.windowMode` (`WindowMode`, Domain) is `.panel` (the default) or `.window`. Settings → General → Window
+changes it; `SettingsStore.onWindowModeChange` calls `AppWindows.applyWindowMode(_:)`, which switches at once.
+
+| | Panel mode | Window mode |
+|---|---|---|
+| Left click on the icon, global shortcut (`toggle()`) | `showPinnedOrPanel()`: the pinned window to the front, else toggle the panel | `toggleWindow()`: hide the main window when it is the key window of the active app on this desktop, else `showWindow()` |
+| Dock click, "Show DevHub" (`show()`) | open the panel (or the pinned window) | `showWindow()` |
+| Dock icon | only with "Show Dock icon" | always (`SettingsStore.showsDockIcon`) |
+| Main menu | the SwiftUI default | `MainMenuBuilder` (DevHub, File, Edit, Window), installed again on every `didBecomeActiveNotification` |
+| Pin button | shown | hidden |
+
+`MainWindow` is an `NSWindow` with a title bar, `moveToActiveSpace`, the light appearance and the autosave name
+`WindowLayout.mainAutosaveName` (the first time it takes the frame of the pinned window). `AppWindows` is its
+delegate: `windowShouldClose(_:)` calls `hideWindow()` and returns false, so the close button and ⌘W only hide it.
+`hideWindow()` orders the window out, saves `layout.isWindowOpen = false` and calls `NSApp.hide(nil)` when no pull
+request window is open, so the focus goes back to the previous app. `showWindow()` orders a window that is visible on
+another desktop out first, so `moveToActiveSpace` brings it to the current desktop.
 
 ## Pieces
 
 | Type | Module, folder | Role |
 |---|---|---|
-| `AppWindows` | Presentation `Shell/` | `package final class`. Owns the `NSStatusItem`, the `MenuBarPanel`, the pinned window and one window per pull request. `togglePanel()`, `showPanel()`, `showPinnedOrPanel()`, `togglePin()`, `showPullRequestWindow(_:)` |
+| `AppWindows` | Presentation `Shell/` | `package final class`, `NSWindowDelegate`. Owns the `NSStatusItem`, the `MenuBarPanel`, the pinned window, the `MainWindow` and one window per pull request. `toggle()`, `show()`, `togglePanel()`, `showPanel()`, `togglePin()`, `showWindow()`, `hideWindow()`, `showPullRequestWindow(_:)` |
+| `MainWindow`, `MainMenuBuilder` | Presentation `Shell/` | the window and the main menu of window mode |
 | `MenuBarPanel` | Presentation `Shell/` | `NSPanel`: `.borderless`, `canBecomeKey` true, `isFloatingPanel`, `level = .statusBar`, `hidesOnDeactivate = false`, `isReleasedWhenClosed = false`, `collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]`, `animationBehavior = .none`, `isMovable = false`, clear background, shadow |
-| `WindowLayout` | Presentation `Shared/` | `@Observable`: `size`, `panelTopLeft`, `openCount`; `panelFrame(anchor:anchorScreen:)`, `fit(_:)`, `resize(to:in:)`, `reset()`. Saves `window.size` and `window.panelTopLeft` through `KeyValueStore` |
+| `WindowLayout` | Presentation `Shared/` | `@Observable`: `size`, `panelTopLeft`, `openCount`, `isWindowOpen` (saved as `window.isOpen`); `panelFrame(anchor:anchorScreen:)`, `fit(_:)`, `resize(to:in:)`, `reset()`. Saves `window.size` and `window.panelTopLeft` through `KeyValueStore` |
 | `WindowFrame` | Presentation `Shell/` | view modifier: a fixed `frame(width:height:)` from `layout.size` in the panel; a flexible frame with `minimumSize` in the pinned window that writes its size back to `layout` |
 | `RootView` | Presentation `Shell/` | usage strip, `HeaderView`, `FeatureTabBar`, `SearchFilterBar`, the selected tab or `NoProjectState`, `OutputPanel`, `FooterView`; the palette overlay, `HintOverlay`, `ToastView` |
 | `PanelDragArea`, `WindowDragArea` | Presentation `Shell/` | the header background moves the panel; a double click puts it back under the icon |
@@ -67,7 +89,8 @@ Environment values for the shell: `\.isPinnedWindow` (DevHubUI), `\.togglePin`, 
   on the status item. `closePanel()` removes the monitor.
 - Left and right click on the status item both toggle the panel. There is no status item menu.
 - `Notifier.panelShown(_:)` hears every open and close, so notifications show only while the panel and the pinned
-  window are closed.
+  window are closed. The main window counts as shown only while it is visible, not minimized and DevHub is the
+  active app.
 
 ## Position and size
 
@@ -122,7 +145,8 @@ Tests: `StatusItemStateTests` and `StatusItemTitleTests` in `DevHubPresentationT
 - `GlobalHotKey.register(_:)` removes the old key and registers the new one on `GetApplicationEventTarget()`. The C
   handler posts `.devHubHotKeyPressed` on the main queue; the observer calls the `action` closure.
 - `SettingsStore.onShortcutChange` fires when the user picks another shortcut in Settings.
-- Dock icon: `SettingsStore.applyDockIcon()` calls `NSApp.setActivationPolicy(.regular)` or `.accessory`.
+- Dock icon: `SettingsStore.applyDockIcon()` calls `NSApp.setActivationPolicy(.regular)` when `showsDockIcon` (window
+  mode or "Show Dock icon"), else `.accessory`.
 - Login item: `SettingsStore.setLaunchAtLogin(_:)` uses `SMAppService.mainApp`. When the status is
   `.requiresApproval`, it opens `SMAppService.openSystemSettingsLoginItems()`.
 

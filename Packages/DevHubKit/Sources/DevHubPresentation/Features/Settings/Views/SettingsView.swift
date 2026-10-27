@@ -19,13 +19,21 @@ struct SettingsView: View {
                         .font(.caption)
                         .foregroundStyle(.orange)
                 }
+                Picker("Window", selection: $settings.values.windowMode) {
+                    ForEach(WindowMode.allCases, id: \.self) { mode in
+                        Text(WindowModeText.title(for: mode)).tag(mode)
+                    }
+                }
+                .hint(WindowModeText.hint(for: settings.values.windowMode))
                 Toggle("Show Dock icon", isOn: $settings.values.showDockIcon)
+                    .disabled(settings.values.windowMode == .window)
+                    .hint(settings.values.windowMode == .window ? "A normal window always has a Dock icon" : nil)
                 Picker("Open DevHub from anywhere", selection: $settings.values.globalShortcut) {
                     ForEach(GlobalShortcut.allCases, id: \.self) { shortcut in
                         Text(shortcut.title).tag(shortcut)
                     }
                 }
-                .hint("A global key combination that opens the menu bar panel, or brings the pinned window to the front")
+                .hint(WindowModeText.shortcutHint(for: settings.values.windowMode))
             }
 
             NotificationsSection()

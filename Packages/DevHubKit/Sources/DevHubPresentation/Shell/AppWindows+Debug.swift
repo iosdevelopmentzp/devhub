@@ -3,11 +3,11 @@ import AppKit
 
 package extension AppWindows {
     func debugShowPanel() {
-        showPanel()
+        show()
     }
 
     func debugSnapshot(to path: String) {
-        guard let view = panel.contentView, let representation = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
+        guard let view = visibleContentView, let representation = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
         view.cacheDisplay(in: view.bounds, to: representation)
         try? representation.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: path))
     }

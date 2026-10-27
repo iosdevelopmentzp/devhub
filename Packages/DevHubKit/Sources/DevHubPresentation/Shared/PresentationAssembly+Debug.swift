@@ -7,6 +7,11 @@ package extension PresentationAssembly {
         session.addProject(at: ProjectPath(path).url)
     }
 
+    func debugSetWindowMode(_ rawValue: String) {
+        guard let mode = WindowMode(rawValue: rawValue) else { return }
+        settings.values.windowMode = mode
+    }
+
     func debugShowTab(_ rawValue: String) {
         guard let tab = TabID(rawValue: rawValue) else { return }
         navigator.selection = tab

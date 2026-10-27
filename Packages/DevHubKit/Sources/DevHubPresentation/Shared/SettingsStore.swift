@@ -14,6 +14,10 @@ package final class SettingsStore {
             if values.showDockIcon != oldValue.showDockIcon {
                 applyDockIcon()
             }
+            if values.windowMode != oldValue.windowMode {
+                applyDockIcon()
+                onWindowModeChange?(values.windowMode)
+            }
             if values.globalShortcut != oldValue.globalShortcut {
                 onShortcutChange?(values.globalShortcut)
             }
@@ -23,6 +27,7 @@ package final class SettingsStore {
     private(set) var loginItemError: String?
 
     @ObservationIgnored package var onShortcutChange: ((GlobalShortcut) -> Void)?
+    @ObservationIgnored var onWindowModeChange: ((WindowMode) -> Void)?
     @ObservationIgnored private let store: any KeyValueStore
 
     init(values: AppSettings, store: any KeyValueStore) {
@@ -31,7 +36,11 @@ package final class SettingsStore {
     }
 
     package func applyDockIcon() {
-        NSApp.setActivationPolicy(values.showDockIcon ? .regular : .accessory)
+        NSApp.setActivationPolicy(showsDockIcon ? .regular : .accessory)
+    }
+
+    var showsDockIcon: Bool {
+        values.windowMode == .window || values.showDockIcon
     }
 
     func setLaunchAtLogin(_ enabled: Bool) {

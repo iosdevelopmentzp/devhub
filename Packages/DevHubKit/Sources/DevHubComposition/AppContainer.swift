@@ -1,28 +1,25 @@
+import AppKit
 import Foundation
 import DevHubData
 import DevHubDomain
 import DevHubPresentation
 
 @MainActor
-public final class AppContainer {
+public final class AppContainer: NSObject, NSApplicationDelegate {
     let shell: ShellRunner
     let assembly: PresentationAssembly
     private var hotKey: GlobalHotKey?
     private var windows: AppWindows?
 
-    private init(shell: ShellRunner, assembly: PresentationAssembly) {
-        self.shell = shell
-        self.assembly = assembly
-    }
-
-    public static func live() -> AppContainer {
+    override public init() {
         let commandLog = CommandLog()
         let shell = ShellRunner(recorder: CommandLogRecorder(log: commandLog))
         let ports = Ports.live(shell: shell)
         let useCases = UseCases(ports: ports)
         let store = UserDefaultsKeyValueStore(defaults: UserDefaults.standard)
         let savedProjects = store.decode([Project].self, forKey: PreferenceKeys.projects)
-        let assembly = PresentationAssembly(
+        self.shell = shell
+        assembly = PresentationAssembly(
             ports: ports,
             useCases: useCases,
             store: store,
@@ -32,27 +29,25 @@ public final class AppContainer {
             settings: store.decode(AppSettings.self, forKey: PreferenceKeys.settings) ?? AppSettings(),
             recentEvents: []
         )
-        let container = AppContainer(shell: shell, assembly: assembly)
-        container.startSystemIntegration()
-        return container
+        super.init()
     }
 
-    private func startSystemIntegration() {
+    public func applicationDidFinishLaunching(_ notification: Notification) {
         let windows = AppWindows(assembly: assembly)
         self.windows = windows
-        let hotKey = GlobalHotKey { windows.showPinnedOrPanel() }
+        let hotKey = GlobalHotKey { windows.toggle() }
         self.hotKey = hotKey
         let settings = assembly.settings
         settings.onShortcutChange = { hotKey.register($0) }
-        DispatchQueue.main.async { [settings, assembly] in
-            windows.start()
-            hotKey.register(settings.values.globalShortcut)
-            if settings.values.showDockIcon {
-                settings.applyDockIcon()
-            }
-            #if DEBUG
-            DebugLaunch.apply(assembly: assembly, windows: windows)
-            #endif
-        }
+        windows.start()
+        hotKey.register(settings.values.globalShortcut)
+        #if DEBUG
+        DebugLaunch.apply(assembly: assembly, windows: windows)
+        #endif
+    }
+
+    public func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        windows?.show()
+        return false
     }
 }

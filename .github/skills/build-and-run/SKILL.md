@@ -49,6 +49,7 @@ Debug builds only. `DevHubComposition/Debug/DebugLaunch.swift` reads them and ca
 | Switch | Effect |
 |---|---|
 | `DEVHUB_PROJECT=<path>` | adds and selects a project (saved) |
+| `DEVHUB_WINDOW_MODE=panel\|window` | sets the window mode (saved). In window mode `DEVHUB_OPEN_PANEL` shows the main window and `DEVHUB_SNAPSHOT` draws it |
 | `DEVHUB_RUN_ACTION=<id>[,<id>]` | runs config actions with their default inputs |
 | `DEVHUB_REQUEST_ACTION=<id>` | opens the input prompt of one action on Home |
 | `DEVHUB_GIT_OPS=<step>,<step>` | runs git and worktree steps and waits until the stores are idle after each one: `fetch`, `pull`, `push`, `forcepush`, `rebase`, `continueop`, `abortop`, `updatebase`, `stash:<msg>`, `popstash`, `switch:<b>`, `switchstash:<b>`, `update:<b>`, `delete-branch:<b>`, `checkout-remote:<remote/b>`, `select:<path>\|main`, `stage:<path>`, `unstage:<path>`, `discard:<path>`, `stageall`, `unstageall`, `commit:<msg>`, `commitpush:<msg>`, `amend:<msg>`, `action:<id>`, `wt-create:<b>`, `wt-delete:<b>`, `wt-prune`, `wt-fetch`, `sleep:<s>`. It writes to the repository: use a throwaway one |

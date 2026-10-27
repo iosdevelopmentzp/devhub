@@ -6,6 +6,9 @@ import DevHubPresentation
 enum DebugLaunch {
     static func apply(assembly: PresentationAssembly, windows: AppWindows) {
         let environment = ProcessInfo.processInfo.environment
+        if let mode = environment["DEVHUB_WINDOW_MODE"] {
+            assembly.debugSetWindowMode(mode)
+        }
         if let path = environment["DEVHUB_PROJECT"] {
             assembly.debugAddProject(path: path)
         }

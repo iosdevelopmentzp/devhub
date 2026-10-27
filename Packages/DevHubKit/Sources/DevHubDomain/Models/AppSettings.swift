@@ -12,6 +12,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
     package var ticketURLTemplate = ""
     package var autoFetchMinutes = 0
     package var notifyWhenPanelClosed = true
+    package var windowMode = WindowMode.panel
 
     package init(
         showDockIcon: Bool = false,
@@ -24,7 +25,8 @@ package struct AppSettings: Hashable, Codable, Sendable {
         terminal: String = "Terminal",
         ticketURLTemplate: String = "",
         autoFetchMinutes: Int = 0,
-        notifyWhenPanelClosed: Bool = true
+        notifyWhenPanelClosed: Bool = true,
+        windowMode: WindowMode = WindowMode.panel
     ) {
         self.showDockIcon = showDockIcon
         self.showUsageStrip = showUsageStrip
@@ -37,6 +39,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         self.ticketURLTemplate = ticketURLTemplate
         self.autoFetchMinutes = autoFetchMinutes
         self.notifyWhenPanelClosed = notifyWhenPanelClosed
+        self.windowMode = windowMode
     }
 }
 
@@ -55,7 +58,8 @@ extension AppSettings {
             terminal: try container.decodeIfPresent(String.self, forKey: .terminal) ?? defaults.terminal,
             ticketURLTemplate: try container.decodeIfPresent(String.self, forKey: .ticketURLTemplate) ?? defaults.ticketURLTemplate,
             autoFetchMinutes: try container.decodeIfPresent(Int.self, forKey: .autoFetchMinutes) ?? defaults.autoFetchMinutes,
-            notifyWhenPanelClosed: try container.decodeIfPresent(Bool.self, forKey: .notifyWhenPanelClosed) ?? defaults.notifyWhenPanelClosed
+            notifyWhenPanelClosed: try container.decodeIfPresent(Bool.self, forKey: .notifyWhenPanelClosed) ?? defaults.notifyWhenPanelClosed,
+            windowMode: (try? container.decodeIfPresent(WindowMode.self, forKey: .windowMode)) ?? defaults.windowMode
         )
     }
 }

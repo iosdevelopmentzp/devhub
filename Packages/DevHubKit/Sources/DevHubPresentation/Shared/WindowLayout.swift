@@ -9,6 +9,7 @@ final class WindowLayout {
     static let minimumSize = CGSize(width: 640, height: 560)
     static let defaultSize = CGSize(width: 720, height: 820)
     static let pinnedAutosaveName = "DevHubPinnedWindow"
+    static let mainAutosaveName = "DevHubMainWindow"
     static let pullRequestAutosaveName = "DevHubPullRequestWindow"
     static let screenInset: CGFloat = 12
 
@@ -31,10 +32,18 @@ final class WindowLayout {
 
     var openCount = 0
 
+    var isWindowOpen: Bool {
+        didSet {
+            guard isWindowOpen != oldValue else { return }
+            store.set(isWindowOpen, forKey: Keys.isWindowOpen)
+        }
+    }
+
     @ObservationIgnored private let store: any KeyValueStore
 
     init(store: any KeyValueStore) {
         self.store = store
+        isWindowOpen = store.bool(forKey: Keys.isWindowOpen)
         let stored = store.doubles(forKey: Keys.size)
         if let stored, stored.count == 2 {
             size = Self.clamped(CGSize(width: stored[0], height: stored[1]))
@@ -108,5 +117,6 @@ final class WindowLayout {
     private enum Keys {
         static let size = "window.size"
         static let panelTopLeft = "window.panelTopLeft"
+        static let isWindowOpen = "window.isOpen"
     }
 }

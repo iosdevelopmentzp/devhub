@@ -19,7 +19,7 @@ enforces the direction `Composition → Presentation → Domain ← Data`.
 - `DevHub/` (the app host) holds only `DevHubApp.swift` and `Assets.xcassets`. No `.shared` anywhere.
 
 Access: `package` on everything another module uses (types, members, nested types, statics, `package var body`).
-Internal inside a module. `public` only on `AppContainer` and `AppContainer.live()`. A struct built in another module
+Internal inside a module. `public` only on `AppContainer`, its `init()` and its `NSApplicationDelegate` methods. A struct built in another module
 gets an explicit `package init` in declaration order, with the same defaults as its stored properties. A file that
 uses another module's extension member imports that module. Never write `nonisolated` on a type in Domain, Data or
 Mocks.

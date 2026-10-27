@@ -30,8 +30,9 @@ Each section is explained under "Actions".
 | Control | What it does |
 |---|---|
 | Launch at login | Registers or removes DevHub as a login item (`SMAppService.mainApp`). An error shows in orange under the switch. When macOS needs approval, DevHub says so and opens System Settings → General → Login Items |
-| Show Dock icon | On: DevHub shows a Dock icon (activation policy `regular`). Off: menu bar only (`accessory`) |
-| Open DevHub from anywhere | The global shortcut that opens the panel, or brings the pinned window to the front: Off, ⌥⌘D (default), ⌃⌥Space, ⌃⌥D |
+| Window | "Menu bar panel" (default): DevHub opens under the menu bar icon and closes on a click outside it. "Normal window": one window with a title bar, a Dock icon and a main menu (DevHub, File, Edit, Window). The close button and ⌘W hide it, DevHub keeps running. The menu bar icon, the global shortcut and the Dock icon show it on the current desktop. It opens at launch when it was open when DevHub quit. The change applies at once |
+| Show Dock icon | Panel mode only. On: DevHub shows a Dock icon (activation policy `regular`). Off: menu bar only (`accessory`). Window mode always shows the Dock icon |
+| Open DevHub from anywhere | The global shortcut: Off, ⌥⌘D (default), ⌃⌥Space, ⌃⌥D. Panel mode: opens the panel, or brings the pinned window to the front. Window mode: shows the window on the current desktop, or hides it when it is in front |
 
 ### Notifications
 

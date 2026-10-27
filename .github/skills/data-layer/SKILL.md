@@ -54,7 +54,7 @@ DevHubMocks/        Mock<Thing>Repository one per file, MockData and MockData+<D
 
 `Ports.live(shell:)` (`DevHubData/Assembly/Ports+Live.swift`) builds every repository once and passes the real file
 roots (`~/.claude/projects`, `~/.copilot/session-state`, `~/.devhub/mocks`, `~/.devhub/prompts`). `Ports.mock()` (`DevHubMocks/Ports+Mock.swift`)
-builds every mock. `UseCases(ports:)` builds the use cases. `AppContainer.live()` (DevHubComposition) builds the
+builds every mock. `UseCases(ports:)` builds the use cases. `AppContainer.init()` (DevHubComposition) builds the
 `ShellRunner` and the `CommandLog`.
 
 Module rules: every Data and Mocks file imports `DevHubDomain`. Nonisolated is the module default, so no type says
@@ -105,7 +105,7 @@ another repository; `Ports.live` passes it in. A file root is an `init` paramete
 ## ShellRunner
 
 Every process in the app goes through `ShellRunner` (`DevHubData/Shell/ShellRunner.swift`). Never `Process` in another
-file (`Scripts/check-layers.sh` fails on it), never a process on the main actor. `AppContainer.live()` builds one
+file (`Scripts/check-layers.sh` fails on it), never a process on the main actor. `AppContainer.init()` builds one
 runner with `ShellRunner(recorder: CommandLogRecorder(log: commandLog))` and passes it to `Ports.live(shell:)`.
 
 ```swift

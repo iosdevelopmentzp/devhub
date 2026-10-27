@@ -34,7 +34,7 @@ Modules, one direction: `Composition → Presentation → Domain ← Data`; Pres
 
 | Path | Purpose |
 |---|---|
-| `DevHub/` | `DevHubApp.swift` (`@main`, keeps `AppContainer.live()` alive), `Assets.xcassets` |
+| `DevHub/` | `DevHubApp.swift` (`@main`, `@NSApplicationDelegateAdaptor(AppContainer.self)`), `Assets.xcassets` |
 | `Packages/DevHubKit/Sources/DevHubDomain` | models, values, ports, policies, use cases, errors, `Ports`, `UseCases` |
 | `Packages/DevHubKit/Sources/DevHubData` | live repositories, `ShellRunner`, parsers, `Ports.live(shell:)`; AppKit only in `Workspace/`, Network.framework only in `Network/MockServer/` |
 | `Packages/DevHubKit/Sources/DevHubMocks` | `Mock*Repository`, `MockData`, `InMemoryKeyValueStore`, `Ports.mock()` |

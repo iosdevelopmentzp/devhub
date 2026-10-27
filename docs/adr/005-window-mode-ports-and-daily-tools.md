@@ -29,7 +29,7 @@ The owner also asked for more comfort when working from any project: an easier p
 - [x] P3. Favorite AI sessions.
 - [x] P4. Drag to reorder favorite simulators.
 - [x] P5. Pin, label and add a note to local branches.
-- [ ] W1. Window mode setting and the main window.
+- [x] W1. Window mode setting and the main window.
 - [ ] W2. Right-click menu on the menu bar icon.
 - [ ] R1. Top-level comment and Request Changes.
 - [ ] R2. New thread on a diff line.
@@ -49,4 +49,5 @@ The owner also asked for more comfort when working from any project: an easier p
 | `a6c5393` | P3 | `AISessionsStore.favoriteIDs` and `toggleFavorite` (key `ai.favorites`), a favorite stays in the project scope; `AISessionSectionsMapper` puts a Favorites section first; the row star and badge; favorites first in the palette. |
 | `476b51a` | P4 | `FavoriteOrder`, `SimulatorsStore.favoriteOrder` and `moveFavorite(id:onto:)`, the sections mapper sorts favorites by the saved order, drag and drop on favorite rows. From the main DevHub `9dda0f0`. |
 | `1de7a78` | — | `ShellRunnerIntegrationTests.cancellingStreamTerminatesTheProcess` allows 5 s: it failed under load with 1 s. |
+| `da56372` | P5 | `BranchMark`, `BranchLabelPolicy`, `BranchMarksStore` (key `git.branchMarks.<project id>`), `BranchMarkDraft`, `BranchLabelMapper`, `BranchMarkEditor`, a Pinned section in Local, pin and label items in the row and its menu; pinned names join `protected:` of `BranchCleanupPolicy`. From the main DevHub `aaa5abd`. |
 | `fa97a37` | — | The snapshot recipe starts the app with `$PWD/$APP`, so its `pkill` matches. |

@@ -7,6 +7,7 @@ struct HeaderView: View {
     @Environment(Navigator.self) private var navigator
     @Environment(AppActions.self) private var appActions
     @Environment(ConfigStore.self) private var config
+    @Environment(SettingsStore.self) private var settings
     @Environment(\.isPinnedWindow) private var isPinnedWindow
     @Environment(\.togglePin) private var togglePin
     @Environment(\.codeHostWords) private var words
@@ -36,12 +37,14 @@ struct HeaderView: View {
                 navigator.togglePalette()
             }
             .keyboardShortcut("k", modifiers: .command)
-            IconButton(
-                systemImage: isPinnedWindow ? "pin.fill" : "pin",
-                help: isPinnedWindow ? "Unpin: close this window, use the menu bar panel" : "Pin: keep DevHub open in a floating window",
-                tint: isPinnedWindow ? .accentColor : .primary
-            ) {
-                togglePin()
+            if settings.values.windowMode == .panel {
+                IconButton(
+                    systemImage: isPinnedWindow ? "pin.fill" : "pin",
+                    help: isPinnedWindow ? "Unpin: close this window, use the menu bar panel" : "Pin: keep DevHub open in a floating window",
+                    tint: isPinnedWindow ? .accentColor : .primary
+                ) {
+                    togglePin()
+                }
             }
             IconButton(
                 systemImage: "gearshape",

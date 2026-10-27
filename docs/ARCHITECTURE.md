@@ -41,7 +41,7 @@ compiler checks the direction: a module can only import the modules it lists in 
 ```
 DevHub.xcodeproj                 app target DevHub, Swift 6, links DevHubComposition
 DevHub/
-  DevHubApp.swift                @main, empty Settings scene, keeps AppContainer.live() alive
+  DevHubApp.swift                @main, empty Settings scene, AppContainer as the app delegate
   Assets.xcassets
 Packages/DevHubKit/
   Package.swift
@@ -192,7 +192,7 @@ The UI rules are in `/ui-components`.
 | `PresentationAssembly.preview()` | Presentation `Shared/PresentationAssembly+Preview.swift` | mocks, `InMemoryKeyValueStore`, `MockData` sample state |
 | `View.inject(_:)`, `View.previewEnvironment()` | Presentation `Shared/` | put the assembly into the environment; previews call `.previewEnvironment()` |
 | `AppWindows(assembly:)` | Presentation `Shell/` | status item, panel, pinned window; hosts `RootView().inject(assembly)` |
-| `AppContainer.live()` | Composition | `CommandLog`, `CommandLogRecorder`, `ShellRunner(recorder:)`, `Ports.live`, `UseCases`, `UserDefaultsKeyValueStore(defaults: .standard)`, saved projects and settings, `PresentationAssembly`, then `AppWindows` and `GlobalHotKey`; in Debug builds `DebugLaunch` reads the `DEVHUB_*` switches |
+| `AppContainer` (`init()`, `applicationDidFinishLaunching`) | Composition | `CommandLog`, `CommandLogRecorder`, `ShellRunner(recorder:)`, `Ports.live`, `UseCases`, `UserDefaultsKeyValueStore(defaults: .standard)`, saved projects and settings, `PresentationAssembly`, then `AppWindows` and `GlobalHotKey`; in Debug builds `DebugLaunch` reads the `DEVHUB_*` switches |
 
 Factories live next to the concrete types, so the concrete inits stay internal to their module. Adding a
 repository, a use case or a store is one line in the matching factory. There are no singletons.

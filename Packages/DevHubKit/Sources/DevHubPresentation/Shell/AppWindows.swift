@@ -4,16 +4,18 @@ import DevHubDomain
 import DevHubUI
 
 @MainActor
-package final class AppWindows: NSObject {
+package final class AppWindows: NSObject, NSWindowDelegate {
     private let assembly: PresentationAssembly
     private let statusItem: NSStatusItem
     let panel: MenuBarPanel
     private var pinnedWindow: NSWindow?
+    private var mainWindow: MainWindow?
     private var pullRequestWindows: [PullRequestSummary.ID: NSWindow] = [:]
     private var clickMonitor: Any?
     private var resignObserver: NSObjectProtocol?
     private var pinnedCloseObserver: NSObjectProtocol?
     private var lastPanelTopLeft: CGPoint?
+    private var activationObservers: [NSObjectProtocol] = []
 
     private var layout: WindowLayout {
         assembly.layout
@@ -21,6 +23,14 @@ package final class AppWindows: NSObject {
 
     var isPinnedVisible: Bool {
         pinnedWindow?.isVisible == true
+    }
+
+    var visibleContentView: NSView? {
+        mode == .window ? mainWindow?.contentView : panel.contentView
+    }
+
+    private var mode: WindowMode {
+        assembly.settings.values.windowMode
     }
 
     package init(assembly: PresentationAssembly) {
@@ -40,6 +50,12 @@ package final class AppWindows: NSObject {
         }
         updateStatusLabel()
         observeLayout()
+        observeActivation()
+        assembly.settings.onWindowModeChange = { [weak self] mode in
+            self?.applyWindowMode(mode)
+        }
+        assembly.settings.applyDockIcon()
+        installMainMenu()
         assembly.usage.startPolling()
         assembly.openPullRequests.startPolling()
         Task { [assembly] in
@@ -52,6 +68,26 @@ package final class AppWindows: NSObject {
                 self?.closePanel()
             }
         }
+        if mode == .window, layout.isWindowOpen {
+            showWindow()
+        }
+    }
+
+    package func toggle() {
+        switch mode {
+        case .panel: showPinnedOrPanel()
+        case .window: toggleWindow()
+        }
+    }
+
+    package func show() {
+        switch mode {
+        case .panel:
+            guard panel.isVisible == false else { return }
+            showPinnedOrPanel()
+        case .window:
+            showWindow()
+        }
     }
 
     func togglePanel() {
@@ -62,7 +98,7 @@ package final class AppWindows: NSObject {
         }
     }
 
-    package func showPinnedOrPanel() {
+    private func showPinnedOrPanel() {
         if let pinnedWindow, pinnedWindow.isVisible {
             NSApp.activate()
             pinnedWindow.makeKeyAndOrderFront(nil)
@@ -80,6 +116,57 @@ package final class AppWindows: NSObject {
         showPinnedWindow()
     }
 
+    func showWindow() {
+        closePanel()
+        pinnedWindow?.close()
+        let window = mainWindow ?? makeMainWindow()
+        if mainWindow == nil {
+            mainWindow = window
+        } else {
+            layout.openCount += 1
+        }
+        if window.isMiniaturized {
+            window.deminiaturize(nil)
+        }
+        if window.isVisible, window.isOnActiveSpace == false {
+            window.orderOut(nil)
+        }
+        NSApp.activate()
+        window.makeKeyAndOrderFront(nil)
+        layout.isWindowOpen = true
+        updatePanelShown()
+    }
+
+    func hideWindow() {
+        guard let mainWindow, mainWindow.isVisible else { return }
+        mainWindow.orderOut(nil)
+        layout.isWindowOpen = false
+        updatePanelShown()
+        if pullRequestWindows.values.contains(where: \.isVisible) == false {
+            NSApp.hide(nil)
+        }
+    }
+
+    private func toggleWindow() {
+        if let mainWindow, NSApp.isActive, mainWindow.isKeyWindow, mainWindow.isOnActiveSpace {
+            hideWindow()
+        } else {
+            showWindow()
+        }
+    }
+
+    private func applyWindowMode(_ mode: WindowMode) {
+        installMainMenu()
+        switch mode {
+        case .panel:
+            mainWindow?.orderOut(nil)
+            layout.isWindowOpen = false
+            showPanel()
+        case .window:
+            showWindow()
+        }
+    }
+
     func showPullRequestWindow(_ summary: PullRequestSummary) {
         closePanel()
         let window: NSWindow
@@ -94,7 +181,28 @@ package final class AppWindows: NSObject {
     }
 
     @objc private func statusItemClicked() {
-        togglePanel()
+        toggle()
+    }
+
+    // MARK: NSWindowDelegate
+
+    package func windowShouldClose(_ sender: NSWindow) -> Bool {
+        guard sender === mainWindow else { return true }
+        hideWindow()
+        return false
+    }
+
+    package func windowDidMiniaturize(_ notification: Notification) {
+        updatePanelShown()
+    }
+
+    package func windowDidDeminiaturize(_ notification: Notification) {
+        updatePanelShown()
+    }
+
+    @objc private func menuSettings() {
+        show()
+        assembly.appActions.openSettings()
     }
 
     func showPanel() {
@@ -128,7 +236,29 @@ package final class AppWindows: NSObject {
     }
 
     private func updatePanelShown() {
-        assembly.notifier.panelShown(panel.isVisible || isPinnedVisible)
+        let isMainShown = mainWindow?.isVisible == true && mainWindow?.isMiniaturized == false && NSApp.isActive
+        assembly.notifier.panelShown(panel.isVisible || isPinnedVisible || isMainShown)
+    }
+
+    private func installMainMenu() {
+        guard mode == .window else { return }
+        NSApp.mainMenu = MainMenuBuilder.build(target: self, settings: #selector(menuSettings))
+    }
+
+    private func observeActivation() {
+        let names: [Notification.Name] = [NSApplication.didBecomeActiveNotification, NSApplication.didResignActiveNotification]
+        activationObservers = names.map { name in
+            NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
+                let becameActive = notification.name == NSApplication.didBecomeActiveNotification
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    if becameActive {
+                        installMainMenu()
+                    }
+                    updatePanelShown()
+                }
+            }
+        }
     }
 
     private func installClickMonitor() {
@@ -185,6 +315,19 @@ package final class AppWindows: NSObject {
         return window
     }
 
+    private func makeMainWindow() -> MainWindow {
+        let window = MainWindow()
+        window.delegate = self
+        window.contentViewController = hostingController(isPinned: true)
+        if window.setFrameUsingName(WindowLayout.mainAutosaveName) == false,
+           window.setFrameUsingName(WindowLayout.pinnedAutosaveName) == false {
+            window.setContentSize(layout.size)
+            window.center()
+        }
+        window.setFrameAutosaveName(WindowLayout.mainAutosaveName)
+        return window
+    }
+
     private func makePullRequestWindow(_ summary: PullRequestSummary) -> NSWindow {
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: NSSize(width: 860, height: 720)),
@@ -196,6 +339,7 @@ package final class AppWindows: NSObject {
         window.isReleasedWhenClosed = false
         window.appearance = NSAppearance(named: .aqua)
         window.contentMinSize = NSSize(width: 640, height: 400)
+        window.collectionBehavior.insert(.moveToActiveSpace)
         let root = PullRequestWindowView(summary: summary)
             .inject(assembly)
             .colorScheme(.light)
