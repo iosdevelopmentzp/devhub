@@ -73,6 +73,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- The Claude usage strip reads the per-model weekly limits (for example "Week · Fable") from the new `limits` list of the usage API, so it shows the same values as Claude Desktop.
 - The "This project" scope of the AI tab also keeps sessions started in the worktrees of the project, also when a worktree folder sits next to the project folder.
 - The hint of "Delete all…" in the merged branches group names the branches that stay: the base branch and `git.protectedBranches`. Before, it always said "dev, main and master".
 - "Copy chmod Command" in the menu of a script that is not executable copies the command. Before, the menu item did nothing.
@@ -99,6 +100,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- ADR 005 plans the window mode, the ports from the main DevHub, pull request comments, checks, project setup and daily tools.
 - `GlabIntegrationTests`: with `DEVHUB_GITLAB_PLAYGROUND=<host>/<owner>/<project>` it creates a merge request on a GitLab test project and runs draft, ready, a thread with a reply, resolve and merge through the real `glab` code. The first run on a real host confirmed that GitLab rejected the old string booleans.
 - Documentation for the finished rewrite: `docs/features/<tab>.md` for every tab, a new `docs/SPEC.md`, `docs/adr/004-launch-identities-and-network.md`, `docs/testing.md`, the `code-host` skill, and rewritten `add-feature`, `panel-window`, `ui-components`, `xcode-toolchain`, `update-docs`, `data-layer` and `testing` skills. The `providers-and-shell` skill is merged into `data-layer`.
 - `docs/extensions.md`: the `xcode.bundleID` default and use, the `production` key, the `notify` directive and the custom tab shortcut now match the code.

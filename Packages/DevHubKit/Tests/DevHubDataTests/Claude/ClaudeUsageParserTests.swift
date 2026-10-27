@@ -37,6 +37,28 @@ import Testing
         #expect(usage.limits.contains { $0.id == "seven_day_oauth_apps" } == false)
     }
 
+    @Test func addsScopedWeeklyLimitsAfterFlatOnes() throws {
+        let usage = try ClaudeUsageParser.parse(ClaudeUsageFixture.scoped, plan: nil, now: now)
+
+        #expect(usage.limits.map(\.id) == ["five_hour", "seven_day", "seven_day_opus", "seven_day_fable", "seven_day_claude_code"])
+        #expect(usage.limits.map(\.title) == ["Session", "Week · all", "Week · Opus", "Week · Fable", "Week · Claude Code"])
+    }
+
+    @Test func readsPercentAndResetOfScopedLimit() throws {
+        let usage = try ClaudeUsageParser.parse(ClaudeUsageFixture.scoped, plan: nil, now: now)
+        let fable = try #require(usage.limits.first { $0.id == "seven_day_fable" })
+
+        #expect(abs(fable.usedFraction - 0.07) < 0.000_001)
+        #expect(fable.resetsAt == Date(timeIntervalSince1970: 1_767_830_400))
+    }
+
+    @Test func keepsFlatValueWhenScopedLimitRepeatsIt() throws {
+        let usage = try ClaudeUsageParser.parse(ClaudeUsageFixture.scoped, plan: nil, now: now)
+        let opus = try #require(usage.limits.first { $0.id == "seven_day_opus" })
+
+        #expect(abs(opus.usedFraction - 0.055) < 0.000_001)
+    }
+
     @Test func capitalizesPlanAndKeepsTheClock() throws {
         let usage = try ClaudeUsageParser.parse(ClaudeUsageFixture.json, plan: "max", now: now)
 

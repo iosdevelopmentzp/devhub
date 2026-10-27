@@ -8,6 +8,7 @@ enum ClaudeUsageParser {
     ]
     private static let ignoredKeys: Set<String> = ["seven_day_oauth_apps"]
     private static let modelPrefix = "seven_day_"
+    private static let scopedKind = "weekly_scoped"
 
     static func parse(_ data: Data, plan: String?, now: Date) throws -> ClaudeUsage {
         guard let object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
@@ -31,8 +32,34 @@ enum ClaudeUsageParser {
             }
         }
 
+        for limit in scopedLimits(from: object["limits"]) where limits.contains(where: { $0.id == limit.id }) == false {
+            limits.append(limit)
+        }
+
         guard limits.isEmpty == false else { throw ClaudeUsageError.malformedResponse }
         return ClaudeUsage(plan: plan?.capitalized ?? "Claude", limits: limits, updatedAt: now)
+    }
+
+    private static func scopedLimits(from value: Any?) -> [UsageLimit] {
+        guard let entries = value as? [[String: Any]] else { return [] }
+        return entries.compactMap { entry in
+            guard entry["kind"] as? String == scopedKind,
+                  let name = scopeName(from: entry["scope"]),
+                  let percent = entry["percent"] as? Double
+            else { return nil }
+            let id = modelPrefix + name.lowercased().replacingOccurrences(of: " ", with: "_")
+            let resetsAt = (entry["resets_at"] as? String).flatMap { ISO8601.date(from: $0) }
+            return UsageLimit(id: id, title: "Week · \(name)", usedFraction: percent / 100, resetsAt: resetsAt)
+        }
+    }
+
+    private static func scopeName(from value: Any?) -> String? {
+        guard let scope = value as? [String: Any] else { return nil }
+        let model = scope["model"] as? [String: Any]
+        let surface = scope["surface"] as? [String: Any]
+        let name = model?["display_name"] as? String ?? surface?["display_name"] as? String ?? scope["surface"] as? String
+        guard let name, name.isEmpty == false else { return nil }
+        return name
     }
 
     private static func limit(from value: Any?, id: String, title: String) -> UsageLimit? {

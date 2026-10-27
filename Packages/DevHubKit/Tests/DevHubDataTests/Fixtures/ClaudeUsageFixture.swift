@@ -13,6 +13,22 @@ enum ClaudeUsageFixture {
     }
     """.utf8)
 
+    static let scoped = Data("""
+    {
+      "five_hour": { "utilization": 18.0, "resets_at": null },
+      "seven_day": { "utilization": 9.0, "resets_at": null },
+      "seven_day_opus": { "utilization": 5.5, "resets_at": null },
+      "limits": [
+        { "kind": "session", "percent": 18, "resets_at": null, "scope": null },
+        { "kind": "weekly_all", "percent": 9, "resets_at": null, "scope": null },
+        { "kind": "weekly_scoped", "percent": 7, "resets_at": "2026-01-08T00:00:00Z", "scope": { "model": { "id": null, "display_name": "Fable" }, "surface": null } },
+        { "kind": "weekly_scoped", "percent": 6, "resets_at": null, "scope": { "model": { "display_name": "Opus" } } },
+        { "kind": "weekly_scoped", "percent": 3, "resets_at": null, "scope": { "model": null, "surface": { "display_name": "Claude Code" } } },
+        { "kind": "weekly_scoped", "percent": 1, "resets_at": null, "scope": null }
+      ]
+    }
+    """.utf8)
+
     static let noLimits = Data("{\"five_hour\": null, \"seven_day_oauth_apps\": {\"utilization\": 1}}".utf8)
 
     static let notAnObject = Data("[]".utf8)
