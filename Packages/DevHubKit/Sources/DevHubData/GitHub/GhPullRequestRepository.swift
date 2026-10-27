@@ -119,6 +119,23 @@ struct GhPullRequestRepository: CodeHostRepository {
         _ = try await client.pr(Self.requestChangesArguments(iid: iid, body: body), host: repository)
     }
 
+    func addLineComment(iid: Int, comment: PullRequestLineComment, repository: CodeHost) async throws {
+        _ = try await client.rest("\(pull(iid, repository))/comments", method: "POST", fields: try Self.lineCommentFields(comment), host: repository)
+    }
+
+    static func lineCommentFields(_ comment: PullRequestLineComment) throws -> [GhClient.Variable] {
+        guard let sha = comment.headSHA, let line = comment.newLine ?? comment.oldLine else {
+            throw PullRequestError.command("The last commit of this pull request is not known yet. Reload it and try again.")
+        }
+        return [
+            .text("body", comment.body),
+            .text("commit_id", sha),
+            .text("path", comment.newLine == nil ? comment.oldPath : comment.path),
+            .typed("line", String(line)),
+            .text("side", comment.newLine == nil ? "LEFT" : "RIGHT"),
+        ]
+    }
+
     static func commentArguments(iid: Int, body: String) -> [String] {
         ["comment", String(iid), "--body", body]
     }

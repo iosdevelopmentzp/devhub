@@ -9,6 +9,7 @@ struct DiffView<Accessory: View>: View {
     let scrollScope: String?
     let highlightedLineID: Int?
     let onOpenLine: ((_ line: Int) -> Void)?
+    let onCommentLine: ((DiffLineModel) -> Void)?
     let accessory: (_ lineID: Int) -> Accessory
 
     init(
@@ -16,12 +17,14 @@ struct DiffView<Accessory: View>: View {
         scrollScope: String?,
         highlightedLineID: Int?,
         onOpenLine: ((_ line: Int) -> Void)?,
+        onCommentLine: ((DiffLineModel) -> Void)?,
         @ViewBuilder accessory: @escaping (_ lineID: Int) -> Accessory
     ) {
         self.model = model
         self.scrollScope = scrollScope
         self.highlightedLineID = highlightedLineID
         self.onOpenLine = onOpenLine
+        self.onCommentLine = onCommentLine
         self.accessory = accessory
     }
 
@@ -38,7 +41,7 @@ struct DiffView<Accessory: View>: View {
             case .lines(let lines, let droppedNote):
                 LazyVStack(alignment: .leading, spacing: 0) {
                     ForEach(lines) { line in
-                        DiffLine(model: line, isHighlighted: line.id == highlightedLineID, onOpen: openAction(for: line))
+                        DiffLine(model: line, isHighlighted: line.id == highlightedLineID, onOpen: openAction(for: line), onComment: commentAction(for: line))
                             .id(scrollID(line.id))
                         accessory(line.id)
                     }
@@ -68,6 +71,11 @@ struct DiffView<Accessory: View>: View {
         return { onOpenLine(number) }
     }
 
+    private func commentAction(for line: DiffLineModel) -> (() -> Void)? {
+        guard let onCommentLine, line.newNumber != nil || line.oldNumber != nil else { return nil }
+        return { onCommentLine(line) }
+    }
+
     private func note(_ text: String) -> some View {
         Text(text)
             .font(.caption)
@@ -78,7 +86,7 @@ struct DiffView<Accessory: View>: View {
 
 extension DiffView where Accessory == EmptyView {
     init(model: DiffModel, scrollScope: String?, highlightedLineID: Int?, onOpenLine: ((_ line: Int) -> Void)?) {
-        self.init(model: model, scrollScope: scrollScope, highlightedLineID: highlightedLineID, onOpenLine: onOpenLine) { _ in
+        self.init(model: model, scrollScope: scrollScope, highlightedLineID: highlightedLineID, onOpenLine: onOpenLine, onCommentLine: nil) { _ in
             EmptyView()
         }
     }

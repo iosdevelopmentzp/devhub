@@ -21,4 +21,5 @@ package protocol CodeHostRepository: Sendable {
     func reply(threadID: String, body: String, iid: Int, repository: CodeHost) async throws
     func comment(iid: Int, body: String, repository: CodeHost) async throws
     func requestChanges(iid: Int, body: String, repository: CodeHost) async throws
+    func addLineComment(iid: Int, comment: PullRequestLineComment, repository: CodeHost) async throws
 }

@@ -17,6 +17,8 @@ struct PullRequestFileRowModel: Identifiable, Equatable {
     var highlightedLineID: Int?
     var threadCountText: String?
     var diffThreads: [Int: [DiffThreadModel]]
+    var oldPath: String
+    var lineComposer: LineComposerModel?
 
     static func scrollID(_ id: String) -> String {
         "merge-request-file:\(id)"
@@ -37,6 +39,8 @@ struct PullRequestFileRowModel: Identifiable, Equatable {
         diff: .preview,
         highlightedLineID: 1,
         threadCountText: "1",
-        diffThreads: [2: [.preview]]
+        diffThreads: [2: [.preview]],
+        oldPath: "ExampleUI/Calls/CallPresenter.swift",
+        lineComposer: .preview
     )
 }

@@ -32,7 +32,7 @@ The owner also asked for more comfort when working from any project: an easier p
 - [x] W1. Window mode setting and the main window.
 - [x] W2. Right-click menu on the menu bar icon.
 - [x] R1. Top-level comment and Request Changes.
-- [ ] R2. New thread on a diff line.
+- [x] R2. New thread on a diff line.
 - [ ] R3. Checks and pipeline jobs in the details.
 - [ ] S1. Create .devhub Starter.
 - [ ] S2. Switch project from the palette and with ⌃⌘1 to ⌃⌘9.
@@ -52,4 +52,5 @@ The owner also asked for more comfort when working from any project: an easier p
 | `da56372` | P5 | `BranchMark`, `BranchLabelPolicy`, `BranchMarksStore` (key `git.branchMarks.<project id>`), `BranchMarkDraft`, `BranchLabelMapper`, `BranchMarkEditor`, a Pinned section in Local, pin and label items in the row and its menu; pinned names join `protected:` of `BranchCleanupPolicy`. From the main DevHub `aaa5abd`. |
 | `8116c33` | W1 | `WindowMode` and `AppSettings.windowMode`, `MainWindow`, `MainMenuBuilder`, `AppWindows` as `NSWindowDelegate` with `toggle()`, `show()`, `showWindow()`, `hideWindow()`, `applyWindowMode(_:)`; `WindowLayout.isWindowOpen`; `SettingsStore.showsDockIcon` and `onWindowModeChange`; `AppContainer` as the app delegate; the Window picker; `DEVHUB_WINDOW_MODE`. Checked on screen: the window is a Dock app (`Foreground`), the close button and File → Close Window hide it, `open` shows it again, the main menu has DevHub, File, Edit, Window, and the panel works after a switch back. |
 | `25f1ad1` | W2 | `StatusMenuItem`, `StatusMenuMapper`, the right-click menu in `AppWindows.statusItemClicked`. Checked with a synthetic right click: the menu lists Show DevHub, the projects, Keep Mac Awake, Settings…, Quit DevHub. |
+| `5884995` | R1 | `CodeHostRepository.comment` and `requestChanges`, `PullRequestPermissions.canRequestChanges` (GitHub: not the author), `PullRequestCommentBox` under the threads, drafts per request in `PullRequestDetailStore`; `DEVHUB_PULL_REQUEST`. Checked with a headless snapshot of the GitHub test repository: the box shows, Request Changes stays hidden on an own request. No comment was posted. |
 | `fa97a37` | — | The snapshot recipe starts the app with `$PWD/$APP`, so its `pkill` matches. |

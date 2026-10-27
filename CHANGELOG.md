@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Pull request diffs: hover a line and click the bubble with a plus (or right-click it, "Comment on This Line…") to start a new review thread on that line, on GitHub and GitLab. The box opens under the line; ⌘Return posts, Esc closes.
 - Pull request details have a comment box. "Comment" (⌘Return) posts a comment on the request on GitHub and GitLab. "Request Changes" sends the text as a review that asks for changes, on GitHub, for a request by someone else. A failed post keeps the text.
 - A right click on the menu bar icon opens a menu: Show DevHub, the list of projects (a click switches to the project and shows DevHub), Keep Mac Awake, Settings… and Quit DevHub. A left click still opens or closes DevHub.
 - Settings → General → Window: "Normal window" turns DevHub into a window app. It gets a title bar, a Dock icon and a main menu (DevHub, File, Edit, Window). The close button and ⌘W hide the window and DevHub keeps running. The menu bar icon, the global shortcut and a click on the Dock icon show the window on the current desktop; the icon and the shortcut hide it when it is already in front. The window opens at launch when it was open at quit. "Menu bar panel" stays the default.

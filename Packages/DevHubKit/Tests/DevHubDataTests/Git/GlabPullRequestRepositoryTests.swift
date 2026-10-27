@@ -68,4 +68,23 @@ import Testing
             try await repository.requestChanges(iid: 7, body: "x", repository: .gitLabSample)
         }
     }
+
+    @Test func aLineCommentSendsThePositionWithBothLinesOfAContextLine() {
+        let refs = GlabDiffRefsParser.DiffRefs(baseSHA: "b", startSHA: "s", headSHA: "h")
+        let comment = PullRequestLineComment(path: "App/a.swift", oldPath: "Old/a.swift", newLine: 12, oldLine: 10, body: "Why?", headSHA: nil)
+
+        let fields = GlabPullRequestRepository.lineCommentFields(comment, refs: refs).map { "\($0.name)=\($0.value)" }
+
+        #expect(fields == [
+            "body=Why?",
+            "position[position_type]=text",
+            "position[base_sha]=b",
+            "position[start_sha]=s",
+            "position[head_sha]=h",
+            "position[old_path]=Old/a.swift",
+            "position[new_path]=App/a.swift",
+            "position[new_line]=12",
+            "position[old_line]=10",
+        ])
+    }
 }

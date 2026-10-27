@@ -10,6 +10,8 @@ struct PullRequestReviewState: Equatable {
     var openDiffThreads: Set<ReviewThread.ID>
     var commentDraft = ""
     var isCommentBusy = false
+    var lineComment: LineCommentDraft?
+    var isLineCommentBusy = false
 
     static let initial = PullRequestReviewState(expandedFiles: [], viewedFiles: [], focus: nil, busyThreads: [], showsThreadsInDiff: true, openDiffThreads: [])
 }

@@ -114,4 +114,8 @@ struct MockCodeHostRepository: CodeHostRepository {
     func requestChanges(iid: Int, body: String, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
+
+    func addLineComment(iid: Int, comment: PullRequestLineComment, repository: CodeHost) async throws {
+        try? await Task.sleep(for: .milliseconds(300))
+    }
 }

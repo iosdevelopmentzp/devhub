@@ -16,6 +16,8 @@ final class PullRequestDetailStore {
     private(set) var openDiffThreads: Set<ReviewThread.ID> = []
     private(set) var commentDrafts: [PullRequestSummary.ID: String] = [:]
     private(set) var busyComments: Set<PullRequestSummary.ID> = []
+    private(set) var lineComment: LineCommentDraft?
+    private(set) var isSendingLineComment = false
 
     enum CommentKind {
         case comment
@@ -48,6 +50,7 @@ final class PullRequestDetailStore {
             viewedFiles = [:]
             openDiffThreads = []
             commentDrafts = [:]
+            lineComment = nil
             focus = nil
         }
     }
@@ -69,7 +72,9 @@ final class PullRequestDetailStore {
             showsThreadsInDiff: showsThreadsInDiff,
             openDiffThreads: openDiffThreads,
             commentDraft: commentDrafts[id] ?? "",
-            isCommentBusy: busyComments.contains(id)
+            isCommentBusy: busyComments.contains(id),
+            lineComment: lineComment?.requestID == id ? lineComment : nil,
+            isLineCommentBusy: lineComment?.requestID == id && isSendingLineComment
         )
     }
 
@@ -215,6 +220,43 @@ final class PullRequestDetailStore {
             } catch {
                 activity.log("\(title) failed", detail: error.localizedDescription, outcome: .failure)
                 busyComments.remove(id)
+            }
+        }
+    }
+
+    func startLineComment(path: String, oldPath: String, lineID: Int, newLine: Int?, oldLine: Int?, of id: PullRequestSummary.ID) {
+        guard isSendingLineComment == false, newLine != nil || oldLine != nil else { return }
+        lineComment = LineCommentDraft(requestID: id, path: path, oldPath: oldPath, lineID: lineID, newLine: newLine, oldLine: oldLine, text: "")
+    }
+
+    func setLineCommentText(_ text: String) {
+        lineComment?.text = text
+    }
+
+    func cancelLineComment() {
+        guard isSendingLineComment == false else { return }
+        lineComment = nil
+    }
+
+    func sendLineComment(headSHA: String?) {
+        guard let draft = lineComment, isSendingLineComment == false else { return }
+        let text = draft.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard text.isEmpty == false else { return }
+        isSendingLineComment = true
+        let comment = PullRequestLineComment(path: draft.path, oldPath: draft.oldPath, newLine: draft.newLine, oldLine: draft.oldLine, body: text, headSHA: headSHA)
+        let title = "Commented on \(draft.path):\(draft.newLine ?? draft.oldLine ?? 0) in \(remote.words.reference(draft.requestID))"
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let url = try await remote.codeHost()
+                try await repository.addLineComment(iid: draft.requestID, comment: comment, repository: url)
+                activity.log(title, detail: text, outcome: .success)
+                lineComment = nil
+                isSendingLineComment = false
+                await reload(draft.requestID)
+            } catch {
+                activity.log("\(title) failed", detail: error.localizedDescription, outcome: .failure)
+                isSendingLineComment = false
             }
         }
     }

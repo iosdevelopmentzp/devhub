@@ -183,6 +183,35 @@ struct GlabPullRequestRepository: CodeHostRepository {
         throw PullRequestError.command("GitLab has no Request Changes review. Write a comment instead.")
     }
 
+    func addLineComment(iid: Int, comment: PullRequestLineComment, repository: CodeHost) async throws {
+        let host = try GlabClient.host(of: repository)
+        let refs = try await GlabDiffRefsParser.diffRefs(from: client.rest(mergeRequest(iid, repository), host: host))
+        _ = try await client.rest(
+            "\(mergeRequest(iid, repository))/discussions",
+            method: "POST",
+            fields: Self.lineCommentFields(comment, refs: refs),
+            host: host
+        )
+    }
+
+    static func lineCommentFields(_ comment: PullRequestLineComment, refs: GlabDiffRefsParser.DiffRefs) -> [(name: String, value: String)] {
+        var fields: [(name: String, value: String)] = commentFields(body: comment.body) + [
+            (name: "position[position_type]", value: "text"),
+            (name: "position[base_sha]", value: refs.baseSHA),
+            (name: "position[start_sha]", value: refs.startSHA),
+            (name: "position[head_sha]", value: refs.headSHA),
+            (name: "position[old_path]", value: comment.oldPath),
+            (name: "position[new_path]", value: comment.path),
+        ]
+        if let line = comment.newLine {
+            fields.append((name: "position[new_line]", value: String(line)))
+        }
+        if let line = comment.oldLine {
+            fields.append((name: "position[old_line]", value: String(line)))
+        }
+        return fields
+    }
+
     static func commentFields(body: String) -> [(name: String, value: String)] {
         [(name: "body", value: body.hasPrefix("@") ? " " + body : body)]
     }

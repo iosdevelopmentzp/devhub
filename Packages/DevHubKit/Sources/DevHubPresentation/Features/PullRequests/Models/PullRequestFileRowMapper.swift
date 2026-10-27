@@ -23,7 +23,21 @@ enum PullRequestFileRowMapper {
             diff: isExpanded ? diff(file, words: words) : nil,
             highlightedLineID: isExpanded ? highlightedLineID(file, focus: review.focus) : nil,
             threadCountText: fileThreads.isEmpty ? nil : "\(fileThreads.count)",
-            diffThreads: isExpanded && review.showsThreadsInDiff ? diffThreads(fileThreads, in: file, open: review.openDiffThreads) : [:]
+            diffThreads: isExpanded && review.showsThreadsInDiff ? diffThreads(fileThreads, in: file, open: review.openDiffThreads) : [:],
+            oldPath: file.oldPath,
+            lineComposer: isExpanded ? lineComposer(review: review, path: file.path) : nil
+        )
+    }
+
+    static func lineComposer(review: PullRequestReviewState, path: String) -> LineComposerModel? {
+        guard let draft = review.lineComment, draft.path == path else { return nil }
+        let line = draft.newLine ?? draft.oldLine ?? 0
+        return LineComposerModel(
+            lineID: draft.lineID,
+            text: draft.text,
+            placeholder: draft.newLine == nil ? "Comment on removed line \(line)…" : "Comment on line \(line)…",
+            isBusy: review.isLineCommentBusy,
+            canSend: review.isLineCommentBusy == false && draft.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
         )
     }
 

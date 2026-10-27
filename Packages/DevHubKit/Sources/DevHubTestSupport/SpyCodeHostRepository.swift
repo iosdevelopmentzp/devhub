@@ -23,6 +23,7 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
         case reply(threadID: String, body: String, iid: Int, repository: CodeHost)
         case comment(iid: Int, body: String, repository: CodeHost)
         case requestChanges(iid: Int, body: String, repository: CodeHost)
+        case addLineComment(iid: Int, comment: PullRequestLineComment, repository: CodeHost)
     }
 
     private let lock = NSLock()
@@ -165,6 +166,10 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
 
     package func requestChanges(iid: Int, body: String, repository: CodeHost) async throws {
         try action(.requestChanges(iid: iid, body: body, repository: repository))
+    }
+
+    package func addLineComment(iid: Int, comment: PullRequestLineComment, repository: CodeHost) async throws {
+        try action(.addLineComment(iid: iid, comment: comment, repository: repository))
     }
 
     private func action(_ call: Call) throws {

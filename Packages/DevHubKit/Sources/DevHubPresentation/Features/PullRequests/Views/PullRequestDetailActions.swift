@@ -16,6 +16,10 @@ struct PullRequestDetailActions {
     let reply: (_ threadID: ReviewThread.ID, _ body: String) -> Void
     let setCommentDraft: (_ text: String) -> Void
     let sendComment: (_ kind: PullRequestDetailStore.CommentKind) -> Void
+    let startLineComment: (_ path: String, _ oldPath: String, _ line: DiffLineModel) -> Void
+    let setLineCommentText: (_ text: String) -> Void
+    let sendLineComment: () -> Void
+    let cancelLineComment: () -> Void
     let cancelPipeline: () -> Void
     let fixThreads: () -> Void
     let runConfigAction: (_ actionID: ConfigActionItemModel.ID) -> Void
@@ -37,6 +41,10 @@ struct PullRequestDetailActions {
         reply: { _, _ in },
         setCommentDraft: { _ in },
         sendComment: { _ in },
+        startLineComment: { _, _, _ in },
+        setLineCommentText: { _ in },
+        sendLineComment: {},
+        cancelLineComment: {},
         cancelPipeline: {},
         fixThreads: {},
         runConfigAction: { _ in },
@@ -60,6 +68,10 @@ struct PullRequestDetailActions {
             reply: reply,
             setCommentDraft: setCommentDraft,
             sendComment: sendComment,
+            startLineComment: startLineComment,
+            setLineCommentText: setLineCommentText,
+            sendLineComment: sendLineComment,
+            cancelLineComment: cancelLineComment,
             cancelPipeline: cancelPipeline,
             fixThreads: fixThreads,
             runConfigAction: runConfigAction,
@@ -95,6 +107,12 @@ extension PullRequestDetailActions {
             reply: { detailStore.reply($1, to: $0, of: id) },
             setCommentDraft: { detailStore.setCommentDraft($0, of: id) },
             sendComment: { detailStore.send($0, on: id) },
+            startLineComment: { path, oldPath, line in
+                detailStore.startLineComment(path: path, oldPath: oldPath, lineID: line.id, newLine: line.newNumber, oldLine: line.oldNumber, of: id)
+            },
+            setLineCommentText: { detailStore.setLineCommentText($0) },
+            sendLineComment: { detailStore.sendLineComment(headSHA: summary.headSHA) },
+            cancelLineComment: { detailStore.cancelLineComment() },
             cancelPipeline: { pullRequests.perform(.cancelPipeline, on: id) },
             fixThreads: { appActions.fixThreadsWithClaude(summary) },
             runConfigAction: { actionID in

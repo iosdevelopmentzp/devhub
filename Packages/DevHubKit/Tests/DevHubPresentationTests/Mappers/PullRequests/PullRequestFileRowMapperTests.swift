@@ -124,4 +124,21 @@ import Testing
         #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false, viewed: true, focus: nil), threads: [], words: .gitLab).isViewed)
         #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false, viewed: false, focus: nil), threads: [], words: .gitLab).isViewed == false)
     }
+
+    @Test func theLineComposerShowsOnlyOnItsFileAndNeedsText() {
+        var state = review(expanded: true)
+        state.lineComment = LineCommentDraft(requestID: 7, path: "App/Login/a.swift", oldPath: "Old/a.swift", lineID: 3, newLine: nil, oldLine: 12, text: " ")
+
+        let composer = PullRequestFileRowMapper.lineComposer(review: state, path: "App/Login/a.swift")
+        #expect(composer?.lineID == 3)
+        #expect(composer?.placeholder == "Comment on removed line 12…")
+        #expect(composer?.canSend == false)
+        #expect(PullRequestFileRowMapper.lineComposer(review: state, path: "Other.swift") == nil)
+
+        state.lineComment?.text = "Why?"
+        #expect(PullRequestFileRowMapper.lineComposer(review: state, path: "App/Login/a.swift")?.canSend == true)
+        state.isLineCommentBusy = true
+        #expect(PullRequestFileRowMapper.lineComposer(review: state, path: "App/Login/a.swift")?.canSend == false)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false), threads: [], words: .gitLab).lineComposer == nil)
+    }
 }

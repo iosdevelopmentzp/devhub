@@ -6,6 +6,9 @@ struct DiffLine: View {
     let model: DiffLineModel
     let isHighlighted: Bool
     let onOpen: (() -> Void)?
+    let onComment: (() -> Void)?
+
+    @State private var isHovered = false
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 0) {
@@ -28,9 +31,23 @@ struct DiffLine: View {
                     .frame(width: 3)
             }
         }
+        .overlay(alignment: .trailing) {
+            if let onComment, isHovered {
+                IconButton(systemImage: "plus.bubble", help: "Comment on this line") {
+                    onComment()
+                }
+                .padding(.trailing, 4)
+            }
+        }
         .contentShape(Rectangle())
         .onTapGesture(count: 2) {
             onOpen?()
+        }
+        .onHover { isHovered = $0 }
+        .contextMenu {
+            if let onComment {
+                Button("Comment on This Line…", systemImage: "plus.bubble", action: onComment)
+            }
         }
     }
 
@@ -53,5 +70,5 @@ struct DiffLine: View {
 }
 
 #Preview {
-    DiffLine(model: .preview, isHighlighted: true, onOpen: nil)
+    DiffLine(model: .preview, isHighlighted: true, onOpen: nil, onComment: {})
 }

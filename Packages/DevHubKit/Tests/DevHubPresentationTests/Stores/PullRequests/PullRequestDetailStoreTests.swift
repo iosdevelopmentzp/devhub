@@ -287,4 +287,41 @@ import DevHubTestSupport
         #expect(store.busyComments.isEmpty)
         #expect(harness.spies.codeHost.calls.isEmpty)
     }
+
+    @Test func aLineCommentSendsThePositionAndTheHeadCommit() async throws {
+        script()
+        await store.load(7)
+        store.startLineComment(path: "a.swift", oldPath: "a.swift", lineID: 2, newLine: 4, oldLine: nil, of: 7)
+        #expect(store.review(of: 7).lineComment?.lineID == 2)
+        #expect(store.review(of: 8).lineComment == nil)
+
+        store.setLineCommentText(" Rename this ")
+        store.sendLineComment(headSHA: "abc123")
+        try await waitUntil { store.isSendingLineComment == false && harness.spies.codeHost.calls.count == 5 }
+
+        let comment = PullRequestLineComment(path: "a.swift", oldPath: "a.swift", newLine: 4, oldLine: nil, body: "Rename this", headSHA: "abc123")
+        #expect(harness.spies.codeHost.calls.contains(.addLineComment(iid: 7, comment: comment, repository: remote)))
+        #expect(store.lineComment == nil)
+        #expect(harness.lastActivity?.title == "Commented on a.swift:4 in !7")
+    }
+
+    @Test func aFailedLineCommentKeepsTheTextAndCancelClearsIt() async throws {
+        script()
+        harness.spies.codeHost.actionError = PullRequestError.command("boom")
+        store.startLineComment(path: "a.swift", oldPath: "a.swift", lineID: 2, newLine: 4, oldLine: nil, of: 7)
+        store.setLineCommentText("Why?")
+
+        store.sendLineComment(headSHA: nil)
+        try await waitUntil { store.isSendingLineComment == false && harness.lastActivity?.outcome == .failure }
+        #expect(store.lineComment?.text == "Why?")
+
+        store.cancelLineComment()
+        #expect(store.lineComment == nil)
+    }
+
+    @Test func aLineWithoutNumbersCannotBeCommented() {
+        store.startLineComment(path: "a.swift", oldPath: "a.swift", lineID: 0, newLine: nil, oldLine: nil, of: 7)
+
+        #expect(store.lineComment == nil)
+    }
 }

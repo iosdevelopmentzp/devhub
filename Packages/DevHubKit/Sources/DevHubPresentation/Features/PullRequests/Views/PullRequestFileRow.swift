@@ -8,7 +8,21 @@ struct PullRequestFileRow: View {
     var body: some View {
         Section {
             if let diff = model.diff {
-                DiffView(model: diff, scrollScope: model.id, highlightedLineID: model.highlightedLineID, onOpenLine: { actions.openFile(model.path, $0) }) { lineID in
+                DiffView(
+                    model: diff,
+                    scrollScope: model.id,
+                    highlightedLineID: model.highlightedLineID,
+                    onOpenLine: { actions.openFile(model.path, $0) },
+                    onCommentLine: { actions.startLineComment(model.path, model.oldPath, $0) }
+                ) { lineID in
+                    if let composer = model.lineComposer, composer.lineID == lineID {
+                        LineCommentComposer(
+                            model: composer,
+                            onChange: actions.setLineCommentText,
+                            onSend: actions.sendLineComment,
+                            onCancel: actions.cancelLineComment
+                        )
+                    }
                     ForEach(model.diffThreads[lineID] ?? []) { thread in
                         DiffThreadBubble(
                             model: thread,
