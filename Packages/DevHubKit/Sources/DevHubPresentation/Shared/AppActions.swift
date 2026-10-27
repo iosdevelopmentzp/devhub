@@ -253,6 +253,10 @@ final class AppActions {
         workspace.openFile(path: path, line: nil)
     }
 
+    func openFile(path: String, line: Int?) {
+        workspace.openFile(path: path, line: line)
+    }
+
     func openSourceFile(path: String, line: Int?, branch: String) {
         let root = worktrees.checkoutPath(forBranch: branch) ?? worktrees.mainCheckoutPath
         workspace.openFile(path: (root as NSString).appendingPathComponent(path), line: line)

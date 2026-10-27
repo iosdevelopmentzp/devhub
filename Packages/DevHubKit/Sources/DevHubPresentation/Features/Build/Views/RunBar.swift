@@ -54,6 +54,12 @@ struct RunBar: View {
                 if let outcome = model.outcome {
                     outcomeRow(outcome, canShowLog: model.canShowLog)
                 }
+                if build.issues.isEmpty == false {
+                    BuildIssuesList(title: BuildIssuesMapper.title(for: build.issues), rows: BuildIssuesMapper.rows(for: build.issues)) { row in
+                        guard let path = row.path else { return }
+                        appActions.openFile(path: path, line: row.line)
+                    }
+                }
             }
         }
         .animation(.snappy(duration: 0.2), value: build.isRunning)

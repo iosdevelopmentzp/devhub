@@ -60,6 +60,9 @@ struct XcodeBuildRepository: BuildRepository {
             if let step = BuildOutputParser.step(from: line), collector.shouldEmitStep(at: .now) {
                 onEvent(.step(step, progress: nil))
             }
+            if let issue = BuildOutputParser.issue(from: line) {
+                onEvent(.issue(issue))
+            }
             if let error = BuildOutputParser.error(from: line) {
                 collector.addError(error)
             }

@@ -266,6 +266,7 @@ private func describe(_ event: BuildEvent) -> String {
     case .step(let title, _): "step: \(title)"
     case .output(let line): "output: \(line)"
     case .launched(let record): "launched: \(record.profileID ?? "-") \(record.identity ?? "-") \(record.baseURL ?? "-")"
+    case .issue(let issue): "issue: \(issue.message)"
     }
 }
 

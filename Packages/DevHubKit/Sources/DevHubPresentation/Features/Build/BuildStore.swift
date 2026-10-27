@@ -10,6 +10,7 @@ final class BuildStore: BuildLookup {
     private(set) var source: BuildSourceChoice = .main
     private(set) var schemes: [String] = []
     private(set) var hasLog = false
+    private(set) var issues: [BuildIssue] = []
     @ObservationIgnored private var buildLog = BuildLog(maxLines: 20_000, trimSlack: 2_000)
 
     @ObservationIgnored let repository: any BuildRepository
@@ -203,6 +204,7 @@ final class BuildStore: BuildLookup {
         events.post(.buildStarted(simulatorID: simulator.id))
         buildLog.removeAll()
         hasLog = false
+        issues = []
         state.phase = .running(step: "Preparing", progress: nil)
         saveRunOptions()
         buildTask = Task { [weak self] in
@@ -281,6 +283,8 @@ final class BuildStore: BuildLookup {
         state.phase = .running(step: step, progress: nil)
     }
 
+    static let issueLimit = 200
+
     private func handle(_ event: BuildEvent) {
         switch event {
         case .step(let title, let progress):
@@ -293,6 +297,9 @@ final class BuildStore: BuildLookup {
             }
         case .launched:
             break
+        case .issue(let issue):
+            guard issues.count < Self.issueLimit, issues.contains(issue) == false else { return }
+            issues.append(issue)
         }
     }
 

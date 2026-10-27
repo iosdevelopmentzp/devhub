@@ -73,6 +73,7 @@ private func collect(_ stream: AsyncThrowingStream<BuildEvent, Error>) async -> 
             case .step(let title, _): events.append("step: \(title)")
             case .output(let line): events.append("output: \(line)")
             case .launched: events.append("launched")
+            case .issue(let issue): events.append("issue: \(issue.message)")
             }
         }
         return (events, nil)

@@ -428,4 +428,14 @@ import DevHubTestSupport
         #expect(harness.spies.scripts.calls.first?.environment["DEVHUB_SIMULATOR_UDID"] == simulator.id)
         #expect(harness.spies.build.calls.contains { if case .build = $0 { true } else { false } } == false)
     }
+
+    @Test func issuesAreCollectedOnceAndResetByTheNextRun() async throws {
+        let issue = BuildIssue(severity: .error, path: "/a.swift", line: 1, column: 2, message: "boom")
+        harness.spies.build.buildEvents = [.issue(issue), .issue(issue)]
+
+        store.run()
+        try await waitUntil { hasFinished }
+
+        #expect(store.issues == [issue])
+    }
 }

@@ -1,3 +1,4 @@
+import DevHubDomain
 import Testing
 @testable import DevHubData
 
@@ -61,5 +62,23 @@ import Testing
     ])
     func appPathIgnoresOtherLines(line: String) {
         #expect(BuildOutputParser.appPath(from: line) == nil)
+    }
+
+    @Test func issuesKeepTheFileLineColumnAndSeverity() {
+        #expect(BuildOutputParser.issue(from: "/Users/dev/App/LoginView.swift:42:9: error: cannot find 'viewModel' in scope") == BuildIssue(
+            severity: .error,
+            path: "/Users/dev/App/LoginView.swift",
+            line: 42,
+            column: 9,
+            message: "cannot find 'viewModel' in scope"
+        ))
+        #expect(BuildOutputParser.issue(from: "/Users/dev/App/Old.swift:7: warning: 'foo' is deprecated")?.severity == .warning)
+        #expect(BuildOutputParser.issue(from: "/Users/dev/App/Old.swift:7: warning: 'foo' is deprecated")?.column == nil)
+    }
+
+    @Test func anErrorWithoutAFileIsKeptAndOtherLinesAreNot() {
+        #expect(BuildOutputParser.issue(from: "xcodebuild: error: Unable to find a destination") == BuildIssue(severity: .error, path: nil, line: nil, column: nil, message: "Unable to find a destination"))
+        #expect(BuildOutputParser.issue(from: "CompileSwift normal arm64 /Users/dev/App/LoginView.swift") == nil)
+        #expect(BuildOutputParser.issue(from: "note: Using codesigning identity override") == nil)
     }
 }

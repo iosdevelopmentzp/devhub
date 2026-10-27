@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Build & Run: the run bar lists the compiler errors and warnings of the build, errors first. A click opens the file at that line in the editor from Settings.
 - Simulators: the sliders button in a row opens QA settings for a booted simulator: light or dark appearance, text size, a clean 9:41 status bar, a location from a city list, the language and region, privacy permissions for the app (grant, revoke, reset) and a screenshot to the Desktop.
 - Home has a "Today" card: requests that wait for your review, your requests with failed checks, finished worktrees and booted simulators. A click opens the right tab (or the request).
 - Switch projects from the keyboard: ⌃⌘1 to ⌃⌘9 select the first nine projects in the order of Settings → Projects, and the project menu shows these shortcuts. The ⌘K palette lists "Switch to project …" for the other projects.

@@ -93,6 +93,10 @@ For a `kind: command` project, the steps are:
 
 A `@devhub {"progress": …}` line updates the step text. A `@devhub {"error": …}` line fails the run.
 
+### Build errors and warnings
+
+While `xcodebuild` runs, DevHub reads every `<file>:<line>:<column>: error: …` and `… warning: …` line, and every `error: …` line without a file. The run bar lists them under the result: a title such as "2 errors · 5 warnings", errors first, five lines with "Show all N". A click on a line opens the file at that line in the editor from Settings. A repeated line shows once; the list keeps at most 200 lines and is cleared when the next build starts. A `kind: command` project has no list: its scripts print their own output.
+
 ### Install and launch
 
 These steps are shared by both project kinds (`AppInstallStep`).

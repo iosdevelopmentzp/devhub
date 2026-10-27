@@ -38,7 +38,7 @@ The owner also asked for more comfort when working from any project: an easier p
 - [x] S2. Switch project from the palette and with ⌃⌘1 to ⌃⌘9.
 - [x] H1. Home "Today" card.
 - [x] Q1. Simulator QA settings.
-- [ ] B1. Build log viewer.
+- [x] B1. Build log viewer.
 
 ## Step log
 
@@ -58,4 +58,5 @@ The owner also asked for more comfort when working from any project: an easier p
 | `cc05fba` | S1 | `StarterConfigFacts`, `StarterConfigPolicy.projectJSON`, `ConfigRepository.createStarter` (refuses an existing `project.json`, `ConfigError.starterExists`), `ConfigStore.createStarter`, the button in Settings → Project config (the three buttons wrap in a `FlowLayout`). Checked by tests: the written file loads without issues. |
 | `b1fdeb0` | S2 | `ProjectSwitchItem`, `ProjectSwitchMapper`, `ProjectShortcuts` (hidden buttons for ⌃⌘1 to ⌃⌘9), `ProjectShortcutModifier` on the project menu items, palette items "Switch to project …". Checked: a real ⌃⌘1 key press switched the project; a headless snapshot of the palette. |
 | `36d2675` | H1 | `TodayTarget`, `TodayItemModel`, `TodayCardMapper` (review count, own requests with failed checks, finished worktrees, booted simulators), `TodayCard` on Home, `OpenPullRequestsStore.requests`, `AppActions.open(_:)` and `showPullRequests(scope:)`. Checked with a headless snapshot of the GitHub test repository. |
+| `5cecd27` | Q1 | `SimulatorSetting` and its enums, the `SimulatorSettingsRepository` port (`SimctlSettingsRepository`, mock, spy), `SimulatorQAStore`, `SimulatorQAText`, `SimulatorQAPanel` and the row button. Checked: the simctl option names against `xcrun simctl … help`, a real status bar override, screenshot and clear on a booted simulator. The panel itself was checked by tests only. No video recording. |
 | `fa97a37` | — | The snapshot recipe starts the app with `$PWD/$APP`, so its `pkill` matches. |

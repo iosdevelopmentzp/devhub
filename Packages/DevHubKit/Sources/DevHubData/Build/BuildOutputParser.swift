@@ -47,6 +47,28 @@ enum BuildOutputParser {
         return (trimmed as NSString).lastPathComponent
     }
 
+    private static let locatedIssue = try? NSRegularExpression(pattern: #"^(/[^:]+):(\d+):(?:(\d+):)? (error|warning): (.+)$"#)
+
+    static func issue(from line: String) -> BuildIssue? {
+        let trimmed = line.trimmed
+        let range = NSRange(trimmed.startIndex..., in: trimmed)
+        if let match = locatedIssue?.firstMatch(in: trimmed, range: range) {
+            func group(_ index: Int) -> String? {
+                Range(match.range(at: index), in: trimmed).map { String(trimmed[$0]) }
+            }
+            return BuildIssue(
+                severity: group(4) == "warning" ? .warning : .error,
+                path: group(1),
+                line: group(2).flatMap { Int($0) },
+                column: group(3).flatMap { Int($0) },
+                message: group(5) ?? ""
+            )
+        }
+        guard trimmed.hasPrefix("error: ") || trimmed.hasPrefix("xcodebuild: error: ") else { return nil }
+        let message = trimmed.components(separatedBy: "error: ").dropFirst().joined(separator: "error: ")
+        return BuildIssue(severity: .error, path: nil, line: nil, column: nil, message: message)
+    }
+
     static func appPath(from line: String) -> String? {
         let parts = line.split(separator: " ", maxSplits: 1)
         guard parts.count == 2, appPathActions.contains(String(parts[0])) else { return nil }
