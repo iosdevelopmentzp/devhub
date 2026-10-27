@@ -12,6 +12,9 @@ struct PullRequestReviewState: Equatable {
     var isCommentBusy = false
     var lineComment: LineCommentDraft?
     var isLineCommentBusy = false
+    var jobLogs: [String: JobLogState] = [:]
+    var openJobLogs: Set<String> = []
+    var busyJobs: Set<String> = []
 
     static let initial = PullRequestReviewState(expandedFiles: [], viewedFiles: [], focus: nil, busyThreads: [], showsThreadsInDiff: true, openDiffThreads: [])
 }

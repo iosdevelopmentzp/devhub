@@ -18,6 +18,9 @@ final class PullRequestDetailStore {
     private(set) var busyComments: Set<PullRequestSummary.ID> = []
     private(set) var lineComment: LineCommentDraft?
     private(set) var isSendingLineComment = false
+    private(set) var jobLogs: [String: JobLogState] = [:]
+    private(set) var openJobLogs: Set<String> = []
+    private(set) var busyJobs: Set<String> = []
 
     enum CommentKind {
         case comment
@@ -51,6 +54,8 @@ final class PullRequestDetailStore {
             openDiffThreads = []
             commentDrafts = [:]
             lineComment = nil
+            jobLogs = [:]
+            openJobLogs = []
             focus = nil
         }
     }
@@ -74,7 +79,10 @@ final class PullRequestDetailStore {
             commentDraft: commentDrafts[id] ?? "",
             isCommentBusy: busyComments.contains(id),
             lineComment: lineComment?.requestID == id ? lineComment : nil,
-            isLineCommentBusy: lineComment?.requestID == id && isSendingLineComment
+            isLineCommentBusy: lineComment?.requestID == id && isSendingLineComment,
+            jobLogs: jobLogs,
+            openJobLogs: openJobLogs,
+            busyJobs: busyJobs
         )
     }
 
@@ -257,6 +265,43 @@ final class PullRequestDetailStore {
             } catch {
                 activity.log("\(title) failed", detail: error.localizedDescription, outcome: .failure)
                 isSendingLineComment = false
+            }
+        }
+    }
+
+    func toggleJobLog(_ jobID: String) {
+        guard openJobLogs.remove(jobID) == nil else { return }
+        openJobLogs.insert(jobID)
+        if case .loaded = jobLogs[jobID] { return }
+        jobLogs[jobID] = .loading
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let url = try await remote.codeHost()
+                jobLogs[jobID] = .loaded(try await repository.jobLog(jobID: jobID, repository: url))
+            } catch {
+                jobLogs[jobID] = .failure(error.localizedDescription)
+            }
+        }
+    }
+
+    func retryJob(_ jobID: String, named name: String, of id: PullRequestSummary.ID) {
+        guard busyJobs.contains(jobID) == false else { return }
+        busyJobs.insert(jobID)
+        let title = "Retried \(name) of \(remote.words.reference(id))"
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let url = try await remote.codeHost()
+                try await repository.retryJob(jobID: jobID, repository: url)
+                activity.log(title, detail: "", outcome: .success)
+                busyJobs.remove(jobID)
+                jobLogs[jobID] = nil
+                openJobLogs.remove(jobID)
+                await reload(id)
+            } catch {
+                activity.log("\(title) failed", detail: error.localizedDescription, outcome: .failure)
+                busyJobs.remove(jobID)
             }
         }
     }

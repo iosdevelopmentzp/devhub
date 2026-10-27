@@ -47,7 +47,8 @@ enum GlabGraphQLFixture {
     static let details = Data("""
     {"data":{"project":{"mergeRequest":{"description":"Adds **login**.",
       "headPipeline":{"duration":540,"jobs":{"nodes":[
-        {"name":"build-ios","webPath":"/team/app/-/jobs/71","stage":{"name":"test"}},
+        {"id":"gid://gitlab/Ci::Build/71","name":"build-ios","status":"FAILED","webPath":"/team/app/-/jobs/71","stage":{"name":"test"}},
+        {"id":"gid://gitlab/Ci::Build/70","name":"unit","status":"SUCCESS","webPath":"/team/app/-/jobs/70","stage":{"name":"test"}},
         {"name":"lint","webPath":null,"stage":null},
         {"name":null,"webPath":"/team/app/-/jobs/73","stage":{"name":"test"}}
       ]}},

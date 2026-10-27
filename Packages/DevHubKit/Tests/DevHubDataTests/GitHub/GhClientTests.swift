@@ -25,4 +25,8 @@ import Testing
         #expect(GhClient.owner(.gitHubSample) == "example")
         #expect(GhClient.name(.gitHubSample) == "app")
     }
+
+    @Test func aLogReadAllowsEscapeSequences() {
+        #expect(GhClient.logArguments(endpoint: "repos/example/app/actions/jobs/9/logs", host: "github.com") == ["api", "--hostname", "github.com", "--allow-escape-sequences", "repos/example/app/actions/jobs/9/logs"])
+    }
 }

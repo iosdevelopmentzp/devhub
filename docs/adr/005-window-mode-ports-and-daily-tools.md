@@ -33,7 +33,7 @@ The owner also asked for more comfort when working from any project: an easier p
 - [x] W2. Right-click menu on the menu bar icon.
 - [x] R1. Top-level comment and Request Changes.
 - [x] R2. New thread on a diff line.
-- [ ] R3. Checks and pipeline jobs in the details.
+- [x] R3. Checks and pipeline jobs in the details.
 - [ ] S1. Create .devhub Starter.
 - [ ] S2. Switch project from the palette and with ⌃⌘1 to ⌃⌘9.
 - [ ] H1. Home "Today" card.
@@ -53,4 +53,5 @@ The owner also asked for more comfort when working from any project: an easier p
 | `8116c33` | W1 | `WindowMode` and `AppSettings.windowMode`, `MainWindow`, `MainMenuBuilder`, `AppWindows` as `NSWindowDelegate` with `toggle()`, `show()`, `showWindow()`, `hideWindow()`, `applyWindowMode(_:)`; `WindowLayout.isWindowOpen`; `SettingsStore.showsDockIcon` and `onWindowModeChange`; `AppContainer` as the app delegate; the Window picker; `DEVHUB_WINDOW_MODE`. Checked on screen: the window is a Dock app (`Foreground`), the close button and File → Close Window hide it, `open` shows it again, the main menu has DevHub, File, Edit, Window, and the panel works after a switch back. |
 | `25f1ad1` | W2 | `StatusMenuItem`, `StatusMenuMapper`, the right-click menu in `AppWindows.statusItemClicked`. Checked with a synthetic right click: the menu lists Show DevHub, the projects, Keep Mac Awake, Settings…, Quit DevHub. |
 | `5884995` | R1 | `CodeHostRepository.comment` and `requestChanges`, `PullRequestPermissions.canRequestChanges` (GitHub: not the author), `PullRequestCommentBox` under the threads, drafts per request in `PullRequestDetailStore`; `DEVHUB_PULL_REQUEST`. Checked with a headless snapshot of the GitHub test repository: the box shows, Request Changes stays hidden on an own request. No comment was posted. |
+| `65b49e9` | R2 | `PullRequestLineComment`, `CodeHostRepository.addLineComment` (GitHub review comment with `commit_id`, `line`, `side`; GitLab discussion with a `position` from `diff_refs`, `GlabDiffRefsParser`), `LineCommentDraft` in `PullRequestDetailStore`, `LineCommentComposer` under the line, a hover button and a context menu item on `DiffLine`. Checked by tests only: a headless snapshot cannot click a line. |
 | `fa97a37` | — | The snapshot recipe starts the app with `$PWD/$APP`, so its `pkill` matches. |

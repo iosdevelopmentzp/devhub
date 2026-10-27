@@ -10,7 +10,7 @@ enum GhFixture {
     """#.utf8)
 
     static let failedDetails = Data(#"""
-    {"data":{"repository":{"pullRequest":{"body":"This pull request fails its check.","url":"https://github.com/example/app/pull/3","reviewThreads":{"nodes":[]},"lastCommit":{"nodes":[{"commit":{"statusCheckRollup":{"state":"FAILURE","contexts":{"nodes":[{"__typename":"CheckRun","name":"notes","conclusion":"FAILURE","status":"COMPLETED","detailsUrl":"https://github.com/example/app/actions/runs/903/job/9031","startedAt":"2026-10-17T22:33:11Z","completedAt":"2026-10-17T22:33:18Z","checkSuite":{"workflowRun":{"databaseId":903}}}]}}}}]}}}}}
+    {"data":{"repository":{"pullRequest":{"body":"This pull request fails its check.","url":"https://github.com/example/app/pull/3","reviewThreads":{"nodes":[]},"lastCommit":{"nodes":[{"commit":{"statusCheckRollup":{"state":"FAILURE","contexts":{"nodes":[{"__typename":"CheckRun","databaseId":9031,"name":"notes","conclusion":"FAILURE","status":"COMPLETED","detailsUrl":"https://github.com/example/app/actions/runs/903/job/9031","startedAt":"2026-10-17T22:33:11Z","completedAt":"2026-10-17T22:33:18Z","checkSuite":{"workflowRun":{"databaseId":903}}}]}}}}]}}}}}
     """#.utf8)
 
     static let threadDetails = Data(#"""

@@ -30,8 +30,8 @@ import Testing
         }
     }
 
-    @Test func detailsReadTheFailedJobs() {
-        #expect(GlabGraphQLQueries.details.contains("headPipeline { duration jobs(statuses: [FAILED]) { nodes { name webPath stage { name } } } }"))
+    @Test func detailsReadEveryJobWithItsStatus() {
+        #expect(GlabGraphQLQueries.details.contains("headPipeline { duration jobs { nodes { id name status webPath stage { name } } } }"))
     }
 
     @Test func writesTakeValuesOnlyAsVariables() {

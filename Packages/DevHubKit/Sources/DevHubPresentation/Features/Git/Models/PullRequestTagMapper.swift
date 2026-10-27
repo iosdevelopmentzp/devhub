@@ -86,7 +86,7 @@ enum PullRequestTagMapper {
         return "\(CountText.count(count, words.job)) failed"
     }
 
-    private static func pipelineTint(_ status: CheckStatus) -> Tint {
+    static func pipelineTint(_ status: CheckStatus) -> Tint {
         switch status {
         case .success: .green
         case .failed: .red
@@ -96,7 +96,7 @@ enum PullRequestTagMapper {
         }
     }
 
-    private static func pipelineIcon(_ status: CheckStatus) -> String {
+    static func pipelineIcon(_ status: CheckStatus) -> String {
         switch status {
         case .success: "checkmark.circle.fill"
         case .failed: "xmark.circle.fill"

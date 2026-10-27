@@ -81,6 +81,20 @@ struct PullRequestDetailsView: View {
                     }
                 }
             }
+            if loaded.jobs.isEmpty == false {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(loaded.jobsTitle)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    ForEach(loaded.jobs) { job in
+                        PipelineJobRow(
+                            model: job,
+                            onToggleLog: { job.jobID.map(actions.toggleJobLog) },
+                            onRetry: { job.jobID.map { actions.retryJob($0, job.title) } }
+                        )
+                    }
+                }
+            }
             if let description = loaded.description {
                 ExpandableText(description, lineLimit: 12)
                     .font(.callout)

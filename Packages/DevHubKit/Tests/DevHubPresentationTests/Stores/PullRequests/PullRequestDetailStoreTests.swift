@@ -324,4 +324,36 @@ import DevHubTestSupport
 
         #expect(store.lineComment == nil)
     }
+
+    @Test func aJobLogLoadsOnceAndTogglesOpen() async throws {
+        script()
+        harness.spies.codeHost.jobLogResult = .success("tail")
+
+        store.toggleJobLog("71")
+        try await waitUntil { store.jobLogs["71"] == .loaded("tail") }
+        store.toggleJobLog("71")
+        store.toggleJobLog("71")
+
+        #expect(store.openJobLogs == ["71"])
+        #expect(harness.spies.codeHost.calls == [.jobLog(jobID: "71", repository: remote)])
+    }
+
+    @Test func aFailedJobLogShowsTheError() async throws {
+        script()
+        harness.spies.codeHost.jobLogResult = .failure(PullRequestError.command("no log"))
+
+        store.toggleJobLog("71")
+        try await waitUntil { store.jobLogs["71"] == .failure("no log") }
+    }
+
+    @Test func retryRunsTheJobAgainAndReloads() async throws {
+        script()
+        await store.load(7)
+
+        store.retryJob("71", named: "unit (test)", of: 7)
+        try await waitUntil { store.busyJobs.isEmpty && harness.spies.codeHost.calls.count == 5 }
+
+        #expect(harness.spies.codeHost.calls.contains(.retryJob(jobID: "71", repository: remote)))
+        #expect(harness.lastActivity?.title == "Retried unit (test) of !7")
+    }
 }

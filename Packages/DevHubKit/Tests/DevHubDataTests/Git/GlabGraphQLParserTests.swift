@@ -122,9 +122,11 @@ import Testing
 
         #expect(details.pipelineDuration == 540)
         #expect(details.failedJobs == [
-            PipelineJob(name: "build-ios", stage: "test", webURL: URL(string: "https://gitlab.example.com/team/app/-/jobs/71")),
+            PipelineJob(name: "build-ios", stage: "test", webURL: URL(string: "https://gitlab.example.com/team/app/-/jobs/71"), id: "71", status: .failed),
             PipelineJob(name: "lint", stage: nil, webURL: nil),
         ])
+        #expect(details.jobs.map(\.name) == ["build-ios", "unit", "lint"])
+        #expect(details.jobs[1] == PipelineJob(name: "unit", stage: "test", webURL: URL(string: "https://gitlab.example.com/team/app/-/jobs/70"), id: "70", status: .success))
     }
 
     @Test func detailsWithoutAPipelineHaveNoJobs() throws {

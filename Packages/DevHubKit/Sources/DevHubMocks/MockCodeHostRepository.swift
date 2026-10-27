@@ -118,4 +118,13 @@ struct MockCodeHostRepository: CodeHostRepository {
     func addLineComment(iid: Int, comment: PullRequestLineComment, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
+
+    func jobLog(jobID: String, repository: CodeHost) async throws -> String {
+        try? await Task.sleep(for: .milliseconds(300))
+        return "Test Suite 'All tests' started\nLoginTests.testWrongPassword failed: expected 401\n** TEST FAILED **"
+    }
+
+    func retryJob(jobID: String, repository: CodeHost) async throws {
+        try? await Task.sleep(for: .milliseconds(300))
+    }
 }

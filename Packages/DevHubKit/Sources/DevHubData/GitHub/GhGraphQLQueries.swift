@@ -4,7 +4,7 @@ import DevHubDomain
 enum GhGraphQLQueries {
     private static let checks = """
     lastCommit: commits(last: 1) { nodes { commit { statusCheckRollup { state contexts(first: 50) { nodes { __typename \
-    ... on CheckRun { name conclusion status detailsUrl startedAt completedAt checkSuite { workflowRun { databaseId } } } \
+    ... on CheckRun { databaseId name conclusion status detailsUrl startedAt completedAt checkSuite { workflowRun { databaseId } } } \
     ... on StatusContext { context state targetUrl } } } } } } }
     """
 

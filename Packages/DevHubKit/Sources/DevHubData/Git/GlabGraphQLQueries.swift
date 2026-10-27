@@ -27,7 +27,7 @@ enum GlabGraphQLQueries {
 
     static let details = """
     query($path: ID!, $iid: String!) { project(fullPath: $path) { mergeRequest(iid: $iid) { description \
-    headPipeline { duration jobs(statuses: [FAILED]) { nodes { name webPath stage { name } } } } \
+    headPipeline { duration jobs { nodes { id name status webPath stage { name } } } } \
     discussions(first: 100) { nodes { id resolvable resolved notes(first: 100) { nodes { id body system author { username } \
     position { filePath newLine oldLine } } } } } } } }
     """

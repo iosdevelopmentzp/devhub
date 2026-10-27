@@ -89,6 +89,14 @@ struct RoutingCodeHostRepository: CodeHostRepository {
         try await target(repository).addLineComment(iid: iid, comment: comment, repository: repository)
     }
 
+    func jobLog(jobID: String, repository: CodeHost) async throws -> String {
+        try await target(repository).jobLog(jobID: jobID, repository: repository)
+    }
+
+    func retryJob(jobID: String, repository: CodeHost) async throws {
+        try await target(repository).retryJob(jobID: jobID, repository: repository)
+    }
+
     private func target(_ repository: CodeHost) -> any CodeHostRepository {
         switch repository.kind {
         case .github: gitHub

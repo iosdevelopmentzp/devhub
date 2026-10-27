@@ -30,6 +30,10 @@ struct GhClient {
         try await run(Self.restArguments(endpoint: endpoint, method: method, fields: fields, host: host.host), host: host)
     }
 
+    func log(_ endpoint: String, host: CodeHost) async throws -> Data {
+        try await run(Self.logArguments(endpoint: endpoint, host: host.host), host: host)
+    }
+
     func pr(_ arguments: [String], host: CodeHost) async throws -> Data {
         try await run(["pr"] + arguments + ["--repo", Self.repository(host)], host: host)
     }
@@ -45,6 +49,10 @@ struct GhClient {
 
     static func restArguments(endpoint: String, method: String, fields: [Variable], host: String) -> [String] {
         ["api", "--hostname", host, "-X", method, endpoint] + fields.flatMap(\.arguments)
+    }
+
+    static func logArguments(endpoint: String, host: String) -> [String] {
+        ["api", "--hostname", host, "--allow-escape-sequences", endpoint]
     }
 
     static func repository(_ host: CodeHost) -> String {

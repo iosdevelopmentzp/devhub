@@ -202,7 +202,8 @@ enum GhPullRequestParser {
             description: request.body ?? "",
             threads: threads,
             failedJobs: rollup.map(GhCheckParser.failedJobs) ?? [],
-            pipelineDuration: rollup.flatMap(GhCheckParser.duration)
+            pipelineDuration: rollup.flatMap(GhCheckParser.duration),
+            jobs: rollup.map(GhCheckParser.jobs) ?? []
         )
     }
 

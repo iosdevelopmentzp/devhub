@@ -99,6 +99,7 @@ import Testing
 
         #expect(details.failedJobs == [PipelineJob(name: "notes", stage: nil, webURL: URL(string: "https://github.com/example/app/actions/runs/903/job/9031"))])
         #expect(details.pipelineDuration == 7)
+        #expect(details.jobs == [PipelineJob(name: "notes", stage: nil, webURL: URL(string: "https://github.com/example/app/actions/runs/903/job/9031"), id: "9031", status: .failed)])
     }
 
     @Test func myApprovalIsTheReviewOfTheViewer() throws {

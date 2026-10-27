@@ -194,6 +194,18 @@ struct GlabPullRequestRepository: CodeHostRepository {
         )
     }
 
+    func jobLog(jobID: String, repository: CodeHost) async throws -> String {
+        JobLogTail.text(from: try await client.rest(job(jobID, repository) + "/trace", host: try GlabClient.host(of: repository)))
+    }
+
+    func retryJob(jobID: String, repository: CodeHost) async throws {
+        _ = try await client.rest(job(jobID, repository) + "/retry", method: "POST", fields: [], host: try GlabClient.host(of: repository))
+    }
+
+    private func job(_ jobID: String, _ repository: CodeHost) -> String {
+        "projects/\(encoded(GlabClient.projectPath(of: repository)))/jobs/\(encoded(jobID))"
+    }
+
     static func lineCommentFields(_ comment: PullRequestLineComment, refs: GlabDiffRefsParser.DiffRefs) -> [(name: String, value: String)] {
         var fields: [(name: String, value: String)] = commentFields(body: comment.body) + [
             (name: "position[position_type]", value: "text"),

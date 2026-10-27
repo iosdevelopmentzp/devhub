@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Pull request details list every check or pipeline job of the last commit, failed first. The log button shows the last 200 lines of a job log inside DevHub, with Copy Log. Retry runs one failed or cancelled job again. Works for GitHub Actions and GitLab jobs.
 - Pull request diffs: hover a line and click the bubble with a plus (or right-click it, "Comment on This Line…") to start a new review thread on that line, on GitHub and GitLab. The box opens under the line; ⌘Return posts, Esc closes.
 - Pull request details have a comment box. "Comment" (⌘Return) posts a comment on the request on GitHub and GitLab. "Request Changes" sends the text as a review that asks for changes, on GitHub, for a request by someone else. A failed post keeps the text.
 - A right click on the menu bar icon opens a menu: Show DevHub, the list of projects (a click switches to the project and shows DevHub), Keep Mac Awake, Settings… and Quit DevHub. A left click still opens or closes DevHub.

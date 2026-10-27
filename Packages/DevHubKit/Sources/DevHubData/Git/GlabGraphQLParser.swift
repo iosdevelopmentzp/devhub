@@ -126,7 +126,9 @@ enum GlabGraphQLParser {
                 let name: String?
             }
 
+            let id: String?
             let name: String?
+            let status: String?
             let webPath: String?
             let stage: Stage?
         }
@@ -216,10 +218,20 @@ enum GlabGraphQLParser {
         return PullRequestDetails(
             description: request.description ?? "",
             threads: threads,
-            failedJobs: jobs.compactMap { job in
-                job.name.map { PipelineJob(name: $0, stage: job.stage?.name, webURL: job.webPath.flatMap { URL(string: "https://\(host)\($0)") }) }
-            },
-            pipelineDuration: request.headPipeline?.duration
+            failedJobs: jobs.filter { $0.status == nil || $0.status == "FAILED" }.compactMap { job(from: $0, host: host) },
+            pipelineDuration: request.headPipeline?.duration,
+            jobs: jobs.compactMap { job(from: $0, host: host) }
+        )
+    }
+
+    private static func job(from job: DetailsData.Job, host: String) -> PipelineJob? {
+        guard let name = job.name else { return nil }
+        return PipelineJob(
+            name: name,
+            stage: job.stage?.name,
+            webURL: job.webPath.flatMap { URL(string: "https://\(host)\($0)") },
+            id: job.id.flatMap { $0.split(separator: "/").last.map(String.init) },
+            status: job.status.map { GlabPullRequestParser.pipelineStatus($0.lowercased()) } ?? .failed
         )
     }
 

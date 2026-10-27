@@ -24,7 +24,7 @@ A code host is the web service that keeps the repository and its review requests
 
 ## The port
 
-`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`.
+`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`.
 
 Every method takes `repository: CodeHost`. A `CodeHost` holds:
 
@@ -68,6 +68,7 @@ The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsS
 | `resolveThread`, `reply` | GraphQL `resolveReviewThread`, `addPullRequestReviewThreadReply` | GraphQL `discussionToggleResolve`; REST discussion notes |
 | `comment` | `gh pr comment --body` | REST `POST merge_requests/<n>/notes` |
 | `requestChanges` | `gh pr review --request-changes --body` | throws; hidden by `canRequestChanges` |
+| `jobLog`, `retryJob` | `GhClient.log` (`--allow-escape-sequences`) on `actions/jobs/<id>/logs`; REST `POST actions/jobs/<id>/rerun`. The job ID is the `databaseId` of an Actions `CheckRun` | REST `jobs/<id>/trace`; REST `POST jobs/<id>/retry`. The ID is the number at the end of the GraphQL job ID |
 | `addLineComment` | REST `POST pulls/<n>/comments` with `commit_id`, `path`, `line`, `side` (`lineCommentFields`) | REST `GET merge_requests/<n>` for `diff_refs` (`GlabDiffRefsParser`), then `POST …/discussions` with `position[…]` (`lineCommentFields`) |
 
 ### Clients and errors
@@ -86,6 +87,8 @@ The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsS
 | anything else | `command(message)` | the trimmed error text |
 
 ### Traps
+
+0. `gh api` refuses an answer with terminal escape codes (a job log) unless it gets `--allow-escape-sequences`. `JobLogTail` removes the codes, the timestamps and tokens, and keeps the last 200 lines.
 
 1. `glab api -f` reads a value that starts with `@` as a file name. `GlabPullRequestRepository` adds a space before such a value (title, description, reply).
 2. GitLab has no draft flag on create. A draft title gets the prefix `Draft:`.

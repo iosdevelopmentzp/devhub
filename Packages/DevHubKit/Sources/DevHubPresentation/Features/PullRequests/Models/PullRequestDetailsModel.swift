@@ -19,6 +19,8 @@ struct PullRequestDetailsModel: Equatable {
         var pipelineDurationText: String?
         var canCancelPipeline: Bool
         var failedJobs: [JobLink]
+        var jobsTitle: String
+        var jobs: [PipelineJobRowModel]
         var description: AttributedString?
         var threadsTitle: String
         var canFixThreads: Bool
@@ -41,7 +43,9 @@ struct PullRequestDetailsModel: Equatable {
                 pipelineURL: URL(string: "https://gitlab.com/example/app/-/pipelines/1842"),
                 pipelineDurationText: "9 m 0 s",
                 canCancelPipeline: true,
-                failedJobs: [JobLink(title: "unit-tests (test)", url: URL(string: "https://gitlab.com/example/app/-/jobs/71"))],
+                failedJobs: [],
+                jobsTitle: "Pipeline 1 · 1 failed",
+                jobs: [.preview],
                 description: AttributedString("Adds paid calls.\n\nTicket: ABC-2324"),
                 threadsTitle: "Open threads 1",
                 canFixThreads: true,

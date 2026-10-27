@@ -20,6 +20,8 @@ struct PullRequestDetailActions {
     let setLineCommentText: (_ text: String) -> Void
     let sendLineComment: () -> Void
     let cancelLineComment: () -> Void
+    let toggleJobLog: (_ jobID: String) -> Void
+    let retryJob: (_ jobID: String, _ name: String) -> Void
     let cancelPipeline: () -> Void
     let fixThreads: () -> Void
     let runConfigAction: (_ actionID: ConfigActionItemModel.ID) -> Void
@@ -45,6 +47,8 @@ struct PullRequestDetailActions {
         setLineCommentText: { _ in },
         sendLineComment: {},
         cancelLineComment: {},
+        toggleJobLog: { _ in },
+        retryJob: { _, _ in },
         cancelPipeline: {},
         fixThreads: {},
         runConfigAction: { _ in },
@@ -72,6 +76,8 @@ struct PullRequestDetailActions {
             setLineCommentText: setLineCommentText,
             sendLineComment: sendLineComment,
             cancelLineComment: cancelLineComment,
+            toggleJobLog: toggleJobLog,
+            retryJob: retryJob,
             cancelPipeline: cancelPipeline,
             fixThreads: fixThreads,
             runConfigAction: runConfigAction,
@@ -113,6 +119,8 @@ extension PullRequestDetailActions {
             setLineCommentText: { detailStore.setLineCommentText($0) },
             sendLineComment: { detailStore.sendLineComment(headSHA: summary.headSHA) },
             cancelLineComment: { detailStore.cancelLineComment() },
+            toggleJobLog: { detailStore.toggleJobLog($0) },
+            retryJob: { detailStore.retryJob($0, named: $1, of: id) },
             cancelPipeline: { pullRequests.perform(.cancelPipeline, on: id) },
             fixThreads: { appActions.fixThreadsWithClaude(summary) },
             runConfigAction: { actionID in

@@ -123,6 +123,14 @@ struct GhPullRequestRepository: CodeHostRepository {
         _ = try await client.rest("\(pull(iid, repository))/comments", method: "POST", fields: try Self.lineCommentFields(comment), host: repository)
     }
 
+    func jobLog(jobID: String, repository: CodeHost) async throws -> String {
+        JobLogTail.text(from: try await client.log("repos/\(repository.path)/actions/jobs/\(jobID)/logs", host: repository))
+    }
+
+    func retryJob(jobID: String, repository: CodeHost) async throws {
+        _ = try await client.rest("repos/\(repository.path)/actions/jobs/\(jobID)/rerun", method: "POST", fields: [], host: repository)
+    }
+
     static func lineCommentFields(_ comment: PullRequestLineComment) throws -> [GhClient.Variable] {
         guard let sha = comment.headSHA, let line = comment.newLine ?? comment.oldLine else {
             throw PullRequestError.command("The last commit of this pull request is not known yet. Reload it and try again.")

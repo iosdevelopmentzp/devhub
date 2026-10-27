@@ -28,6 +28,7 @@ enum GhCheckParser {
             let workflowRun: Run?
         }
 
+        let databaseId: Int?
         let name: String?
         let conclusion: String?
         let status: String?
@@ -83,6 +84,37 @@ enum GhCheckParser {
         rollup.contexts.nodes
             .filter(\.isFailed)
             .map { PipelineJob(name: $0.title, stage: nil, webURL: $0.url.flatMap(URL.init(string:))) }
+    }
+
+    static func jobs(_ rollup: Rollup) -> [PipelineJob] {
+        rollup.contexts.nodes
+            .filter { $0.title.isEmpty == false }
+            .map { context in
+                PipelineJob(
+                    name: context.title,
+                    stage: nil,
+                    webURL: context.url.flatMap(URL.init(string:)),
+                    id: context.runID == nil ? nil : context.databaseId.map(String.init),
+                    status: jobStatus(context)
+                )
+            }
+    }
+
+    static func jobStatus(_ context: Context) -> CheckStatus {
+        if context.isFailed { return .failed }
+        if let conclusion = context.conclusion {
+            switch conclusion {
+            case "SUCCESS", "NEUTRAL": return .success
+            case "SKIPPED": return .skipped
+            default: return .other(conclusion.lowercased())
+            }
+        }
+        switch context.status ?? context.state {
+        case "IN_PROGRESS": return .running
+        case "QUEUED", "PENDING", "EXPECTED", "WAITING", "REQUESTED": return .pending
+        case "SUCCESS": return .success
+        default: return .other((context.status ?? context.state ?? "").lowercased())
+        }
     }
 
     static func duration(_ rollup: Rollup) -> Int? {

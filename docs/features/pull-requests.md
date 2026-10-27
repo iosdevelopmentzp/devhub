@@ -48,12 +48,11 @@ The header search filters the loaded rows by title, number, author, branches and
 ### Details
 
 1. The checks or pipeline tag (click opens it in the browser), the duration, "Cancel" while it runs, and "Open in Window".
-2. Failed jobs, each one a link to its log.
+2. The checks or jobs of the last commit, failed first, then running, waiting and passed. Each row shows the status, the name (and the GitLab stage) and buttons: the log icon shows the last 200 lines of the log inside DevHub (timestamps, colours and tokens removed, with Copy Log); Retry runs a failed or cancelled job again; the globe opens it in the browser. Log and Retry need a GitHub Actions job or a GitLab job; an external status check has only the link. Without the job list (an old answer), the failed jobs show as links.
 3. The description.
 4. The review threads: author, text, file and line, replies. Each thread has Reply, Resolve, "Show in diff", "Open file at this line" and "Open in browser".
 5. A comment box: "Comment" (⌘Return) posts a comment on the request. "Request Changes" sends the text as a review that asks for changes; it shows only on GitHub, on an open request by someone else. The text stays in the box until the post works.
-6. The changed files. A click on a file shows its diff. Hover a diff line and click the bubble with a plus, or right-click the line and choose "Comment on This Line…": a box opens under the line, and "Comment" (⌘Return) starts a new review thread there. Esc closes the box. The text stays when the post fails.
-Files: Threads can show under their line in the diff. A "Viewed" box folds the file and greys its name.
+6. The changed files. A click on a file shows its diff. Hover a diff line and click the bubble with a plus, or right-click the line and choose "Comment on This Line…": a box opens under the line, and "Comment" (⌘Return) starts a new review thread there. Esc closes the box. The text stays when the post fails. Threads can show under their line in the diff. A "Viewed" box folds the file and greys its name.
 
 "Open in Window" opens the request in its own window. The window stays open after the panel closes.
 
@@ -116,6 +115,8 @@ After each action DevHub logs the result in Recent and reads the list again.
 | Read files | `gh api --hostname <host> -X GET repos/<owner>/<name>/pulls/<n>/files?per_page=100` | `glab api --hostname <host> projects/<project>/merge_requests/<n>/diffs?per_page=100` |
 | Reply in a thread | `gh api graphql …` (reply mutation) | `glab api … -X POST …/merge_requests/<n>/discussions/<id>/notes -f body=<text>` |
 | Comment on the request | `gh pr comment <n> --body <text> --repo <repo>` | `glab api … -X POST …/merge_requests/<n>/notes -f body=<text>` |
+| Job log | `gh api --hostname <host> --allow-escape-sequences repos/<owner>/<name>/actions/jobs/<id>/logs` | `glab api --hostname <host> projects/<project>/jobs/<id>/trace` |
+| Retry one job | `gh api … -X POST repos/<owner>/<name>/actions/jobs/<id>/rerun` | `glab api … -X POST projects/<project>/jobs/<id>/retry` |
 | New thread on a diff line | `gh api --hostname <host> -X POST repos/<owner>/<name>/pulls/<n>/comments -f body=… -f commit_id=<head sha> -f path=… -F line=<n> -f side=RIGHT\|LEFT` | `glab api … projects/<project>/merge_requests/<n>` (reads `diff_refs`), then `-X POST …/merge_requests/<n>/discussions` with `position[…]` fields: the three SHAs, both paths, `new_line` and, for a removed or unchanged line, `old_line` |
 | Request Changes | `gh pr review <n> --request-changes --body <text> --repo <repo>` | not shown: GitLab has no such review |
 | Resolve a thread | `gh api graphql …` (resolve mutation) | `glab api graphql …` (resolve mutation) |
