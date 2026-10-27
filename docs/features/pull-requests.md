@@ -51,7 +51,8 @@ The header search filters the loaded rows by title, number, author, branches and
 2. Failed jobs, each one a link to its log.
 3. The description.
 4. The review threads: author, text, file and line, replies. Each thread has Reply, Resolve, "Show in diff", "Open file at this line" and "Open in browser".
-5. The changed files. A click on a file shows its diff. Threads can show under their line in the diff. A "Viewed" box folds the file and greys its name.
+5. A comment box: "Comment" (⌘Return) posts a comment on the request. "Request Changes" sends the text as a review that asks for changes; it shows only on GitHub, on an open request by someone else. The text stays in the box until the post works.
+6. The changed files. A click on a file shows its diff. Threads can show under their line in the diff. A "Viewed" box folds the file and greys its name.
 
 "Open in Window" opens the request in its own window. The window stays open after the panel closes.
 
@@ -113,6 +114,8 @@ After each action DevHub logs the result in Recent and reads the list again.
 | Read details | `gh api graphql --hostname <host> -f query=… -f owner=… -f name=… -F number=<n>` | `glab api graphql --hostname <host> -f query=… -f path=<path> -f iid=<n>` |
 | Read files | `gh api --hostname <host> -X GET repos/<owner>/<name>/pulls/<n>/files?per_page=100` | `glab api --hostname <host> projects/<project>/merge_requests/<n>/diffs?per_page=100` |
 | Reply in a thread | `gh api graphql …` (reply mutation) | `glab api … -X POST …/merge_requests/<n>/discussions/<id>/notes -f body=<text>` |
+| Comment on the request | `gh pr comment <n> --body <text> --repo <repo>` | `glab api … -X POST …/merge_requests/<n>/notes -f body=<text>` |
+| Request Changes | `gh pr review <n> --request-changes --body <text> --repo <repo>` | not shown: GitLab has no such review |
 | Resolve a thread | `gh api graphql …` (resolve mutation) | `glab api graphql …` (resolve mutation) |
 | Open a file | Opens the file in the editor from Settings, from the worktree of the source branch or the main checkout. A double-click on a diff line opens that line | `xed --line <n> <file>` and others (see the Git page) |
 | Expand All, Collapse All, Viewed, threads in the diff | Local view state only | — |

@@ -49,7 +49,7 @@ import Testing
             removesSourceBranch: false,
             headSHA: "aaa111",
             isAutoMergeEnabled: false,
-            permissions: PullRequestPermissions(canMerge: true, canApprove: false, canRevokeApproval: true, canSetAutoMerge: false)
+            permissions: PullRequestPermissions(canMerge: true, canApprove: false, canRevokeApproval: true, canSetAutoMerge: false, canRequestChanges: false)
         ))
     }
 

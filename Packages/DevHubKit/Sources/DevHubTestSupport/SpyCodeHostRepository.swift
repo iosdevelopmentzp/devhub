@@ -21,6 +21,8 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
         case labels(repository: CodeHost)
         case resolveThread(id: String, repository: CodeHost)
         case reply(threadID: String, body: String, iid: Int, repository: CodeHost)
+        case comment(iid: Int, body: String, repository: CodeHost)
+        case requestChanges(iid: Int, body: String, repository: CodeHost)
     }
 
     private let lock = NSLock()
@@ -155,6 +157,14 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
 
     package func reply(threadID: String, body: String, iid: Int, repository: CodeHost) async throws {
         try action(.reply(threadID: threadID, body: body, iid: iid, repository: repository))
+    }
+
+    package func comment(iid: Int, body: String, repository: CodeHost) async throws {
+        try action(.comment(iid: iid, body: body, repository: repository))
+    }
+
+    package func requestChanges(iid: Int, body: String, repository: CodeHost) async throws {
+        try action(.requestChanges(iid: iid, body: body, repository: repository))
     }
 
     private func action(_ call: Call) throws {

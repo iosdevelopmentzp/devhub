@@ -33,6 +33,7 @@ enum PullRequestDetailsMapper {
                     threadsTitle: details.threads.isEmpty ? "No open threads" : "Open threads \(details.threads.count)",
                     canFixThreads: details.threads.isEmpty == false && summary.state == .opened,
                     threads: threadRows,
+                    commentBox: commentBox(summary: summary, review: review, words: words),
                     filesTitle: "Files \(diffs.count) · +\(additions) −\(deletions)" + (viewedCount > 0 ? " · \(viewedCount) viewed" : ""),
                     canExpandAllFiles: diffs.count - viewedCount > expandedCount,
                     canCollapseAllFiles: expandedCount > 0,
@@ -41,6 +42,19 @@ enum PullRequestDetailsMapper {
                     files: diffs.map { PullRequestFileRowMapper.model(for: $0, review: review, threads: threadRows, words: words) }
                 )
             )
+        )
+    }
+
+    static func commentBox(summary: PullRequestSummary, review: PullRequestReviewState, words: CodeHostWords) -> PullRequestCommentBoxModel {
+        let reference = words.reference(summary.iid)
+        let hasText = review.commentDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+        return PullRequestCommentBoxModel(
+            draft: review.commentDraft,
+            placeholder: "Comment on \(reference)…",
+            isBusy: review.isCommentBusy,
+            canSend: hasText && review.isCommentBusy == false,
+            canRequestChanges: summary.permissions.canRequestChanges && summary.state == .opened,
+            requestChangesHint: "Send the comment as a review that asks for changes before \(reference) can merge"
         )
     }
 

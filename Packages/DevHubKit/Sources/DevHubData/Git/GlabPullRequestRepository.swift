@@ -170,6 +170,23 @@ struct GlabPullRequestRepository: CodeHostRepository {
         )
     }
 
+    func comment(iid: Int, body: String, repository: CodeHost) async throws {
+        _ = try await client.rest(
+            "\(mergeRequest(iid, repository))/notes",
+            method: "POST",
+            fields: Self.commentFields(body: body),
+            host: try GlabClient.host(of: repository)
+        )
+    }
+
+    func requestChanges(iid: Int, body: String, repository: CodeHost) async throws {
+        throw PullRequestError.command("GitLab has no Request Changes review. Write a comment instead.")
+    }
+
+    static func commentFields(body: String) -> [(name: String, value: String)] {
+        [(name: "body", value: body.hasPrefix("@") ? " " + body : body)]
+    }
+
     private func mergeRequest(_ iid: Int, _ repository: CodeHost) -> String {
         "projects/\(encoded(GlabClient.projectPath(of: repository)))/merge_requests/\(iid)"
     }

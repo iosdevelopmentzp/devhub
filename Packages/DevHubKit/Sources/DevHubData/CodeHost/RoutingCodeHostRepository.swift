@@ -77,6 +77,14 @@ struct RoutingCodeHostRepository: CodeHostRepository {
         try await target(repository).reply(threadID: threadID, body: body, iid: iid, repository: repository)
     }
 
+    func comment(iid: Int, body: String, repository: CodeHost) async throws {
+        try await target(repository).comment(iid: iid, body: body, repository: repository)
+    }
+
+    func requestChanges(iid: Int, body: String, repository: CodeHost) async throws {
+        try await target(repository).requestChanges(iid: iid, body: body, repository: repository)
+    }
+
     private func target(_ repository: CodeHost) -> any CodeHostRepository {
         switch repository.kind {
         case .github: gitHub

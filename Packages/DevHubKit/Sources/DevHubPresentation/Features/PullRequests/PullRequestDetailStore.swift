@@ -14,6 +14,13 @@ final class PullRequestDetailStore {
     private(set) var busyThreads: Set<ReviewThread.ID> = []
     private(set) var showsThreadsInDiff = true
     private(set) var openDiffThreads: Set<ReviewThread.ID> = []
+    private(set) var commentDrafts: [PullRequestSummary.ID: String] = [:]
+    private(set) var busyComments: Set<PullRequestSummary.ID> = []
+
+    enum CommentKind {
+        case comment
+        case requestChanges
+    }
 
     @ObservationIgnored private let repository: CodeHostRepository
     @ObservationIgnored private let remote: any CodeHostLookup
@@ -40,6 +47,7 @@ final class PullRequestDetailStore {
             expandedFiles = [:]
             viewedFiles = [:]
             openDiffThreads = []
+            commentDrafts = [:]
             focus = nil
         }
     }
@@ -59,7 +67,9 @@ final class PullRequestDetailStore {
             focus: focus(of: id),
             busyThreads: busyThreads,
             showsThreadsInDiff: showsThreadsInDiff,
-            openDiffThreads: openDiffThreads
+            openDiffThreads: openDiffThreads,
+            commentDraft: commentDrafts[id] ?? "",
+            isCommentBusy: busyComments.contains(id)
         )
     }
 
@@ -177,6 +187,35 @@ final class PullRequestDetailStore {
         guard text.isEmpty == false else { return }
         run(threadID, of: id, "Replied in a thread of \(remote.words.reference(id))") { [repository] in
             try await repository.reply(threadID: threadID, body: text, iid: id, repository: $0)
+        }
+    }
+
+    func setCommentDraft(_ text: String, of id: PullRequestSummary.ID) {
+        commentDrafts[id] = text.isEmpty ? nil : text
+    }
+
+    func send(_ kind: CommentKind, on id: PullRequestSummary.ID) {
+        let text = (commentDrafts[id] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard text.isEmpty == false, busyComments.contains(id) == false else { return }
+        busyComments.insert(id)
+        let reference = remote.words.reference(id)
+        let title = kind == .comment ? "Commented on \(reference)" : "Requested changes on \(reference)"
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let url = try await remote.codeHost()
+                switch kind {
+                case .comment: try await repository.comment(iid: id, body: text, repository: url)
+                case .requestChanges: try await repository.requestChanges(iid: id, body: text, repository: url)
+                }
+                activity.log(title, detail: text, outcome: .success)
+                commentDrafts[id] = nil
+                busyComments.remove(id)
+                await reload(id)
+            } catch {
+                activity.log("\(title) failed", detail: error.localizedDescription, outcome: .failure)
+                busyComments.remove(id)
+            }
         }
     }
 

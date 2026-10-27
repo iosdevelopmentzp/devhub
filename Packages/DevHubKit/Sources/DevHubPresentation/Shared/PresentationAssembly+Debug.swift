@@ -12,6 +12,11 @@ package extension PresentationAssembly {
         settings.values.windowMode = mode
     }
 
+    func debugShowPullRequest(_ value: String) {
+        guard let iid = Int(value) else { return }
+        appActions.showPullRequest(iid: iid)
+    }
+
     func debugShowTab(_ rawValue: String) {
         guard let tab = TabID(rawValue: rawValue) else { return }
         navigator.selection = tab

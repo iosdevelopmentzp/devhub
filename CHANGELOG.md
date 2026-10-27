@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Pull request details have a comment box. "Comment" (⌘Return) posts a comment on the request on GitHub and GitLab. "Request Changes" sends the text as a review that asks for changes, on GitHub, for a request by someone else. A failed post keeps the text.
 - A right click on the menu bar icon opens a menu: Show DevHub, the list of projects (a click switches to the project and shows DevHub), Keep Mac Awake, Settings… and Quit DevHub. A left click still opens or closes DevHub.
 - Settings → General → Window: "Normal window" turns DevHub into a window app. It gets a title bar, a Dock icon and a main menu (DevHub, File, Edit, Window). The close button and ⌘W hide the window and DevHub keeps running. The menu bar icon, the global shortcut and a click on the Dock icon show the window on the current desktop; the icon and the shortcut hide it when it is already in front. The window opens at launch when it was open at quit. "Menu bar panel" stays the default.
 - Git: pin, label and add a note to a local branch. The star (or "Pin to Top" in the menu) moves the branch into a "Pinned" group at the top of Local, and "Delete all…" never offers it. "Add Labels & Note…" opens a form under the row; labels show as coloured tags, the note under the subject, and the search finds both. The marks stay in DevHub, per project.
@@ -106,6 +107,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- The `DEVHUB_PULL_REQUEST=<n>` debug switch opens a request in the Pull Requests tab for a headless snapshot.
 - `AppContainer` is the app delegate (`@NSApplicationDelegateAdaptor`), so a click on the Dock icon shows DevHub. The `DEVHUB_WINDOW_MODE` debug switch sets the window mode.
 - The headless snapshot recipe in the `build-and-run` skill and `docs/testing.md` starts the app with its full path, so the `pkill` line at the end really stops it. Before, every snapshot left a DevHub copy running in the menu bar.
 - ADR 005 plans the window mode, the ports from the main DevHub, pull request comments, checks, project setup and daily tools.

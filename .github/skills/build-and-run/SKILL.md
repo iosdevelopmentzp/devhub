@@ -49,6 +49,7 @@ Debug builds only. `DevHubComposition/Debug/DebugLaunch.swift` reads them and ca
 | Switch | Effect |
 |---|---|
 | `DEVHUB_PROJECT=<path>` | adds and selects a project (saved) |
+| `DEVHUB_PULL_REQUEST=<n>` | shows the Pull Requests tab and opens request `n` |
 | `DEVHUB_WINDOW_MODE=panel\|window` | sets the window mode (saved). In window mode `DEVHUB_OPEN_PANEL` shows the main window and `DEVHUB_SNAPSHOT` draws it |
 | `DEVHUB_RUN_ACTION=<id>[,<id>]` | runs config actions with their default inputs |
 | `DEVHUB_REQUEST_ACTION=<id>` | opens the input prompt of one action on Home |

@@ -1,4 +1,5 @@
 import DevHubDomain
+import DevHubTestSupport
 import Foundation
 import Testing
 @testable import DevHubData
@@ -53,5 +54,18 @@ import Testing
         #expect(summary.squashOnMerge)
         #expect(summary.removesSourceBranch == true)
         #expect(summary.headSHA == "abc123")
+    }
+
+    @Test func aCommentThatStartsWithAnAtSignIsNotReadAsAFile() {
+        #expect(GlabPullRequestRepository.commentFields(body: "@sam please check").map(\.value) == [" @sam please check"])
+        #expect(GlabPullRequestRepository.commentFields(body: "Looks good").map(\.name) == ["body"])
+    }
+
+    @Test func requestChangesIsRefusedOnGitLab() async {
+        let repository = GlabPullRequestRepository(client: GlabClient(shell: ShellRunner(recorder: SpyCommandRecorder())))
+
+        await #expect(throws: PullRequestError.self) {
+            try await repository.requestChanges(iid: 7, body: "x", repository: .gitLabSample)
+        }
     }
 }

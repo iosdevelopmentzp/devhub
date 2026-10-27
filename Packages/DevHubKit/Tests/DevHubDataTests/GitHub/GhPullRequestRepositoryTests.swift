@@ -34,4 +34,9 @@ import Testing
 
         #expect(fields == ["-f", "head=feature/ABC-9", "-f", "base=main", "-f", "title=@sam ABC-9", "-f", "body=Ticket: ABC-9", "-F", "draft=true"])
     }
+
+    @Test func commentAndRequestChangesUseTheBodyFlag() {
+        #expect(GhPullRequestRepository.commentArguments(iid: 7, body: "Looks good") == ["comment", "7", "--body", "Looks good"])
+        #expect(GhPullRequestRepository.requestChangesArguments(iid: 7, body: "Fix the test") == ["review", "7", "--request-changes", "--body", "Fix the test"])
+    }
 }

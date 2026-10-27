@@ -31,7 +31,7 @@ The owner also asked for more comfort when working from any project: an easier p
 - [x] P5. Pin, label and add a note to local branches.
 - [x] W1. Window mode setting and the main window.
 - [x] W2. Right-click menu on the menu bar icon.
-- [ ] R1. Top-level comment and Request Changes.
+- [x] R1. Top-level comment and Request Changes.
 - [ ] R2. New thread on a diff line.
 - [ ] R3. Checks and pipeline jobs in the details.
 - [ ] S1. Create .devhub Starter.
@@ -51,4 +51,5 @@ The owner also asked for more comfort when working from any project: an easier p
 | `1de7a78` | — | `ShellRunnerIntegrationTests.cancellingStreamTerminatesTheProcess` allows 5 s: it failed under load with 1 s. |
 | `da56372` | P5 | `BranchMark`, `BranchLabelPolicy`, `BranchMarksStore` (key `git.branchMarks.<project id>`), `BranchMarkDraft`, `BranchLabelMapper`, `BranchMarkEditor`, a Pinned section in Local, pin and label items in the row and its menu; pinned names join `protected:` of `BranchCleanupPolicy`. From the main DevHub `aaa5abd`. |
 | `8116c33` | W1 | `WindowMode` and `AppSettings.windowMode`, `MainWindow`, `MainMenuBuilder`, `AppWindows` as `NSWindowDelegate` with `toggle()`, `show()`, `showWindow()`, `hideWindow()`, `applyWindowMode(_:)`; `WindowLayout.isWindowOpen`; `SettingsStore.showsDockIcon` and `onWindowModeChange`; `AppContainer` as the app delegate; the Window picker; `DEVHUB_WINDOW_MODE`. Checked on screen: the window is a Dock app (`Foreground`), the close button and File → Close Window hide it, `open` shows it again, the main menu has DevHub, File, Edit, Window, and the panel works after a switch back. |
+| `25f1ad1` | W2 | `StatusMenuItem`, `StatusMenuMapper`, the right-click menu in `AppWindows.statusItemClicked`. Checked with a synthetic right click: the menu lists Show DevHub, the projects, Keep Mac Awake, Settings…, Quit DevHub. |
 | `fa97a37` | — | The snapshot recipe starts the app with `$PWD/$APP`, so its `pkill` matches. |

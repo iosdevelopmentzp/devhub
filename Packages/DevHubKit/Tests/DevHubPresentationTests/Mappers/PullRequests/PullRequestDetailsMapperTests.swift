@@ -130,4 +130,27 @@ import DevHubTestSupport
         #expect(try loaded(PullRequestDetailsMapper.model(summary: finished, details: details, diffs: files, error: nil, review: review(expanded: [], focus: nil, busy: []), words: .gitLab)).canCancelPipeline == false)
         #expect(try loaded(PullRequestDetailsMapper.model(summary: finished, details: details, diffs: files, error: nil, review: review(expanded: [], focus: nil, busy: []), words: .gitLab)).pipelineDurationText == nil)
     }
+
+    @Test func theCommentBoxNeedsTextAndOffersRequestChangesOnlyWhenAllowed() {
+        var state = review(expanded: [])
+        state.commentDraft = "  "
+        let empty = PullRequestDetailsMapper.commentBox(summary: summary, review: state, words: .gitHub)
+        #expect(empty.canSend == false)
+        #expect(empty.canRequestChanges == false)
+        #expect(empty.placeholder == "Comment on #7…")
+
+        state.commentDraft = "Fix"
+        let allowed = PullRequestSummaryFixture.request(
+            iid: 7,
+            source: "x",
+            state: .opened,
+            permissions: PullRequestPermissions(canMerge: false, canApprove: true, canRevokeApproval: false, canSetAutoMerge: false, canRequestChanges: true)
+        )
+        let ready = PullRequestDetailsMapper.commentBox(summary: allowed, review: state, words: .gitHub)
+        #expect(ready.canSend)
+        #expect(ready.canRequestChanges)
+
+        state.isCommentBusy = true
+        #expect(PullRequestDetailsMapper.commentBox(summary: allowed, review: state, words: .gitHub).canSend == false)
+    }
 }

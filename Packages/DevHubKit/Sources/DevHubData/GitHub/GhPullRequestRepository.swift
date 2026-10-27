@@ -111,6 +111,22 @@ struct GhPullRequestRepository: CodeHostRepository {
         try await mutate(GhGraphQLQueries.reply, [.text("id", threadID), .text("body", body)], repository)
     }
 
+    func comment(iid: Int, body: String, repository: CodeHost) async throws {
+        _ = try await client.pr(Self.commentArguments(iid: iid, body: body), host: repository)
+    }
+
+    func requestChanges(iid: Int, body: String, repository: CodeHost) async throws {
+        _ = try await client.pr(Self.requestChangesArguments(iid: iid, body: body), host: repository)
+    }
+
+    static func commentArguments(iid: Int, body: String) -> [String] {
+        ["comment", String(iid), "--body", body]
+    }
+
+    static func requestChangesArguments(iid: Int, body: String) -> [String] {
+        ["review", String(iid), "--request-changes", "--body", body]
+    }
+
     private func mutate(_ query: String, _ variables: [GhClient.Variable], _ repository: CodeHost) async throws {
         try await GhPullRequestParser.mutation(from: client.graphql(query, variables: variables, host: repository))
     }

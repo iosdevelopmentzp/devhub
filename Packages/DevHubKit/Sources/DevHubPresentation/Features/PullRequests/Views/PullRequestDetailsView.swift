@@ -95,6 +95,7 @@ struct PullRequestDetailsView: View {
                         onReply: { actions.reply(thread.id, $0) }
                     )
                 }
+                PullRequestCommentBox(model: loaded.commentBox, onChange: actions.setCommentDraft, onSend: actions.sendComment)
             }
             VStack(alignment: .leading, spacing: 6) {
                 filesHeader(loaded)

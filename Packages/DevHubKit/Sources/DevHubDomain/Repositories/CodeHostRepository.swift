@@ -19,4 +19,6 @@ package protocol CodeHostRepository: Sendable {
     func labels(repository: CodeHost) async throws -> [String]
     func resolveThread(id: String, repository: CodeHost) async throws
     func reply(threadID: String, body: String, iid: Int, repository: CodeHost) async throws
+    func comment(iid: Int, body: String, repository: CodeHost) async throws
+    func requestChanges(iid: Int, body: String, repository: CodeHost) async throws
 }

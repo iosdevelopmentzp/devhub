@@ -14,6 +14,8 @@ struct PullRequestDetailActions {
     let openFile: (_ path: String, _ line: Int?) -> Void
     let resolveThread: (_ threadID: ReviewThread.ID) -> Void
     let reply: (_ threadID: ReviewThread.ID, _ body: String) -> Void
+    let setCommentDraft: (_ text: String) -> Void
+    let sendComment: (_ kind: PullRequestDetailStore.CommentKind) -> Void
     let cancelPipeline: () -> Void
     let fixThreads: () -> Void
     let runConfigAction: (_ actionID: ConfigActionItemModel.ID) -> Void
@@ -33,6 +35,8 @@ struct PullRequestDetailActions {
         openFile: { _, _ in },
         resolveThread: { _ in },
         reply: { _, _ in },
+        setCommentDraft: { _ in },
+        sendComment: { _ in },
         cancelPipeline: {},
         fixThreads: {},
         runConfigAction: { _ in },
@@ -54,6 +58,8 @@ struct PullRequestDetailActions {
             openFile: openFile,
             resolveThread: resolveThread,
             reply: reply,
+            setCommentDraft: setCommentDraft,
+            sendComment: sendComment,
             cancelPipeline: cancelPipeline,
             fixThreads: fixThreads,
             runConfigAction: runConfigAction,
@@ -87,6 +93,8 @@ extension PullRequestDetailActions {
             openFile: { appActions.openSourceFile(path: $0, line: $1, branch: summary.sourceBranch) },
             resolveThread: { detailStore.resolveThread($0, of: id) },
             reply: { detailStore.reply($1, to: $0, of: id) },
+            setCommentDraft: { detailStore.setCommentDraft($0, of: id) },
+            sendComment: { detailStore.send($0, on: id) },
             cancelPipeline: { pullRequests.perform(.cancelPipeline, on: id) },
             fixThreads: { appActions.fixThreadsWithClaude(summary) },
             runConfigAction: { actionID in

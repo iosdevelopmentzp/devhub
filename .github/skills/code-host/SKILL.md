@@ -24,7 +24,7 @@ A code host is the web service that keeps the repository and its review requests
 
 ## The port
 
-`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `resolveThread`, `reply`.
+`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `resolveThread`, `reply`, `comment`, `requestChanges`.
 
 Every method takes `repository: CodeHost`. A `CodeHost` holds:
 
@@ -66,6 +66,8 @@ The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsS
 | `create` | REST `POST pulls`, then `POST issues/<n>/labels` | REST `POST merge_requests` |
 | `labels` | `gh label list --json name` | GraphQL `labels` |
 | `resolveThread`, `reply` | GraphQL `resolveReviewThread`, `addPullRequestReviewThreadReply` | GraphQL `discussionToggleResolve`; REST discussion notes |
+| `comment` | `gh pr comment --body` | REST `POST merge_requests/<n>/notes` |
+| `requestChanges` | `gh pr review --request-changes --body` | throws; hidden by `canRequestChanges` |
 
 ### Clients and errors
 
@@ -125,6 +127,7 @@ An action that the host or the repository does not allow is hidden, never shown 
 | `canApprove` | the viewer is not the author and has any permission | `userPermissions.canApprove` |
 | `canRevokeApproval` | write access | always |
 | `canSetAutoMerge` | write access and `autoMergeAllowed` of the repository | `canMerge` |
+| `canRequestChanges` | the viewer is not the author and has any permission | never |
 
 Other repository facts: `squashOnMerge` (GitHub `viewerDefaultMergeMethod` is `SQUASH`) and `removesSourceBranch` (GitHub `deleteBranchOnMerge`) give the defaults of the merge form.
 

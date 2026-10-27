@@ -7,11 +7,13 @@ package struct PullRequestPermissions: Hashable, Sendable {
     package let canApprove: Bool
     package let canRevokeApproval: Bool
     package let canSetAutoMerge: Bool
+    package let canRequestChanges: Bool
 
-    package init(canMerge: Bool, canApprove: Bool, canRevokeApproval: Bool, canSetAutoMerge: Bool) {
+    package init(canMerge: Bool, canApprove: Bool, canRevokeApproval: Bool, canSetAutoMerge: Bool, canRequestChanges: Bool = false) {
         self.canMerge = canMerge
         self.canApprove = canApprove
         self.canRevokeApproval = canRevokeApproval
         self.canSetAutoMerge = canSetAutoMerge
+        self.canRequestChanges = canRequestChanges
     }
 }

@@ -251,4 +251,40 @@ import DevHubTestSupport
         #expect(path == nil)
         #expect(harness.lastActivity?.title == "Cannot read the threads of !7")
     }
+
+    @Test func aCommentSendsTheTrimmedDraftAndClearsItAfterwards() async throws {
+        script()
+        await store.load(7)
+        store.setCommentDraft("  Looks good  ", of: 7)
+
+        store.send(.comment, on: 7)
+        #expect(store.review(of: 7).isCommentBusy)
+        try await waitUntil { store.busyComments.isEmpty && harness.spies.codeHost.calls.count == 5 }
+
+        #expect(harness.spies.codeHost.calls.contains(.comment(iid: 7, body: "Looks good", repository: remote)))
+        #expect(store.review(of: 7).commentDraft == "")
+        #expect(harness.lastActivity?.title == "Commented on !7")
+    }
+
+    @Test func requestChangesKeepsTheDraftWhenItFails() async throws {
+        script()
+        await store.load(7)
+        harness.spies.codeHost.actionError = PullRequestError.command("boom")
+        store.setCommentDraft("Fix the test", of: 7)
+
+        store.send(.requestChanges, on: 7)
+        try await waitUntil { store.busyComments.isEmpty && harness.lastActivity?.outcome == .failure }
+
+        #expect(harness.spies.codeHost.calls.last == .requestChanges(iid: 7, body: "Fix the test", repository: remote))
+        #expect(store.review(of: 7).commentDraft == "Fix the test")
+    }
+
+    @Test func anEmptyDraftSendsNothing() {
+        store.setCommentDraft("   ", of: 7)
+
+        store.send(.comment, on: 7)
+
+        #expect(store.busyComments.isEmpty)
+        #expect(harness.spies.codeHost.calls.isEmpty)
+    }
 }

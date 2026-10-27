@@ -23,6 +23,7 @@ struct PullRequestDetailsModel: Equatable {
         var threadsTitle: String
         var canFixThreads: Bool
         var threads: [ReviewThreadRowModel]
+        var commentBox: PullRequestCommentBoxModel
         var filesTitle: String
         var canExpandAllFiles: Bool
         var canCollapseAllFiles: Bool
@@ -45,6 +46,7 @@ struct PullRequestDetailsModel: Equatable {
                 threadsTitle: "Open threads 1",
                 canFixThreads: true,
                 threads: [.preview],
+                commentBox: .preview,
                 filesTitle: "Files 1 · +2 −1",
                 canExpandAllFiles: false,
                 canCollapseAllFiles: true,

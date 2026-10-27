@@ -311,7 +311,8 @@ enum GhPullRequestParser {
                 canMerge: canWrite,
                 canApprove: author != viewer && repository?.viewerPermission != nil,
                 canRevokeApproval: canWrite,
-                canSetAutoMerge: canWrite && repository?.autoMergeAllowed == true
+                canSetAutoMerge: canWrite && repository?.autoMergeAllowed == true,
+                canRequestChanges: author != viewer && repository?.viewerPermission != nil
             )
         )
     }
