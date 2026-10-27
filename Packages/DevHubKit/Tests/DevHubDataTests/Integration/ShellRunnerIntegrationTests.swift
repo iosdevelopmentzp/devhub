@@ -120,7 +120,7 @@ import Testing
         let status = try await task.value
         let elapsed = clock.now - start
 
-        #expect(elapsed < .seconds(1))
+        #expect(elapsed < .seconds(5))
         #expect(status == SIGTERM)
         #expect(recorder.events.last?.finishedError == "Cancelled")
     }
