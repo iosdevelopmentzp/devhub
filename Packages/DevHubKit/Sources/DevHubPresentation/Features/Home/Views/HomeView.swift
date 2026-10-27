@@ -7,11 +7,17 @@ struct HomeView: View {
     @Environment(ActivityLog.self) private var activity
     @Environment(WorktreesStore.self) private var worktrees
     @Environment(KeepAwakeStore.self) private var keepAwake
+    @Environment(OpenPullRequestsStore.self) private var openPullRequests
+    @Environment(SimulatorsStore.self) private var simulators
+    @Environment(AppActions.self) private var appActions
+    @Environment(\.codeHostWords) private var words
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 ProjectCard(model: projectCard)
+
+                TodayCard(items: todayItems) { appActions.open($0) }
 
                 KeepAwakeCard(model: KeepAwakeCardMapper.model(isActive: keepAwake.isActive)) {
                     keepAwake.toggle()
@@ -60,6 +66,17 @@ struct HomeView: View {
             for: session.selectedProject,
             main: worktrees.mainWorktree,
             mainCheckoutPath: worktrees.mainCheckoutPath
+        )
+    }
+
+    private var todayItems: [TodayItemModel] {
+        TodayCardMapper.items(
+            reviewCount: openPullRequests.reviewCount,
+            openRequests: openPullRequests.requests,
+            username: openPullRequests.username,
+            worktrees: worktrees.worktrees,
+            simulators: simulators.all,
+            words: words
         )
     }
 

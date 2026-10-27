@@ -189,6 +189,20 @@ final class AppActions {
 
     // MARK: GitLab
 
+    func showPullRequests(scope: PullRequestScope) {
+        pullRequests.scope = scope
+        navigator.show(.pullRequests)
+    }
+
+    func open(_ target: TodayTarget) {
+        switch target {
+        case .pullRequests(let scope): showPullRequests(scope: scope)
+        case .pullRequest(let iid): showPullRequest(iid: iid)
+        case .worktrees: navigator.show(.worktrees)
+        case .simulators: navigator.show(.simulators)
+        }
+    }
+
     func showPullRequest(iid: Int) {
         navigator.show(.pullRequests)
         Task { [weak self] in

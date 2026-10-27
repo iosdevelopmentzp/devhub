@@ -36,7 +36,7 @@ The owner also asked for more comfort when working from any project: an easier p
 - [x] R3. Checks and pipeline jobs in the details.
 - [x] S1. Create .devhub Starter.
 - [x] S2. Switch project from the palette and with ⌃⌘1 to ⌃⌘9.
-- [ ] H1. Home "Today" card.
+- [x] H1. Home "Today" card.
 - [ ] Q1. Simulator QA settings.
 - [ ] B1. Build log viewer.
 
@@ -56,4 +56,5 @@ The owner also asked for more comfort when working from any project: an easier p
 | `65b49e9` | R2 | `PullRequestLineComment`, `CodeHostRepository.addLineComment` (GitHub review comment with `commit_id`, `line`, `side`; GitLab discussion with a `position` from `diff_refs`, `GlabDiffRefsParser`), `LineCommentDraft` in `PullRequestDetailStore`, `LineCommentComposer` under the line, a hover button and a context menu item on `DiffLine`. Checked by tests only: a headless snapshot cannot click a line. |
 | `a51c3c5` | R3 | `PipelineJob.id` and `status`, `PullRequestDetails.jobs` (GitHub from the check rollup with `databaseId`, GitLab from every job of the head pipeline), `CodeHostRepository.jobLog` and `retryJob`, `GhClient.log` with `--allow-escape-sequences`, `JobLogTail`, `PipelineJobRowMapper`, `PipelineJobRow` with the log, Retry and the browser link. Checked: a headless snapshot of a request with a failed check; `gh api …/actions/jobs/<id>/logs` on the test repository. |
 | `cc05fba` | S1 | `StarterConfigFacts`, `StarterConfigPolicy.projectJSON`, `ConfigRepository.createStarter` (refuses an existing `project.json`, `ConfigError.starterExists`), `ConfigStore.createStarter`, the button in Settings → Project config (the three buttons wrap in a `FlowLayout`). Checked by tests: the written file loads without issues. |
+| `b1fdeb0` | S2 | `ProjectSwitchItem`, `ProjectSwitchMapper`, `ProjectShortcuts` (hidden buttons for ⌃⌘1 to ⌃⌘9), `ProjectShortcutModifier` on the project menu items, palette items "Switch to project …". Checked: a real ⌃⌘1 key press switched the project; a headless snapshot of the palette. |
 | `fa97a37` | — | The snapshot recipe starts the app with `$PWD/$APP`, so its `pkill` matches. |

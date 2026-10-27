@@ -49,6 +49,10 @@ final class OpenPullRequestsStore {
         }
     }
 
+    var requests: [PullRequestSummary] {
+        Array(requestsByBranch.values)
+    }
+
     func request(forBranch branch: String) -> PullRequestSummary? {
         requestsByBranch[BranchName(branch, remote: remote.remoteName).local]
     }

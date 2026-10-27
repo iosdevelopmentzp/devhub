@@ -6,18 +6,19 @@ Code: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Home/`, `Features/
 
 ## What it shows
 
-The tab has six parts, from top to bottom.
+The tab has seven parts, from top to bottom.
 
 1. **Project card.**
    - The project name and the project path. A click on the path copies it.
    - A blue tag with the branch of the main checkout. A click copies the branch name.
    - Status tags of the main checkout: `clean` or `N changed`, `↑N` (commits to push), `↓N` (commits to pull).
    - Four buttons: Finder, Xcode, Terminal and the code host (for example "GitHub").
-2. **Keep Mac awake.** A switch. While it is on, DevHub holds a `PreventUserIdleSystemSleep` power assertion, so the Mac does not go to sleep when idle. The display can still turn off. Turning the switch off or quitting DevHub releases the assertion. The menu bar icon shows a cup while the switch is on.
-3. **Config problems.** This part appears only when a `.devhub` file has an error. Each row shows the file and the reason. A Reload button reads the config again.
-4. **Quick actions.** A grid of tiles, four per line. A tile is a built-in action or a config action. A running action shows a small spinner on its tile. The result of a config action (output view, failure) appears under the grid.
-5. **Scripts.** One row per action with the `home.scripts` placement. A row shows the icon, title, subtitle, file name, "ran 5 min ago" or "never run", the number of inputs and the config layer (`project`, `user` or `global`). The header shows the scripts folder of the first layer that exists.
-6. **Recent.** The last 8 events of the app (commands, failures, info), newest first, with a coloured dot: green for success, red for failure, grey for info.
+2. **Today.** One line per thing that needs you, in this order, each a button that opens the place: requests that wait for your review (opens the Pull Requests tab in the "To review" scope), your open requests with failed checks (one request opens its details, several open the "Mine" scope), finished worktrees that are safe to clean (opens Worktrees), booted simulators (opens Simulators). With nothing to show, the card says "Nothing waits for you". The request lines use the open requests that DevHub reads every 5 minutes.
+3. **Keep Mac awake.** A switch. While it is on, DevHub holds a `PreventUserIdleSystemSleep` power assertion, so the Mac does not go to sleep when idle. The display can still turn off. Turning the switch off or quitting DevHub releases the assertion. The menu bar icon shows a cup while the switch is on.
+4. **Config problems.** This part appears only when a `.devhub` file has an error. Each row shows the file and the reason. A Reload button reads the config again.
+5. **Quick actions.** A grid of tiles, four per line. A tile is a built-in action or a config action. A running action shows a small spinner on its tile. The result of a config action (output view, failure) appears under the grid.
+6. **Scripts.** One row per action with the `home.scripts` placement. A row shows the icon, title, subtitle, file name, "ran 5 min ago" or "never run", the number of inputs and the config layer (`project`, `user` or `global`). The header shows the scripts folder of the first layer that exists.
+7. **Recent.** The last 8 events of the app (commands, failures, info), newest first, with a coloured dot: green for success, red for failure, grey for info.
 
 The header search filters the tiles by title and subtitle, and the script rows by title, subtitle and file name.
 

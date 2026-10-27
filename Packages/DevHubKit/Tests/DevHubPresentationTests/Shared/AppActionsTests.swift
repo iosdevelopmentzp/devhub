@@ -67,4 +67,18 @@ import Testing
             recentEvents: []
         )
     }
+
+    @Test func todayTargetsOpenTheirPlace() {
+        let assembly = PresentationAssembly.preview()
+
+        assembly.appActions.open(.pullRequests(.reviewing))
+        #expect(assembly.navigator.selection == .feature(.pullRequests))
+        #expect(assembly.pullRequests.scope == .reviewing)
+
+        assembly.appActions.open(.worktrees)
+        #expect(assembly.navigator.selection == .feature(.worktrees))
+
+        assembly.appActions.open(.simulators)
+        #expect(assembly.navigator.selection == .feature(.simulators))
+    }
 }
