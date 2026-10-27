@@ -14,5 +14,7 @@ struct PaletteSources {
     var sessions: [AISession]
     var favoriteSessionIDs: Set<AISession.ID>
     var isKeepAwakeOn: Bool
+    var projects: [Project]
+    var selectedProjectID: Project.ID
     var requestNumber: (Int) -> String
 }

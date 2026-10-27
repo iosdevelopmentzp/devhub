@@ -19,6 +19,7 @@ The items come in this order. With an empty query the palette shows the first 60
 | Section | Items | Subtitle |
 |---|---|---|
 | Tabs | Every tab of the tab bar, the custom tabs, and Settings | "Show the tab" |
+| Projects | "Switch to project <name>" for every project except the selected one | The shortcut (⌃⌘1 to ⌃⌘9) and the path |
 | Actions | "Keep Mac awake" or "Let the Mac sleep" (after the AI sessions, before Settings) | The state of the switch |
 | Actions | Every built-in action, then every config action whose file is executable and whose `when` condition matches | The subtitle of the action, else its file name, or "Built-in action" |
 | Simulators | "Build & Run on <simulator>" for each simulator, and "Make <simulator> the target" for each one that is not the target | booted or shut down |
@@ -50,6 +51,7 @@ The items come in this order. With an empty query the palette shows the first 60
 |---|---|---|
 | A tab | Shows the tab | — |
 | Settings | Shows Settings | — |
+| Switch to project `<name>` | Selects the project, like the project menu in the header | — |
 | Keep Mac awake, Let the Mac sleep | Turns the Home switch on or off | — |
 | A built-in action | The same as the Home tile (see the Home page) | see the Home page |
 | A config action | Runs the action. When it has inputs or `confirm`, the prompt opens in the palette, and the palette stays open until you run or cancel | the `run` of the action |

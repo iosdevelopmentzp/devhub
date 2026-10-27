@@ -18,6 +18,8 @@ import Testing
             sessions: [AISessionFixture.session],
             favoriteSessionIDs: [],
             isKeepAwakeOn: false,
+            projects: [ProjectSample.app, ProjectSample.other],
+            selectedProjectID: ProjectSample.app.id,
             requestNumber: CodeHostWords.gitHub.reference
         )
     }
@@ -86,5 +88,13 @@ import Testing
         #expect(sessions.map(\.id) == ["session:favorite", "session:\(AISessionFixture.session.id)"])
         #expect(sessions.first?.systemImage == "star.fill")
         #expect(sessions.first?.subtitle.hasPrefix("Favorite · ") == true)
+    }
+
+    @Test func otherProjectsCanBeSelectedWithTheirShortcut() {
+        let projects = items.filter { $0.section == "Projects" }
+
+        #expect(projects.map(\.command) == [.selectProject(ProjectSample.other.id)])
+        #expect(projects.first?.title == "Switch to project \(ProjectSample.other.name)")
+        #expect(projects.first?.subtitle.hasPrefix("⌃⌘2") == true)
     }
 }

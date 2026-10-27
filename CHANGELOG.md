@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Switch projects from the keyboard: ⌃⌘1 to ⌃⌘9 select the first nine projects in the order of Settings → Projects, and the project menu shows these shortcuts. The ⌘K palette lists "Switch to project …" for the other projects.
 - Settings → Project config → "Create .devhub Starter" writes `.devhub/project.json` with the values DevHub found for the project (name, scheme, bundle ID, remote, code host, base branch) and opens it in the editor. A good first step for a new project; the example folder stays for a full reference.
 - Pull request details list every check or pipeline job of the last commit, failed first. The log button shows the last 200 lines of a job log inside DevHub, with Copy Log. Retry runs one failed or cancelled job again. Works for GitHub Actions and GitLab jobs.
 - Pull request diffs: hover a line and click the bubble with a plus (or right-click it, "Comment on This Line…") to start a new review thread on that line, on GitHub and GitLab. The box opens under the line; ⌘Return posts, Esc closes.

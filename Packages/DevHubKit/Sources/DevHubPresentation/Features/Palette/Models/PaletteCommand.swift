@@ -16,4 +16,5 @@ enum PaletteCommand: Hashable {
     case resumeSession(command: String, folder: String, title: String)
     case openSettings
     case toggleKeepAwake
+    case selectProject(Project.ID)
 }

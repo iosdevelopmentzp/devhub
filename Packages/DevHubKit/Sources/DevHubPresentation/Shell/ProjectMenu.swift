@@ -10,16 +10,17 @@ struct ProjectMenu: View {
 
     var body: some View {
         Menu {
-            ForEach(session.projects) { project in
+            ForEach(switchItems) { item in
                 Button {
-                    session.selectedProjectID = project.id
+                    session.selectedProjectID = item.id
                 } label: {
-                    if project.id == session.selectedProjectID {
-                        Label(project.name, systemImage: "checkmark")
+                    if item.isSelected {
+                        Label(item.title, systemImage: "checkmark")
                     } else {
-                        Text(project.name)
+                        Text(item.title)
                     }
                 }
+                .modifier(ProjectShortcutModifier(digit: item.digit))
             }
             Divider()
             Button("Add Project…", systemImage: "plus") {
@@ -57,6 +58,11 @@ struct ProjectMenu: View {
         .menuIndicator(.hidden)
         .onHover { isHovered = $0 }
         .frame(maxWidth: 340, alignment: .leading)
+        .background(ProjectShortcuts(items: switchItems) { session.selectedProjectID = $0 })
+    }
+
+    private var switchItems: [ProjectSwitchItem] {
+        ProjectSwitchMapper.items(projects: session.projects, selectedID: session.selectedProjectID)
     }
 
     private var branch: String {

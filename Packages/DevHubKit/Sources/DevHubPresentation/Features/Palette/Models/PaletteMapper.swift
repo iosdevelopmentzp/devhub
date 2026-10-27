@@ -6,7 +6,7 @@ enum PaletteMapper {
     static let limit = 60
 
     static func items(from sources: PaletteSources, actionTitle: (CatalogAction) -> String) -> [PaletteItem] {
-        tabItems(sources) + actionItems(sources, title: actionTitle) + simulatorItems(sources) + branchItems(sources)
+        tabItems(sources) + projectItems(sources) + actionItems(sources, title: actionTitle) + simulatorItems(sources) + branchItems(sources)
             + worktreeItems(sources) + pullRequestItems(sources) + sessionItems(sources) + [keepAwakeItem(sources), settingsItem]
     }
 
@@ -35,6 +35,22 @@ enum PaletteMapper {
             section: "Actions",
             command: .toggleKeepAwake
         )
+    }
+
+    private static func projectItems(_ sources: PaletteSources) -> [PaletteItem] {
+        ProjectSwitchMapper.items(projects: sources.projects, selectedID: sources.selectedProjectID)
+            .filter { $0.isSelected == false }
+            .compactMap { item in
+                guard let project = sources.projects.first(where: { $0.id == item.id }) else { return nil }
+                return PaletteItem(
+                    id: "project:\(item.id)",
+                    title: "Switch to project \(item.title)",
+                    subtitle: [item.shortcutText, project.path.abbreviatingHome].compactMap { $0 }.joined(separator: " · "),
+                    systemImage: "shippingbox",
+                    section: "Projects",
+                    command: .selectProject(item.id)
+                )
+            }
     }
 
     private static func tabItems(_ sources: PaletteSources) -> [PaletteItem] {

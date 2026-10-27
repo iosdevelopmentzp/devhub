@@ -14,6 +14,7 @@ struct CommandPalette: View {
     @Environment(PullRequestsStore.self) private var pullRequests
     @Environment(AISessionsStore.self) private var sessions
     @Environment(KeepAwakeStore.self) private var keepAwake
+    @Environment(ProjectSession.self) private var session
     @Environment(\.codeHostWords) private var words
 
     let onClose: () -> Void
@@ -96,6 +97,8 @@ struct CommandPalette: View {
                 sessions: sessions.scoped,
                 favoriteSessionIDs: sessions.favoriteIDs,
                 isKeepAwakeOn: keepAwake.isActive,
+                projects: session.projects,
+                selectedProjectID: session.selectedProjectID,
                 requestNumber: words.reference
             ),
             actionTitle: { QuickActionTileMapper.model(for: $0, scheme: configActions.effective.scheme, branch: git.currentBranch, words: words, isBuildRunning: build.isRunning, isRunning: false).title }
@@ -145,6 +148,8 @@ struct CommandPalette: View {
             appActions.openSettings()
         case .toggleKeepAwake:
             keepAwake.toggle()
+        case .selectProject(let id):
+            session.selectedProjectID = id
         }
         onClose()
     }
