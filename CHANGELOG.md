@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Simulators: drag a favorite row onto another favorite row to change the order of the Favorites section. The order is saved, and a new favorite goes to the end.
 - AI tab: a star on a session row adds it to the favorites. Favorites come first in their own section, stay visible in the "This project" scope, and come first in the ⌘K palette.
 - Home has a "Keep Mac awake" switch. While it is on, the Mac does not go to sleep when idle, and the menu bar icon shows a cup. The ⌘K palette turns it on and off. Quitting DevHub turns it off.
 - The `network.toolbar` placement puts config actions under the filters of the Network tab, with the chosen simulator. `refresh: ["network"]` reads the mock sets again after an action.

@@ -21,7 +21,7 @@ The tab has three parts, from top to bottom.
    - while a build runs: the step text and a progress bar;
    - after a build: a green "Launched on … · <time>" line or the red error, with **Show log**.
 2. **The toolbar.** It shows the number of simulators, a "with apps" tag (simulators with installed apps) and **Remove Apps from All…**.
-3. **The list.** A "Favorites" section comes first, then one section per iOS runtime, newest runtime first. Each row shows:
+3. **The list.** A "Favorites" section comes first, in your own order: drag a favorite row onto another favorite row to move it there. A new favorite goes to the end. Then one section per iOS runtime, newest runtime first. Each row shows:
    - a state dot (green booted, orange booting or shutting down, gray shut down);
    - the name, the runtime tag, a blue `target` tag on the target row, a star for a favorite;
    - the state and the number of installed apps, for example "Booted · 3 apps installed";
@@ -188,7 +188,7 @@ All keys live in the standard `UserDefaults` of the app (`KeyValueStore`).
 |---|---|---|
 | `simulators.target` | UDID of the target simulator | `BuildStore` |
 | `simulators.runOptions` | Per simulator: scheme, configuration, Fast, Clean install, source, profile ID | `BuildStore` |
-| `simulators.favorites` | UDIDs of the favorite simulators | `SimulatorsStore` |
+| `simulators.favorites` | UDIDs of the favorite simulators, in the order of the Favorites section | `SimulatorsStore` |
 | `messaging.urls` | The last 15 deep links | `MessagingStore` |
 | `messaging.payloads` | The last 10 push payloads | `MessagingStore` |
 

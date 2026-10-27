@@ -16,6 +16,7 @@ struct SimulatorsView: View {
     @State private var isConfirmingBulkRemove = false
     @State private var editingIdentityID: Simulator.ID?
     @State private var messagingID: Simulator.ID?
+    @State private var dropTargetID: Simulator.ID?
 
     var body: some View {
         let sections = sections
@@ -40,9 +41,15 @@ struct SimulatorsView: View {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 0) {
                         ForEach(sections) { section in
+                            let isFavorites = section.id == SimulatorSectionsMapper.favoritesID
                             ListSectionHeader(section.title, systemImage: section.systemImage, iconTint: .yellow, detail: section.detail, bottomPadding: 4)
+                                .hint(isFavorites ? SimulatorSectionsMapper.favoritesHint : nil)
                             ForEach(section.rows) { model in
-                                row(model)
+                                if isFavorites {
+                                    favoriteRow(model)
+                                } else {
+                                    row(model)
+                                }
                             }
                         }
                     }
@@ -63,6 +70,7 @@ struct SimulatorsView: View {
     private var sections: [SimulatorSectionModel] {
         SimulatorSectionsMapper.sections(
             from: simulators.groups,
+            favoriteOrder: simulators.favoriteOrder,
             matches: { simulator, runtime in session.matchesSearch(simulator.name, runtime, simulator.id) },
             row: rowModel
         )
@@ -105,6 +113,31 @@ struct SimulatorsView: View {
             item: ActionItemContext(simulatorUDID: model.id, simulatorName: model.name, rowID: model.id),
             slot: Placement.simulatorsRow.slot(for: model.id)
         )
+    }
+
+    private func favoriteRow(_ model: SimulatorRowModel) -> some View {
+        row(model)
+            .overlay {
+                if dropTargetID == model.id {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .strokeBorder(Color.accentColor, lineWidth: 2)
+                        .padding(.horizontal, 6)
+                        .allowsHitTesting(false)
+                }
+            }
+            .draggable(model.id)
+            .dropDestination(for: String.self) { ids, _ in
+                dropTargetID = nil
+                guard let id = ids.first else { return false }
+                simulators.moveFavorite(id: id, onto: model.id)
+                return true
+            } isTargeted: { isTargeted in
+                if isTargeted {
+                    dropTargetID = model.id
+                } else if dropTargetID == model.id {
+                    dropTargetID = nil
+                }
+            }
     }
 
     private func row(_ model: SimulatorRowModel) -> some View {

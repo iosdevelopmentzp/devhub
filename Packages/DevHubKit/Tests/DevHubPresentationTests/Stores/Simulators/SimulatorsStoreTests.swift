@@ -86,19 +86,47 @@ import DevHubTestSupport
 
     // MARK: Favorites
 
-    @Test func toggleFavoritePersistsTheSortedIDs() async {
+    @Test func toggleFavoriteAddsAtTheEndAndPersistsTheOrder() async {
         await load()
 
         store.toggleFavorite(id: shutdown.id)
         store.toggleFavorite(id: booted.id)
 
-        #expect(harness.store.strings(forKey: "simulators.favorites") == [booted.id, shutdown.id])
+        #expect(store.favoriteOrder == [shutdown.id, booted.id])
+        #expect(harness.store.strings(forKey: "simulators.favorites") == [shutdown.id, booted.id])
         #expect(store.simulator(id: shutdown.id)?.isFavorite == true)
 
         store.toggleFavorite(id: shutdown.id)
 
         #expect(harness.store.strings(forKey: "simulators.favorites") == [booted.id])
         #expect(store.simulator(id: shutdown.id)?.isFavorite == false)
+    }
+
+    @Test func moveFavoritePutsItAtTheTargetAndPersists() async {
+        await load()
+        store.toggleFavorite(id: shutdown.id)
+        store.toggleFavorite(id: booted.id)
+
+        store.moveFavorite(id: booted.id, onto: shutdown.id)
+
+        #expect(store.favoriteOrder == [booted.id, shutdown.id])
+        #expect(harness.store.strings(forKey: "simulators.favorites") == [booted.id, shutdown.id])
+    }
+
+    @Test func moveFavoriteIgnoresAnIDThatIsNotAFavorite() async {
+        await load()
+        store.toggleFavorite(id: shutdown.id)
+
+        store.moveFavorite(id: "unknown", onto: shutdown.id)
+
+        #expect(store.favoriteOrder == [shutdown.id])
+    }
+
+    @Test func theSavedOrderIsRestored() {
+        let saved = InMemoryKeyValueStore()
+        saved.set(["b", "a"], forKey: "simulators.favorites")
+
+        #expect(StoreHarness(store: saved).simulators.favoriteOrder == ["b", "a"])
     }
 
     // MARK: Power

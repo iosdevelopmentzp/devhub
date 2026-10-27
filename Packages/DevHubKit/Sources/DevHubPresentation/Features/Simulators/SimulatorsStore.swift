@@ -12,13 +12,13 @@ final class SimulatorsStore: SimulatorLookup {
     private(set) var error: String?
     private(set) var uninstallingIDs: Set<Simulator.ID> = []
     private(set) var bulkUninstall: BulkProgress?
+    private(set) var favoriteOrder: [Simulator.ID]
 
     @ObservationIgnored private let repository: SimulatorRepository
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let runner: ActionRunner
     @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private let store: any KeyValueStore
-    @ObservationIgnored private var favoriteIDs: Set<String>
     @ObservationIgnored private var bulkUninstallTask: Task<Void, Never>?
     @ObservationIgnored private let refreshTask = RefreshTask()
     @ObservationIgnored private var subscription: SubscriptionToken?
@@ -31,7 +31,7 @@ final class SimulatorsStore: SimulatorLookup {
         runner = ActionRunner(activity: activity)
         self.events = events
         self.store = store
-        favoriteIDs = Set(store.strings(forKey: Self.favoritesKey) ?? [])
+        favoriteOrder = store.strings(forKey: Self.favoritesKey) ?? []
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             switch event {
@@ -79,7 +79,7 @@ final class SimulatorsStore: SimulatorLookup {
                 try Task.checkCancellation()
                 for groupIndex in loaded.indices {
                     for index in loaded[groupIndex].simulators.indices {
-                        loaded[groupIndex].simulators[index].isFavorite = favoriteIDs.contains(loaded[groupIndex].simulators[index].id)
+                        loaded[groupIndex].simulators[index].isFavorite = favoriteOrder.contains(loaded[groupIndex].simulators[index].id)
                     }
                 }
                 groups = loaded
@@ -132,13 +132,20 @@ final class SimulatorsStore: SimulatorLookup {
     }
 
     func toggleFavorite(id: Simulator.ID) {
-        if favoriteIDs.contains(id) {
-            favoriteIDs.remove(id)
+        if let index = favoriteOrder.firstIndex(of: id) {
+            favoriteOrder.remove(at: index)
         } else {
-            favoriteIDs.insert(id)
+            favoriteOrder.append(id)
         }
-        store.set(Array(favoriteIDs).sorted(), forKey: Self.favoritesKey)
+        store.set(favoriteOrder, forKey: Self.favoritesKey)
         update(id: id) { $0.isFavorite.toggle() }
+    }
+
+    func moveFavorite(id: Simulator.ID, onto target: Simulator.ID) {
+        let moved = FavoriteOrder.moved(favoriteOrder, id: id, onto: target)
+        guard moved != favoriteOrder else { return }
+        favoriteOrder = moved
+        store.set(favoriteOrder, forKey: Self.favoritesKey)
     }
 
     // MARK: Apps

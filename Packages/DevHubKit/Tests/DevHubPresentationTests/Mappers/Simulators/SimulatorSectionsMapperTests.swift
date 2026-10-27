@@ -27,6 +27,28 @@ import Testing
         #expect(sections[2].rows.map(\.id) == ["pad"])
     }
 
+    @Test func favoritesFollowTheSavedOrder() {
+        let groups = [
+            SimulatorGroup(runtime: "iOS 18.2", simulators: [favoritePhone, phone]),
+            SimulatorGroup(runtime: "iOS 17.5", simulators: [pad, favoritePad])
+        ]
+
+        let sections = map(groups, favoriteOrder: ["fav-pad", "fav-phone"], matches: { _, _ in true })
+
+        #expect(sections[0].rows.map(\.id) == ["fav-pad", "fav-phone"])
+    }
+
+    @Test func favoritesMissingFromTheOrderGoLastInListOrder() {
+        let groups = [
+            SimulatorGroup(runtime: "iOS 18.2", simulators: [favoritePhone, phone]),
+            SimulatorGroup(runtime: "iOS 17.5", simulators: [pad, favoritePad])
+        ]
+
+        let sections = map(groups, favoriteOrder: ["fav-pad"], matches: { _, _ in true })
+
+        #expect(sections[0].rows.map(\.id) == ["fav-pad", "fav-phone"])
+    }
+
     @Test func withoutFavoritesThereIsNoFavoritesSection() {
         let groups = [SimulatorGroup(runtime: "iOS 18.2", simulators: [phone])]
 
@@ -59,8 +81,8 @@ import Testing
         #expect(map([], matches: { _, _ in true }).isEmpty)
     }
 
-    private func map(_ groups: [SimulatorGroup], matches: (Simulator, String) -> Bool) -> [SimulatorSectionModel] {
-        SimulatorSectionsMapper.sections(from: groups, matches: matches) { simulator, runtime in
+    private func map(_ groups: [SimulatorGroup], favoriteOrder: [Simulator.ID] = [], matches: (Simulator, String) -> Bool) -> [SimulatorSectionModel] {
+        SimulatorSectionsMapper.sections(from: groups, favoriteOrder: favoriteOrder, matches: matches) { simulator, runtime in
             SimulatorRowMapper.model(
                 for: simulator,
                 runtime: runtime,

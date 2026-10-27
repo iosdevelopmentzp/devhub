@@ -27,7 +27,7 @@ The owner also asked for more comfort when working from any project: an easier p
 - [x] P1. Claude usage: read the per-model weekly limits from the `limits` list.
 - [x] P2. Keep Mac awake: a Home card, a palette command, a cup on the menu bar icon.
 - [x] P3. Favorite AI sessions.
-- [ ] P4. Drag to reorder favorite simulators.
+- [x] P4. Drag to reorder favorite simulators.
 - [ ] P5. Pin, label and add a note to local branches.
 - [ ] W1. Window mode setting and the main window.
 - [ ] W2. Right-click menu on the menu bar icon.
@@ -46,3 +46,4 @@ The owner also asked for more comfort when working from any project: an easier p
 |---|---|---|
 | `54d15db` | P1 | `ClaudeUsageParser` reads `weekly_scoped` entries of the `limits` list after the flat keys; a flat value wins. Copied from the main DevHub `f38add6`. |
 | `ee543d5` | P2 | `SleepPreventing` port (`IOKitSleepPreventer`, mock, spy), `KeepAwakeStore`, `KeepAwakeCard` on Home, the palette item, `StatusItemState.awake` (a cup). From the main DevHub `b53e0ad` and `de13128`. |
+| `a6c5393` | P3 | `AISessionsStore.favoriteIDs` and `toggleFavorite` (key `ai.favorites`), a favorite stays in the project scope; `AISessionSectionsMapper` puts a Favorites section first; the row star and badge; favorites first in the palette. |
