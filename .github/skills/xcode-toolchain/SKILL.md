@@ -11,6 +11,7 @@ relative to `Packages/DevHubKit/Sources/`.
 | Area | Code |
 |---|---|
 | Build | `DevHubData/Build/`: `XcodeBuildRepository`, `BuildOutputParser`, `BuildStepThrottle`, `ProductLocator`, `XcodeContainer` |
+| Tests | `DevHubData/Build/`: `XcodeTestRepository` (`xcodebuild … -resultBundlePath <bundle> test`), `TestOutputParser` (XCTest and Swift Testing lines), `SourceFileLocator`; `RunTestsUseCase` (Domain) boots the simulator first; `TestRunsStore` (Presentation) keeps one `TestRun` per worktree |
 | DerivedData | `DevHubData/Workspace/XcodeDerivedDataRepository` |
 | Simulators | `DevHubData/Simulators/`: `SimctlSimulatorRepository`, `SimctlAppLaunchRepository`, `SimctlMessagingRepository`, `SimctlRunner`, `SimctlListParser`, `ContainerLocator`, `ProfileDefaultsPlan`, `AppURLSchemeParser`, `Dictionary+ChildEnvironment` |
 | Logs | `DevHubData/Logs/`: `SimctlAppLogRepository`, `AppLogParser`, `LogRedactor`, `LogCounter`; `AppLogPredicatePolicy` (Domain) |

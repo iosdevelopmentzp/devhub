@@ -9,6 +9,7 @@ extension Ports {
             copilotUsage: MockCopilotUsageRepository(),
             simulators: MockSimulatorRepository(),
             build: MockBuildRepository(),
+            testRuns: MockTestRunRepository(),
             worktrees: MockWorktreeRepository(),
             launcher: MockAppLaunchRepository(),
             git: MockGitRepository(),

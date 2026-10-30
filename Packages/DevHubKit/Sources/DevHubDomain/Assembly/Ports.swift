@@ -5,6 +5,7 @@ package struct Ports: Sendable {
     package let copilotUsage: any CopilotUsageRepository
     package let simulators: any SimulatorRepository
     package let build: any BuildRepository
+    package let testRuns: any TestRunRepository
     package let worktrees: any WorktreeRepository
     package let launcher: any AppLaunchRepository
     package let git: any GitRepository
@@ -32,6 +33,7 @@ package struct Ports: Sendable {
         copilotUsage: any CopilotUsageRepository,
         simulators: any SimulatorRepository,
         build: any BuildRepository,
+        testRuns: any TestRunRepository,
         worktrees: any WorktreeRepository,
         launcher: any AppLaunchRepository,
         git: any GitRepository,
@@ -58,6 +60,7 @@ package struct Ports: Sendable {
         self.copilotUsage = copilotUsage
         self.simulators = simulators
         self.build = build
+        self.testRuns = testRuns
         self.worktrees = worktrees
         self.launcher = launcher
         self.git = git

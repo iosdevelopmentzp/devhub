@@ -18,6 +18,7 @@ extension Ports {
             copilotUsage: GitHubCopilotUsageRepository(tokenReader: CopilotTokenReader(shell: shell, tools: tools)),
             simulators: simulators,
             build: build,
+            testRuns: XcodeTestRepository(shell: shell, resultsFolder: FileManager.default.temporaryDirectory.appendingPathComponent("DevHub-tests", isDirectory: true)),
             worktrees: worktrees,
             launcher: SimctlAppLaunchRepository(shell: shell),
             git: git,

@@ -8,6 +8,7 @@ package extension Ports {
             copilotUsage: spies.copilotUsage,
             simulators: spies.simulators,
             build: spies.build,
+            testRuns: spies.testRuns,
             worktrees: spies.worktrees,
             launcher: spies.launcher,
             git: spies.git,

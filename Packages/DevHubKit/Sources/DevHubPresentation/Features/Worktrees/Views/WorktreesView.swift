@@ -6,6 +6,7 @@ struct WorktreesView: View {
     @Environment(ProjectSession.self) private var session
     @Environment(WorktreesStore.self) private var worktrees
     @Environment(BuildStore.self) private var build
+    @Environment(TestRunsStore.self) private var testRuns
     @Environment(ConfigActionsStore.self) private var configActions
 
     @State private var confirmingDeleteID: Worktree.ID?
@@ -33,6 +34,7 @@ struct WorktreesView: View {
         .animation(.snappy(duration: 0.18), value: confirmingDeleteID)
         .animation(.snappy(duration: 0.18), value: isConfirmingClean)
         .animation(.snappy(duration: 0.18), value: isCreating)
+        .animation(.snappy(duration: 0.18), value: testRuns.runs.count)
     }
 
     private var content: some View {
@@ -56,6 +58,8 @@ struct WorktreesView: View {
                                 model: model,
                                 isConfirmingDelete: confirmingDeleteID == model.id,
                                 isPickingLaunch: launchID == model.id,
+                                testRun: testRuns.runs[model.id].map(TestRunPanelMapper.model),
+                                canRunTests: model.canOpen && build.isCommandProject == false && testRuns.isRunning(model.id) == false,
                                 onRequestDelete: {
                                     launchID = nil
                                     confirmingDeleteID = model.id
@@ -71,6 +75,9 @@ struct WorktreesView: View {
                                     launchID = model.id
                                 },
                                 onCancelLaunch: { launchID = nil },
+                                onRunTests: { testRuns.run(worktreeID: model.id) },
+                                onCancelTests: { testRuns.cancel(worktreeID: model.id) },
+                                onDismissTests: { testRuns.dismiss(worktreeID: model.id) },
                                 onConfigAction: { runConfigAction($0, for: model) }
                             )
                             if let pending = configActions.pending(in: Placement.worktreesRow.slot(for: model.path)) {

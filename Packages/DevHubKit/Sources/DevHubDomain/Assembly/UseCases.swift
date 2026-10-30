@@ -14,6 +14,7 @@ package struct UseCases: Sendable {
     package let cleanFinishedWorktrees: CleanFinishedWorktreesUseCase
     package let createWorktree: CreateWorktreeUseCase
     package let buildAndRun: BuildAndRunUseCase
+    package let runTests: RunTestsUseCase
     package let commandRun: CommandRunUseCase
     package let prepareBuildCheckout: PrepareBuildCheckoutUseCase
     package let launchInstalledApp: LaunchInstalledAppUseCase
@@ -37,6 +38,7 @@ package struct UseCases: Sendable {
         let createWorktree = CreateWorktreeUseCase(worktrees: ports.worktrees)
         self.createWorktree = createWorktree
         buildAndRun = BuildAndRunUseCase(build: ports.build, simulators: ports.simulators, attacher: ports.attacher, mockServer: ports.mockServer)
+        runTests = RunTestsUseCase(tests: ports.testRuns, simulators: ports.simulators)
         commandRun = CommandRunUseCase(scripts: ports.scripts, build: ports.build, simulators: ports.simulators, install: buildAndRun.install)
         prepareBuildCheckout = PrepareBuildCheckoutUseCase(worktrees: ports.worktrees, createWorktree: createWorktree)
         launchInstalledApp = LaunchInstalledAppUseCase(launcher: ports.launcher, simulators: ports.simulators, attacher: ports.attacher, mockServer: ports.mockServer)

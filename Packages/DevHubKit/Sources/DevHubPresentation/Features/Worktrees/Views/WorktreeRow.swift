@@ -9,12 +9,17 @@ struct WorktreeRow: View {
     let model: WorktreeRowModel
     let isConfirmingDelete: Bool
     let isPickingLaunch: Bool
+    let testRun: TestRunPanelModel?
+    let canRunTests: Bool
     let onRequestDelete: () -> Void
     let onCancelDelete: () -> Void
     let onConfirmDelete: (_ deleteDerivedData: Bool, _ deleteBranch: Bool) -> Void
     let onBootstrap: () -> Void
     let onRequestLaunch: () -> Void
     let onCancelLaunch: () -> Void
+    let onRunTests: () -> Void
+    let onCancelTests: () -> Void
+    let onDismissTests: () -> Void
     let onConfigAction: (ConfigActionItemModel.ID) -> Void
 
     @State private var deleteDerivedData = true
@@ -80,6 +85,17 @@ struct WorktreeRow: View {
             if isPickingLaunch {
                 LaunchPicker(subject: model.title, onCancel: onCancelLaunch, onRun: { appActions.buildAndRun(worktreeID: model.id, on: $0) })
             }
+            if let testRun {
+                TestRunPanel(
+                    model: testRun,
+                    onCancel: onCancelTests,
+                    onDismiss: onDismissTests,
+                    onRunAgain: onRunTests,
+                    onOpenFailure: { openFile($0.path, line: $0.line) },
+                    onOpenIssue: { openFile($0.path, line: $0.line) },
+                    onOpenResults: { appActions.open(URL(fileURLWithPath: $0)) }
+                )
+            }
         }
     }
 
@@ -132,6 +148,10 @@ struct WorktreeRow: View {
                     onRequestLaunch()
                 }
                 .disabled(model.canBuildAndRun == false)
+                IconButton(systemImage: "checkmark.diamond", help: "Run the tests of this worktree on the target simulator", tint: .green) {
+                    onRunTests()
+                }
+                .disabled(canRunTests == false)
                 IconButton(systemImage: "folder", help: "Open in Finder") {
                     appActions.openInFinder(path: model.path)
                 }
@@ -151,6 +171,11 @@ struct WorktreeRow: View {
             }
             .opacity(isHovered && isConfirmingDelete == false && isPickingLaunch == false ? 1 : 0)
         }
+    }
+
+    private func openFile(_ path: String?, line: Int?) {
+        guard let path else { return }
+        appActions.openFile(path: path, line: line)
     }
 
     private var deleteConfirmation: some View {
@@ -179,6 +204,8 @@ struct WorktreeRow: View {
             appActions.buildAndRun(worktreeID: model.id)
         }
         .disabled(model.canBuildAndRun == false)
+        Button("Run Tests", systemImage: "checkmark.diamond") { onRunTests() }
+            .disabled(canRunTests == false)
         if model.isBuildSource {
             Button("Stop Using as Build Source", systemImage: "play.slash") {
                 appActions.useBuildSource(worktreeID: nil)
@@ -228,12 +255,17 @@ struct WorktreeRow: View {
         model: .preview,
         isConfirmingDelete: false,
         isPickingLaunch: false,
+        testRun: .preview,
+        canRunTests: true,
         onRequestDelete: {},
         onCancelDelete: {},
         onConfirmDelete: { _, _ in },
         onBootstrap: {},
         onRequestLaunch: {},
         onCancelLaunch: {},
+        onRunTests: {},
+        onCancelTests: {},
+        onDismissTests: {},
         onConfigAction: { _ in }
     )
     .frame(width: 680)

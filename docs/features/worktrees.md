@@ -80,6 +80,7 @@ Hover buttons, the same items in the context menu (right-click):
 |---|---|---|
 | Build & Run… | Opens the simulator, profile and device ID picker, then builds this worktree | see the Simulators tab |
 | Build & Run on Target Now (menu) | Builds this worktree on the target simulator | see the Simulators tab |
+| Run Tests | Runs the tests of this worktree on the target simulator. See "Run tests" below | `xcodebuild … test` |
 | Use as Build Source / Stop Using as Build Source (menu) | Makes the run bar build this checkout, or the main checkout again | — |
 | Open in Finder | — | `NSWorkspace.open` |
 | Open in Xcode | Opens `xcode.container` in the worktree, else the first `.xcworkspace`, else the first `.xcodeproj` | `open -a Xcode <container>` |
@@ -88,6 +89,18 @@ Hover buttons, the same items in the context menu (right-click):
 | Run `<bootstrap script>` (menu) | When `git.worktrees.bootstrap` is set | see "Bootstrap" |
 | Config actions (menu) | Actions with the `worktrees.row` placement. They get `DEVHUB_WORKTREE_PATH`, `DEVHUB_BRANCH` and `DEVHUB_ROW_ID` (the path). Inputs open under the row | see [Placements](../extensions.md#33-placements) |
 | Delete Worktree… | Not for the main checkout or a missing folder. See below | — |
+
+### Run tests
+
+The checkmark button (hover) and "Run Tests" (menu) run the tests of the worktree. Not for a missing folder or a `kind: command` project. One run per worktree at a time; other worktrees can test at the same time.
+
+1. DevHub boots the target simulator of the run bar. Without a target, a red Recent row says "No simulator for the tests".
+2. It runs `xcodebuild <-workspace|-project> <container> -scheme <scheme> -configuration <configuration> -destination id=<udid> -resultBundlePath <bundle> test` inside the worktree, with the scheme and configuration of the run bar. The container is `xcode.container`, else the first `.xcworkspace`, else the first `.xcodeproj` of the worktree. The bundle goes to `<temp>/DevHub-tests/<scheme>-<timestamp>.xcresult`; the newest ten bundles are kept.
+3. A panel under the row shows the current step (build steps, then "Running tests"), live counts, and after the run: `N passed · M failed · K skipped · <time> · <simulator>`. Each failed test shows its name, `File.swift:line` and the message; a click opens the file at that line in the editor from Settings. When the build broke and no test ran, the panel says "Tests did not run" with the compiler errors.
+4. "Run Again" starts the same run; "Open Results in Xcode" opens the `.xcresult` bundle; the stop button cancels (`xcodebuild` gets SIGTERM); the × button hides the panel.
+5. The full `xcodebuild` output is in the Output panel. A Recent row and a notification (when the panel is closed) report the result.
+
+DevHub reads both XCTest lines (`Test Case '-[Module.Suite test]' passed (0.1 seconds).`, `/path/File.swift:42: error: -[…] : message`) and Swift Testing lines (`✔ Test "name" passed after 0.1 seconds.`, `✘ Test "name" recorded an issue at File.swift:42:9: message`). Swift Testing prints only the file name; DevHub finds the file in the worktree (hidden folders, `Pods`, `Carthage`, `DerivedData`, `build` and `node_modules` are skipped). An unresolved file shows without a link.
 
 ### Delete
 
@@ -138,6 +151,7 @@ The Worktrees tab saves no preferences of its own. It uses `terminal` from `app.
 ## Limits
 
 - `git.worktrees.include` copies plain paths only. An entry with `*` is skipped. A file that already exists in the worktree is not replaced.
+- Run tests uses the scheme of the run bar. A separate test scheme can be picked there first; there is no `xcode.testScheme` field yet. There is no "run only the failed tests" button.
 - `needs bootstrap` needs three things: the script exists in the worktree, the marker exists in the main checkout, and the marker is missing in the worktree.
 - The confirmation text of Clean Finished says that the local branches are removed. `git branch -d` still refuses a branch that is not fully merged; the report then says "branch kept".
 - The context menus of rows were checked by tests only (`docs/STATUS.md`).

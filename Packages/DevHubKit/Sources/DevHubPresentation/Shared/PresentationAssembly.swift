@@ -35,6 +35,7 @@ package final class PresentationAssembly {
     let simulators: SimulatorsStore
     let identity: IdentityStore
     let build: BuildStore
+    let testRuns: TestRunsStore
     let simulatorStatuses: SimulatorStatusStore
     let configActions: ConfigActionsStore
     let logs: LogsStore
@@ -152,6 +153,7 @@ package final class PresentationAssembly {
             events: events,
             store: store
         )
+        testRuns = TestRunsStore(runTests: useCases.runTests, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events)
         simulatorStatuses = SimulatorStatusStore(
             readStatus: useCases.readSimulatorStatus,
             config: config,

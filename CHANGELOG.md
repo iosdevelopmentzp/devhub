@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Worktrees: a checkmark button in a row (and "Run Tests" in its menu) runs the tests of that worktree with the scheme and target simulator of the run bar. A panel under the row shows the step, live counts, then the result: passed, failed and skipped counts, the time, every failed test with its message and file (a click opens the file at that line), compiler errors when the build broke, "Run Again" and "Open Results in Xcode" for the `.xcresult` bundle. Stop with the stop button. A notification arrives when the panel is closed.
 - Settings → AI usage → "Show usage for": Claude and Copilot, Claude only, or Copilot only. The usage strip and the menu bar percent follow the choice, and DevHub reads only the chosen providers.
 - Pull Requests: the filter menu narrows the list by several labels at once, by author, by assignee and by requested reviewer, next to the target branch, conflicts and ready-to-merge filters. A click on a label tag in a row adds or removes that label in the filter. Every active filter is a chip with its own ✕.
 - Home → Scripts: drag a script row onto another row to change the order, or use Move Up and Move Down in the row menu. The star button adds a script to the favorites; favorites stay at the top. The order and the favorites are saved per project.
