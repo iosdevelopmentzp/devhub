@@ -122,10 +122,11 @@ package actor ShellRunner {
   the extra environment, expands `~` in `cwd`.
 - `run` throws only when the process cannot start. A non-zero exit comes back in `ShellResult.exitCode`; the caller
   decides. `ShellResult.failureMessage` is stderr, else stdout, else "Exited with code N.".
-- **The deadlock trap.** `readDataToEndOfFile()` on the Swift concurrency pool plus a stderr reader on a global GCD
-  queue hangs under 30+ parallel commands. The blocking work runs on the dedicated concurrent queue
-  `DevHub.ShellRunner`; stderr is read by a `DataReader` on that queue while stdout reads on the current thread.
-  Keep it that way.
+- **The deadlock trap.** Never read process output with a blocking call (`readDataToEndOfFile()`,
+  `waitUntilExit()`) on the Swift concurrency pool or on a GCD queue. A concurrent GCD queue has at most 64 threads;
+  when every thread waits for a stderr reader that is queued behind it, all later commands hang until a restart.
+  `run` uses `ProcessOutput` (`Shell/ProcessOutput.swift`): `readabilityHandler` on both pipes and a
+  `terminationHandler`, so no thread waits. `manyParallelRunsAllFinish` in `ShellRunnerIntegrationTests` guards it.
 - **Streaming.** One pipe for stdout and stderr; `for try await line in pipe.fileHandleForReading.bytes.lines`;
   `withTaskCancellationHandler` whose `onCancel` terminates the process. After a stream the caller runs
   `try Task.checkCancellation()`: a cancelled stream ends without throwing.

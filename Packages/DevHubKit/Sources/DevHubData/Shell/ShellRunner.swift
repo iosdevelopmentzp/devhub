@@ -5,7 +5,6 @@ package actor ShellRunner {
     nonisolated let recorder: any CommandRecording
 
     private static let extraPath = ["/opt/homebrew/bin", "/usr/local/bin"]
-    fileprivate nonisolated static let blockingQueue = DispatchQueue(label: "DevHub.ShellRunner", attributes: .concurrent)
 
     package init(recorder: any CommandRecording) {
         self.recorder = recorder
@@ -20,11 +19,7 @@ package actor ShellRunner {
         let kind = CommandKind.classify(executable, arguments)
         recorder.record(CommandEvent(id: id, payload: .started(command: CommandFormatter.displayCommand(executable, arguments), cwd: cwd, kind: kind)))
         do {
-            let result = try await withCheckedThrowingContinuation { continuation in
-                Self.blockingQueue.async {
-                    continuation.resume(with: Result { try Self.runBlocking(executable, arguments, cwd: cwd, environment: environment) })
-                }
-            }
+            let result = try await ProcessOutput.run(Self.makeProcess(executable, arguments, cwd: cwd, environment: environment))
             if kind.hidesOutput == false {
                 let text = [result.stdout, result.stderr].filter { $0.trimmed.isEmpty == false }.joined(separator: "\n")
                 let lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
@@ -94,24 +89,6 @@ package actor ShellRunner {
         }
     }
 
-    private nonisolated static func runBlocking(_ executable: String, _ arguments: [String], cwd: String?, environment: [String: String]) throws -> ShellResult {
-        let process = makeProcess(executable, arguments, cwd: cwd, environment: environment)
-        let stdoutPipe = Pipe()
-        let stderrPipe = Pipe()
-        process.standardOutput = stdoutPipe
-        process.standardError = stderrPipe
-        try process.run()
-        let stderrReader = DataReader(stderrPipe.fileHandleForReading)
-        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-        let stderrData = stderrReader.wait()
-        process.waitUntilExit()
-        return ShellResult(
-            stdout: String(decoding: stdoutData, as: UTF8.self),
-            stderr: String(decoding: stderrData, as: UTF8.self),
-            exitCode: process.terminationStatus
-        )
-    }
-
     private nonisolated static func makeProcess(_ executable: String, _ arguments: [String], cwd: String?, environment extra: [String: String]) -> Process {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -125,23 +102,6 @@ package actor ShellRunner {
             process.currentDirectoryURL = URL(fileURLWithPath: (cwd as NSString).expandingTildeInPath)
         }
         return process
-    }
-}
-
-private nonisolated final class DataReader: @unchecked Sendable {
-    private let semaphore = DispatchSemaphore(value: 0)
-    private var data = Data()
-
-    init(_ handle: FileHandle) {
-        ShellRunner.blockingQueue.async { [self] in
-            data = handle.readDataToEndOfFile()
-            semaphore.signal()
-        }
-    }
-
-    func wait() -> Data {
-        semaphore.wait()
-        return data
     }
 }
 

@@ -89,6 +89,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- DevHub no longer stops reading git, pull requests and simulators after many tab switches. When about 64 commands ran at the same time, every later command waited forever until DevHub was restarted. Commands now read their output without holding a thread.
 - The Claude usage strip reads the per-model weekly limits (for example "Week · Fable") from the new `limits` list of the usage API, so it shows the same values as Claude Desktop.
 - The "This project" scope of the AI tab also keeps sessions started in the worktrees of the project, also when a worktree folder sits next to the project folder.
 - The hint of "Delete all…" in the merged branches group names the branches that stay: the base branch and `git.protectedBranches`. Before, it always said "dev, main and master".

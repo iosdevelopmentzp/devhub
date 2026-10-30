@@ -87,6 +87,39 @@ import Testing
         #expect(events.contains { $0.outputLines != nil } == false)
     }
 
+    @Test(.timeLimit(.minutes(1)))
+    func manyParallelRunsAllFinish() async throws {
+        let results = try await withThrowingTaskGroup(of: ShellResult.self) { [runner] group in
+            for index in 0..<100 {
+                group.addTask {
+                    try await runner.run("sh", ["-c", "sleep 0.2; echo out\(index); echo err\(index) 1>&2"], cwd: nil)
+                }
+            }
+            return try await group.reduce(into: []) { $0.append($1) }
+        }
+
+        #expect(results.count == 100)
+        #expect(results.allSatisfy { $0.exitCode == 0 })
+        #expect(Set(results.map(\.stdout)).count == 100)
+        #expect(Set(results.map(\.stderr)).count == 100)
+    }
+
+    @Test(.timeLimit(.minutes(1)))
+    func readsLargeStdoutAndStderrTogether() async throws {
+        let result = try await runner.run("sh", ["-c", "head -c 300000 /dev/zero | tr '\\0' a; head -c 300000 /dev/zero | tr '\\0' b 1>&2"], cwd: nil)
+
+        #expect(result.stdout.utf8.count == 300_000)
+        #expect(result.stderr.utf8.count == 300_000)
+        #expect(result.exitCode == 0)
+    }
+
+    @Test func missingWorkingDirectoryThrows() async throws {
+        await #expect(throws: (any Error).self) {
+            try await runner.run("pwd", [], cwd: "/devhub-no-such-folder-\(UUID().uuidString.prefix(8))")
+        }
+        #expect(recorder.events.last?.finishedExitCode == nil)
+    }
+
     @Test func streamDeliversLinesAndReturnsExitCode() async throws {
         let collector = LineCollector()
 
