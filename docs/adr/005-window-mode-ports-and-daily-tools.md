@@ -61,3 +61,4 @@ The owner also asked for more comfort when working from any project: an easier p
 | `5cecd27` | Q1 | `SimulatorSetting` and its enums, the `SimulatorSettingsRepository` port (`SimctlSettingsRepository`, mock, spy), `SimulatorQAStore`, `SimulatorQAText`, `SimulatorQAPanel` and the row button. Checked: the simctl option names against `xcrun simctl … help`, a real status bar override, screenshot and clear on a booted simulator. The panel itself was checked by tests only. No video recording. |
 | `51f3775` | B1 | `BuildIssue`, `BuildEvent.issue`, `BuildOutputParser.issue`, `BuildStore.issues` (at most 200, no repeats, cleared on a new build), `BuildIssuesMapper`, `BuildIssuesList` in the run bar, `AppActions.openFile(path:line:)`. Checked by parser tests with xcodebuild lines. |
 | `fa97a37` | — | The snapshot recipe starts the app with `$PWD/$APP`, so its `pkill` matches. |
+| `7ebf925` | — | STATUS, SPEC and this ADR describe the finished plan. |

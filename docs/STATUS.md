@@ -82,6 +82,8 @@ Numbered. What, then why. A later session must not undo these without a new numb
 38. `PullRequestPermissions.canRequestChanges` is true only on GitHub for a request by someone else. GitLab has no "request changes" review in `glab`, so the button is hidden there, not shown with an error (decision 22).
 39. Simulator QA settings go through the typed `SimulatorSettingsRepository` port, and the language change waits for a reboot instead of rebooting the simulator. Why: a reboot closes the app under test without asking.
 40. A job log in pull request details is cut to its last 200 lines in Data (`JobLogTail`), with timestamps, colour codes and tokens removed. Why: GitHub and GitLab logs can be many megabytes, and the end of the log holds the failure.
+41. `Scripts/install.sh` installs to `/Applications/DevHub Generic.app`, not `/Applications/DevHub.app`. Why: the main DevHub lives at `/Applications/DevHub.app` and updates itself from its own repository; both apps must run on one Mac. The bundle IDs differ, so settings stay apart. Both apps can use the same global shortcut only if one of them changes it in Settings.
+
 ## Next steps
 
 The rewrite plan (ADR 001, M0 to M8) and ADR 005 are complete. Ideas for later: video recording in the simulator QA panel (needs a SIGINT stop in `ShellRunner`), a build issue list for `kind: command` projects, a warning for a saved project whose folder no longer exists.

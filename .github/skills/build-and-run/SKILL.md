@@ -9,11 +9,13 @@ description: "Build, test, smoke-run and install DevHub from the command line: S
 
 | Command | Result |
 |---|---|
-| `Scripts/build.sh [Debug\|Release]` | `check-layers.sh` (`layers: ok`), `check-anonymous.sh` (`anonymous: ok`), then `xcodebuild -quiet` into `DerivedData/`; prints the `.app` path. `SKIP_LAYER_CHECK=1` skips the layer check while you iterate |
+| `Scripts/build.sh [Debug\|Release]` | `check-layers.sh` (`layers: ok`), `check-anonymous.sh` (`anonymous: ok`), then `xcodebuild -quiet` into `DerivedData/` (or `DEVHUB_DERIVED_DATA`) for the arch of this Mac; prints the `.app` path. `SKIP_LAYER_CHECK=1` skips the layer check while you iterate |
 | `Scripts/test.sh [args]` | `swift test -q` on `Packages/DevHubKit`, one summary line. `--skip integration` skips the process suites, `--filter <Suite>` runs one suite |
 | `Scripts/smoke.sh` | starts the Debug build for 3 s and prints `alive` or `dead` |
 | `Scripts/run.sh` | Debug build, quits the running copy of this build, opens the new one |
-| `Scripts/install.sh` | Release build copied to `/Applications/DevHub.app` and opened |
+| `Scripts/install.sh` | Release build into `DerivedData/Install/`, copied to `/Applications/DevHub Generic.app` and opened. It copies the new app to `DevHub Generic.app.new` first, then stops the running copy (by its path) and swaps the folders. `DEVHUB_INSTALL_PATH` sets another target. `DEVHUB_SIGN_IDENTITY` or `~/.config/devhub/sign-identity` signs the app with a local identity, so macOS keeps its permissions after an update |
+| `Scripts/install-hooks.sh` | writes the `post-commit` and `post-merge` git hooks once per clone. A hook that has other content stays as it is |
+| `Scripts/auto-install.sh` | runs from the hooks: on `main`, after a change in `DevHub/`, `Packages/`, `DevHub.xcodeproj` or `Scripts/`, it runs `install.sh` in the background and shows a notification. Log: `.git/devhub-install.log` |
 | `Scripts/make-launcher.sh` | creates `DevHub Launcher.app` (AppleScript) in the repo root that runs `run.sh`. Not committed |
 | `Scripts/generate-example-config.sh` | rewrites `DevHubDomain/Policies/ExampleConfig.swift` from `docs/examples/devhub/` |
 

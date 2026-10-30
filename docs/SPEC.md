@@ -530,7 +530,7 @@ Both usage endpoints are not documented. The parsers accept unknown keys. An err
 - `Scripts/build.sh [Debug|Release]` runs the layer check and the anonymity check, then `xcodebuild -quiet` into `DerivedData/`, and prints the `.app` path. Any other output is a warning or an error.
 - `Scripts/test.sh` runs `swift test` on the package and prints one summary line.
 - `Scripts/smoke.sh` starts the Debug build for 3 s and prints `alive` or `dead`.
-- `Scripts/run.sh` builds Debug, quits a running copy of this build and opens the new one. `Scripts/install.sh` copies a Release build to `/Applications/DevHub.app`.
+- `Scripts/run.sh` builds Debug, quits a running copy of this build and opens the new one. `Scripts/install.sh` copies a Release build to `/Applications/DevHub Generic.app`. After `Scripts/install-hooks.sh`, a commit or merge on `main` that changes the app runs the install in the background.
 - The scripts stop only the build of this repository, by its path. Another app with the name DevHub keeps running.
 
 ---

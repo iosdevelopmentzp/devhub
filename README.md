@@ -46,7 +46,8 @@ The config schema is in `docs/extensions.md`.
 | `Scripts/test.sh` | Runs the package tests and prints one summary line |
 | `Scripts/run.sh` | Debug build, then open it |
 | `Scripts/smoke.sh` | Starts the Debug build for 3 seconds and prints `alive` or `dead` |
-| `Scripts/install.sh` | Release build, copied to `/Applications/DevHub.app` and opened |
+| `Scripts/install.sh` | Release build, copied to `/Applications/DevHub Generic.app` and opened |
+| `Scripts/install-hooks.sh` | Run once per clone. After that, every commit or merge on `main` that changes the app installs a new build in the background |
 | `DevHub.command` | Double-click in Finder: runs `Scripts/run.sh` |
 | `Scripts/make-launcher.sh` | Creates `DevHub Launcher.app` in this folder (an AppleScript app that runs `Scripts/run.sh`) |
 

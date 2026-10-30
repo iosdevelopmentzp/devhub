@@ -114,6 +114,9 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- `Scripts/install.sh` installs to `/Applications/DevHub Generic.app`, so this app runs next to the main DevHub. It copies the new build first and only then replaces the old one, and it can sign the app with a local identity (`DEVHUB_SIGN_IDENTITY` or `~/.config/devhub/sign-identity`).
+- `Scripts/install-hooks.sh` adds git hooks: a commit or merge on `main` that changes the app builds and installs it in the background (`Scripts/auto-install.sh`) and shows a notification. From the main DevHub `04bd383` and `9ed2b1a`.
+- `Scripts/build.sh` builds for the arch of the Mac it runs on, and `DEVHUB_DERIVED_DATA` sets another DerivedData folder.
 - `docs/STATUS.md`, `docs/SPEC.md` and ADR 005 describe the window mode and the new features. Decisions 37 to 40 are new.
 - The `DEVHUB_PULL_REQUEST=<n>` debug switch opens a request in the Pull Requests tab for a headless snapshot.
 - `AppContainer` is the app delegate (`@NSApplicationDelegateAdaptor`), so a click on the Dock icon shows DevHub. The `DEVHUB_WINDOW_MODE` debug switch sets the window mode.
