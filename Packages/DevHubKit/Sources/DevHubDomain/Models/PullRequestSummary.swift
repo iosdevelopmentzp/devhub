@@ -17,6 +17,8 @@ package struct PullRequestSummary: Identifiable, Hashable, Sendable {
     package let pipeline: PipelineInfo?
     package let approvedBy: [String]
     package let labels: [String]
+    package let assignees: [String]
+    package let reviewers: [String]
     package let createdAt: Date?
     package let mergedAt: Date?
     package let closedAt: Date?
@@ -48,6 +50,8 @@ package struct PullRequestSummary: Identifiable, Hashable, Sendable {
         pipeline: PipelineInfo?,
         approvedBy: [String],
         labels: [String],
+        assignees: [String] = [],
+        reviewers: [String] = [],
         createdAt: Date? = nil,
         mergedAt: Date? = nil,
         closedAt: Date? = nil,
@@ -78,6 +82,8 @@ package struct PullRequestSummary: Identifiable, Hashable, Sendable {
         self.pipeline = pipeline
         self.approvedBy = approvedBy
         self.labels = labels
+        self.assignees = assignees
+        self.reviewers = reviewers
         self.createdAt = createdAt
         self.mergedAt = mergedAt
         self.closedAt = closedAt

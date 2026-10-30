@@ -9,7 +9,7 @@ enum GlabGraphQLQueries {
     divergedFromTargetBranch squashOnMerge shouldRemoveSourceBranch diffHeadSha autoMergeEnabled \
     userPermissions { canMerge canApprove } \
     headPipeline { status updatedAt duration finishedAt failedJobsCount detailedStatus { detailsPath } } \
-    approvedBy { nodes { username } } labels { nodes { title } } }
+    approvedBy { nodes { username } } labels { nodes { title } } assignees { nodes { username } } reviewers { nodes { username } } }
     """
 
     private static let connection = "(state: $state, sort: UPDATED_DESC, first: 100, after: $after) { \(fields) }"

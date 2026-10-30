@@ -5,8 +5,8 @@ package extension MockData {
     static let gitLabUsername = "alex"
 
     static let pullRequests: [PullRequestSummary] = [
-        pullRequest(1842, "ABC-2324: Paid call payment", author: "alex", source: "feature/ABC-2324-paid-call", detail: .notApproved, pipeline: .running, labels: ["feature"], comments: 4, minutesAgo: 12, diff: (120, 30, 7, 3), threads: (3, 1), behind: true),
-        pullRequest(1839, "ABC-2311: Leaderboard pagination", author: "sam", source: "feature/ABC-2311-leaderboard", detail: .mergeable, pipeline: .success, approvedBy: ["kim"], labels: ["feature"], comments: 9, minutesAgo: 95, diff: (48, 12, 4, 2), threads: (2, 2)),
+        pullRequest(1842, "ABC-2324: Paid call payment", author: "alex", source: "feature/ABC-2324-paid-call", detail: .notApproved, pipeline: .running, labels: ["feature"], assignees: ["alex"], reviewers: ["sam", "kim"], comments: 4, minutesAgo: 12, diff: (120, 30, 7, 3), threads: (3, 1), behind: true),
+        pullRequest(1839, "ABC-2311: Leaderboard pagination", author: "sam", source: "feature/ABC-2311-leaderboard", detail: .mergeable, pipeline: .success, approvedBy: ["kim"], labels: ["feature"], reviewers: ["kim"], comments: 9, minutesAgo: 95, diff: (48, 12, 4, 2), threads: (2, 2)),
         pullRequest(1836, "Draft: ABC-2290: New onboarding", author: "kim", source: "feature/ABC-2290-onboarding", isDraft: true, detail: .draftStatus, pipeline: .failed, labels: ["tech"], comments: 0, minutesAgo: 300, diff: (900, 340, 31, 14)),
         pullRequest(1830, "ABC-2280: Fix chat crash on iOS 17", author: "robin", source: "fix/ABC-2280-chat-crash", conflicts: true, detail: .needRebase, pipeline: .success, labels: ["bug"], comments: 2, minutesAgo: 1_500, diff: (6, 2, 1, 1), behind: true),
         pullRequest(1825, "ABC-2266: Remove old analytics", author: "sam", source: "feature/ABC-2266-analytics", target: "release/4.13", detail: .discussionsNotResolved, pipeline: nil, approvedBy: ["alex"], labels: ["tech"], comments: 17, minutesAgo: 30_000, diff: (15, 410, 22, 5), threads: (6, 2)),
@@ -64,6 +64,8 @@ package extension MockData {
         pipeline: CheckStatus?,
         approvedBy: [String] = [],
         labels: [String],
+        assignees: [String] = [],
+        reviewers: [String] = [],
         comments: Int,
         minutesAgo: Double,
         diff: (additions: Int, deletions: Int, files: Int, commits: Int),
@@ -96,6 +98,8 @@ package extension MockData {
             },
             approvedBy: approvedBy,
             labels: labels,
+            assignees: assignees,
+            reviewers: reviewers,
             createdAt: Date(timeIntervalSinceNow: -(minutesAgo + 7_200) * 60),
             mergedAt: state == .merged ? Date(timeIntervalSinceNow: -minutesAgo * 60) : nil,
             mergedBy: mergedBy,

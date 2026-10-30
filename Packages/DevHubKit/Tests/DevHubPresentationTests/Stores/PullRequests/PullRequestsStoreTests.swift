@@ -24,13 +24,13 @@ import DevHubTestSupport
 
         store.scope = .assigned
         store.stateFilter = .merged
-        store.filter = PullRequestFilter(label: "tech", onlyConflicts: true)
+        store.filter = PullRequestFilter(labels: ["tech"], onlyConflicts: true)
 
         #expect(harness.store.string(forKey: "gitlab.scope") == "assigned")
         #expect(harness.store.string(forKey: "gitlab.state") == "merged")
         let restored = StoreHarness(store: harness.store).pullRequests
         #expect(restored.query == PullRequestQuery(scope: .assigned, state: .merged))
-        #expect(restored.filter == PullRequestFilter(label: "tech", onlyConflicts: true))
+        #expect(restored.filter == PullRequestFilter(labels: ["tech"], onlyConflicts: true))
     }
 
     @Test func listStyleStartsDetailedAndIsRemembered() {
@@ -125,16 +125,21 @@ import DevHubTestSupport
 
     @Test func visibleAppliesTheReviewQueueAndTheFilter() async {
         let mine = PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened, author: "me", labels: ["tech"])
-        let other = PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, labels: ["tech"])
+        let other = PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, labels: ["tech"], assignees: ["me"], reviewers: ["me"])
         let approved = PullRequestSummaryFixture.request(iid: 3, source: "c", state: .opened, approvedBy: ["me"], target: "main")
         script([mine, other, approved])
         await store.refresh()
 
         #expect(store.visible.map(\.iid) == [1, 2, 3])
-        #expect(store.filterOptions == PullRequestFilterOptions(targetBranches: ["dev", "main"], labels: ["tech"]))
+        #expect(store.filterOptions == PullRequestFilterOptions(targetBranches: ["dev", "main"], labels: ["tech"], authors: ["me", "sam"], assignees: ["me"], reviewers: ["me"]))
 
-        store.filter = PullRequestFilter(label: "tech")
+        store.filter = PullRequestFilter(labels: ["tech"])
         #expect(store.visible.map(\.iid) == [1, 2])
+
+        store.toggleLabel("tech")
+        store.filter.assignee = "me"
+        #expect(store.visible.map(\.iid) == [2])
+        store.clearFilter()
 
         store.scope = .reviewing
         await store.refresh()
@@ -142,11 +147,15 @@ import DevHubTestSupport
     }
 
     @Test func removeFilterClearsOnePartAndClearFilterClearsAll() {
-        store.filter = PullRequestFilter(targetBranch: "dev", label: "tech", onlyConflicts: true, onlyReady: true)
+        store.filter = PullRequestFilter(targetBranch: "dev", labels: ["tech", "bug"], author: "alex", assignee: "sam", reviewer: "kim", onlyConflicts: true, onlyReady: true)
 
-        store.removeFilter(.label)
-        #expect(store.filter == PullRequestFilter(targetBranch: "dev", onlyConflicts: true, onlyReady: true))
+        store.removeFilter(.label("tech"))
+        #expect(store.filter == PullRequestFilter(targetBranch: "dev", labels: ["bug"], author: "alex", assignee: "sam", reviewer: "kim", onlyConflicts: true, onlyReady: true))
         store.removeFilter(.targetBranch)
+        store.removeFilter(.label("bug"))
+        store.removeFilter(.author)
+        store.removeFilter(.assignee)
+        store.removeFilter(.reviewer)
         store.removeFilter(.onlyReady)
         #expect(store.filter == PullRequestFilter(onlyConflicts: true))
 

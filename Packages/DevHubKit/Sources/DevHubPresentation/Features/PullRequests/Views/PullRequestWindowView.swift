@@ -37,7 +37,8 @@ struct PullRequestWindowView: View {
                     onRequestLaunch: { isPickingLaunch = true },
                     onCancelLaunch: { isPickingLaunch = false },
                     onAction: { pullRequests.perform($0, on: summary.id) },
-                    onMerge: { pullRequests.merge(summary.id, kind: $0, squash: $1, removeSourceBranch: $2) }
+                    onMerge: { pullRequests.merge(summary.id, kind: $0, squash: $1, removeSourceBranch: $2) },
+                    onLabel: nil
                 )
                 .padding(.vertical, 8)
             }

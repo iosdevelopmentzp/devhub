@@ -78,7 +78,8 @@ import DevHubTestSupport
             TagModel("needs your review", tint: .indigo, systemImage: "eye", hint: "Opened by sam, not a draft, you have not approved it"),
             TagModel("approved by kim", tint: .green, systemImage: "checkmark.seal.fill", hint: "Approved by kim"),
         ])
-        #expect(model.labelTags == [TagModel("feature", tint: .secondary, systemImage: "tag", hint: "Label on GitLab"), TagModel("tech", tint: .secondary, systemImage: "tag", hint: "Label on GitLab")])
+        #expect(model.labelTags.map(\.text) == ["feature", "tech"])
+        #expect(model.labelTags.allSatisfy { $0.systemImage == "tag" && $0.hint == "Label on GitLab. Click to show only merge requests with this label" })
         #expect(model.isExpanded)
     }
 

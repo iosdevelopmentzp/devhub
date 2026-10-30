@@ -12,6 +12,7 @@ enum GhGraphQLQueries {
     number title state isDraft url author { login } headRefName baseRefName mergeable mergeStateStatus reviewDecision \
     totalCommentsCount additions deletions changedFiles headRefOid createdAt updatedAt mergedAt closedAt mergedBy { login } \
     autoMergeRequest { enabledAt } labels(first: 20) { nodes { name } } latestReviews(first: 20) { nodes { state author { login } } } \
+    assignees(first: 10) { nodes { login } } reviewRequests(first: 10) { nodes { requestedReviewer { ... on User { login } } } } \
     reviewThreads(first: 100) { totalCount nodes { isResolved } } commitCount: commits { totalCount } \(checks)
     """
 

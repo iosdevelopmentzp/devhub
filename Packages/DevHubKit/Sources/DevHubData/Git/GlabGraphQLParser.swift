@@ -63,6 +63,8 @@ enum GlabGraphQLParser {
         let headPipeline: Pipeline?
         let approvedBy: Nodes<User>?
         let labels: Nodes<Label>?
+        let assignees: Nodes<User>?
+        let reviewers: Nodes<User>?
         let createdAt: Date?
         let mergedAt: Date?
         let closedAt: Date?
@@ -265,6 +267,8 @@ enum GlabGraphQLParser {
             pipeline: node.headPipeline.map { pipeline($0, host: host) },
             approvedBy: node.approvedBy?.nodes.map(\.username) ?? [],
             labels: node.labels?.nodes.map(\.title) ?? [],
+            assignees: node.assignees?.nodes.map(\.username) ?? [],
+            reviewers: node.reviewers?.nodes.map(\.username) ?? [],
             createdAt: node.createdAt,
             mergedAt: node.mergedAt,
             closedAt: node.closedAt,

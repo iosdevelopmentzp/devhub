@@ -226,7 +226,8 @@ struct PullRequestsView: View {
             onRequestLaunch: { launchID = model.id },
             onCancelLaunch: { launchID = nil },
             onAction: { pullRequests.perform($0, on: model.id) },
-            onMerge: { pullRequests.merge(model.id, kind: $0, squash: $1, removeSourceBranch: $2) }
+            onMerge: { pullRequests.merge(model.id, kind: $0, squash: $1, removeSourceBranch: $2) },
+            onLabel: { pullRequests.toggleLabel($0) }
         )
         .task(id: model.isExpanded) {
             guard model.isExpanded else { return }

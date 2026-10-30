@@ -36,6 +36,8 @@ import Testing
             ),
             approvedBy: ["kim"],
             labels: ["feature"],
+            assignees: ["sam"],
+            reviewers: ["me"],
             createdAt: ISO8601.date(from: "2025-12-20T10:00:00Z"),
             mergedAt: nil,
             closedAt: nil,

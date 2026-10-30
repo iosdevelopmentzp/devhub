@@ -17,6 +17,7 @@ struct PullRequestRow: View {
     let onCancelLaunch: () -> Void
     let onAction: (PullRequestActionModel.Kind) -> Void
     let onMerge: (_ kind: PullRequestActionModel.Kind, _ squash: Bool, _ removeSourceBranch: Bool) -> Void
+    let onLabel: ((String) -> Void)?
 
     @State private var confirmingMerge: PullRequestActionModel.Kind?
 
@@ -114,7 +115,16 @@ struct PullRequestRow: View {
                             ModelTag(model: tag, isPlain: model.usesPlainTags)
                         }
                         ForEach(model.labelTags, id: \.self) { tag in
-                            ModelTag(model: tag, isPlain: model.usesPlainTags)
+                            if let onLabel {
+                                Button {
+                                    onLabel(tag.text)
+                                } label: {
+                                    ModelTag(model: tag, isPlain: model.usesPlainTags)
+                                }
+                                .buttonStyle(.plain)
+                            } else {
+                                ModelTag(model: tag, isPlain: model.usesPlainTags)
+                            }
                         }
                     }
                 }
@@ -275,6 +285,6 @@ struct PullRequestRow: View {
 }
 
 #Preview {
-    PullRequestRow(model: .preview, details: .preview, isSelected: false, isNarrow: false, isPickingLaunch: false, detailActions: .preview, onToggle: {}, onRequestLaunch: {}, onCancelLaunch: {}, onAction: { _ in }, onMerge: { _, _, _ in })
+    PullRequestRow(model: .preview, details: .preview, isSelected: false, isNarrow: false, isPickingLaunch: false, detailActions: .preview, onToggle: {}, onRequestLaunch: {}, onCancelLaunch: {}, onAction: { _ in }, onMerge: { _, _, _ in }, onLabel: { _ in })
         .previewEnvironment()
 }

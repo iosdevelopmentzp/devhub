@@ -69,7 +69,7 @@ struct PullRequestRowModel: Identifiable, Equatable {
         ],
         pipelineTag: .icon("checkmark.circle.fill", tint: .green, hint: "Pipeline passed 1 hr. ago. Click to open it."),
         pipelineURL: nil,
-        labelTags: [TagModel("feature", tint: .secondary, systemImage: "tag", hint: "Label on GitLab")],
+        labelTags: [TagModel("feature", tint: .secondary, systemImage: "tag", hint: "Label on GitLab. Click to show only merge requests with this label")],
         usesPlainTags: false,
         webURL: URL(string: "https://gitlab.com/example/app/-/merge_requests/1842"),
         canCheckOut: true,

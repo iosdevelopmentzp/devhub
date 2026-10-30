@@ -23,7 +23,7 @@ In the commands below, `<repo>` is `example/app` on `github.com` and `<host>/exa
 |---|---|
 | Scope | Mine (you opened them), To review, Assigned (assigned to you), All |
 | State | Open, Merged, Closed, Any state. Disabled for "To review": that scope is always Open |
-| Filter menu | Target branch, label, "Only with conflicts", "Only ready to merge", Clear Filters. Active filters show as chips under the toolbar |
+| Filter menu | Target branch, Labels (several at once; a request must carry every chosen label), Author, Assignee, Reviewer (a requested reviewer), "Only with conflicts", "Only ready to merge", Clear Filters. The lists hold the values of the loaded rows. Active filters show as chips under the toolbar; the ✕ on a chip removes that one filter. A click on a label tag in a row adds or removes that label in the filter |
 | View menu | Detailed (every fact as a coloured tag), Calm (the same facts as grey text, colour only for what needs you), Compact (one line per request) |
 | New… | Opens the new request form for the current branch of the Git tab |
 | Count and refresh | The number of requests in the list and a button that reads them again |
@@ -43,7 +43,7 @@ A click on a row opens the details under it. When the panel is 960 points wide o
 
 At the end of the list, "Load N more" reads the next page. N is the page size of the host: 50 on GitHub, 100 on GitLab.
 
-The header search filters the loaded rows by title, number, author, branches and labels.
+The header search filters the loaded rows by title, number, author, branches and labels. The filter menu narrows the same rows by exact values.
 
 ### Details
 
@@ -186,7 +186,7 @@ When the tool is not logged in, the list shows the command `gh auth login --host
 |---|---|---|
 | `gitlab.scope` | The scope | Mine |
 | `gitlab.state` | The state | Open |
-| `gitlab.filter` | Target branch, label, conflicts, ready to merge | no filter |
+| `gitlab.filter` | Target branch, labels, author, assignee, reviewer, conflicts, ready to merge | no filter |
 | `gitlab.listStyle` | Detailed, Calm or Compact | Detailed |
 | `gitlab.listFraction` | The width of the list in the side-by-side layout | 0.42 |
 | `gitlab.seenAt.<scope>` | The time of your last visit to each scope (the blue "new" dot) | — |

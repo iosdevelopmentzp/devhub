@@ -32,6 +32,14 @@ enum GhPullRequestParser {
         let author: Login?
     }
 
+    private struct ReviewRequest: Decodable {
+        struct Reviewer: Decodable {
+            let login: String?
+        }
+
+        let requestedReviewer: Reviewer?
+    }
+
     private struct ThreadState: Decodable {
         let isResolved: Bool
     }
@@ -73,6 +81,8 @@ enum GhPullRequestParser {
         let autoMergeRequest: AutoMerge?
         let labels: Nodes<Name>?
         let latestReviews: Nodes<Review>?
+        let assignees: Nodes<Login>?
+        let reviewRequests: Nodes<ReviewRequest>?
         let reviewThreads: Threads?
         let commitCount: Count?
         let lastCommit: Nodes<GhCheckParser.CommitNode>?
@@ -295,6 +305,8 @@ enum GhPullRequestParser {
             pipeline: node.lastCommit?.nodes.first?.commit.statusCheckRollup.map { GhCheckParser.pipeline($0, fallbackURL: node.url.map { "\($0)/checks" }) },
             approvedBy: (node.latestReviews?.nodes ?? []).filter { $0.state == "APPROVED" }.compactMap { $0.author?.login },
             labels: node.labels?.nodes.map(\.name) ?? [],
+            assignees: node.assignees?.nodes.map(\.login) ?? [],
+            reviewers: (node.reviewRequests?.nodes ?? []).compactMap { $0.requestedReviewer?.login },
             createdAt: node.createdAt,
             mergedAt: node.mergedAt,
             closedAt: node.closedAt,

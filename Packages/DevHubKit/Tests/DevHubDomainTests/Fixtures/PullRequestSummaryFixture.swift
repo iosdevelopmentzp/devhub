@@ -16,6 +16,8 @@ enum PullRequestSummaryFixture {
         pipeline: PipelineInfo? = nil,
         approvedBy: [String] = [],
         labels: [String] = [],
+        assignees: [String] = [],
+        reviewers: [String] = [],
         target: String = "dev",
         updatedAt: Date? = nil
     ) -> PullRequestSummary {
@@ -34,7 +36,9 @@ enum PullRequestSummaryFixture {
             updatedAt: updatedAt,
             pipeline: pipeline,
             approvedBy: approvedBy,
-            labels: labels
+            labels: labels,
+            assignees: assignees,
+            reviewers: reviewers
         )
     }
 }

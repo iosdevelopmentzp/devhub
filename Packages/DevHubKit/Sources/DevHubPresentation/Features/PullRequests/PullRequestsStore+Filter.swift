@@ -10,10 +10,17 @@ extension PullRequestsStore {
         PullRequestFilterPolicy.options(in: scopedRequests, keeping: filter)
     }
 
+    func toggleLabel(_ label: String) {
+        filter.toggleLabel(label)
+    }
+
     func removeFilter(_ kind: PullRequestFilterChipModel.Kind) {
         switch kind {
         case .targetBranch: filter.targetBranch = nil
-        case .label: filter.label = nil
+        case .label(let label): filter.labels.removeAll { $0 == label }
+        case .author: filter.author = nil
+        case .assignee: filter.assignee = nil
+        case .reviewer: filter.reviewer = nil
         case .onlyConflicts: filter.onlyConflicts = false
         case .onlyReady: filter.onlyReady = false
         }

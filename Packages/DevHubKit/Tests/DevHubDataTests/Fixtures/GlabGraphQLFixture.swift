@@ -15,7 +15,7 @@ enum GlabGraphQLFixture {
        "userPermissions":{"canMerge":true,"canApprove":false},
        "headPipeline":{"status":"FAILED","updatedAt":"2026-01-02T03:00:00Z","duration":540,
          "finishedAt":"2026-01-02T03:09:00Z","failedJobsCount":2,"detailedStatus":{"detailsPath":"/team/app/-/pipelines/9"}},
-       "approved":true,"approvedBy":{"nodes":[{"username":"kim"}]},"reviewers":{"nodes":[{"username":"me"}]},
+       "approved":true,"approvedBy":{"nodes":[{"username":"kim"}]},"reviewers":{"nodes":[{"username":"me"}]},"assignees":{"nodes":[{"username":"sam"}]},
        "labels":{"nodes":[{"title":"feature"}]}},
       {"iid":"20","title":"Old","state":"merged","sourceBranch":"old","targetBranch":"main","headPipeline":null,
        "mergedAt":"2026-01-01T09:00:00Z","mergeUser":{"username":"kim"}}

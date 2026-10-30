@@ -29,7 +29,7 @@ enum PullRequestRowMapper {
             tags: (isOpen ? [PullRequestLocalStateMapper.tag(for: local)].compactMap { $0 } : []) + tags(request, context: context),
             pipelineTag: request.pipeline.map { PullRequestTagMapper.compactPipelineTag($0, words: words) },
             pipelineURL: request.pipeline?.webURL,
-            labelTags: request.labels.map { TagModel($0, tint: .secondary, systemImage: "tag", hint: "Label on \(words.name)") },
+            labelTags: request.labels.map { TagModel($0, tint: .secondary, systemImage: "tag", hint: "Label on \(words.name). Click to show only \(words.requests) with this label") },
             usesPlainTags: false,
             webURL: request.webURL,
             canCheckOut: isOpen,
