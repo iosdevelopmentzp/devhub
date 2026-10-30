@@ -11,7 +11,7 @@ Read first, in this order: this file, `docs/STATUS.md` (where the project stands
 - No App Sandbox. Ad-hoc signing ("Sign to Run Locally"). `INFOPLIST_KEY_LSUIElement = YES`: no Dock icon by default. Keep it this way: a sandbox would block `git`, `xcrun` and `xcodebuild`.
 - `DevHub/` is an Xcode synchronized folder. Edit `project.pbxproj` only for build settings, never for file lists. New code goes into the package.
 - No third-party packages.
-- The repository has no remote. Never push it anywhere. The GitHub account on this machine is only for a playground repository that tests the pull request features.
+- The remote `origin` is a public GitHub repository. Push `main` after a commit when build, tests, the anonymity check and the smoke check are green. Never force-push. Everything pushed is public, so the anonymity rules apply to every file and every commit message. A separate playground repository on the same account tests the pull request features.
 
 ## Build and test
 

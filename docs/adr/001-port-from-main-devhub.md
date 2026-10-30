@@ -293,7 +293,7 @@ Sections: General (launch at login, Dock icon, global shortcut, usage strip, men
 
 ## 8. Milestones
 
-Every milestone ends with: `Scripts/build.sh` prints `layers: ok`, `anonymous: ok` and the app path; `Scripts/test.sh` passes; `Scripts/smoke.sh` prints `alive`; `CHANGELOG.md`, `docs/STATUS.md` and the ADR step log updated; a commit. (Changed 2026-10-17: the owner decided that the code is never pushed, so there is no push step; see STATUS decision 1.) Inside a milestone every finished step is a commit. Commits are conventional (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`) with a plain English body and the attribution lines of the session. Never force-push.
+Every milestone ends with: `Scripts/build.sh` prints `layers: ok`, `anonymous: ok` and the app path; `Scripts/test.sh` passes; `Scripts/smoke.sh` prints `alive`; `CHANGELOG.md`, `docs/STATUS.md` and the ADR step log updated; a commit. (Changed 2026-10-17: the owner decided that the code is never pushed, so there is no push step; see STATUS decision 1. Changed 2026-10-30: the owner allowed pushes of `main` to a public remote.) Inside a milestone every finished step is a commit. Commits are conventional (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`) with a plain English body and the attribution lines of the session. Never force-push.
 
 | # | Milestone | Done when |
 |---|---|---|

@@ -110,7 +110,7 @@ git commit
   attribution lines of the session.
 - `Scripts/check-anonymous.sh` also reads the last commit message. Run it again after the commit; when it fails,
   amend the message with sample words only.
-- Never push. The repository has no remote (STATUS decision 1).
+- Push `main` to `origin` after the commit, when `Scripts/check-anonymous.sh` prints `anonymous: ok`. Never force-push. The remote is public (STATUS decision 1).
 - A failing check blocks the commit until it is fixed.
 
 ## Done when

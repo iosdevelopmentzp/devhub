@@ -42,7 +42,7 @@ States: planned, mock, real, partial (say what is missing), hidden.
 
 Numbered. What, then why. A later session must not undo these without a new numbered entry that explains the change.
 
-1. The code is never pushed. The repository has no remote. Why: the owner decided so. The GitHub account on this machine is used only for the playground repository that tests the pull request features.
+1. The remote `origin` is a public GitHub repository, and `main` is pushed after green commits. Never force-push. Why: the owner decided so on 2026-10-30, to use the app on another Mac. The code was never pushed before that date. Everything pushed is public, so the anonymity check runs before every push. A separate playground repository tests the pull request features.
 2. Own `NSStatusItem` and `NSPanel`, not `MenuBarExtra`. No sandbox, ad-hoc signing, `LSUIElement`. Why: shell commands need it, and the panel needs its own position, size and close rules. Changed by ADR 005 (2026-10-27): a second mode, "Normal window" (Settings → General → Window), gives one main window with a Dock icon and a main menu. The panel stays the default, so `LSUIElement` stays `YES` and window mode sets the activation policy to `regular` at start. `AppContainer` is the app delegate, for the Dock click.
 3. Config over code: no project name, path, bundle ID, host or branch name in Swift. `Scripts/check-anonymous.sh` enforces the names; `.claude/rules/anonymity.md` lists the sample vocabulary.
 4. The owner's own words live in `~/.devhub/anonymity-denylist.txt`, outside the repository. Why: the list itself would name the projects.
