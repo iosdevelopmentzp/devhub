@@ -4,6 +4,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
     package var showDockIcon = false
     package var showUsageStrip = true
     package var showUsageInMenuBar = true
+    package var usageProviders = UsageProviders.all
     package var showReviewCountInMenuBar = true
     package var globalShortcut = GlobalShortcut.optionCommandD
     package var scriptsFolder = "~/.devhub/scripts"
@@ -18,6 +19,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         showDockIcon: Bool = false,
         showUsageStrip: Bool = true,
         showUsageInMenuBar: Bool = true,
+        usageProviders: UsageProviders = UsageProviders.all,
         showReviewCountInMenuBar: Bool = true,
         globalShortcut: GlobalShortcut = GlobalShortcut.optionCommandD,
         scriptsFolder: String = "~/.devhub/scripts",
@@ -31,6 +33,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         self.showDockIcon = showDockIcon
         self.showUsageStrip = showUsageStrip
         self.showUsageInMenuBar = showUsageInMenuBar
+        self.usageProviders = usageProviders
         self.showReviewCountInMenuBar = showReviewCountInMenuBar
         self.globalShortcut = globalShortcut
         self.scriptsFolder = scriptsFolder
@@ -51,6 +54,7 @@ extension AppSettings {
             showDockIcon: try container.decodeIfPresent(Bool.self, forKey: .showDockIcon) ?? defaults.showDockIcon,
             showUsageStrip: try container.decodeIfPresent(Bool.self, forKey: .showUsageStrip) ?? defaults.showUsageStrip,
             showUsageInMenuBar: try container.decodeIfPresent(Bool.self, forKey: .showUsageInMenuBar) ?? defaults.showUsageInMenuBar,
+            usageProviders: (try? container.decodeIfPresent(UsageProviders.self, forKey: .usageProviders)) ?? defaults.usageProviders,
             showReviewCountInMenuBar: try container.decodeIfPresent(Bool.self, forKey: .showReviewCountInMenuBar) ?? defaults.showReviewCountInMenuBar,
             globalShortcut: try container.decodeIfPresent(GlobalShortcut.self, forKey: .globalShortcut) ?? defaults.globalShortcut,
             scriptsFolder: try container.decodeIfPresent(String.self, forKey: .scriptsFolder) ?? defaults.scriptsFolder,

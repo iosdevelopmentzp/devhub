@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Settings → AI usage → "Show usage for": Claude and Copilot, Claude only, or Copilot only. The usage strip and the menu bar percent follow the choice, and DevHub reads only the chosen providers.
 - Pull Requests: the filter menu narrows the list by several labels at once, by author, by assignee and by requested reviewer, next to the target branch, conflicts and ready-to-merge filters. A click on a label tag in a row adds or removes that label in the filter. Every active filter is a chip with its own ✕.
 - Home → Scripts: drag a script row onto another row to change the order, or use Move Up and Move Down in the row menu. The star button adds a script to the favorites; favorites stay at the top. The order and the favorites are saved per project.
 - Build & Run: the button next to the scheme picker adds a scheme or target to the picker. It suggests the schemes and targets of the project that the picker does not show (from `xcodebuild -list`), and takes any typed name. A scheme added this way can be removed again. The list is saved per project.
@@ -90,6 +91,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- Build & Run: "Show all" in the build issue list opens a scrolling list of at most 220 points instead of a list that grows past the window. Before, a long list of warnings pushed the run bar and the simulator list out of view and "Show fewer" with them.
 - DevHub no longer stops reading git, pull requests and simulators after many tab switches. When about 64 commands ran at the same time, every later command waited forever until DevHub was restarted. Commands now read their output without holding a thread.
 - The Claude usage strip reads the per-model weekly limits (for example "Week · Fable") from the new `limits` list of the usage API, so it shows the same values as Claude Desktop.
 - The "This project" scope of the AI tab also keeps sessions started in the worktrees of the project, also when a worktree folder sits next to the project folder.

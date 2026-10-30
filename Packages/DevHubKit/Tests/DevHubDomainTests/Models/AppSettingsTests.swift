@@ -18,6 +18,7 @@ import Testing
         #expect(settings.ticketURLTemplate == "")
         #expect(settings.autoFetchMinutes == 0)
         #expect(settings.windowMode == .panel)
+        #expect(settings.usageProviders == .all)
     }
 
     @Test func theTicketTemplateIsKept() throws {
@@ -30,7 +31,7 @@ import Testing
     }
 
     @Test func settingsRoundTrip() throws {
-        let settings = AppSettings(showDockIcon: true, showReviewCountInMenuBar: false, editor: "Cursor", autoFetchMinutes: 15, windowMode: .window)
+        let settings = AppSettings(showDockIcon: true, usageProviders: .copilot, showReviewCountInMenuBar: false, editor: "Cursor", autoFetchMinutes: 15, windowMode: .window)
 
         let decoded = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(settings))
 
@@ -44,5 +45,13 @@ import Testing
 
         #expect(settings.windowMode == .panel)
         #expect(settings.editor == "Cursor")
+    }
+
+    @Test func anUnknownUsageProviderChoiceFallsBackToAll() throws {
+        let data = Data(#"{"usageProviders":"gemini"}"#.utf8)
+
+        let settings = try JSONDecoder().decode(AppSettings.self, from: data)
+
+        #expect(settings.usageProviders == .all)
     }
 }

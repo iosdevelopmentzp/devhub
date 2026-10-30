@@ -4,6 +4,7 @@ import DevHubUI
 
 struct UsageStrip: View {
     @Environment(UsageStore.self) private var store
+    @Environment(SettingsStore.self) private var settings
 
     @State private var isExpanded = false
     @State private var isHovered = false
@@ -14,6 +15,7 @@ struct UsageStrip: View {
             claudeError: store.error,
             copilot: store.copilot,
             copilotError: store.copilotError,
+            providers: settings.values.usageProviders,
             now: .now
         )
         return VStack(spacing: 0) {

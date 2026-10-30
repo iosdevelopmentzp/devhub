@@ -82,4 +82,53 @@ import DevHubTestSupport
         #expect(store.copilot == nil)
         #expect(store.copilotError == CopilotUsageError.rejected.localizedDescription)
     }
+
+    // MARK: Providers
+
+    @Test func copilotOnlyReadsCopilotAndFeedsTheMenuBar() async {
+        let copilot = CopilotUsage(plan: "Business", limits: [UsageFixture.week], updatedAt: UsageFixture.now)
+        harness.spies.copilotUsage.fetchResult = .success(copilot)
+        harness.spies.usage.fetchResult = .success(fresh)
+        store.providers = .copilot
+
+        await store.refresh()
+
+        #expect(harness.spies.usage.calls.isEmpty)
+        #expect(harness.spies.copilotUsage.calls == [.fetch])
+        #expect(store.usage == nil)
+        #expect(store.menuBarPercentText == UsageFixture.week.percentText)
+    }
+
+    @Test func claudeOnlySkipsCopilot() async {
+        harness.spies.usage.fetchResult = .success(fresh)
+        store.providers = .claude
+
+        await store.refresh()
+
+        #expect(harness.spies.usage.calls == [.fetch])
+        #expect(harness.spies.copilotUsage.calls.isEmpty)
+        #expect(store.menuBarPercentText == fresh.limits.first?.percentText)
+    }
+
+    @Test func refreshIfStaleLooksAtTheFirstChosenProvider() async {
+        store.providers = .copilot
+        store.copilot = CopilotUsage(plan: nil, limits: [], updatedAt: .now)
+        store.usage = stale
+
+        await store.refreshIfStale()
+
+        #expect(harness.spies.copilotUsage.calls.isEmpty)
+        #expect(harness.spies.usage.calls.isEmpty)
+    }
+
+    @Test func aChangedChoiceReadsTheNewProvider() async throws {
+        harness.spies.usage.fetchResult = .success(fresh)
+        store.providers = .copilot
+        await store.refresh()
+        #expect(harness.spies.usage.calls.isEmpty)
+
+        store.providers = .all
+
+        try await waitUntil { harness.spies.usage.calls == [.fetch] }
+    }
 }

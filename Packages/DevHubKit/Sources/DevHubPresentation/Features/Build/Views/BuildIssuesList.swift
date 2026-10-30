@@ -9,6 +9,7 @@ struct BuildIssuesList: View {
     @State private var showsAll = false
 
     private static let collapsedCount = 5
+    private static let expandedHeight: CGFloat = 220
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -25,32 +26,45 @@ struct BuildIssuesList: View {
                     .font(.caption)
                 }
             }
-            ForEach(showsAll ? rows : Array(rows.prefix(Self.collapsedCount))) { row in
-                Button {
-                    onOpen(row)
-                } label: {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Image(systemName: row.icon)
-                            .font(.caption)
-                            .foregroundStyle(row.tint.color)
-                        if let location = row.location {
-                            Text(location)
-                                .font(.caption.monospaced())
-                                .lineLimit(1)
-                        }
-                        Text(row.message)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-                        Spacer(minLength: 0)
+            if showsAll {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 4) {
+                        issueRows(rows)
                     }
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .disabled(row.path == nil)
-                .hint(row.hint)
+                .frame(maxHeight: Self.expandedHeight)
+            } else {
+                issueRows(Array(rows.prefix(Self.collapsedCount)))
             }
+        }
+    }
+
+    private func issueRows(_ rows: [BuildIssueRowModel]) -> some View {
+        ForEach(rows) { row in
+            Button {
+                onOpen(row)
+            } label: {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Image(systemName: row.icon)
+                        .font(.caption)
+                        .foregroundStyle(row.tint.color)
+                    if let location = row.location {
+                        Text(location)
+                            .font(.caption.monospaced())
+                            .lineLimit(1)
+                    }
+                    Text(row.message)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(row.path == nil)
+            .hint(row.hint)
         }
     }
 }

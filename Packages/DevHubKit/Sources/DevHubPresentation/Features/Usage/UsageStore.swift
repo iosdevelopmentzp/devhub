@@ -11,6 +11,12 @@ final class UsageStore {
     var copilot: CopilotUsage?
     private(set) var copilotError: String?
     private(set) var isRefreshing = false
+    var providers = UsageProviders.all {
+        didSet {
+            guard providers != oldValue else { return }
+            Task { await refresh() }
+        }
+    }
 
     @ObservationIgnored private let repository: ClaudeUsageRepository
     @ObservationIgnored private let copilotRepository: CopilotUsageRepository
@@ -19,6 +25,11 @@ final class UsageStore {
     init(repository: ClaudeUsageRepository, copilotRepository: CopilotUsageRepository) {
         self.repository = repository
         self.copilotRepository = copilotRepository
+    }
+
+    var menuBarPercentText: String? {
+        let limits = providers.includesClaude ? usage?.limits : copilot?.limits
+        return limits?.first?.percentText
     }
 
     func startPolling() {
@@ -33,7 +44,8 @@ final class UsageStore {
     }
 
     func refreshIfStale() async {
-        if let usage, usage.updatedAt.timeIntervalSinceNow > -60 { return }
+        let updatedAt = providers.includesClaude ? usage?.updatedAt : copilot?.updatedAt
+        if let updatedAt, updatedAt.timeIntervalSinceNow > -60 { return }
         await refresh()
     }
 
@@ -47,6 +59,7 @@ final class UsageStore {
     }
 
     private func refreshClaude() async {
+        guard providers.includesClaude else { return }
         do {
             usage = try await repository.fetch()
             error = nil
@@ -56,6 +69,7 @@ final class UsageStore {
     }
 
     private func refreshCopilot() async {
+        guard providers.includesCopilot else { return }
         do {
             copilot = try await copilotRepository.fetch()
             copilotError = nil

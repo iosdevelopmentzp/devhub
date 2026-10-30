@@ -10,7 +10,7 @@ The tab is one form with these sections, from top to bottom:
 
 1. General
 2. Notifications
-3. Claude usage
+3. AI usage
 4. Pull Requests (or Merge Requests on GitLab)
 5. Projects
 6. Project config
@@ -48,12 +48,13 @@ Rules of the notifications:
 3. A script line `@devhub {"notify": "Title", "body": "…"}` posts a notification even when the panel is open or the switch is off.
 4. The menu bar icon shows a circle while a build runs. After a failed build while the panel is closed, it shows a red dot until you open the panel.
 
-### Claude usage
+### AI usage
 
 | Control | What it does |
 |---|---|
+| Show usage for | "Claude and Copilot" (the default), "Claude only" or "Copilot only". The usage strip and the menu bar show only the chosen providers, and DevHub reads only their usage |
 | Show usage strip at the top | Shows the usage strip above the panel header ([AI](ai.md#usage-strip)) |
-| Show session usage in the menu bar | Shows the used percent of the first Claude limit next to the menu bar icon |
+| Show session usage in the menu bar | Shows the used percent of the first limit of the first chosen provider next to the menu bar icon |
 
 ### Pull Requests
 
@@ -171,7 +172,7 @@ All keys live in the standard `UserDefaults` of the app.
 
 | Key | Value |
 |---|---|
-| `app.settings` | One JSON object (`AppSettings`): `showDockIcon` (false), `showUsageStrip` (true), `showUsageInMenuBar` (true), `showReviewCountInMenuBar` (true), `globalShortcut` (`optionCommandD`), `editor` (`Xcode`), `terminal` (`Terminal`), `ticketURLTemplate` (empty), `autoFetchMinutes` (0), `notifyWhenPanelClosed` (true), `scriptsFolder` (`~/.devhub/scripts`, not shown in Settings) |
+| `app.settings` | One JSON object (`AppSettings`): `showDockIcon` (false), `showUsageStrip` (true), `showUsageInMenuBar` (true), `usageProviders` (`all`, or `claude` or `copilot`), `showReviewCountInMenuBar` (true), `globalShortcut` (`optionCommandD`), `editor` (`Xcode`), `terminal` (`Terminal`), `ticketURLTemplate` (empty), `autoFetchMinutes` (0), `notifyWhenPanelClosed` (true), `scriptsFolder` (`~/.devhub/scripts`, not shown in Settings) |
 | `app.projects` | The project list: id, name, path, scheme, bundle ID |
 | `app.selectedProject` | The id of the selected project |
 

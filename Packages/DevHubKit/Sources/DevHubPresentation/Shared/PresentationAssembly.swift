@@ -72,6 +72,8 @@ package final class PresentationAssembly {
         doctor = DoctorStore(checkTools: useCases.checkTools, attacher: ports.attacher)
         keepAwake = KeepAwakeStore(preventer: ports.sleep, activity: activity)
         usage = UsageStore(repository: ports.usage, copilotRepository: ports.copilotUsage)
+        usage.providers = initialSettings.usageProviders
+        settings.onUsageProvidersChange = { [usage] in usage.providers = $0 }
         worktrees = WorktreesStore(
             repository: ports.worktrees,
             derivedData: ports.derivedData,

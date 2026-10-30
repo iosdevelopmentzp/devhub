@@ -5,8 +5,10 @@ import Testing
 @testable import DevHubPresentation
 
 @Suite struct UsageProviderMapperTests {
+    private let copilot = CopilotUsage(plan: nil, limits: [], updatedAt: UsageFixture.now)
+
     @Test func copilotIsHiddenWithoutUsageOrError() {
-        let models = UsageProviderMapper.models(claude: UsageFixture.usage, claudeError: nil, copilot: nil, copilotError: nil, now: UsageFixture.now)
+        let models = UsageProviderMapper.models(claude: UsageFixture.usage, claudeError: nil, copilot: nil, copilotError: nil, providers: .all, now: UsageFixture.now)
 
         #expect(models.map(\.id) == ["claude"])
         #expect(models.first?.summary?.meters.count == 2)
@@ -14,10 +16,8 @@ import Testing
     }
 
     @Test func copilotShowsItsUsageOrItsError() {
-        let copilot = CopilotUsage(plan: nil, limits: [], updatedAt: UsageFixture.now)
-
-        let withUsage = UsageProviderMapper.models(claude: nil, claudeError: "no login", copilot: copilot, copilotError: nil, now: UsageFixture.now)
-        let withError = UsageProviderMapper.models(claude: nil, claudeError: nil, copilot: nil, copilotError: "rejected", now: UsageFixture.now)
+        let withUsage = UsageProviderMapper.models(claude: nil, claudeError: "no login", copilot: copilot, copilotError: nil, providers: .all, now: UsageFixture.now)
+        let withError = UsageProviderMapper.models(claude: nil, claudeError: nil, copilot: nil, copilotError: "rejected", providers: .all, now: UsageFixture.now)
 
         #expect(withUsage.map(\.id) == ["claude", "copilot"])
         #expect(withUsage.first?.error == "no login")
@@ -27,5 +27,19 @@ import Testing
         #expect(withError.last?.summary == nil)
         #expect(withError.last?.error == "rejected")
         #expect(withError.last?.unavailableText == "Copilot usage unavailable")
+    }
+
+    @Test func claudeOnlyHidesCopilotEvenWithUsage() {
+        let models = UsageProviderMapper.models(claude: UsageFixture.usage, claudeError: nil, copilot: copilot, copilotError: "rejected", providers: .claude, now: UsageFixture.now)
+
+        #expect(models.map(\.id) == ["claude"])
+    }
+
+    @Test func copilotOnlyShowsCopilotEvenWhileLoading() {
+        let models = UsageProviderMapper.models(claude: UsageFixture.usage, claudeError: nil, copilot: nil, copilotError: nil, providers: .copilot, now: UsageFixture.now)
+
+        #expect(models.map(\.id) == ["copilot"])
+        #expect(models.first?.summary == nil)
+        #expect(models.first?.loadingText == "Loading Copilot usage…")
     }
 }

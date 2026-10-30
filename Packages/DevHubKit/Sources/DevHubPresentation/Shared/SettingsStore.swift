@@ -21,6 +21,9 @@ package final class SettingsStore {
             if values.globalShortcut != oldValue.globalShortcut {
                 onShortcutChange?(values.globalShortcut)
             }
+            if values.usageProviders != oldValue.usageProviders {
+                onUsageProvidersChange?(values.usageProviders)
+            }
         }
     }
     private(set) var launchesAtLogin = SMAppService.mainApp.status == .enabled
@@ -28,6 +31,7 @@ package final class SettingsStore {
 
     @ObservationIgnored package var onShortcutChange: ((GlobalShortcut) -> Void)?
     @ObservationIgnored var onWindowModeChange: ((WindowMode) -> Void)?
+    @ObservationIgnored var onUsageProvidersChange: ((UsageProviders) -> Void)?
     @ObservationIgnored private let store: any KeyValueStore
 
     init(values: AppSettings, store: any KeyValueStore) {

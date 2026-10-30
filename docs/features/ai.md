@@ -34,7 +34,7 @@ DevHub keeps the parsed sessions in memory. On the next read it parses only the 
 
 ### Usage strip
 
-The usage strip sits above the panel header, on every tab. It is on by default. Settings → "Claude usage" can hide it.
+The usage strip sits above the panel header, on every tab. It is on by default. Settings → "AI usage" can hide it, or limit it to Claude or to Copilot. DevHub reads the usage of the chosen providers only.
 
 1. The strip shows one line per provider with its meters.
 2. A click opens the details: the plan tag, "Updated <time>", and per meter the title, the reset time ("Resets in 2 h", or the weekday and time) and the used percent.
