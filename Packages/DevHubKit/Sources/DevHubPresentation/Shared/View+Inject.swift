@@ -23,6 +23,7 @@ extension View {
             .environment(assembly.worktrees)
             .environment(assembly.git)
             .environment(assembly.branchMarks)
+            .environment(assembly.scriptList)
             .environment(assembly.changes)
             .environment(assembly.history)
             .environment(assembly.branchPullRequest)

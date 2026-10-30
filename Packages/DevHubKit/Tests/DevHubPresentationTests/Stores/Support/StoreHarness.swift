@@ -109,6 +109,7 @@ final class StoreHarness {
     )
 
     lazy var branchMarks = BranchMarksStore(session: session, events: events, store: store)
+    lazy var scriptList = ScriptListStore(session: session, events: events, store: store)
 
     lazy var changes = GitChangesStore(
         repository: ports.changes,

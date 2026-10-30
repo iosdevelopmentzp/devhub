@@ -17,6 +17,7 @@ struct ScriptRowModel: Identifiable, Equatable {
     var isRunning: Bool
     var isRunnable: Bool
     var editTitle: String
+    var isFavorite: Bool
 
     static let preview = ScriptRowModel(
         id: "script:reset-simulators",
@@ -32,6 +33,7 @@ struct ScriptRowModel: Identifiable, Equatable {
         scriptPath: "/repo/.devhub/scripts/reset-simulators.sh",
         isRunning: false,
         isRunnable: true,
-        editTitle: "Edit in Xcode"
+        editTitle: "Edit in Xcode",
+        isFavorite: true
     )
 }

@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Home → Scripts: drag a script row onto another row to change the order, or use Move Up and Move Down in the row menu. The star button adds a script to the favorites; favorites stay at the top. The order and the favorites are saved per project.
 - Build & Run: the button next to the scheme picker adds a scheme or target to the picker. It suggests the schemes and targets of the project that the picker does not show (from `xcodebuild -list`), and takes any typed name. A scheme added this way can be removed again. The list is saved per project.
 - Build & Run: the run bar lists the compiler errors and warnings of the build, errors first. A click opens the file at that line in the editor from Settings.
 - Simulators: the sliders button in a row opens QA settings for a booted simulator: light or dark appearance, text size, a clean 9:41 status bar, a location from a city list, the language and region, privacy permissions for the app (grant, revoke, reset) and a screenshot to the Desktop.

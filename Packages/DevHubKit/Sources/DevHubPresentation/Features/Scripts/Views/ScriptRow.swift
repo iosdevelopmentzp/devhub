@@ -10,6 +10,7 @@ struct ScriptRow<Details: View>: View {
     let onStop: () -> Void
     let onEdit: (String) -> Void
     let onReveal: (String) -> Void
+    let ordering: ScriptRowOrdering?
     @ViewBuilder let details: () -> Details
 
     var body: some View {
@@ -78,6 +79,16 @@ struct ScriptRow<Details: View>: View {
             }
             .controlSize(.small)
 
+            if let ordering {
+                IconButton(
+                    systemImage: model.isFavorite ? "star.fill" : "star",
+                    help: model.isFavorite ? "Remove from favorites" : "Add to favorites: favorites stay at the top",
+                    tint: model.isFavorite ? .yellow : .secondary,
+                    action: ordering.onToggleFavorite
+                )
+                .opacity(isHovered || model.isFavorite ? 1 : 0)
+            }
+
             OverflowMenu {
                 menuItems
             }
@@ -87,6 +98,16 @@ struct ScriptRow<Details: View>: View {
 
     @ViewBuilder
     private var menuItems: some View {
+        if let ordering {
+            Button(model.isFavorite ? "Remove from Favorites" : "Add to Favorites", systemImage: model.isFavorite ? "star.slash" : "star", action: ordering.onToggleFavorite)
+            if let onMoveUp = ordering.onMoveUp {
+                Button("Move Up", systemImage: "arrow.up", action: onMoveUp)
+            }
+            if let onMoveDown = ordering.onMoveDown {
+                Button("Move Down", systemImage: "arrow.down", action: onMoveDown)
+            }
+            Divider()
+        }
         if let path = model.scriptPath {
             Button(model.editTitle, systemImage: "pencil") {
                 onEdit(path)
@@ -104,7 +125,7 @@ struct ScriptRow<Details: View>: View {
 }
 
 #Preview {
-    ScriptRow(model: .preview, onRun: {}, onStop: {}, onEdit: { _ in }, onReveal: { _ in }) {
+    ScriptRow(model: .preview, onRun: {}, onStop: {}, onEdit: { _ in }, onReveal: { _ in }, ordering: ScriptRowOrdering(onToggleFavorite: {}, onMoveUp: nil, onMoveDown: {})) {
         EmptyView()
     }
     .previewEnvironment()

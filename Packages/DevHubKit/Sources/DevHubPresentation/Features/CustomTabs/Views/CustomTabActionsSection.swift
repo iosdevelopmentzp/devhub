@@ -72,11 +72,12 @@ struct CustomTabActionsSection: View {
             .padding(.vertical, 7)
         case let .config(resolved):
             ScriptRow(
-                model: ScriptRowMapper.model(for: resolved, isRunning: store.isRunning(resolved.id), lastRun: store.lastRun(of: resolved.id), editor: settings.values.editor),
+                model: ScriptRowMapper.model(for: resolved, isRunning: store.isRunning(resolved.id), lastRun: store.lastRun(of: resolved.id), editor: settings.values.editor, isFavorite: false),
                 onRun: { store.request(resolved, item: .none, slot: rowSlot(resolved)) },
                 onStop: { store.stop(resolved.id) },
                 onEdit: { path in appActions.openInEditor(path: path, editor: settings.values.editor) },
-                onReveal: { path in appActions.openInFinder(path: path) }
+                onReveal: { path in appActions.openInFinder(path: path) },
+                ordering: nil
             ) {
                 if let pending = store.pending(in: rowSlot(resolved)) {
                     ConfigActionPrompt(pending: pending)

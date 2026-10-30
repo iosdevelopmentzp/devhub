@@ -17,7 +17,7 @@ The tab has seven parts, from top to bottom.
 3. **Keep Mac awake.** A switch. While it is on, DevHub holds a `PreventUserIdleSystemSleep` power assertion, so the Mac does not go to sleep when idle. The display can still turn off. Turning the switch off or quitting DevHub releases the assertion. The menu bar icon shows a cup while the switch is on.
 4. **Config problems.** This part appears only when a `.devhub` file has an error. Each row shows the file and the reason. A Reload button reads the config again.
 5. **Quick actions.** A grid of tiles, four per line. A tile is a built-in action or a config action. A running action shows a small spinner on its tile. The result of a config action (output view, failure) appears under the grid.
-6. **Scripts.** One row per action with the `home.scripts` placement. A row shows the icon, title, subtitle, file name, "ran 5 min ago" or "never run", the number of inputs and the config layer (`project`, `user` or `global`). The header shows the scripts folder of the first layer that exists.
+6. **Scripts.** One row per action with the `home.scripts` placement. A row shows the icon, title, subtitle, file name, "ran 5 min ago" or "never run", the number of inputs and the config layer (`project`, `user` or `global`). The header shows the scripts folder of the first layer that exists. Favorite scripts come first, then the other scripts in the saved order; a new script joins the end of the list in config order.
 7. **Recent.** The last 8 events of the app (commands, failures, info), newest first, with a coloured dot: green for success, red for failure, grey for info.
 
 The header search filters the tiles by title and subtitle, and the script rows by title, subtitle and file name.
@@ -71,6 +71,9 @@ A script row also has:
 | Stop (while running) | Cancels the run |
 | Overflow menu: Edit in `<editor>` | Opens the script file in the editor from Settings (`open -a <editor> <file>`) |
 | Overflow menu: Reveal in Finder | Shows the script file in Finder |
+| Star (on hover; always shown on a favorite) and overflow menu: Add to Favorites, Remove from Favorites | A new favorite goes to the end of the favorites. A removed favorite goes to the top of the other scripts |
+| Drag a row onto another row | Moves the script to that place. A favorite moves only among the favorites, another script only among the other scripts |
+| Overflow menu: Move Up, Move Down | Moves the script one place inside its group. Hidden at the edge of the group |
 | "Run chmod +x" tag | Shown for a file without the executable bit. A click copies `chmod +x "<file>"`. Run stays disabled |
 | Overflow menu: Copy chmod Command | Shown for a file without the executable bit. Copies the same `chmod +x "<file>"` command |
 
@@ -105,6 +108,8 @@ The three config layers and their merge rules are in [Where files live](../exten
 | `configActions.lastRun` | The time of the last run, per project and action ("ran 5 min ago") |
 | `configActions.inputs` | The last input values of inputs with `remember: true`, per project and action |
 | `app.settings` | Settings values that Home uses: `editor`, `terminal` |
+| `scripts.order.<project id>` | The order of the script rows |
+| `scripts.favorites.<project id>` | The favorite scripts, in their order |
 
 The Recent list is not saved. It is empty after a restart.
 

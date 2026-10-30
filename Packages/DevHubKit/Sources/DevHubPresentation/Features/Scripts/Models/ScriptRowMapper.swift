@@ -3,7 +3,7 @@ import DevHubDomain
 import DevHubUI
 
 enum ScriptRowMapper {
-    static func model(for action: ResolvedAction, isRunning: Bool, lastRun: Date?, editor: String) -> ScriptRowModel {
+    static func model(for action: ResolvedAction, isRunning: Bool, lastRun: Date?, editor: String, isFavorite: Bool) -> ScriptRowModel {
         let config = action.config
         let inputs = config.inputs ?? []
         let scriptPath = scriptPath(for: action)
@@ -26,7 +26,8 @@ enum ScriptRowMapper {
             scriptPath: scriptPath,
             isRunning: isRunning,
             isRunnable: action.origin.isExecutable,
-            editTitle: "Edit in \(editor)"
+            editTitle: "Edit in \(editor)",
+            isFavorite: isFavorite
         )
     }
 

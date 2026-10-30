@@ -23,6 +23,7 @@ package final class PresentationAssembly {
     let worktrees: WorktreesStore
     let git: GitStore
     let branchMarks: BranchMarksStore
+    let scriptList: ScriptListStore
     let changes: GitChangesStore
     let history: CommitHistoryStore
     let codeHostRemote: CodeHostRemote
@@ -96,6 +97,7 @@ package final class PresentationAssembly {
             store: store
         )
         branchMarks = BranchMarksStore(session: session, events: events, store: store)
+        scriptList = ScriptListStore(session: session, events: events, store: store)
         changes = GitChangesStore(
             repository: ports.changes,
             git: ports.git,

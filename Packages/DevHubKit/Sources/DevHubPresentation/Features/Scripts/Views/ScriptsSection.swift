@@ -6,14 +6,17 @@ struct ScriptsSection: View {
     @Environment(ProjectSession.self) private var session
     @Environment(ConfigStore.self) private var config
     @Environment(ConfigActionsStore.self) private var store
+    @Environment(ScriptListStore.self) private var scriptList
     @Environment(SettingsStore.self) private var settings
     @Environment(AppActions.self) private var appActions
     @Environment(Toaster.self) private var toaster
 
     @State private var showsHint = false
+    @State private var dropTargetID: String?
 
     var body: some View {
-        let all = store.actions(for: .homeScripts).compactMap(\.resolved)
+        let all = arrangedScripts
+        let ids = all.map(\.id)
         let shown = all.filter { session.matchesSearch($0.config.title, $0.config.subtitle ?? "", $0.origin.fileName) }
         VStack(alignment: .leading, spacing: 8) {
             SectionHeader("Scripts") {
@@ -47,16 +50,44 @@ struct ScriptsSection: View {
                 VStack(spacing: 0) {
                     ForEach(shown) { action in
                         ScriptRow(
-                            model: ScriptRowMapper.model(for: action, isRunning: store.isRunning(action.id), lastRun: store.lastRun(of: action.id), editor: settings.values.editor),
+                            model: ScriptRowMapper.model(
+                                for: action,
+                                isRunning: store.isRunning(action.id),
+                                lastRun: store.lastRun(of: action.id),
+                                editor: settings.values.editor,
+                                isFavorite: scriptList.isFavorite(action.id)
+                            ),
                             onRun: { store.request(action, item: .none, slot: slot(action)) },
                             onStop: { store.stop(action.id) },
                             onEdit: { path in appActions.openInEditor(path: path, editor: settings.values.editor) },
-                            onReveal: { path in appActions.openInFinder(path: path) }
+                            onReveal: { path in appActions.openInFinder(path: path) },
+                            ordering: ordering(for: action.id, ids: ids)
                         ) {
                             if let pending = store.pending(in: slot(action)) {
                                 ConfigActionPrompt(pending: pending)
                             }
                             ConfigActionResultView(action: action)
+                        }
+                        .overlay {
+                            if dropTargetID == action.id {
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .strokeBorder(Color.accentColor, lineWidth: 2)
+                                    .padding(.horizontal, 6)
+                                    .allowsHitTesting(false)
+                            }
+                        }
+                        .draggable(action.id)
+                        .dropDestination(for: String.self) { dropped, _ in
+                            dropTargetID = nil
+                            guard let id = dropped.first, ids.contains(id) else { return false }
+                            scriptList.move(id, onto: action.id, among: ids)
+                            return true
+                        } isTargeted: { isTargeted in
+                            if isTargeted {
+                                dropTargetID = action.id
+                            } else if dropTargetID == action.id {
+                                dropTargetID = nil
+                            }
                         }
                         if action.id != shown.last?.id {
                             Divider()
@@ -78,6 +109,24 @@ struct ScriptsSection: View {
             }
         }
         .animation(.snappy(duration: 0.18), value: showsHint)
+    }
+
+    private var arrangedScripts: [ResolvedAction] {
+        let all = store.actions(for: .homeScripts).compactMap(\.resolved)
+        let byID = Dictionary(all.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        return scriptList.arranged(all.map(\.id)).compactMap { byID[$0] }
+    }
+
+    private func ordering(for id: String, ids: [String]) -> ScriptRowOrdering {
+        let arranged = scriptList.arranged(ids)
+        let favorites = scriptList.favorites
+        let canMoveUp = ScriptListOrder.shifted(arranged, id: id, by: -1, favorites: favorites) != arranged
+        let canMoveDown = ScriptListOrder.shifted(arranged, id: id, by: 1, favorites: favorites) != arranged
+        return ScriptRowOrdering(
+            onToggleFavorite: { scriptList.toggleFavorite(id, among: ids) },
+            onMoveUp: canMoveUp ? { scriptList.shift(id, by: -1, among: ids) } : nil,
+            onMoveDown: canMoveDown ? { scriptList.shift(id, by: 1, among: ids) } : nil
+        )
     }
 
     private var scriptsFolder: String? {
