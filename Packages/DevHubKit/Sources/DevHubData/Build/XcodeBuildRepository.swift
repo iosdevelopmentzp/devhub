@@ -15,6 +15,14 @@ struct XcodeBuildRepository: BuildRepository {
         return container.schemeNames()
     }
 
+    func listedSchemes(projectPath: String, container: String?) async throws -> [String] {
+        let located = try XcodeContainer.locate(in: projectPath, preferred: container)
+        let cwd = (projectPath as NSString).expandingTildeInPath
+        let result = try await shell.run("xcodebuild", located.xcodebuildArguments + ["-list", "-json"], cwd: cwd)
+        guard result.exitCode == 0 else { throw BuildError.failed(result.stderr.trimmed) }
+        return XcodeListParser.names(from: result.stdout)
+    }
+
     func lastBuiltAppPath(projectPath: String, container: String?, scheme: String, configuration: String) -> String? {
         guard let container = try? XcodeContainer.locate(in: projectPath, preferred: container) else { return nil }
         return productLocator.appPath(hints: [], container: container, scheme: scheme, configuration: configuration)

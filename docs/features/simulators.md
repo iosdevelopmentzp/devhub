@@ -12,6 +12,7 @@ The tab has three parts, from top to bottom.
 
 1. **The run bar.** It shows:
    - the scheme picker and the configuration picker (`Debug`, `Release` and the configured one). A `kind: command` project shows its `build.command → run.command` line instead;
+   - the button next to the scheme picker opens the scheme editor. It lists the schemes and targets from `xcodebuild -list -json` that are not in the picker yet; a click adds one. A text field adds any other name. The schemes added by you show under "Added by you" with a remove button. The list is saved per project. The picker finds only `.xcscheme` files, so a scheme that Xcode creates on the fly (a target without a shared scheme, a Swift package product) needs this editor or `xcode.schemes`;
    - the source menu: the main checkout, a worktree, or "Other Branch…";
    - the **Fast** box (incremental build) and the **Clean install** box;
    - the launch profile picker, when the project has `launch.profiles`. With 4 profiles or fewer it is a segmented control, with more it is a menu. A summary line shows the environment, the argument count, the defaults count and "clean install";
@@ -208,6 +209,7 @@ All keys live in the standard `UserDefaults` of the app (`KeyValueStore`).
 |---|---|---|
 | `simulators.target` | UDID of the target simulator | `BuildStore` |
 | `simulators.runOptions` | Per simulator: scheme, configuration, Fast, Clean install, source, profile ID | `BuildStore` |
+| `build.manualSchemes.<project id>` | The schemes added in the scheme editor | `BuildStore` |
 | `simulators.favorites` | UDIDs of the favorite simulators, in the order of the Favorites section | `SimulatorsStore` |
 | `messaging.urls` | The last 15 deep links | `MessagingStore` |
 | `messaging.payloads` | The last 10 push payloads | `MessagingStore` |

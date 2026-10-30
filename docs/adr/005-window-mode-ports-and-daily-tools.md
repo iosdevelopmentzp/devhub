@@ -63,3 +63,5 @@ The owner also asked for more comfort when working from any project: an easier p
 | `fa97a37` | — | The snapshot recipe starts the app with `$PWD/$APP`, so its `pkill` matches. |
 | `7ebf925` | — | STATUS, SPEC and this ADR describe the finished plan. |
 | `6e77ee8` | — | `install.sh` to `/Applications/DevHub Generic.app` (copy first, then swap, optional local signing), `install-hooks.sh` and `auto-install.sh` from the main DevHub `04bd383` and `9ed2b1a`, `build.sh` with `DEVHUB_DERIVED_DATA` and the arch of the Mac. Checked: a commit on `main` installed and restarted DevHub Generic in the background; the main DevHub kept running. |
+| `cf6d37c` | — | Step log row of `6e77ee8`. |
+| `a025358` | — | AGENTS.md, STATUS decision 1, ADR 001 and the `update-docs` skill allow a push of `main` to the public remote. |

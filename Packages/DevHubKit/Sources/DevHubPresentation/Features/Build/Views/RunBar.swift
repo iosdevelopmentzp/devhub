@@ -10,11 +10,22 @@ struct RunBar: View {
     @Environment(MockServerStore.self) private var mockServerStore
     @Environment(AppActions.self) private var appActions
 
+    @State private var editsSchemes = false
+
     var body: some View {
         let model = model
         PanelCard {
             VStack(alignment: .leading, spacing: 10) {
                 options(model)
+                if editsSchemes, build.isCommandProject == false {
+                    SchemeEditor(
+                        model: schemeEditorModel,
+                        onAdd: { build.addScheme($0) },
+                        onRemove: { build.removeScheme($0) },
+                        onDone: { editsSchemes = false }
+                    )
+                    .task { await build.loadSchemeSuggestions() }
+                }
                 if let profile = LaunchProfileMapper.model(profiles: build.profiles, selected: build.profile) {
                     LaunchProfilePicker(model: profile) { build.setProfile($0) }
                 }
@@ -78,6 +89,15 @@ struct RunBar: View {
         )
     }
 
+    private var schemeEditorModel: SchemeEditorModel {
+        SchemeEditorMapper.model(
+            manual: build.manualSchemes,
+            suggestions: build.newSchemeSuggestions,
+            isLoaded: build.schemeSuggestions != nil,
+            isLoading: build.isLoadingSchemeSuggestions
+        )
+    }
+
     private func options(_ model: RunBarModel) -> some View {
         HStack(spacing: 8) {
             if let commands = build.commandsSummary {
@@ -115,6 +135,9 @@ struct RunBar: View {
             }
             .labelsHidden()
             .frame(width: 140)
+            IconButton(systemImage: "plus.rectangle.on.rectangle", help: "Add or remove schemes and targets of the scheme list") {
+                editsSchemes.toggle()
+            }
             Picker("Configuration", selection: Binding(get: { build.state.configuration }, set: { build.setConfiguration($0) })) {
                 ForEach(build.configurationOptions, id: \.self) { configuration in
                     Text(configuration).tag(configuration)

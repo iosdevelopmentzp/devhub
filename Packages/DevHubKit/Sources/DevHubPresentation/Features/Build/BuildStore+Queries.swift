@@ -9,7 +9,11 @@ extension BuildStore {
 
     var schemeOptions: [String] {
         let visible = effective.schemes
-        return visible.isEmpty ? [state.scheme] : visible
+        return ManualSchemePolicy.options(visible: visible.isEmpty ? [state.scheme] : visible, manual: manualSchemes)
+    }
+
+    var newSchemeSuggestions: [String] {
+        ManualSchemePolicy.suggestions(listed: schemeSuggestions ?? [], visible: effective.schemes, manual: manualSchemes)
     }
 
     var configurationOptions: [String] {

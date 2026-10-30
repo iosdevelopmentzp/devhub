@@ -9,6 +9,9 @@ final class BuildStore: BuildLookup {
     private(set) var state = BuildState()
     private(set) var source: BuildSourceChoice = .main
     private(set) var schemes: [String] = []
+    private(set) var manualSchemes: [String] = []
+    private(set) var schemeSuggestions: [String]?
+    private(set) var isLoadingSchemeSuggestions = false
     private(set) var hasLog = false
     private(set) var issues: [BuildIssue] = []
     @ObservationIgnored private var buildLog = BuildLog(maxLines: 20_000, trimSlack: 2_000)
@@ -30,6 +33,7 @@ final class BuildStore: BuildLookup {
     @ObservationIgnored private var runOptions: [String: SimulatorRunOptions]
     @ObservationIgnored private var buildTask: Task<Void, Never>?
     @ObservationIgnored private var subscription: SubscriptionToken?
+    @ObservationIgnored private let suggestionsTask = RefreshTask()
 
     private static let targetKey = "simulators.target"
     private static let runOptionsKey = "simulators.runOptions"
@@ -66,6 +70,7 @@ final class BuildStore: BuildLookup {
         self.store = store
         runOptions = store.decode([String: SimulatorRunOptions].self, forKey: Self.runOptionsKey) ?? [:]
         state.scheme = session.selectedProject.scheme
+        manualSchemes = loadManualSchemes()
         let savedTarget = store.string(forKey: Self.targetKey)
         state.targetSimulatorID = savedTarget
         if let target = savedTarget {
@@ -76,6 +81,8 @@ final class BuildStore: BuildLookup {
             switch event {
             case .projectChanged:
                 source = .main
+                manualSchemes = loadManualSchemes()
+                schemeSuggestions = nil
                 Task { await self.refreshSchemes() }
             case .worktreesChanged:
                 dropMissingSource()
@@ -116,6 +123,45 @@ final class BuildStore: BuildLookup {
     func setCleanInstall(_ cleanInstall: Bool) {
         state.cleanInstall = cleanInstall
         saveRunOptions()
+    }
+
+    // MARK: Manual schemes
+
+    func addScheme(_ name: String) {
+        let updated = ManualSchemePolicy.adding(name, to: manualSchemes, visible: effective.schemes)
+        guard updated != manualSchemes else { return }
+        manualSchemes = updated
+        saveManualSchemes()
+        if let added = updated.last {
+            setScheme(added)
+        }
+    }
+
+    func removeScheme(_ name: String) {
+        guard manualSchemes.contains(name) else { return }
+        manualSchemes.removeAll { $0 == name }
+        saveManualSchemes()
+        guard state.scheme == name else { return }
+        setScheme(effective.scheme ?? schemeOptions.first ?? session.selectedProject.scheme)
+    }
+
+    func loadSchemeSuggestions() async {
+        guard isCommandProject == false else { return }
+        isLoadingSchemeSuggestions = true
+        await suggestionsTask.run { [weak self] in
+            guard let self else { return }
+            let listed: [String]
+            do {
+                listed = try await repository.listedSchemes(projectPath: session.selectedProject.path, container: container)
+            } catch let error where (error is CancellationError) == false {
+                schemeSuggestions = []
+                activity.log("Could not list the schemes of the project", detail: error.localizedDescription, outcome: .failure)
+                return
+            }
+            try Task.checkCancellation()
+            schemeSuggestions = listed
+        }
+        isLoadingSchemeSuggestions = false
     }
 
     // MARK: Source
@@ -160,7 +206,7 @@ final class BuildStore: BuildLookup {
             state.configuration = effective.configuration
         }
         guard let scheme = SchemeChoicePolicy.choose(
-            available: effective.schemes,
+            available: ManualSchemePolicy.options(visible: effective.schemes, manual: manualSchemes),
             saved: saved?.scheme,
             configured: config.resolved.project.xcode?.scheme,
             current: state.scheme,
@@ -325,13 +371,25 @@ final class BuildStore: BuildLookup {
         store.encode(runOptions, forKey: Self.runOptionsKey)
     }
 
+    private var manualSchemesKey: String {
+        "build.manualSchemes.\(session.selectedProjectID)"
+    }
+
+    private func loadManualSchemes() -> [String] {
+        store.decode([String].self, forKey: manualSchemesKey) ?? []
+    }
+
+    private func saveManualSchemes() {
+        store.encode(manualSchemes.isEmpty ? nil : manualSchemes, forKey: manualSchemesKey)
+    }
+
     func savedProfileID(for id: Simulator.ID) -> LaunchProfile.ID? {
         runOptions[id]?.profileID
     }
 
     private func loadRunOptions(for id: Simulator.ID) {
         guard let options = runOptions[id] else { return }
-        if schemes.isEmpty || schemes.contains(options.scheme) {
+        if schemes.isEmpty || schemes.contains(options.scheme) || manualSchemes.contains(options.scheme) {
             state.scheme = options.scheme
         }
         state.configuration = options.configuration

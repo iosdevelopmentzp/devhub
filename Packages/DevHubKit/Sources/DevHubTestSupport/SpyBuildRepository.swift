@@ -4,6 +4,7 @@ import Foundation
 package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
     package enum Call: Equatable {
         case schemes(projectPath: String)
+        case listedSchemes(projectPath: String)
         case clean(BuildRequest)
         case build(BuildRequest)
         case locateProduct(BuildRequest, hints: [String])
@@ -12,7 +13,7 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
 
         package static func == (lhs: Call, rhs: Call) -> Bool {
             switch (lhs, rhs) {
-            case let (.schemes(left), .schemes(right)):
+            case let (.schemes(left), .schemes(right)), let (.listedSchemes(left), .listedSchemes(right)):
                 left == right
             case let (.clean(left), .clean(right)), let (.build(left), .build(right)):
                 same(left, right)
@@ -44,6 +45,7 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
     private let lock = NSLock()
     private var _calls: [Call] = []
     private var _schemesResult: [String] = []
+    private var _listedSchemesResult: Result<[String], any Error> = .success([])
     private var _cleanEvents: [BuildEvent] = []
     private var _cleanError: (any Error)? = nil
     private var _buildEvents: [BuildEvent] = []
@@ -61,6 +63,11 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
     package var schemesResult: [String] {
         get { lock.withLock { _schemesResult } }
         set { lock.withLock { _schemesResult = newValue } }
+    }
+
+    package var listedSchemesResult: Result<[String], any Error> {
+        get { lock.withLock { _listedSchemesResult } }
+        set { lock.withLock { _listedSchemesResult = newValue } }
     }
 
     package var cleanEvents: [BuildEvent] {
@@ -100,6 +107,10 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
 
     package func schemes(projectPath: String, container: String?) async -> [String] {
         record(.schemes(projectPath: projectPath)) { _schemesResult }
+    }
+
+    package func listedSchemes(projectPath: String, container: String?) async throws -> [String] {
+        try record(.listedSchemes(projectPath: projectPath)) { try _listedSchemesResult.get() }
     }
 
     package func clean(_ request: BuildRequest, onEvent: @escaping @Sendable (BuildEvent) -> Void) async throws {

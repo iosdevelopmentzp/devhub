@@ -438,4 +438,76 @@ import DevHubTestSupport
 
         #expect(store.issues == [issue])
     }
+
+    // MARK: Manual schemes
+
+    @Test func addedSchemeJoinsTheOptionsAndIsSelected() {
+        store.addScheme(" Tools ")
+
+        #expect(store.manualSchemes == ["Tools"])
+        #expect(store.schemeOptions == ["App", "Tools"])
+        #expect(store.state.scheme == "Tools")
+        #expect(harness.store.decode([String].self, forKey: "build.manualSchemes.\(ProjectSample.app.id)") == ["Tools"])
+    }
+
+    @Test func addingAVisibleSchemeChangesNothing() async {
+        harness.spies.build.schemesResult = ["App", "AppTests"]
+        await store.refreshSchemes()
+
+        store.addScheme("AppTests")
+
+        #expect(store.manualSchemes.isEmpty)
+        #expect(store.state.scheme == "App")
+    }
+
+    @Test func removingTheSelectedSchemeFallsBackToTheProjectScheme() {
+        store.addScheme("Tools")
+
+        store.removeScheme("Tools")
+
+        #expect(store.manualSchemes.isEmpty)
+        #expect(store.state.scheme == "App")
+        #expect(harness.store.decode([String].self, forKey: "build.manualSchemes.\(ProjectSample.app.id)") == nil)
+    }
+
+    @Test func refreshKeepsASelectedManualScheme() async {
+        harness.spies.build.schemesResult = ["App", "AppTests"]
+        store.addScheme("Tools")
+
+        await store.refreshSchemes()
+
+        #expect(store.state.scheme == "Tools")
+    }
+
+    @Test func manualSchemesBelongToTheProject() {
+        store.addScheme("Tools")
+
+        harness.session.selectedProjectID = ProjectSample.other.id
+
+        #expect(store.manualSchemes.isEmpty)
+
+        harness.session.selectedProjectID = ProjectSample.app.id
+
+        #expect(store.manualSchemes == ["Tools"])
+    }
+
+    @Test func suggestionsComeFromTheProjectList() async {
+        harness.spies.build.listedSchemesResult = .success(["App", "Tools", "Widget"])
+        store.addScheme("Tools")
+
+        await store.loadSchemeSuggestions()
+
+        #expect(harness.spies.build.calls.contains(.listedSchemes(projectPath: ProjectSample.path)))
+        #expect(store.newSchemeSuggestions == ["Widget"])
+        #expect(store.isLoadingSchemeSuggestions == false)
+    }
+
+    @Test func failedSuggestionsAreLogged() async {
+        harness.spies.build.listedSchemesResult = .failure(TestError.scripted("xcodebuild failed"))
+
+        await store.loadSchemeSuggestions()
+
+        #expect(store.schemeSuggestions == [])
+        #expect(harness.lastActivity?.outcome == .failure)
+    }
 }
