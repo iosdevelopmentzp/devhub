@@ -132,6 +132,8 @@ final class StoreHarness {
 
     lazy var openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
 
+    lazy var inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
+
     lazy var pullRequestDetails = PullRequestDetailStore(repository: ports.codeHost, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
 
     lazy var newPullRequest = NewPullRequestStore(

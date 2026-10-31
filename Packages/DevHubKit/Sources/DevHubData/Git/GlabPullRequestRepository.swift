@@ -211,6 +211,17 @@ struct GlabPullRequestRepository: CodeHostRepository {
         return String(decoding: try await client.rest(Self.fileContentEndpoint(path: path, ref: ref, project: GlabClient.projectPath(of: repository)), host: host), as: UTF8.self)
     }
 
+    func inbox(repository: CodeHost) async throws -> [InboxItem] {
+        let host = try GlabClient.host(of: repository)
+        return try GlabInboxParser.items(from: try await client.rest(Self.inboxEndpoint, host: host), projectPath: GlabClient.projectPath(of: repository))
+    }
+
+    func markInboxDone(id: String, repository: CodeHost) async throws {
+        _ = try await client.rest("todos/\(Self.encoded(id))/mark_as_done", method: "POST", fields: [], host: try GlabClient.host(of: repository))
+    }
+
+    static let inboxEndpoint = "todos?state=pending&per_page=50"
+
     static func fileContentEndpoint(path: String, ref: String, project: String) -> String {
         "projects/\(Self.encoded(project))/repository/files/\(Self.encoded(path))/raw?ref=\(Self.encoded(ref))"
     }

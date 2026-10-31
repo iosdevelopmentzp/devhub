@@ -45,6 +45,7 @@ import Testing
     @Test func countTextShowsTheVisibleShareOnlyWhenFiltered() {
         #expect(NotificationListMapper.countText(visible: 3, total: 3) == "3 events")
         #expect(NotificationListMapper.countText(visible: 1, total: 1) == "1 event")
+        #expect(NotificationListMapper.countText(visible: 1, total: 4, noun: "item") == "1 of 4 items")
         #expect(NotificationListMapper.countText(visible: 2, total: 9) == "2 of 9 events")
     }
 

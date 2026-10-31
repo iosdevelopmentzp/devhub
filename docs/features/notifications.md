@@ -1,6 +1,6 @@
 # Notifications
 
-The bell in the header opens the Notifications screen: every event of the app from the last 30 days, newest first, grouped by day. The same events feed the macOS notifications and the Recent list on Home.
+The bell in the header opens the Notifications screen: every event of the app from the last 30 days, newest first, grouped by day, and the Inbox of the host (mentions, review requests, assignments, comments for you). The same events feed the macOS notifications and the Recent list on Home.
 
 Code: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Notifications/`, `Shared/ActivityLog.swift`, `Shared/Notifier.swift`, `DevHubDomain/Models/ActivityEvent.swift`, `ActivityTarget.swift`, `NotificationKind.swift`, `Policies/ActivityRetentionPolicy.swift`, `DevHubData/Workspace/SystemUserNotificationRepository.swift`.
 
@@ -25,9 +25,20 @@ Every event that DevHub can also send as a macOS notification carries a kind. Ev
 | Comments on my pull requests | someone else commented on your request; your own comments are silent | the request |
 | My pull requests merged or closed | your request was merged, or closed without a merge | the request |
 | Watched pull requests | a request by someone else that you watch got an approval, a request for changes, failed checks, a new comment, or was merged or closed | the request |
+| Inbox: mentions and requests on GitHub | someone mentioned you, asked for your review or approval, assigned you, or commented where you take part, on the host, in this repository | the request, or the Inbox |
 | Script notifications | a script printed a `notify` line | nothing |
 
 The words follow the host: "merge request" and "Pipeline" on GitLab.
+
+## Inbox
+
+The second pane of the Notifications screen ("Events | Inbox" at the start of the toolbar) lists what the host holds for you in this repository: GitHub notification threads (`gh api notifications?per_page=50`, unread only) or GitLab to-dos (`glab api todos?state=pending&per_page=50`). Threads and to-dos of other repositories are left out.
+
+- Each row: an icon for the kind (mention, review requested, assigned, comment, approval needed, checks failed, other), a title with the actor ("sam mentioned you in #12", "kim asked for your review on !9", "lee assigned you issue #31"), the title of the request or issue and, on GitLab, the text of the note, the time, and on hover: open the request in DevHub (requests only), open in the browser, and a checkmark that marks the item as done on the host (`gh api -X PATCH notifications/threads/<id>`, `glab api -X POST todos/<id>/mark_as_done`). "Mark All as Done" in the toolbar does it for every item. The header search filters the rows.
+- GitHub names no actor in a thread. For a mention or a comment thread DevHub reads the last comment (`gh api -X GET <latest_comment_url>`, at most 10 per read) to show who wrote it and to link to that comment. A review request shows "Your review is requested on #12".
+- DevHub reads the Inbox with the open requests (every 5 minutes, every 2 minutes while the panel is closed), when the pane opens, and on Refresh. A new item after the first read goes to Events and posts a notification of the kind "Inbox: mentions and requests" (its own switch in Settings). A click on it opens the request, or the Inbox when the item is an issue or something else.
+- The bell badge counts the unseen events plus the items in the Inbox.
+- A failed read shows in the pane with Retry and once in Events. A failed "done" is logged and keeps the item.
 
 ## macOS notifications
 

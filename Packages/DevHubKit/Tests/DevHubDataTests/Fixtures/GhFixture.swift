@@ -40,4 +40,12 @@ enum GhFixture {
     static let mutationDone = Data(#"""
     {"data":{"resolveReviewThread":{"clientMutationId":null}}}
     """#.utf8)
+
+    static let notifications = Data(#"""
+    [{"id":"901","unread":true,"reason":"mention","updated_at":"2026-10-30T10:00:00Z","subject":{"title":"ABC-123: Login screen","url":"https://api.github.com/repos/example/app/pulls/12","latest_comment_url":"https://api.github.com/repos/example/app/issues/comments/501","type":"PullRequest"},"repository":{"full_name":"example/app"}},{"id":"902","unread":true,"reason":"review_requested","updated_at":"2026-10-30T09:00:00Z","subject":{"title":"ABC-120: Profile badges","url":"https://api.github.com/repos/example/app/pulls/9","latest_comment_url":"https://api.github.com/repos/example/app/pulls/9","type":"PullRequest"},"repository":{"full_name":"Example/App"}},{"id":"903","unread":true,"reason":"assign","updated_at":"2026-10-29T09:00:00Z","subject":{"title":"Crash on cold start","url":"https://api.github.com/repos/example/app/issues/31","latest_comment_url":null,"type":"Issue"},"repository":{"full_name":"example/app"}},{"id":"904","unread":false,"reason":"comment","updated_at":"2026-10-29T09:00:00Z","subject":{"title":"Old","url":"https://api.github.com/repos/example/app/pulls/2","latest_comment_url":"https://api.github.com/repos/example/app/issues/comments/400","type":"PullRequest"},"repository":{"full_name":"example/app"}},{"id":"905","unread":true,"reason":"mention","updated_at":"2026-10-29T09:00:00Z","subject":{"title":"Other repo","url":"https://api.github.com/repos/example/other/pulls/3","latest_comment_url":null,"type":"PullRequest"},"repository":{"full_name":"example/other"}}]
+    """#.utf8)
+
+    static let comment = Data(#"""
+    {"id":501,"user":{"login":"sam"},"html_url":"https://github.com/example/app/pull/12#issuecomment-501","body":"@alex can you check the retry path?"}
+    """#.utf8)
 }

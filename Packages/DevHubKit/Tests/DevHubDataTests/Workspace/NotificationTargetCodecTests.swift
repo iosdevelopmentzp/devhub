@@ -4,7 +4,7 @@ import Testing
 
 @Suite struct NotificationTargetCodecTests {
     @Test func everyTargetSurvivesTheUserInfoRoundTrip() {
-        let targets: [ActivityTarget] = [.pullRequest(iid: 12), .reviewQueue, .worktree(path: "/repo/.worktrees/a b"), .build]
+        let targets: [ActivityTarget] = [.pullRequest(iid: 12), .reviewQueue, .worktree(path: "/repo/.worktrees/a b"), .build, .inbox]
 
         for target in targets {
             let userInfo = NotificationTargetCodec.userInfo(for: target)

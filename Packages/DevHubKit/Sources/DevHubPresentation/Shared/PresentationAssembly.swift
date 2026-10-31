@@ -30,6 +30,7 @@ package final class PresentationAssembly {
     let branchPullRequest: BranchPullRequestStore
     let pullRequests: PullRequestsStore
     let openPullRequests: OpenPullRequestsStore
+    let inbox: InboxStore
     let newPullRequest: NewPullRequestStore
     let pullRequestDetails: PullRequestDetailStore
     let simulators: SimulatorsStore
@@ -115,6 +116,7 @@ package final class PresentationAssembly {
         codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
         pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
         openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
+        inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
         pullRequestDetails = PullRequestDetailStore(repository: ports.codeHost, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
         newPullRequest = NewPullRequestStore(
             git: ports.git,
@@ -211,6 +213,7 @@ package final class PresentationAssembly {
             git: git,
             pullRequests: pullRequests,
             openPullRequests: openPullRequests,
+            inbox: inbox,
             newPullRequest: newPullRequest,
             pullRequestDetails: pullRequestDetails,
             worktrees: worktrees,

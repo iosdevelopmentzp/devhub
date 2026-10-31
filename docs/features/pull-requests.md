@@ -126,6 +126,8 @@ After each action DevHub logs the result in Recent and reads the list again.
 | Resolve a thread | `gh api graphql …` (resolve mutation) | `glab api graphql …` (resolve mutation) |
 | Open a file | Opens the file in the editor from Settings, from the worktree of the source branch or the main checkout. A double-click on a diff line opens that line | `xed --line <n> <file>` and others (see the Git page) |
 | Open a file in the browser | Opens the file at the last commit of the request (`<repository>/blob/<sha>/<path>` on GitHub, `<repository>/-/blob/<sha>/<path>` on GitLab), with `#L<n>` from the menu of a diff line | — |
+| Inbox (Notifications screen) | `gh api --hostname <host> -X GET notifications?per_page=50`, then `gh api -X GET <latest_comment_url>` for up to 10 mention or comment threads | `glab api --hostname <host> todos?state=pending&per_page=50` |
+| Mark an Inbox item as done | `gh api --hostname <host> -X PATCH notifications/threads/<id>` | `glab api --hostname <host> -X POST todos/<id>/mark_as_done` |
 | Expand All, Collapse All, Viewed, threads in the diff | Local view state only | — |
 
 ### New request form

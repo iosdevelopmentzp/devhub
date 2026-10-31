@@ -12,6 +12,7 @@ final class AppActions {
     @ObservationIgnored private let git: GitStore
     @ObservationIgnored private let pullRequests: PullRequestsStore
     @ObservationIgnored private let openPullRequests: OpenPullRequestsStore
+    @ObservationIgnored private let inbox: InboxStore
     @ObservationIgnored private let newPullRequest: NewPullRequestStore
     @ObservationIgnored private let pullRequestDetails: PullRequestDetailStore
     @ObservationIgnored private let worktrees: WorktreesStore
@@ -29,6 +30,7 @@ final class AppActions {
         git: GitStore,
         pullRequests: PullRequestsStore,
         openPullRequests: OpenPullRequestsStore,
+        inbox: InboxStore,
         newPullRequest: NewPullRequestStore,
         pullRequestDetails: PullRequestDetailStore,
         worktrees: WorktreesStore,
@@ -45,6 +47,7 @@ final class AppActions {
         self.git = git
         self.pullRequests = pullRequests
         self.openPullRequests = openPullRequests
+        self.inbox = inbox
         self.newPullRequest = newPullRequest
         self.pullRequestDetails = pullRequestDetails
         self.worktrees = worktrees
@@ -222,10 +225,16 @@ final class AppActions {
         case .reviewQueue: showPullRequests(scope: .reviewing)
         case .worktree: navigator.show(.worktrees)
         case .build: navigator.show(.simulators)
+        case .inbox: openInbox()
         }
     }
 
     func openNotifications() {
+        navigator.show(.notifications)
+    }
+
+    func openInbox() {
+        inbox.showInbox()
         navigator.show(.notifications)
     }
 

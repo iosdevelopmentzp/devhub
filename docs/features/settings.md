@@ -47,6 +47,7 @@ Each section is explained under "Actions".
 | Comments on my pull requests | Someone else commented on your request ("sam commented on #12"). Your own comments are silent. A click opens the request |
 | My pull requests merged or closed | Your request was merged, or closed without a merge. A click opens the request |
 | Watched pull requests | A request you watch got an approval, a request for changes, failed checks, a new comment, or was merged or closed. A click opens the request. |
+| Inbox: mentions and requests on GitHub | Someone mentioned you, asked for your review or approval, assigned you, or commented where you take part, on GitHub. A click opens the request or the Inbox. |
 | Script notifications | A script printed a `notify` line. It shows even while the panel is open and when the main switch is off |
 | Permission | Shows "Not asked yet", "Allowed" or "Denied". **Allow Notifications** asks macOS for permission. When denied, allow DevHub in System Settings → Notifications |
 

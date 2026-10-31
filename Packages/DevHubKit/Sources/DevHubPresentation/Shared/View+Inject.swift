@@ -29,6 +29,7 @@ extension View {
             .environment(assembly.branchPullRequest)
             .environment(assembly.pullRequests)
             .environment(assembly.openPullRequests)
+            .environment(assembly.inbox)
             .environment(assembly.newPullRequest)
             .environment(assembly.pullRequestDetails)
             .environment(assembly.simulators)

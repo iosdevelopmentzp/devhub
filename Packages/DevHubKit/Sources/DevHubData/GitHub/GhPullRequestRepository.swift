@@ -135,6 +135,31 @@ struct GhPullRequestRepository: CodeHostRepository {
         String(decoding: try await client.raw(Self.fileContentEndpoint(path: path, ref: ref, repository: repository), host: repository), as: UTF8.self)
     }
 
+    func inbox(repository: CodeHost) async throws -> [InboxItem] {
+        let threads = try await GhInboxParser.threads(from: client.rest(Self.inboxEndpoint, method: "GET", fields: [], host: repository), repository: repository)
+        var items: [InboxItem] = []
+        var lookups = 0
+        for thread in threads {
+            var item = thread.item
+            if let url = thread.latestCommentURL, lookups < Self.actorLookupLimit {
+                lookups += 1
+                if let actor = try? GhInboxParser.actor(from: try await client.rest(url, method: "GET", fields: [], host: repository)) {
+                    item.actor = actor.login
+                    item.webURL = actor.webURL ?? item.webURL
+                }
+            }
+            items.append(item)
+        }
+        return items
+    }
+
+    func markInboxDone(id: String, repository: CodeHost) async throws {
+        _ = try await client.rest("notifications/threads/\(id)", method: "PATCH", fields: [], host: repository)
+    }
+
+    static let inboxEndpoint = "notifications?per_page=50"
+    static let actorLookupLimit = 10
+
     static func fileContentEndpoint(path: String, ref: String, repository: CodeHost) -> String {
         let encodedPath = path.split(separator: "/", omittingEmptySubsequences: false)
             .map { $0.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? String($0) }

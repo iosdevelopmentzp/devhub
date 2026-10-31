@@ -20,8 +20,12 @@ enum NotificationListMapper {
     }
 
     static func countText(visible: Int, total: Int) -> String {
-        guard visible != total else { return CountText.count(total, "event", "events") }
-        return "\(visible) of \(CountText.count(total, "event", "events"))"
+        countText(visible: visible, total: total, noun: "event")
+    }
+
+    static func countText(visible: Int, total: Int, noun: String) -> String {
+        guard visible != total else { return CountText.count(total, noun, noun + "s") }
+        return "\(visible) of \(CountText.count(total, noun, noun + "s"))"
     }
 
     private static func matches(_ event: ActivityEvent, query: String) -> Bool {

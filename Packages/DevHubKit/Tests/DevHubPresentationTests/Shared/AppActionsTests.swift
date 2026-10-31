@@ -108,6 +108,15 @@ import Testing
         #expect(assembly.toaster.text?.hasPrefix("Stopped watching ") == true)
     }
 
+    @Test func openingTheInboxTargetShowsTheInboxPane() {
+        let assembly = PresentationAssembly.preview()
+
+        assembly.appActions.open(ActivityTarget.inbox)
+
+        #expect(assembly.navigator.selection == .feature(.notifications))
+        #expect(assembly.inbox.pane == .inbox)
+    }
+
     private func spyAssembly(_ ports: Ports) -> PresentationAssembly {
         PresentationAssembly(
             ports: ports,

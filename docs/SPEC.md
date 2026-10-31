@@ -133,6 +133,7 @@ Sources:
 - The `notify` directive of a script posts a notification when the permission is given, even while the panel is open and with the main switch off, unless its kind is muted.
 - A click on a notification opens DevHub at the place of the event (a request, the review list, the Worktrees tab, the run bar). A notification without a place opens the Notifications screen.
 - The Notifications screen (the bell in the header, with a badge of unseen events) lists every event of the last 30 days (500 at most, saved between launches) by day, with a filter by kind, the header search, Clear and an arrow that opens the place of an event. Home → Recent shows the last 8 of them.
+- The Inbox pane of the Notifications screen lists the unread GitHub notification threads or the pending GitLab to-dos of this repository (`gh api notifications`, `glab api todos`), with the actor, an open action, a browser link and "Mark as Done". A new item posts a notification of the kind "Inbox". The bell badge counts the Inbox items too.
 
 ---
 

@@ -24,7 +24,7 @@ A code host is the web service that keeps the repository and its review requests
 
 ## The port
 
-`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`, `fileContent`.
+`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`, `fileContent`, `inbox`, `markInboxDone`.
 
 Every method takes `repository: CodeHost`. A `CodeHost` holds:
 
@@ -70,6 +70,7 @@ The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsS
 | `requestChanges` | `gh pr review --request-changes --body` | throws; hidden by `canRequestChanges` |
 | `jobLog`, `retryJob` | `GhClient.log` (`--allow-escape-sequences`) on `actions/jobs/<id>/logs`; REST `POST actions/jobs/<id>/rerun`. The job ID is the `databaseId` of an Actions `CheckRun` | REST `jobs/<id>/trace`; REST `POST jobs/<id>/retry`. The ID is the number at the end of the GraphQL job ID |
 | `fileContent` | `GhClient.raw` (`-H "Accept: application/vnd.github.raw+json"`) on `repos/<owner>/<name>/contents/<path>?ref=<sha>` | REST `projects/<project>/repository/files/<path>/raw?ref=<sha>`, the path percent-encoded |
+| `inbox`, `markInboxDone` | REST `notifications?per_page=50` filtered to the repository (`GhInboxParser`), then `-X GET <latest_comment_url>` for up to 10 mention or comment threads to name the actor; `-X PATCH notifications/threads/<id>` | REST `todos?state=pending&per_page=50` filtered to the project (`GlabInboxParser`); `-X POST todos/<id>/mark_as_done` |
 | `addLineComment` | REST `POST pulls/<n>/comments` with `commit_id`, `path`, `line`, `side` (`lineCommentFields`) | REST `GET merge_requests/<n>` for `diff_refs` (`GlabDiffRefsParser`), then `POST …/discussions` with `position[…]` (`lineCommentFields`) |
 
 Review and job facts in the values:

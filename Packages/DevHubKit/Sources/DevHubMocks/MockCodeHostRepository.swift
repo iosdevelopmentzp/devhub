@@ -132,4 +132,13 @@ struct MockCodeHostRepository: CodeHostRepository {
         try? await Task.sleep(for: .milliseconds(300))
         return (1...40).map { "line \($0) of \(path)" }.joined(separator: "\n")
     }
+
+    func inbox(repository: CodeHost) async throws -> [InboxItem] {
+        try? await Task.sleep(for: .milliseconds(300))
+        return MockData.inboxItems
+    }
+
+    func markInboxDone(id: String, repository: CodeHost) async throws {
+        try? await Task.sleep(for: .milliseconds(300))
+    }
 }

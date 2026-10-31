@@ -24,6 +24,7 @@ enum ActivityRowMapper {
         case .reviewQueue: "Open the \(words.requests) that wait for your review"
         case .worktree: "Open the Worktrees tab"
         case .build: "Open the run bar in the Simulators tab"
+        case .inbox: "Open the Inbox"
         }
     }
 

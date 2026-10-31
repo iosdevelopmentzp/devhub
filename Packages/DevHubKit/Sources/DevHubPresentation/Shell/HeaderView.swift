@@ -9,10 +9,15 @@ struct HeaderView: View {
     @Environment(ConfigStore.self) private var config
     @Environment(SettingsStore.self) private var settings
     @Environment(ActivityLog.self) private var activity
+    @Environment(InboxStore.self) private var inbox
     @Environment(\.isPinnedWindow) private var isPinnedWindow
     @Environment(\.togglePin) private var togglePin
     @Environment(\.codeHostWords) private var words
     @FocusState private var isSearchFocused: Bool
+
+    private var badgeCount: Int {
+        activity.unreadCount + inbox.unreadCount
+    }
 
     private var searchPrompt: String? {
         TabItemMapper.item(for: navigator.selection, customTabs: config.resolved.tabs, words: words).searchPrompt
@@ -48,15 +53,15 @@ struct HeaderView: View {
                 }
             }
             IconButton(
-                systemImage: activity.unreadCount > 0 ? "bell.badge" : "bell",
-                help: "Notifications: the events of the last 30 days",
+                systemImage: badgeCount > 0 ? "bell.badge" : "bell",
+                help: "Notifications: the events of the last 30 days and the Inbox",
                 tint: navigator.selection == .feature(.notifications) ? .accentColor : .primary
             ) {
                 appActions.openNotifications()
             }
             .overlay(alignment: .topTrailing) {
-                if activity.unreadCount > 0 {
-                    Text(activity.unreadCount > 99 ? "99+" : "\(activity.unreadCount)")
+                if badgeCount > 0 {
+                    Text(badgeCount > 99 ? "99+" : "\(badgeCount)")
                         .font(.system(size: 9, weight: .bold).monospacedDigit())
                         .padding(.horizontal, 4)
                         .padding(.vertical, 1)

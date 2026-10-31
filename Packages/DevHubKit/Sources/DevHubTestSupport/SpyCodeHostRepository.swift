@@ -27,6 +27,8 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
         case jobLog(jobID: String, repository: CodeHost)
         case retryJob(jobID: String, repository: CodeHost)
         case fileContent(path: String, ref: String, repository: CodeHost)
+        case inbox(repository: CodeHost)
+        case markInboxDone(id: String, repository: CodeHost)
     }
 
     private let lock = NSLock()
@@ -42,6 +44,7 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
     private var _labelsResult: Result<[String], any Error> = .success([])
     private var _jobLogResult: Result<String, any Error> = .success("")
     private var _fileContentResult: Result<String, any Error> = .success("")
+    private var _inboxResult: Result<[InboxItem], any Error> = .success([])
 
     package init() {}
 
@@ -97,6 +100,11 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
     package var fileContentResult: Result<String, any Error> {
         get { lock.withLock { _fileContentResult } }
         set { lock.withLock { _fileContentResult = newValue } }
+    }
+
+    package var inboxResult: Result<[InboxItem], any Error> {
+        get { lock.withLock { _inboxResult } }
+        set { lock.withLock { _inboxResult = newValue } }
     }
 
     package func create(_ request: NewPullRequest, repository: CodeHost) async throws -> PullRequestSummary {
@@ -197,6 +205,14 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
 
     package func fileContent(path: String, ref: String, repository: CodeHost) async throws -> String {
         try record(.fileContent(path: path, ref: ref, repository: repository)) { try _fileContentResult.get() }
+    }
+
+    package func inbox(repository: CodeHost) async throws -> [InboxItem] {
+        try record(.inbox(repository: repository)) { try _inboxResult.get() }
+    }
+
+    package func markInboxDone(id: String, repository: CodeHost) async throws {
+        try action(.markInboxDone(id: id, repository: repository))
     }
 
     private func action(_ call: Call) throws {
