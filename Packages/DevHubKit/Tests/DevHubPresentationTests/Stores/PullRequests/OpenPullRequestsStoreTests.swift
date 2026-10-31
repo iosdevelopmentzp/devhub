@@ -133,11 +133,6 @@ import DevHubTestSupport
         try await waitUntil { harness.spies.notifications.posted == [.post(title: "sam commented on !7", body: "ABC-7: Mine", target: .pullRequest(iid: 7))] }
     }
 
-    @Test func thePollIntervalIsShorterWhileThePanelIsClosed() {
-        #expect(OpenPullRequestsStore.pollInterval(panelShown: true) == .seconds(300))
-        #expect(OpenPullRequestsStore.pollInterval(panelShown: false) == .seconds(120))
-    }
-
     @Test func anApprovalOfMyRequestIsReportedAndNotified() async throws {
         script([mine()])
         await store.refresh()
@@ -226,5 +221,77 @@ import DevHubTestSupport
 
     private func info(state: PullRequestState) -> PullRequestInfo {
         PullRequestInfo(iid: 7, title: "ABC-7: Mine", state: state, isDraft: false, webURL: nil, author: "me", hasConflicts: false, detailedStatus: nil, targetBranch: "dev")
+    }
+
+    // MARK: Watched requests
+
+    private func theirs(approvedBy: [String] = []) -> PullRequestSummary {
+        PullRequestSummaryFixture.request(iid: 12, source: "feature/theirs", state: .opened, author: "sam", approvedBy: approvedBy, title: "ABC-12: Theirs")
+    }
+
+    @Test func toggleWatchPersistsPerProject() {
+        #expect(store.toggleWatch(iid: 12))
+        #expect(store.watchedIDs == [12])
+        #expect(store.isWatched(12))
+        #expect(harness.store.decode([Int].self, forKey: "gitlab.watched.\(harness.session.selectedProjectID)") == [12])
+
+        #expect(store.toggleWatch(iid: 12) == false)
+        #expect(store.watchedIDs.isEmpty)
+        #expect(harness.store.decode([Int].self, forKey: "gitlab.watched.\(harness.session.selectedProjectID)") == [])
+    }
+
+    @Test func aWatchedRequestOfSomeoneElseReportsWithTheWatchedKind() async throws {
+        script([theirs()])
+        await store.refresh()
+        _ = store.toggleWatch(iid: 12)
+        script([theirs(approvedBy: ["lee"])])
+
+        await store.refresh()
+
+        #expect(harness.lastActivity?.title == "!12 approved by lee")
+        #expect(harness.lastActivity?.kind == .watched)
+        #expect(harness.lastActivity?.target == .pullRequest(iid: 12))
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "!12 approved by lee", body: "ABC-12: Theirs", target: .pullRequest(iid: 12))] }
+    }
+
+    @Test func aRequestOfSomeoneElseThatIsNotWatchedIsSilent() async {
+        script([theirs()])
+        await store.refresh()
+        script([theirs(approvedBy: ["lee"])])
+
+        await store.refresh()
+        await harness.settle()
+
+        #expect(harness.activityTitles.isEmpty)
+    }
+
+    @Test func aMergedWatchedRequestIsReportedAndForgotten() async throws {
+        script([theirs()])
+        await store.refresh()
+        _ = store.toggleWatch(iid: 12)
+        script([])
+        harness.spies.codeHost.statusResult = .success(PullRequestStatus(pullRequest: PullRequestInfo(iid: 12, title: "ABC-12: Theirs", state: .merged, isDraft: false, webURL: nil, author: "sam", hasConflicts: false, detailedStatus: nil, targetBranch: "dev"), pipeline: nil))
+
+        await store.refresh()
+
+        try await waitUntil { harness.activityTitles == ["!12 merged"] }
+        #expect(harness.lastActivity?.kind == .watched)
+        #expect(store.watchedIDs.isEmpty)
+    }
+
+    @Test func projectChangedLoadsTheWatchedIDsOfTheProject() {
+        _ = store
+        harness.store.encode([3, 4], forKey: "gitlab.watched.\(harness.session.selectedProjectID)")
+
+        harness.events.post(.projectChanged)
+
+        #expect(store.watchedIDs == [3, 4])
+    }
+
+    @Test func thePollIntervalIsShorterWhileThePanelIsClosedOrARequestIsWatched() {
+        #expect(OpenPullRequestsStore.pollInterval(panelShown: true, watching: false) == .seconds(300))
+        #expect(OpenPullRequestsStore.pollInterval(panelShown: false, watching: false) == .seconds(120))
+        #expect(OpenPullRequestsStore.pollInterval(panelShown: true, watching: true) == .seconds(60))
+        #expect(OpenPullRequestsStore.pollInterval(panelShown: false, watching: true) == .seconds(60))
     }
 }

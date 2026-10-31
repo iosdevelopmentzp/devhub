@@ -113,4 +113,13 @@ import Testing
             recentComments: recent
         )
     }
+
+    @Test func aWatchedRequestOfSomeoneElseIsTracked() {
+        let theirs = request(2, author: "sam", approvedBy: [])
+        let after = request(2, author: "sam", approvedBy: ["lee"])
+
+        #expect(OwnRequestChangePolicy.changes(from: [theirs], to: [after], username: username, watched: [2]) == [.approved(after, by: ["lee"])])
+        #expect(OwnRequestChangePolicy.changes(from: [theirs], to: [], username: username, watched: [2]) == [.gone(theirs)])
+        #expect(OwnRequestChangePolicy.changes(from: [theirs], to: [after], username: username, watched: [3]).isEmpty)
+    }
 }

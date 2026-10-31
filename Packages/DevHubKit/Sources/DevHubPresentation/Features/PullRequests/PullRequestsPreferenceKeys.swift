@@ -11,4 +11,8 @@ enum PullRequestsPreferenceKeys {
     static func seenAt(_ scope: PullRequestScope) -> String {
         "gitlab.seenAt.\(scope.rawValue)"
     }
+
+    static func watched(projectID: String) -> String {
+        "gitlab.watched.\(projectID)"
+    }
 }

@@ -5,6 +5,7 @@ import DevHubUI
 struct PullRequestsView: View {
     @Environment(ProjectSession.self) private var session
     @Environment(PullRequestsStore.self) private var pullRequests
+    @Environment(OpenPullRequestsStore.self) private var openPullRequests
     @Environment(PullRequestDetailStore.self) private var detailStore
     @Environment(Toaster.self) private var toaster
     @Environment(\.panelOpenCount) private var openCount
@@ -84,7 +85,8 @@ struct PullRequestsView: View {
             ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate),
             words: words,
             staleDays: git.gitSettings.pullRequests.staleDays,
-            hiddenFiles: git.gitSettings.pullRequests.hiddenFiles
+            hiddenFiles: git.gitSettings.pullRequests.hiddenFiles,
+            watchedIDs: openPullRequests.watchedIDs
         )
     }
 

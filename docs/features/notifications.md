@@ -24,6 +24,7 @@ Every event that DevHub can also send as a macOS notification carries a kind. Ev
 | Checks of my pull requests | the checks or pipeline of your request turned to failed | the request |
 | Comments on my pull requests | someone else commented on your request; your own comments are silent | the request |
 | My pull requests merged or closed | your request was merged, or closed without a merge | the request |
+| Watched pull requests | a request by someone else that you watch got an approval, a request for changes, failed checks, a new comment, or was merged or closed | the request |
 | Script notifications | a script printed a `notify` line | nothing |
 
 The words follow the host: "merge request" and "Pipeline" on GitLab.

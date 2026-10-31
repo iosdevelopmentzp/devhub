@@ -11,4 +11,5 @@ struct PullRequestRowContext {
     var words: CodeHostWords
     var staleDays: Int
     var hiddenFiles: [String]
+    var watchedIDs: Set<Int>
 }

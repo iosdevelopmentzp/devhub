@@ -94,6 +94,20 @@ import Testing
         try await waitUntil { assembly.activity.events.first?.title == "Started a Copilot session" }
     }
 
+    @Test func toggleWatchFlipsTheWatchAndShowsAToast() {
+        let assembly = PresentationAssembly.preview()
+
+        assembly.appActions.toggleWatch(iid: 12)
+
+        #expect(assembly.openPullRequests.watchedIDs == [12])
+        #expect(assembly.toaster.text?.hasPrefix("Watching ") == true)
+
+        assembly.appActions.toggleWatch(iid: 12)
+
+        #expect(assembly.openPullRequests.watchedIDs.isEmpty)
+        #expect(assembly.toaster.text?.hasPrefix("Stopped watching ") == true)
+    }
+
     private func spyAssembly(_ ports: Ports) -> PresentationAssembly {
         PresentationAssembly(
             ports: ports,

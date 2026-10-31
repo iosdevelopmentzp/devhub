@@ -142,7 +142,7 @@ import DevHubTestSupport
     }
 
     private func context(hiddenFiles: [String] = []) -> PullRequestRowContext {
-        PullRequestRowContext(username: "me", scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: true, ticket: .standard, words: .gitLab, staleDays: 14, hiddenFiles: hiddenFiles)
+        PullRequestRowContext(username: "me", scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: true, ticket: .standard, words: .gitLab, staleDays: 14, hiddenFiles: hiddenFiles, watchedIDs: [])
     }
 
     private func review(

@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Pull Requests: "Watch" in the row menu of a request by someone else. DevHub reads the list every minute while a request is watched and reports an approval, a request for changes, failed checks, a new comment and the merge or close of it, in Recent and as a notification of the new kind "Watched pull requests" (its own switch in Settings). The row shows a "watching" tag. "Stop Watching" ends it; a merge or close ends it too.
 - Output panel: "Open in Editor" and "Save Output…" in the menu of an entry, and a Save button in the header for every shown command. "Open in Editor" writes the transcript to `~/.devhub/scratch/` and opens it in the editor from Settings.
 - "Fix with AI" on a failed test run (Worktrees) and on the build errors of the run bar: DevHub writes the failed tests, their messages and the compiler errors into a prompt file and starts Claude Code or Copilot CLI in the terminal inside the checkout. "Fix Threads with AI" on a pull request offers the same two tools. The command of each tool comes from `ai.commands` (`ai.reviewCommand` still works as the Claude command).
 - Pull Requests: a new comment on your own request names its author ("sam commented on #12", "sam and lee commented on #12 (3 new comments)"). Your own comments no longer count as news. DevHub reads the last 10 comments and the last review comments of a request (GitHub) or the last 20 notes (GitLab) with the list.

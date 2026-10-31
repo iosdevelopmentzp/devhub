@@ -31,6 +31,9 @@ struct PullRequestRowModel: Identifiable, Equatable {
     var canSwitchBranch: Bool
     var worktreePath: String?
     var canFixThreads: Bool
+    var isWatched: Bool
+    var watchTitle: String?
+    var watchIcon: String
     var primaryActions: [PullRequestActionModel]
     var actions: [PullRequestActionModel]
     var mergeTitle: String
@@ -77,6 +80,9 @@ struct PullRequestRowModel: Identifiable, Equatable {
         canSwitchBranch: true,
         worktreePath: nil,
         canFixThreads: true,
+        isWatched: false,
+        watchTitle: "Watch",
+        watchIcon: "bell",
         primaryActions: [.preview],
         actions: [PullRequestActionModel(id: .markDraft, title: "Mark as Draft", systemImage: "pencil.circle", hint: "Add the Draft mark")],
         mergeTitle: "Merge !1842 into dev?",

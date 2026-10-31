@@ -8,6 +8,7 @@ package enum NotificationKind: String, CaseIterable, Hashable, Codable, Sendable
     case requestChecks
     case requestComments
     case requestClosed
+    case watched
     case scripts
 
     package var showsWhilePanelIsOpen: Bool {

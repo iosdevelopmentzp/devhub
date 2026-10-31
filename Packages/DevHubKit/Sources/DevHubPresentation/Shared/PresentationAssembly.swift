@@ -114,7 +114,7 @@ package final class PresentationAssembly {
         branchPullRequest = BranchPullRequestStore(repository: ports.codeHost, checkout: git, events: events)
         codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
         pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
-        openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
+        openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
         pullRequestDetails = PullRequestDetailStore(repository: ports.codeHost, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
         newPullRequest = NewPullRequestStore(
             git: ports.git,
@@ -210,6 +210,7 @@ package final class PresentationAssembly {
             testRuns: testRuns,
             git: git,
             pullRequests: pullRequests,
+            openPullRequests: openPullRequests,
             newPullRequest: newPullRequest,
             pullRequestDetails: pullRequestDetails,
             worktrees: worktrees,

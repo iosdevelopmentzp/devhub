@@ -288,6 +288,29 @@ import DevHubTestSupport
         #expect(map(merged, configActions: [.preview]).configActions.isEmpty)
     }
 
+    @Test func aWatchedRequestGetsATagAndTheStopItem() {
+        let request = PullRequestSummaryFixture.request(iid: 7, source: "feature/login", state: .opened)
+
+        let watched = map(request, watched: [7])
+        let plain = map(request)
+
+        #expect(watched.isWatched)
+        #expect(watched.watchTitle == "Stop Watching")
+        #expect(watched.watchIcon == "bell.slash")
+        #expect(watched.tags.contains(TagModel("watching", tint: .teal, systemImage: "bell", hint: "DevHub reports approvals, requests for changes, failed pipeline, new comments and the merge of this merge request")))
+        #expect(plain.isWatched == false)
+        #expect(plain.watchTitle == "Watch")
+        #expect(plain.watchIcon == "bell")
+        #expect(plain.tags.contains { $0.text == "watching" } == false)
+    }
+
+    @Test func aClosedRequestCannotBeWatched() {
+        let model = map(PullRequestSummaryFixture.request(iid: 7, source: "x", state: .merged), watched: [7])
+
+        #expect(model.watchTitle == nil)
+        #expect(model.tags.contains { $0.text == "watching" } == false)
+    }
+
     private func map(
         _ request: PullRequestSummary,
         username: String? = "me",
@@ -297,11 +320,12 @@ import DevHubTestSupport
         isMainCheckoutClean: Bool = true,
         isBusy: Bool = false,
         isExpanded: Bool = false,
-        configActions: [ConfigActionItemModel] = []
+        configActions: [ConfigActionItemModel] = [],
+        watched: Set<Int> = []
     ) -> PullRequestRowModel {
         PullRequestRowMapper.model(
             for: request,
-            context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}"), words: .gitLab, staleDays: 14, hiddenFiles: []),
+            context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}"), words: .gitLab, staleDays: 14, hiddenFiles: [], watchedIDs: watched),
             local: local,
             isBusy: isBusy,
             isExpanded: isExpanded,

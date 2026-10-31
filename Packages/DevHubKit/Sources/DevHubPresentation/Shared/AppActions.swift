@@ -11,6 +11,7 @@ final class AppActions {
     @ObservationIgnored private let testRuns: TestRunsStore
     @ObservationIgnored private let git: GitStore
     @ObservationIgnored private let pullRequests: PullRequestsStore
+    @ObservationIgnored private let openPullRequests: OpenPullRequestsStore
     @ObservationIgnored private let newPullRequest: NewPullRequestStore
     @ObservationIgnored private let pullRequestDetails: PullRequestDetailStore
     @ObservationIgnored private let worktrees: WorktreesStore
@@ -27,6 +28,7 @@ final class AppActions {
         testRuns: TestRunsStore,
         git: GitStore,
         pullRequests: PullRequestsStore,
+        openPullRequests: OpenPullRequestsStore,
         newPullRequest: NewPullRequestStore,
         pullRequestDetails: PullRequestDetailStore,
         worktrees: WorktreesStore,
@@ -42,6 +44,7 @@ final class AppActions {
         self.testRuns = testRuns
         self.git = git
         self.pullRequests = pullRequests
+        self.openPullRequests = openPullRequests
         self.newPullRequest = newPullRequest
         self.pullRequestDetails = pullRequestDetails
         self.worktrees = worktrees
@@ -224,6 +227,12 @@ final class AppActions {
 
     func openNotifications() {
         navigator.show(.notifications)
+    }
+
+    func toggleWatch(iid: Int) {
+        let reference = openPullRequests.words.reference(iid)
+        let watching = openPullRequests.toggleWatch(iid: iid)
+        toaster.show(watching ? "Watching \(reference)" : "Stopped watching \(reference)")
     }
 
     func showPullRequest(iid: Int) {

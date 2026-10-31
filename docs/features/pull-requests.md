@@ -96,6 +96,7 @@ After each action DevHub logs the result in Recent and reads the list again.
 | Open Worktree in Terminal | For a source branch with a worktree | `open -a <terminal> <path>` |
 | Use This Checkout in Git Tab (menu) | Shows the Git tab on that worktree | — |
 | Switch to Branch (menu) | Only when the branch exists locally and the main checkout is clean | `git switch <branch>` |
+| Watch, Stop Watching (menu) | Watches a request by someone else: DevHub reads the list every minute and reports an approval, a request for changes, failed checks, a new comment and the merge or close as a "Watched" event and a notification. The row shows a "watching" tag. The watch ends when the request is merged or closed | — |
 | Open in browser | Opens the request page | — |
 | Open in Window (context menu) | Opens the request in its own window | — |
 | Copy Link, Copy Link with Title, Copy Branch Name (menu) | "Link with Title" copies the number, the title and the link | — |

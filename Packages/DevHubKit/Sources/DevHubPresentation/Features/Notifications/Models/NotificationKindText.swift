@@ -12,6 +12,7 @@ enum NotificationKindText {
         case .requestChecks: "\(words.checksTitle) of my \(words.requests)"
         case .requestComments: "Comments on my \(words.requests)"
         case .requestClosed: "My \(words.requests) merged or closed"
+        case .watched: "Watched \(words.requests)"
         case .scripts: "Script notifications"
         }
     }
@@ -25,6 +26,7 @@ enum NotificationKindText {
         case .requestChecks: "The \(words.checks) of your \(words.request) turned to failed. A click opens the \(words.request)."
         case .requestComments: "Someone else commented on your \(words.request). Your own comments are silent. A click opens the \(words.request)."
         case .requestClosed: "Your \(words.request) was merged, or closed without a merge. A click opens the \(words.request)."
+        case .watched: "A \(words.request) you watch got an approval, a request for changes, failed \(words.checks), a new comment, or was merged or closed. A click opens the \(words.request)."
         case .scripts: "A script printed a notify line. It shows even while the panel is open and when the main switch is off."
         }
     }
@@ -35,6 +37,7 @@ enum NotificationKindText {
         case .tests: "Tests"
         case .reviewRequests: "Review"
         case .requestReviews, .requestChecks, .requestComments, .requestClosed: "My \(words.shortRequest)"
+        case .watched: "Watch"
         case .scripts: "Script"
         }
     }

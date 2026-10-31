@@ -3,9 +3,13 @@ import Foundation
 package enum OwnRequestChangePolicy {
 
     package static func changes(from previous: [PullRequestSummary], to current: [PullRequestSummary], username: String) -> [OwnRequestChange] {
-        let mineBefore = previous.filter { $0.author == username }
-        let before = Dictionary(mineBefore.map { ($0.iid, $0) }, uniquingKeysWith: { first, _ in first })
-        let now = current.filter { $0.author == username }.sorted { $0.iid < $1.iid }
+        changes(from: previous, to: current, username: username, watched: [])
+    }
+
+    package static func changes(from previous: [PullRequestSummary], to current: [PullRequestSummary], username: String, watched: Set<Int>) -> [OwnRequestChange] {
+        let isTracked = { (request: PullRequestSummary) in request.author == username || watched.contains(request.iid) }
+        let before = Dictionary(previous.filter(isTracked).map { ($0.iid, $0) }, uniquingKeysWith: { first, _ in first })
+        let now = current.filter(isTracked).sorted { $0.iid < $1.iid }
         var changes: [OwnRequestChange] = []
         for request in now {
             guard let old = before[request.iid] else { continue }

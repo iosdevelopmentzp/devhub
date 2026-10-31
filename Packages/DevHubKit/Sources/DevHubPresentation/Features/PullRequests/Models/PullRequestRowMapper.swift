@@ -8,6 +8,7 @@ enum PullRequestRowMapper {
         let username = context.username
         let words = context.words
         let isOpen = request.state == .opened
+        let isWatched = context.watchedIDs.contains(request.iid)
         return PullRequestRowModel(
             id: request.id,
             reference: words.reference(request.iid),
@@ -37,6 +38,9 @@ enum PullRequestRowMapper {
             canSwitchBranch: isOpen && local == .local && context.isMainCheckoutClean,
             worktreePath: worktreePath(local),
             canFixThreads: isOpen && request.openThreadCount > 0,
+            isWatched: isWatched,
+            watchTitle: isOpen ? (isWatched ? "Stop Watching" : "Watch") : nil,
+            watchIcon: isWatched ? "bell.slash" : "bell",
             primaryActions: PullRequestActionMapper.primary(for: request, username: username, words: words),
             actions: PullRequestActionMapper.overflow(for: request, username: username, words: words),
             mergeTitle: "Merge \(words.reference(request.iid)) into \(request.targetBranch)?",
@@ -60,6 +64,9 @@ enum PullRequestRowMapper {
         }
         if context.scope != .reviewing, let username = context.username, ReviewQueuePolicy.needsMyReview(request, username: username) {
             tags.append(TagModel("needs your review", tint: .indigo, systemImage: "eye", hint: "Opened by \(request.author), not a draft, you have not approved it"))
+        }
+        if isOpen, context.watchedIDs.contains(request.iid) {
+            tags.append(TagModel("watching", tint: .teal, systemImage: "bell", hint: "DevHub reports approvals, requests for changes, failed \(context.words.checks), new comments and the merge of this \(context.words.request)"))
         }
         if request.hasConflicts, isOpen {
             tags.append(PullRequestTagMapper.conflictsTag(targetBranch: request.targetBranch, words: context.words))

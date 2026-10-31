@@ -184,7 +184,8 @@ Why: the actions a developer repeats every day are one click away, and a team ca
 - The list has four scopes (mine, reviewing, assigned, all), a state filter (open, merged, closed, all) and three styles (Detailed, Calm, Compact).
 - The details show the description, review threads, changed files with diffs, checks or pipeline jobs and merge readiness.
 - Actions: approve and revoke approval, draft and ready, update branch (rebase on GitLab), merge with optional squash and branch removal, auto-merge, re-run and cancel a check run or pipeline, reply to and resolve a thread, create a new request with labels, "Fix threads with AI" (runs `ai.reviewCommand` in a terminal in the worktree). An action that the host or the repository does not allow is hidden.
-- Every 5 minutes DevHub counts the open requests by other people that wait for your review. The count appears next to the menu bar icon (`3 PR` on GitHub, `3 MR` on GitLab) and can post a notification.
+- Every 5 minutes DevHub counts the open requests by other people that wait for your review. - A request by someone else can be watched from its row menu. DevHub then reads the list every minute and reports an approval, a request for changes, failed checks, a new comment and the merge or close of that request as a "Watched" notification.
+The count appears next to the menu bar icon (`3 PR` on GitHub, `3 MR` on GitLab) and can post a notification.
 - Config actions with the placement `pullRequests.row` are in the row menus.
 
 ### 3.4 Worktrees
