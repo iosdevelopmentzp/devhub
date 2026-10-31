@@ -30,6 +30,8 @@ extension AppEvent {
             "mockSetChanged(\(id))"
         case .pullRequestsChanged:
             "pullRequestsChanged"
+        case .pullRequestChecksChanged(let iid):
+            "pullRequestChecksChanged(\(iid))"
         case .configChanged:
             "configChanged"
         case .refreshRequested(let target):

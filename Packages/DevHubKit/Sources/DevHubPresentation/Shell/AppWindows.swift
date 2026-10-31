@@ -59,6 +59,7 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         assembly.usage.startPolling()
         assembly.openPullRequests.startPolling()
         assembly.inbox.startPolling()
+        assembly.ciAutoRerun.startPolling()
         observeNotificationClicks()
         Task { [assembly] in
             await assembly.config.reload()

@@ -35,6 +35,10 @@ enum PullRequestDetailsMapper {
                     failedJobs: details.jobs.isEmpty ? details.failedJobs.map { PullRequestDetailsModel.JobLink(title: jobTitle($0), url: $0.webURL) } : [],
                     jobsTitle: PipelineJobRowMapper.title(for: details.jobs, words: words),
                     jobGroups: PipelineJobRowMapper.groups(for: details.jobs, review: review, words: words),
+                    autoRerun: autoRerun(review: review),
+                    ciHistoryTitle: review.ciHistory.isEmpty ? nil : "Previous CircleCI runs \(review.ciHistory.count)",
+                    showsCIHistory: review.showsCIHistory,
+                    ciHistory: review.ciHistory.map { CIHistoryRowMapper.model(for: $0, flaky: review.ciFlakyTests, words: words) },
                     reviewLines: PullRequestReviewMapper.lines(for: summary, username: context.username, words: words),
                     description: description(details.description),
                     threadsTitle: details.threads.isEmpty ? "No open threads" : "Open threads \(details.threads.count)",
@@ -52,6 +56,26 @@ enum PullRequestDetailsMapper {
                     files: visible.map { PullRequestFileRowMapper.model(for: $0, review: review, threads: threadRows, words: words) }
                 )
             )
+        )
+    }
+
+    static func autoRerun(review: PullRequestReviewState) -> PullRequestDetailsModel.AutoRerun? {
+        if let plan = review.autoRerunPlan {
+            return PullRequestDetailsModel.AutoRerun(
+                isOn: true,
+                title: "Auto re-run \(plan.attempts) of \(plan.maxAttempts)",
+                icon: "repeat.circle.fill",
+                hint: "DevHub runs the failed CircleCI jobs again each time a workflow fails. \(CountText.count(plan.attemptsLeft, "re-run", "re-runs")) left. Click to stop.",
+                choices: []
+            )
+        }
+        guard review.hasCIProvider, let state = review.ciToolState, CIPolicy.installCommand(for: state) == nil else { return nil }
+        return PullRequestDetailsModel.AutoRerun(
+            isOn: false,
+            title: "Auto re-run",
+            icon: "repeat.circle",
+            hint: "Run the failed CircleCI jobs again each time a workflow fails (circleci workflow rerun --from-failed). DevHub checks every minute and tells you when the checks pass or when it gives up.",
+            choices: CIAutoRerunPolicy.attemptChoices.map { PullRequestDetailsModel.AutoRerun.Choice(count: $0, title: "Up to \(CountText.count($0, "time", "times"))") }
         )
     }
 

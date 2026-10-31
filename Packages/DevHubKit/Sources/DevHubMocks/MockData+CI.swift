@@ -30,6 +30,19 @@ extension MockData {
         CITestResult(className: "ProfileBadgeTests", name: "testBadgeCount", result: "failure", runTime: 0.1, message: "XCTAssertEqual failed: (3) is not equal to (2)"),
     ]
 
+    package static let ciPreviousWorkflow = CIWorkflow(
+        id: "99999999-8888-7777-6666-555555555555",
+        name: "build-and-test",
+        status: .failed,
+        runID: ciRunID,
+        jobs: [
+            CIJob(id: "job-build-1", name: "build", status: .success, isApproval: false),
+            CIJob(id: "job-unit-tests-1", name: "unit-tests", status: .failed, isApproval: false),
+        ]
+    )
+
+    package static let ciPreviousFailedTests: [String: [CITestResult]] = ["job-unit-tests-1": ciFailedTests]
+
     package static let ciFlakyTests: [CIFlakyTest] = [
         CIFlakyTest(className: "LoginViewModelTests", name: "testRetryAfterTimeout", jobName: "unit-tests", workflowName: "build-and-test", timesFlaked: 7),
     ]

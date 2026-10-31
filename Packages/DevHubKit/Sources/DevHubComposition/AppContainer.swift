@@ -14,22 +14,29 @@ public final class AppContainer: NSObject, NSApplicationDelegate {
     override public init() {
         let commandLog = CommandLog()
         let shell = ShellRunner(recorder: CommandLogRecorder(log: commandLog))
-        let ports = Ports.live(shell: shell)
-        let useCases = UseCases(ports: ports)
-        let store = UserDefaultsKeyValueStore(defaults: UserDefaults.standard)
-        let savedProjects = store.decode([Project].self, forKey: PreferenceKeys.projects)
         self.shell = shell
-        assembly = PresentationAssembly(
+        assembly = Self.assembly(shell: shell, commandLog: commandLog)
+        super.init()
+    }
+
+    private static func assembly(shell: ShellRunner, commandLog: CommandLog) -> PresentationAssembly {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["DEVHUB_PORTS"] == "mock" {
+            return PresentationAssembly.preview()
+        }
+        #endif
+        let ports = Ports.live(shell: shell)
+        let store = UserDefaultsKeyValueStore(defaults: UserDefaults.standard)
+        return PresentationAssembly(
             ports: ports,
-            useCases: useCases,
+            useCases: UseCases(ports: ports),
             store: store,
             commandLog: commandLog,
-            projects: savedProjects ?? [],
+            projects: store.decode([Project].self, forKey: PreferenceKeys.projects) ?? [],
             selectedProjectID: store.string(forKey: PreferenceKeys.selectedProject),
             settings: store.decode(AppSettings.self, forKey: PreferenceKeys.settings) ?? AppSettings(),
             recentEvents: store.decode([ActivityEvent].self, forKey: PreferenceKeys.recentEvents) ?? []
         )
-        super.init()
     }
 
     public func applicationDidFinishLaunching(_ notification: Notification) {

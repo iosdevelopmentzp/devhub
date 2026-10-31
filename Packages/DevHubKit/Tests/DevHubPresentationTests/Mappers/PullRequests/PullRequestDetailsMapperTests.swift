@@ -234,4 +234,43 @@ import DevHubTestSupport
         review.ciToolState = CIToolState(isInstalled: true, version: "1.13.0", isLoggedIn: true)
         #expect(PullRequestDetailsMapper.ciNotice(review: review) == nil)
     }
+
+    @Test func theAutoRerunControlFollowsThePlanAndTheTool() throws {
+        var review = PullRequestReviewState.initial
+        #expect(PullRequestDetailsMapper.autoRerun(review: review) == nil)
+
+        review.hasCIProvider = true
+        review.ciToolState = .missing
+        #expect(PullRequestDetailsMapper.autoRerun(review: review) == nil)
+
+        review.ciToolState = CIToolState(isInstalled: true, version: "1.13.0", isLoggedIn: true)
+        let off = try #require(PullRequestDetailsMapper.autoRerun(review: review))
+        #expect(off.isOn == false)
+        #expect(off.title == "Auto re-run")
+        #expect(off.choices.map(\.count) == CIAutoRerunPolicy.attemptChoices)
+        #expect(off.choices.first?.title == "Up to 3 times")
+
+        review.hasCIProvider = false
+        review.autoRerunPlan = CIAutoRerunPlan(iid: 7, maxAttempts: 10, attempts: 9, handledWorkflowIDs: [], lastRerunAt: nil)
+        let on = try #require(PullRequestDetailsMapper.autoRerun(review: review))
+        #expect(on.isOn)
+        #expect(on.title == "Auto re-run 9 of 10")
+        #expect(on.hint.contains("1 re-run left"))
+        #expect(on.choices.isEmpty)
+    }
+
+    @Test func thePreviousCircleCIRunsGetATitle() throws {
+        var withHistory = review(expanded: [])
+        withHistory.ciHistory = [CIWorkflowRecord(workflow: CIWorkflow(id: "w1", name: "build", status: .failed, runID: nil, jobs: []), failedTests: [:], recordedAt: .now)]
+        withHistory.showsCIHistory = true
+
+        let shown = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: withHistory, context: context()))
+        let empty = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: []), context: context()))
+
+        #expect(shown.ciHistoryTitle == "Previous CircleCI runs 1")
+        #expect(shown.showsCIHistory)
+        #expect(shown.ciHistory.map(\.id) == ["w1"])
+        #expect(empty.ciHistoryTitle == nil)
+        #expect(empty.ciHistory.isEmpty)
+    }
 }

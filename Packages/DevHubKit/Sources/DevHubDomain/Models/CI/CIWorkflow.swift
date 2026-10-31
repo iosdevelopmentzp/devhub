@@ -1,6 +1,6 @@
 import Foundation
 
-package struct CIWorkflow: Hashable, Sendable {
+package struct CIWorkflow: Hashable, Sendable, Codable {
     package let id: String
     package let name: String
     package let status: CheckStatus

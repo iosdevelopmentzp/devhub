@@ -591,4 +591,57 @@ import DevHubTestSupport
 
         #expect(harness.spies.ci.calls.first == .toolState(project: CIProject(checkoutPath: harness.worktrees.mainCheckoutPath, slug: "gh/example/app")))
     }
+
+    // MARK: CircleCI history and auto re-run
+
+    @Test func aFinishedWorkflowIsKeptInTheHistoryButNotListedWhileCurrent() async throws {
+        scriptCI()
+
+        await store.load(7)
+        try await waitUntil { harness.ciHistory.records(for: 7).first?.failedTestCount == 1 }
+
+        #expect(harness.ciHistory.records(for: 7).map(\.id) == [workflowID])
+        #expect(store.review(of: 7).ciHistory.isEmpty)
+    }
+
+    @Test func theHistoryListsTheEarlierWorkflows() async throws {
+        scriptCI()
+        let old = CIWorkflow(id: "old-workflow", name: "build-and-test", status: .failed, runID: nil, jobs: [])
+        harness.ciHistory.remember(old, failedTests: [:], for: 7)
+
+        await store.load(7)
+
+        #expect(store.review(of: 7).ciHistory.map(\.id) == ["old-workflow"])
+    }
+
+    @Test func theHistoryOpensClosesAndForgets() {
+        harness.ciHistory.remember(CIWorkflow(id: "old-workflow", name: "build", status: .failed, runID: nil, jobs: []), failedTests: [:], for: 7)
+
+        store.toggleCIHistory(of: 7)
+        let shown = store.review(of: 7).showsCIHistory
+        store.clearCIHistory(of: 7)
+
+        #expect(shown)
+        #expect(store.review(of: 7).showsCIHistory == false)
+        #expect(harness.ciHistory.records(for: 7).isEmpty)
+    }
+
+    @Test func aChecksChangedEventReloadsLoadedDetails() async throws {
+        script()
+        await store.load(7)
+
+        harness.events.post(.pullRequestChecksChanged(iid: 7))
+        harness.events.post(.pullRequestChecksChanged(iid: 8))
+
+        try await waitUntil { harness.spies.codeHost.calls.filter { $0 == .details(iid: 7, repository: remote) }.count == 2 }
+        #expect(harness.spies.codeHost.calls.contains(.details(iid: 8, repository: remote)) == false)
+    }
+
+    @Test func theReviewCarriesTheAutoRerunPlan() {
+        let plan = CIAutoRerunPlan(iid: 7, maxAttempts: 5, attempts: 2, handledWorkflowIDs: [], lastRerunAt: nil)
+        harness.store.encode([plan], forKey: PullRequestsPreferenceKeys.autoRerun(projectID: harness.session.selectedProjectID))
+
+        #expect(store.review(of: 7).autoRerunPlan == plan)
+        #expect(store.review(of: 8).autoRerunPlan == nil)
+    }
 }

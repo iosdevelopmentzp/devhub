@@ -6,6 +6,7 @@ struct PullRequestWindowView: View {
     @Environment(PullRequestsStore.self) private var pullRequests
     @Environment(OpenPullRequestsStore.self) private var openPullRequests
     @Environment(PullRequestDetailStore.self) private var detailStore
+    @Environment(CIAutoRerunStore.self) private var autoRerun
     @Environment(AppActions.self) private var appActions
     @Environment(GitStore.self) private var git
     @Environment(WorktreesStore.self) private var worktrees
@@ -33,7 +34,7 @@ struct PullRequestWindowView: View {
                     isSelected: false,
                     isNarrow: false,
                     isPickingLaunch: isPickingLaunch,
-                    detailActions: PullRequestDetailActions.live(for: summary, detailStore: detailStore, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: nil),
+                    detailActions: PullRequestDetailActions.live(for: summary, detailStore: detailStore, autoRerun: autoRerun, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: nil),
                     onToggle: {},
                     onRequestLaunch: { isPickingLaunch = true },
                     onCancelLaunch: { isPickingLaunch = false },

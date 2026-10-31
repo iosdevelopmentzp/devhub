@@ -190,6 +190,22 @@ A GitHub project can run its checks on CircleCI. GitHub then shows one check per
 4. The group header has "Re-run Failed" and "Re-run All" when the workflow is finished, and "Cancel" (inline confirmation) while it runs or waits. The retry button of a failed job runs the failed jobs of its workflow again. A job that waits for approval has an Approve button with an inline confirmation. After an action DevHub reads the request again; a re-run makes a new workflow, which shows when GitHub reports it.
 5. While the workflow is read, the GitHub rows say "Reading the CircleCI workflow…"; when the read fails, they say "CircleCI: <error>" and the failure is in Recent.
 
+### Previous runs
+
+DevHub keeps every finished CircleCI workflow it reads for a request: the workflow, the state of its jobs and the failed tests with their messages. A re-run makes a new workflow, so the failed run moves under "Previous CircleCI runs N" below the jobs, folded by default. A row shows the workflow name, its state, when DevHub first read it and the number of failed jobs and tests. A click on the chevron lists the failed jobs and their tests; the message of a test opens behind its own chevron. "Forget" removes the saved runs of the request.
+
+The runs are saved per project and request (`gitlab.ciHistory.<project>.<number>`), at most 20 per request, at most 50 tests per job and 4000 characters per message. DevHub saves a run only when it reads it: when the details are open, or when the auto re-run below runs it again.
+
+### Auto re-run
+
+"Auto re-run" on the line of the checks title runs the failed jobs of a CircleCI workflow again each time the workflow fails. The menu sets the most re-runs: 3, 5, 10 or 20. The button then shows "Auto re-run 2 of 10"; a click stops it.
+
+1. DevHub checks the request at once and then every minute while DevHub runs (the checks of the request, then `circleci workflow get <uuid> --json` for each CircleCI workflow), also when the panel is closed. The plans are saved per project (`gitlab.autoRerun.<project>`), so they go on after DevHub starts again.
+2. A failed workflow is saved under "Previous CircleCI runs", then runs again with `circleci workflow rerun <uuid> --from-failed`. Each re-run of a workflow counts as one try. Recent and a notification say "Re-run 2 of 10: <workflow> of #N".
+3. The workflow that ran again waits up to 10 minutes for its new workflow to show in GitHub. After that DevHub stops waiting for it.
+4. The plan ends when every workflow passes ("Checks of #N passed"), when a workflow is cancelled ("Auto re-run of #N stopped") or when a workflow fails after the last try ("Auto re-run of #N gave up"). Each end is a line in Recent and a notification of the "Checks of my requests" kind.
+5. A running workflow or one that waits for approval keeps the plan waiting. A read error goes to Recent once until it changes.
+
 ### Commands
 
 Every command runs in the main checkout, so the tool resolves the project from `.circleci/info.yml` or the remote `origin`. With `ci.project`, every command also gets `--project <slug>`.
@@ -236,6 +252,9 @@ The reads are `.read` in the Output panel; re-run, cancel and approve are action
 | `gitlab.listStyle` | Detailed, Calm or Compact | Detailed |
 | `gitlab.listFraction` | The width of the list in the side-by-side layout | 0.42 |
 | `gitlab.seenAt.<scope>` | The time of your last visit to each scope (the blue "new" dot) | — |
+| `gitlab.watched.<project>` | The requests you watch | none |
+| `gitlab.autoRerun.<project>` | The CircleCI auto re-run plans: request, most re-runs, re-runs done, workflows already run again | none |
+| `gitlab.ciHistory.<project>.<number>` | The earlier CircleCI workflows of a request with their failed tests | none |
 | `app.settings` | `ticketURLTemplate`, `editor`, `terminal` | — |
 
 The keys start with `gitlab.` for both hosts. The "Viewed" marks, open files and open threads live in memory until DevHub quits.

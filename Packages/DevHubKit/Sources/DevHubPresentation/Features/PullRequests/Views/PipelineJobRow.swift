@@ -101,7 +101,10 @@ struct PipelineJobRow: View {
                     .padding(.leading, 24)
             }
             ForEach(model.failedTests) { test in
-                failedTest(test)
+                FailedTestLine(model: test, isExpanded: expandedTestIDs.contains(test.id)) {
+                    toggleMessage(of: test)
+                }
+                .padding(.leading, 24)
             }
             if model.isLogOpen, let log = model.log {
                 logView(log)
@@ -109,49 +112,6 @@ struct PipelineJobRow: View {
         }
         .animation(.snappy(duration: 0.18), value: isConfirmingApprove)
         .animation(.snappy(duration: 0.18), value: expandedTestIDs)
-    }
-
-    private func failedTest(_ test: PipelineJobRowModel.FailedTest) -> some View {
-        let isExpanded = expandedTestIDs.contains(test.id)
-        return VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 6) {
-                Image(systemName: "xmark")
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(.red)
-                Text(test.title)
-                    .font(.caption.monospaced())
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .hintWhenTruncated(test.title)
-                    .copyOnClick(test.title, label: "Test name")
-                if let flakyText = test.flakyText {
-                    Tag(flakyText, tint: .orange, systemImage: "shuffle")
-                        .hint("This test is in the flaky list of CircleCI Insights: it failed and then passed on a re-run")
-                }
-                if test.message != nil {
-                    Button {
-                        toggleMessage(of: test)
-                    } label: {
-                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 12, height: 12)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .hint(isExpanded ? "Hide the message" : "Show the message")
-                }
-            }
-            if isExpanded, let message = test.message {
-                Text(message)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .textSelection(.enabled)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.leading, 16)
-            }
-        }
-        .padding(.leading, 24)
     }
 
     private func toggleMessage(of test: PipelineJobRowModel.FailedTest) {

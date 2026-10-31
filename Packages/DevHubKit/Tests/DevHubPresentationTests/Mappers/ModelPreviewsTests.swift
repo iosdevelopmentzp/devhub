@@ -69,5 +69,6 @@ import Testing
         #expect(WorktreeSectionModel.preview.id == "In progress")
         #expect(TestRunPanelModel.preview.failures.count == 1)
         #expect(TestFailureRowModel.preview.line == 42)
+        #expect(CIHistoryRowModel.preview.failedJobs.count == 1)
     }
 }

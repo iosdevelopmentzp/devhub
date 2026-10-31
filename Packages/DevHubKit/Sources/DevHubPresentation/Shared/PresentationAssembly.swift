@@ -27,6 +27,9 @@ package final class PresentationAssembly {
     let changes: GitChangesStore
     let history: CommitHistoryStore
     let codeHostRemote: CodeHostRemote
+    let ciProjects: CIProjectResolver
+    let ciHistory: CIWorkflowHistory
+    let ciAutoRerun: CIAutoRerunStore
     let branchPullRequest: BranchPullRequestStore
     let pullRequests: PullRequestsStore
     let openPullRequests: OpenPullRequestsStore
@@ -114,17 +117,31 @@ package final class PresentationAssembly {
         history = CommitHistoryStore(repository: ports.changes, checkout: git, activity: activity, events: events, store: store)
         branchPullRequest = BranchPullRequestStore(repository: ports.codeHost, checkout: git, events: events)
         codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
+        ciProjects = CIProjectResolver(config: config, worktrees: worktrees, remote: codeHostRemote, tools: ports.tools, events: events)
+        ciHistory = CIWorkflowHistory(session: session, events: events, store: store)
         pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
         openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
         inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
+        ciAutoRerun = CIAutoRerunStore(
+            repository: ports.codeHost,
+            ci: ports.ci,
+            projects: ciProjects,
+            history: ciHistory,
+            remote: codeHostRemote,
+            session: session,
+            activity: activity,
+            notifier: notifier,
+            events: events,
+            store: store
+        )
         pullRequestDetails = PullRequestDetailStore(
             repository: ports.codeHost,
             ci: ports.ci,
             remote: codeHostRemote,
             prompts: ports.reviewPrompts,
-            config: config,
-            worktrees: worktrees,
-            tools: ports.tools,
+            projects: ciProjects,
+            history: ciHistory,
+            autoRerun: ciAutoRerun,
             activity: activity,
             events: events
         )

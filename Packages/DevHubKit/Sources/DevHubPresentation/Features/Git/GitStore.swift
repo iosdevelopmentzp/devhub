@@ -94,7 +94,7 @@ final class GitStore: CheckoutContext {
             case .refreshRequested(.git):
                 guard state != nil, isBusy == false else { return }
                 Task { await self.refresh() }
-            case .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .configChanged, .appStateReported, .refreshRequested:
+            case .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .pullRequestChecksChanged, .configChanged, .appStateReported, .refreshRequested:
                 break
             }
         }

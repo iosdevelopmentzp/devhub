@@ -18,6 +18,19 @@ struct PullRequestDetailsModel: Equatable {
         var command: String
     }
 
+    struct AutoRerun: Equatable {
+        struct Choice: Equatable, Hashable {
+            var count: Int
+            var title: String
+        }
+
+        var isOn: Bool
+        var title: String
+        var icon: String
+        var hint: String
+        var choices: [Choice]
+    }
+
     struct Loaded: Equatable {
         var pipelineTag: TagModel?
         var pipelineURL: URL?
@@ -27,6 +40,10 @@ struct PullRequestDetailsModel: Equatable {
         var failedJobs: [JobLink]
         var jobsTitle: String
         var jobGroups: [PipelineJobGroupModel]
+        var autoRerun: AutoRerun?
+        var ciHistoryTitle: String?
+        var showsCIHistory: Bool
+        var ciHistory: [CIHistoryRowModel]
         var reviewLines: [PullRequestReviewLineModel]
         var description: AttributedString?
         var threadsTitle: String
@@ -57,6 +74,10 @@ struct PullRequestDetailsModel: Equatable {
                 failedJobs: [],
                 jobsTitle: "Pipeline 1 · 1 failed",
                 jobGroups: [.preview, .previewCircleCI],
+                autoRerun: AutoRerun(isOn: true, title: "Auto re-run 2 of 10", icon: "repeat.circle.fill", hint: "DevHub runs the failed CircleCI jobs again each time a workflow fails. 8 re-runs left. Click to stop.", choices: []),
+                ciHistoryTitle: "Previous CircleCI runs 1",
+                showsCIHistory: true,
+                ciHistory: [.preview],
                 reviewLines: [
                     .preview,
                     PullRequestReviewLineModel(id: "waiting", title: "Waiting for", tags: [TagModel("sam", tint: .orange, systemImage: "hourglass", hint: "Review requested from sam, no answer yet")]),

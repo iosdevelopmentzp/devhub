@@ -7,6 +7,7 @@ struct PullRequestsView: View {
     @Environment(PullRequestsStore.self) private var pullRequests
     @Environment(OpenPullRequestsStore.self) private var openPullRequests
     @Environment(PullRequestDetailStore.self) private var detailStore
+    @Environment(CIAutoRerunStore.self) private var autoRerun
     @Environment(Toaster.self) private var toaster
     @Environment(\.panelOpenCount) private var openCount
     @Environment(\.openPullRequestWindow) private var openPullRequestWindow
@@ -249,7 +250,7 @@ struct PullRequestsView: View {
     }
 
     private func detailActions(for summary: PullRequestSummary) -> PullRequestDetailActions {
-        PullRequestDetailActions.live(for: summary, detailStore: detailStore, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: openPullRequestWindow)
+        PullRequestDetailActions.live(for: summary, detailStore: detailStore, autoRerun: autoRerun, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: openPullRequestWindow)
     }
 
     private func details(for summary: PullRequestSummary) -> PullRequestDetailsModel {

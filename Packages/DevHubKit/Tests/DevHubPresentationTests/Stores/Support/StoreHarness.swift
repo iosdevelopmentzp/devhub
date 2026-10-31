@@ -128,6 +128,23 @@ final class StoreHarness {
 
     lazy var codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
 
+    lazy var ciProjects = CIProjectResolver(config: config, worktrees: worktrees, remote: codeHostRemote, tools: ports.tools, events: events)
+
+    lazy var ciHistory = CIWorkflowHistory(session: session, events: events, store: store)
+
+    lazy var ciAutoRerun = CIAutoRerunStore(
+        repository: ports.codeHost,
+        ci: ports.ci,
+        projects: ciProjects,
+        history: ciHistory,
+        remote: codeHostRemote,
+        session: session,
+        activity: activity,
+        notifier: notifier,
+        events: events,
+        store: store
+    )
+
     lazy var pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
 
     lazy var openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
@@ -139,9 +156,9 @@ final class StoreHarness {
         ci: ports.ci,
         remote: codeHostRemote,
         prompts: ports.reviewPrompts,
-        config: config,
-        worktrees: worktrees,
-        tools: ports.tools,
+        projects: ciProjects,
+        history: ciHistory,
+        autoRerun: ciAutoRerun,
         activity: activity,
         events: events
     )

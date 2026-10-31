@@ -5,7 +5,7 @@ import DevHubUI
 
 extension PresentationAssembly {
 
-    static func preview() -> PresentationAssembly {
+    package static func preview() -> PresentationAssembly {
         let ports = Ports.mock()
         let assembly = PresentationAssembly(
             ports: ports,
@@ -23,6 +23,7 @@ extension PresentationAssembly {
         assembly.identity.apps = MockData.installedApps
         assembly.usage.usage = MockData.usage
         assembly.usage.copilot = MockData.copilotUsage
+        assembly.ciHistory.remember(MockData.ciPreviousWorkflow, failedTests: MockData.ciPreviousFailedTests, for: 1842)
         return assembly
     }
 }

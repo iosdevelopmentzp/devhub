@@ -17,7 +17,7 @@ A code host is the web service that keeps the repository and its review requests
 | GitHub | `DevHubData/GitHub/`: `GhClient`, `GhPullRequestRepository`, `GhGraphQLQueries`, `GhPullRequestParser`, `GhCheckParser`, `GhDiffParser`, `GhCreatedPullRequestParser` |
 | GitLab | `DevHubData/Git/`: `GlabClient`, `GlabPullRequestRepository`, `GlabGraphQLQueries`, `GlabGraphQLParser`, `GlabPullRequestParser`, `GlabDiffParser`, `GlabCreatedPullRequestParser` |
 | Router and errors | `DevHubData/CodeHost/RoutingCodeHostRepository.swift`, `DevHubData/Git/CodeHostErrorMapper.swift` |
-| CircleCI | `DevHubDomain/Repositories/CIRepository.swift`, `CIPolicy`, `CIWorkflowLink`, `CircleCIStatusMapper`, `FlakyTestPolicy`; `DevHubData/CircleCI/`; `MockCIRepository`, `SpyCIRepository`. A GitHub check that links to CircleCI carries `PipelineJob.ciWorkflowID`, and `PullRequestDetailStore` reads the workflow through the port (ADR 006, the CircleCI section of the pull-requests page) |
+| CircleCI | `DevHubDomain/Repositories/CIRepository.swift`, `CIPolicy`, `CIWorkflowLink`, `CircleCIStatusMapper`, `FlakyTestPolicy`; `DevHubData/CircleCI/`; `MockCIRepository`, `SpyCIRepository`. A GitHub check that links to CircleCI carries `PipelineJob.ciWorkflowID`, and `PullRequestDetailStore` reads the workflow through the port. `CIProjectResolver` holds the provider and slug rules, `CIWorkflowHistory` saves the earlier runs, `CIAutoRerunStore` runs the failed jobs again (ADR 006, the CircleCI section of the pull-requests page) |
 | Wiring | `DevHubData/Assembly/Ports+Live.swift` (`codeHost:`) |
 | Mock | `DevHubMocks/MockCodeHostRepository.swift`, `MockData+PullRequests.swift` |
 | Spy | `DevHubTestSupport/SpyCodeHostRepository.swift`, `CodeHost+Sample.swift` |

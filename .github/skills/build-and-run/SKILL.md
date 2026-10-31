@@ -53,6 +53,7 @@ Debug builds only. `DevHubComposition/Debug/DebugLaunch.swift` reads them and ca
 |---|---|
 | `DEVHUB_PROJECT=<path>` | adds and selects a project (saved) |
 | `DEVHUB_PULL_REQUEST=<n>` | shows the Pull Requests tab and opens request `n` |
+| `DEVHUB_PORTS=mock` | starts the app on `PresentationAssembly.preview()`: mock ports, an in-memory store and the sample projects, nothing saved. With `DEVHUB_OPEN_PANEL=1 DEVHUB_PULL_REQUEST=1842` the details show the mock CircleCI workflow, the auto re-run menu and one earlier run |
 | `DEVHUB_WINDOW_MODE=panel\|window` | sets the window mode (saved). In window mode `DEVHUB_OPEN_PANEL` shows the main window and `DEVHUB_SNAPSHOT` draws it |
 | `DEVHUB_RUN_ACTION=<id>[,<id>]` | runs config actions with their default inputs |
 | `DEVHUB_REQUEST_ACTION=<id>` | opens the input prompt of one action on Home |

@@ -126,9 +126,15 @@ struct PullRequestDetailsView: View {
 
     private func jobs(_ loaded: PullRequestDetailsModel.Loaded) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(loaded.jobsTitle)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                Text(loaded.jobsTitle)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 4)
+                if let autoRerun = loaded.autoRerun {
+                    autoRerunControl(autoRerun)
+                }
+            }
             ForEach(loaded.jobGroups) { group in
                 VStack(alignment: .leading, spacing: 4) {
                     if let title = group.title {
@@ -158,8 +164,71 @@ struct PullRequestDetailsView: View {
                     }
                 }
             }
+            if let historyTitle = loaded.ciHistoryTitle {
+                ciHistory(loaded, title: historyTitle)
+            }
         }
         .animation(.snappy(duration: 0.18), value: confirmingCancelWorkflowID)
+        .animation(.snappy(duration: 0.18), value: loaded.showsCIHistory)
+    }
+
+    @ViewBuilder
+    private func autoRerunControl(_ model: PullRequestDetailsModel.AutoRerun) -> some View {
+        if model.isOn {
+            Button(model.title, systemImage: model.icon, action: actions.stopAutoRerun)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                .fixedSize()
+                .hint(model.hint)
+        } else {
+            Menu {
+                ForEach(model.choices, id: \.self) { choice in
+                    Button(choice.title) {
+                        actions.startAutoRerun(choice.count)
+                    }
+                }
+            } label: {
+                Label(model.title, systemImage: model.icon)
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .hint(model.hint)
+        }
+    }
+
+    private func ciHistory(_ loaded: PullRequestDetailsModel.Loaded, title: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                Button {
+                    actions.toggleCIHistory()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: loaded.showsCIHistory ? "chevron.down" : "chevron.right")
+                            .font(.caption2.weight(.semibold))
+                        Text(title)
+                            .font(.caption.weight(.semibold))
+                    }
+                    .foregroundStyle(.secondary)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .hint("The CircleCI workflows DevHub read for this \(words.request) before, with their failed tests")
+                if loaded.showsCIHistory {
+                    Button("Forget") {
+                        actions.clearCIHistory()
+                    }
+                    .buttonStyle(LinkButtonStyle(.secondary))
+                    .hint("Remove the saved runs of this \(words.request) from DevHub")
+                }
+            }
+            if loaded.showsCIHistory {
+                ForEach(loaded.ciHistory) { record in
+                    CIHistoryRow(model: record)
+                        .padding(.leading, 12)
+                }
+            }
+        }
+        .padding(.top, 4)
     }
 
     private func groupHeader(_ group: PipelineJobGroupModel, title: String) -> some View {

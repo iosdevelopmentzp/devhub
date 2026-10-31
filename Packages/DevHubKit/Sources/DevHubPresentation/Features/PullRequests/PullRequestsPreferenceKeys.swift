@@ -15,4 +15,12 @@ enum PullRequestsPreferenceKeys {
     static func watched(projectID: String) -> String {
         "gitlab.watched.\(projectID)"
     }
+
+    static func ciHistory(projectID: String, iid: Int) -> String {
+        "gitlab.ciHistory.\(projectID).\(iid)"
+    }
+
+    static func autoRerun(projectID: String) -> String {
+        "gitlab.autoRerun.\(projectID)"
+    }
 }

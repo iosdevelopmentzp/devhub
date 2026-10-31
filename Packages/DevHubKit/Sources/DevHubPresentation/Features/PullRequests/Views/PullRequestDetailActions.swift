@@ -29,6 +29,10 @@ struct PullRequestDetailActions {
     let rerunWorkflow: (_ workflowID: String, _ fromFailed: Bool) -> Void
     let cancelWorkflow: (_ workflowID: String) -> Void
     let runCISetup: (_ command: String) -> Void
+    let startAutoRerun: (_ maxAttempts: Int) -> Void
+    let stopAutoRerun: () -> Void
+    let toggleCIHistory: () -> Void
+    let clearCIHistory: () -> Void
     let cancelPipeline: () -> Void
     let fixThreads: (AIProvider) -> Void
     let runConfigAction: (_ actionID: ConfigActionItemModel.ID) -> Void
@@ -63,6 +67,10 @@ struct PullRequestDetailActions {
         rerunWorkflow: { _, _ in },
         cancelWorkflow: { _ in },
         runCISetup: { _ in },
+        startAutoRerun: { _ in },
+        stopAutoRerun: {},
+        toggleCIHistory: {},
+        clearCIHistory: {},
         cancelPipeline: {},
         fixThreads: { _ in },
         runConfigAction: { _ in },
@@ -99,6 +107,10 @@ struct PullRequestDetailActions {
             rerunWorkflow: rerunWorkflow,
             cancelWorkflow: cancelWorkflow,
             runCISetup: runCISetup,
+            startAutoRerun: startAutoRerun,
+            stopAutoRerun: stopAutoRerun,
+            toggleCIHistory: toggleCIHistory,
+            clearCIHistory: clearCIHistory,
             cancelPipeline: cancelPipeline,
             fixThreads: fixThreads,
             runConfigAction: runConfigAction,
@@ -113,6 +125,7 @@ extension PullRequestDetailActions {
     static func live(
         for summary: PullRequestSummary,
         detailStore: PullRequestDetailStore,
+        autoRerun: CIAutoRerunStore,
         pullRequests: PullRequestsStore,
         appActions: AppActions,
         configActions: ConfigActionsStore,
@@ -149,6 +162,10 @@ extension PullRequestDetailActions {
             rerunWorkflow: { detailStore.rerunWorkflow($0, fromFailed: $1, of: id) },
             cancelWorkflow: { detailStore.cancelWorkflow($0, of: id) },
             runCISetup: { appActions.runInTerminal($0, at: detailStore.ciCheckoutPath, title: "Started the CircleCI setup in Terminal") },
+            startAutoRerun: { autoRerun.start(id, maxAttempts: $0) },
+            stopAutoRerun: { autoRerun.stop(id) },
+            toggleCIHistory: { detailStore.toggleCIHistory(of: id) },
+            clearCIHistory: { detailStore.clearCIHistory(of: id) },
             cancelPipeline: { pullRequests.perform(.cancelPipeline, on: id) },
             fixThreads: { appActions.fixThreads(with: $0, summary) },
             runConfigAction: { actionID in

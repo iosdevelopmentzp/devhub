@@ -1,6 +1,6 @@
 import Foundation
 
-package enum CheckStatus: Hashable, Sendable {
+package enum CheckStatus: Hashable, Sendable, Codable {
     case success
     case failed
     case running

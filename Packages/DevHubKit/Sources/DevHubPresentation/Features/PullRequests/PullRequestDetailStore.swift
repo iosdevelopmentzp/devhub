@@ -30,6 +30,7 @@ final class PullRequestDetailStore {
     private(set) var ciFailedTests: [String: [CITestResult]] = [:]
     private(set) var ciFlakyTests: [CIFlakyTest] = []
     private(set) var ciBusyWorkflows: Set<String> = []
+    private(set) var shownCIHistory: Set<PullRequestSummary.ID> = []
 
     enum CommentKind {
         case comment
@@ -40,14 +41,13 @@ final class PullRequestDetailStore {
     @ObservationIgnored private let ci: any CIRepository
     @ObservationIgnored private let remote: any CodeHostLookup
     @ObservationIgnored private let prompts: any ReviewPromptRepository
-    @ObservationIgnored private let config: ConfigStore
-    @ObservationIgnored private let worktrees: any WorktreeLookup
-    @ObservationIgnored private let tools: any ToolLocating
+    @ObservationIgnored private let projects: CIProjectResolver
+    @ObservationIgnored private let history: CIWorkflowHistory
+    @ObservationIgnored private let autoRerun: any CIAutoRerunLookup
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private var loading: Set<PullRequestSummary.ID> = []
     @ObservationIgnored private var ciLoading: Set<String> = []
     @ObservationIgnored private var ciFlakyLoaded = false
-    @ObservationIgnored private var ciProjectCache: CIProject?
     @ObservationIgnored private var subscription: SubscriptionToken?
 
     private static let failedTestJobLimit = 5
@@ -61,9 +61,9 @@ final class PullRequestDetailStore {
         ci: any CIRepository,
         remote: any CodeHostLookup,
         prompts: any ReviewPromptRepository,
-        config: ConfigStore,
-        worktrees: any WorktreeLookup,
-        tools: any ToolLocating,
+        projects: CIProjectResolver,
+        history: CIWorkflowHistory,
+        autoRerun: any CIAutoRerunLookup,
         activity: ActivityLog,
         events: AppEvents
     ) {
@@ -71,29 +71,41 @@ final class PullRequestDetailStore {
         self.ci = ci
         self.remote = remote
         self.prompts = prompts
-        self.config = config
-        self.worktrees = worktrees
-        self.tools = tools
+        self.projects = projects
+        self.history = history
+        self.autoRerun = autoRerun
         self.activity = activity
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
-            guard case .projectChanged = event else { return }
-            resetCI()
-            details = [:]
-            diffs = [:]
-            errors = [:]
-            expandedFiles = [:]
-            viewedFiles = [:]
-            openDiffThreads = []
-            shownHiddenFiles = []
-            commentDrafts = [:]
-            lineComment = nil
-            jobLogs = [:]
-            openJobLogs = []
-            fullFiles = [:]
-            fileContents = [:]
-            focus = nil
+            switch event {
+            case .projectChanged:
+                resetProject()
+            case .pullRequestChecksChanged(let iid):
+                guard details[iid] != nil else { return }
+                Task { await self.reload(iid) }
+            default:
+                break
+            }
         }
+    }
+
+    private func resetProject() {
+        resetCI()
+        shownCIHistory = []
+        details = [:]
+        diffs = [:]
+        errors = [:]
+        expandedFiles = [:]
+        viewedFiles = [:]
+        openDiffThreads = []
+        shownHiddenFiles = []
+        commentDrafts = [:]
+        lineComment = nil
+        jobLogs = [:]
+        openJobLogs = []
+        fullFiles = [:]
+        fileContents = [:]
+        focus = nil
     }
 
     func isLoaded(_ id: PullRequestSummary.ID) -> Bool {
@@ -128,7 +140,10 @@ final class PullRequestDetailStore {
             ciWorkflowErrors: ciWorkflowErrors,
             ciFailedTests: ciFailedTests,
             ciFlakyTests: ciFlakyTests,
-            ciBusyWorkflows: ciBusyWorkflows
+            ciBusyWorkflows: ciBusyWorkflows,
+            ciHistory: CIHistoryPolicy.previous(in: history.records(for: id), current: Set(details[id]?.jobs.compactMap(\.ciWorkflowID) ?? [])),
+            showsCIHistory: shownCIHistory.contains(id),
+            autoRerunPlan: autoRerun.plan(for: id)
         )
     }
 
@@ -252,6 +267,7 @@ final class PullRequestDetailStore {
             let (description, files) = try await (loadedDetails, loadedDiffs)
             details[id] = description
             diffs[id] = files
+            history.load(id)
             loadCI(of: id)
         } catch is CancellationError {
         } catch {
@@ -362,7 +378,7 @@ final class PullRequestDetailStore {
         openJobLogs.insert(jobID)
         if case .loaded = jobLogs[jobID] { return }
         jobLogs[jobID] = .loading
-        let ciProject = ciWorkflow(containing: jobID) == nil ? nil : ciProject(for: [])
+        let ciProject = ciWorkflow(containing: jobID) == nil ? nil : projects.project(for: [])
         Task { [weak self] in
             guard let self else { return }
             do {
@@ -432,13 +448,24 @@ final class PullRequestDetailStore {
     // MARK: - CI
 
     var ciCheckoutPath: String {
-        worktrees.mainCheckoutPath
+        projects.checkoutPath
     }
 
     var ciProvider: CIProvider? {
-        let checkout = worktrees.mainCheckoutPath
-        let hasConfigFile = tools.fileExists(atPath: CIPolicy.circleCIConfigPath(checkoutPath: checkout))
-        return CIPolicy.provider(config: config.resolved.project.ci, hasCircleCIConfig: hasConfigFile)
+        projects.provider
+    }
+
+    func toggleCIHistory(of id: PullRequestSummary.ID) {
+        if shownCIHistory.contains(id) {
+            shownCIHistory.remove(id)
+        } else {
+            shownCIHistory.insert(id)
+        }
+    }
+
+    func clearCIHistory(of id: PullRequestSummary.ID) {
+        history.clear(id)
+        shownCIHistory.remove(id)
     }
 
     func ciWorkflow(containing jobID: String) -> CIWorkflow? {
@@ -470,7 +497,7 @@ final class PullRequestDetailStore {
     private func runCI(workflowID: String, of id: PullRequestSummary.ID, _ title: String, _ work: @escaping @Sendable (CIProject) async throws -> Void) {
         guard ciBusyWorkflows.contains(workflowID) == false else { return }
         ciBusyWorkflows.insert(workflowID)
-        let project = ciProject(for: details[id]?.jobs ?? [])
+        let project = projects.project(for: details[id]?.jobs ?? [])
         Task { [weak self] in
             guard let self else { return }
             do {
@@ -486,22 +513,7 @@ final class PullRequestDetailStore {
     }
 
     private func hasCIProvider(for id: PullRequestSummary.ID) -> Bool {
-        guard details[id]?.jobs.contains(where: { $0.ciWorkflowID != nil }) == true else { return false }
-        return ciProvider != nil
-    }
-
-    private func ciProject(for jobs: [PipelineJob]) -> CIProject {
-        if let ciProjectCache {
-            return ciProjectCache
-        }
-        let linkSlug = jobs.lazy.compactMap { CIWorkflowLink.parse($0.webURL?.absoluteString)?.slug }.first
-        let remoteSlug = remote.current.flatMap { $0.kind == .github ? "gh/\($0.path)" : nil }
-        let slug = config.resolved.project.ci?.project ?? linkSlug ?? remoteSlug
-        let project = CIProject(checkoutPath: worktrees.mainCheckoutPath, slug: slug)
-        if slug != nil {
-            ciProjectCache = project
-        }
-        return project
+        projects.hasProvider(for: details[id]?.jobs ?? [])
     }
 
     private func loadCI(of id: PullRequestSummary.ID) {
@@ -511,7 +523,7 @@ final class PullRequestDetailStore {
             missing.append(workflowID)
         }
         guard missing.isEmpty == false, ciProvider != nil else { return }
-        let project = ciProject(for: jobs)
+        let project = projects.project(for: jobs)
         let workflowIDs = missing
         ciLoading.formUnion(workflowIDs)
         Task { [weak self] in
@@ -519,7 +531,7 @@ final class PullRequestDetailStore {
             defer { ciLoading.subtract(workflowIDs) }
             guard await checkCITool(project: project) else { return }
             for workflowID in workflowIDs {
-                await loadCIWorkflow(workflowID, project: project)
+                await loadCIWorkflow(workflowID, project: project, of: id)
             }
         }
     }
@@ -538,12 +550,13 @@ final class PullRequestDetailStore {
         }
     }
 
-    private func loadCIWorkflow(_ workflowID: String, project: CIProject) async {
+    private func loadCIWorkflow(_ workflowID: String, project: CIProject, of id: PullRequestSummary.ID) async {
         do {
             let workflow = try await ci.workflow(id: workflowID, project: project)
             ciWorkflows[workflowID] = workflow
             ciWorkflowErrors[workflowID] = nil
             await loadCIFailedTests(of: workflow, project: project)
+            history.remember(workflow, failedTests: ciFailedTests, for: id)
         } catch {
             ciWorkflowErrors[workflowID] = error.localizedDescription
             activity.log("Cannot read the CircleCI workflow", detail: error.localizedDescription, outcome: .failure)
@@ -591,6 +604,5 @@ final class PullRequestDetailStore {
         ciFlakyTests = []
         ciBusyWorkflows = []
         ciFlakyLoaded = false
-        ciProjectCache = nil
     }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-package struct CITestResult: Hashable, Sendable {
+package struct CITestResult: Hashable, Sendable, Codable {
     package let className: String
     package let name: String
     package let result: String

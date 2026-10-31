@@ -25,6 +25,9 @@ struct PullRequestReviewState: Equatable {
     var ciFailedTests: [String: [CITestResult]] = [:]
     var ciFlakyTests: [CIFlakyTest] = []
     var ciBusyWorkflows: Set<String> = []
+    var ciHistory: [CIWorkflowRecord] = []
+    var showsCIHistory = false
+    var autoRerunPlan: CIAutoRerunPlan?
 
     static let initial = PullRequestReviewState(expandedFiles: [], viewedFiles: [], focus: nil, busyThreads: [], showsThreadsInDiff: true, openDiffThreads: [])
 }

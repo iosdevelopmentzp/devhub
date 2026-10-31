@@ -37,7 +37,7 @@ final class SimulatorsStore: SimulatorLookup {
             switch event {
             case .buildFinished, .appLaunched, .refreshRequested(.simulators):
                 Task { await self.refresh() }
-            case .projectChanged, .branchesChanged, .worktreesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .configChanged, .appStateReported, .refreshRequested:
+            case .projectChanged, .branchesChanged, .worktreesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .pullRequestChecksChanged, .configChanged, .appStateReported, .refreshRequested:
                 break
             }
         }

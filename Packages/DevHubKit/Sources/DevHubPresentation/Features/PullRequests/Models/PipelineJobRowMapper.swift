@@ -137,14 +137,16 @@ enum PipelineJobRowMapper {
             approveHint: "Approve this job: the jobs that wait for it start (circleci run approve)",
             noteText: nil,
             flakyTag: flakyTag(flakyCount: flakyCount, failedCount: failedTests.count),
-            failedTests: failedTests.map { test in
-                PipelineJobRowModel.FailedTest(
-                    id: "\(test.className).\(test.name)",
-                    title: test.className.isEmpty ? test.name : "\(test.className).\(test.name)",
-                    message: test.message,
-                    flakyText: FlakyTestPolicy.timesFlaked(test, in: review.ciFlakyTests).map { "flaky · flaked \(CountText.count($0, "time", "times"))" }
-                )
-            }
+            failedTests: failedTests.map { failedTest($0, flaky: review.ciFlakyTests) }
+        )
+    }
+
+    static func failedTest(_ test: CITestResult, flaky: [CIFlakyTest]) -> PipelineJobRowModel.FailedTest {
+        PipelineJobRowModel.FailedTest(
+            id: "\(test.className).\(test.name)",
+            title: test.className.isEmpty ? test.name : "\(test.className).\(test.name)",
+            message: test.message,
+            flakyText: FlakyTestPolicy.timesFlaked(test, in: flaky).map { "flaky · flaked \(CountText.count($0, "time", "times"))" }
         )
     }
 
@@ -167,7 +169,7 @@ enum PipelineJobRowMapper {
         return CIPolicy.installCommand(for: state) == nil ? "Reading the CircleCI workflow…" : nil
     }
 
-    private static func ciStatusText(_ status: CheckStatus, words: CodeHostWords) -> String {
+    static func ciStatusText(_ status: CheckStatus, words: CodeHostWords) -> String {
         status == .manual ? "on hold" : words.status(status)
     }
 
