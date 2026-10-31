@@ -13,6 +13,7 @@ struct PullRequestFileRow: View {
                     scrollScope: model.id,
                     highlightedLineID: model.highlightedLineID,
                     onOpenLine: { actions.openFile(model.path, $0) },
+                    onOpenLineOnWeb: { actions.openFileOnWeb(model.path, $0) },
                     onCommentLine: { actions.startLineComment(model.path, model.oldPath, $0) }
                 ) { lineID in
                     if let composer = model.lineComposer, composer.lineID == lineID {
@@ -85,6 +86,16 @@ struct PullRequestFileRow: View {
                 .font(.caption)
                 .fixedSize()
                 .hint("Mark the file as viewed: it folds and its name turns grey. DevHub keeps the mark until it quits.")
+            if let fullHint = model.fullHint {
+                IconButton(systemImage: "text.justify.leading", help: fullHint, tint: model.isFull ? .accentColor : .primary) {
+                    actions.toggleFullFile(model.id)
+                }
+            }
+            if model.canOpenOnWeb {
+                IconButton(systemImage: "safari", help: "Open the whole file in the browser at the last commit. Right-click a diff line to open it at that line.") {
+                    actions.openFileOnWeb(model.path, nil)
+                }
+            }
             IconButton(systemImage: "arrow.up.forward.app", help: "Open in the editor chosen in Settings, from the branch's checkout or the main checkout. Double-click a diff line to open it at that line.") {
                 actions.openFile(model.path, nil)
             }

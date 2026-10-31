@@ -23,5 +23,6 @@ package protocol CodeHostRepository: Sendable {
     func requestChanges(iid: Int, body: String, repository: CodeHost) async throws
     func addLineComment(iid: Int, comment: PullRequestLineComment, repository: CodeHost) async throws
     func jobLog(jobID: String, repository: CodeHost) async throws -> String
+    func fileContent(path: String, ref: String, repository: CodeHost) async throws -> String
     func retryJob(jobID: String, repository: CodeHost) async throws
 }

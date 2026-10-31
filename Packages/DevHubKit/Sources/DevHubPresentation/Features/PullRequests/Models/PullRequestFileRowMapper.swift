@@ -4,7 +4,9 @@ import DevHubUI
 
 enum PullRequestFileRowMapper {
 
-    static func model(for file: PullRequestFileDiff, review: PullRequestReviewState, threads: [ReviewThreadRowModel], words: CodeHostWords) -> PullRequestFileRowModel {
+    static func model(for original: PullRequestFileDiff, review: PullRequestReviewState, threads: [ReviewThreadRowModel], words: CodeHostWords) -> PullRequestFileRowModel {
+        let isFull = review.fullFiles.contains(original.id)
+        let file = isFull ? expanded(original, review: review) : original
         let folder = (file.path as NSString).deletingLastPathComponent
         let isExpanded = review.expandedFiles.contains(file.id)
         let fileThreads = threads.filter { $0.filePath == file.path }
@@ -25,8 +27,23 @@ enum PullRequestFileRowMapper {
             threadCountText: fileThreads.isEmpty ? nil : "\(fileThreads.count)",
             diffThreads: isExpanded && review.showsThreadsInDiff ? diffThreads(fileThreads, in: file, open: review.openDiffThreads) : [:],
             oldPath: file.oldPath,
-            lineComposer: isExpanded ? lineComposer(review: review, path: file.path) : nil
+            lineComposer: isExpanded ? lineComposer(review: review, path: file.path) : nil,
+            canOpenOnWeb: file.kind != .deleted,
+            isFull: isFull,
+            fullHint: fullHint(original, isFull: isFull, words: words)
         )
+    }
+
+    static func expanded(_ file: PullRequestFileDiff, review: PullRequestReviewState) -> PullRequestFileDiff {
+        guard let lines = review.fileContents[file.id], let diff = DiffContextExpansion.expanded(file.diff, fileLines: lines) else { return file }
+        return PullRequestFileDiff(oldPath: file.oldPath, path: file.path, kind: file.kind, additions: file.additions, deletions: file.deletions, diff: diff, isTooLarge: file.isTooLarge)
+    }
+
+    private static func fullHint(_ file: PullRequestFileDiff, isFull: Bool, words: CodeHostWords) -> String? {
+        guard file.kind == .modified || file.kind == .renamed, file.isTooLarge == false, file.diff.isBinary == false, file.diff.droppedLines == 0 else { return nil }
+        return isFull
+            ? "Show only the changed parts"
+            : "Show the whole file with the changes in place. DevHub reads the file at the last commit of the \(words.request) from \(words.name)."
     }
 
     static func lineComposer(review: PullRequestReviewState, path: String) -> LineComposerModel? {

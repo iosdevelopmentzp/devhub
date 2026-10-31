@@ -131,6 +131,18 @@ struct GhPullRequestRepository: CodeHostRepository {
         _ = try await client.rest("repos/\(repository.path)/actions/jobs/\(jobID)/rerun", method: "POST", fields: [], host: repository)
     }
 
+    func fileContent(path: String, ref: String, repository: CodeHost) async throws -> String {
+        String(decoding: try await client.raw(Self.fileContentEndpoint(path: path, ref: ref, repository: repository), host: repository), as: UTF8.self)
+    }
+
+    static func fileContentEndpoint(path: String, ref: String, repository: CodeHost) -> String {
+        let encodedPath = path.split(separator: "/", omittingEmptySubsequences: false)
+            .map { $0.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? String($0) }
+            .joined(separator: "/")
+        let encodedRef = ref.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ref
+        return "repos/\(repository.path)/contents/\(encodedPath)?ref=\(encodedRef)"
+    }
+
     static func lineCommentFields(_ comment: PullRequestLineComment) throws -> [GhClient.Variable] {
         guard let sha = comment.headSHA, let line = comment.newLine ?? comment.oldLine else {
             throw PullRequestError.command("The last commit of this pull request is not known yet. Reload it and try again.")

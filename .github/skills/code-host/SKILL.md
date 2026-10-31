@@ -24,7 +24,7 @@ A code host is the web service that keeps the repository and its review requests
 
 ## The port
 
-`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`.
+`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`, `fileContent`.
 
 Every method takes `repository: CodeHost`. A `CodeHost` holds:
 
@@ -69,6 +69,7 @@ The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsS
 | `comment` | `gh pr comment --body` | REST `POST merge_requests/<n>/notes` |
 | `requestChanges` | `gh pr review --request-changes --body` | throws; hidden by `canRequestChanges` |
 | `jobLog`, `retryJob` | `GhClient.log` (`--allow-escape-sequences`) on `actions/jobs/<id>/logs`; REST `POST actions/jobs/<id>/rerun`. The job ID is the `databaseId` of an Actions `CheckRun` | REST `jobs/<id>/trace`; REST `POST jobs/<id>/retry`. The ID is the number at the end of the GraphQL job ID |
+| `fileContent` | `GhClient.raw` (`-H "Accept: application/vnd.github.raw+json"`) on `repos/<owner>/<name>/contents/<path>?ref=<sha>` | REST `projects/<project>/repository/files/<path>/raw?ref=<sha>`, the path percent-encoded |
 | `addLineComment` | REST `POST pulls/<n>/comments` with `commit_id`, `path`, `line`, `side` (`lineCommentFields`) | REST `GET merge_requests/<n>` for `diff_refs` (`GlabDiffRefsParser`), then `POST …/discussions` with `position[…]` (`lineCommentFields`) |
 
 Review and job facts in the values:

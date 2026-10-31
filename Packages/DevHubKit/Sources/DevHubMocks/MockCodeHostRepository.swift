@@ -127,4 +127,9 @@ struct MockCodeHostRepository: CodeHostRepository {
     func retryJob(jobID: String, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
+
+    func fileContent(path: String, ref: String, repository: CodeHost) async throws -> String {
+        try? await Task.sleep(for: .milliseconds(300))
+        return (1...40).map { "line \($0) of \(path)" }.joined(separator: "\n")
+    }
 }

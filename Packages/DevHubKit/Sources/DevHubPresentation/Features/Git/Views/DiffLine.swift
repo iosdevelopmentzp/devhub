@@ -6,6 +6,7 @@ struct DiffLine: View {
     let model: DiffLineModel
     let isHighlighted: Bool
     let onOpen: (() -> Void)?
+    let onOpenOnWeb: (() -> Void)?
     let onComment: (() -> Void)?
 
     @State private var isHovered = false
@@ -48,6 +49,9 @@ struct DiffLine: View {
             if let onComment {
                 Button("Comment on This Line…", systemImage: "plus.bubble", action: onComment)
             }
+            if let onOpenOnWeb {
+                Button("Open in Browser at This Line", systemImage: "safari", action: onOpenOnWeb)
+            }
         }
     }
 
@@ -70,5 +74,5 @@ struct DiffLine: View {
 }
 
 #Preview {
-    DiffLine(model: .preview, isHighlighted: true, onOpen: nil, onComment: {})
+    DiffLine(model: .preview, isHighlighted: true, onOpen: nil, onOpenOnWeb: nil, onComment: {})
 }

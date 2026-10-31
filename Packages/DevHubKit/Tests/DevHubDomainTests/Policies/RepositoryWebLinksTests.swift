@@ -61,4 +61,9 @@ import Testing
     private func gitlab() throws -> URL {
         try #require(URL(string: "https://gitlab.example.com/org/app"))
     }
+
+    @Test func aFileLinkPointsAtTheBlobOfTheRef() throws {
+        #expect(RepositoryWebLinks.fileURL(base: try github(), kind: nil, ref: "abc123", path: "App/Login View.swift", line: 12)?.absoluteString == "https://github.com/org/app/blob/abc123/App/Login%20View.swift#L12")
+        #expect(RepositoryWebLinks.fileURL(base: try gitlab(), kind: nil, ref: "feature/login", path: "App/a.swift", line: nil)?.absoluteString == "https://gitlab.example.com/org/app/-/blob/feature/login/App/a.swift")
+    }
 }

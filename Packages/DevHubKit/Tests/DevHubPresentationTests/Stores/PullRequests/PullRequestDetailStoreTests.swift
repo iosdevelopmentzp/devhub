@@ -375,4 +375,48 @@ import DevHubTestSupport
         #expect(harness.spies.codeHost.calls.contains(.retryJob(jobID: "71", repository: remote)))
         #expect(harness.lastActivity?.title == "Retried unit (test) of !7")
     }
+
+    // MARK: Whole file
+
+    private var summary: PullRequestSummary {
+        PullRequestSummaryFixture.request(iid: 7, source: "feature/login", state: .opened, headSHA: "abc123")
+    }
+
+    @Test func showingTheWholeFileReadsItAtTheHeadCommitOnce() async throws {
+        script()
+        await store.load(7)
+        harness.spies.codeHost.fileContentResult = .success("a\nb\n")
+
+        store.toggleFullFile("a.swift", of: summary)
+        try await waitUntil { store.review(of: 7).fileContents["a.swift"] == ["a", "b"] }
+        store.toggleFullFile("a.swift", of: summary)
+        store.toggleFullFile("a.swift", of: summary)
+
+        #expect(store.review(of: 7).fullFiles == ["a.swift"])
+        #expect(harness.spies.codeHost.calls.filter { $0 == .fileContent(path: "a.swift", ref: "abc123", repository: remote) }.count == 1)
+    }
+
+    @Test func aFailedFileReadIsLoggedAndTheFileStaysFolded() async throws {
+        script()
+        await store.load(7)
+        harness.spies.codeHost.fileContentResult = .failure(PullRequestError.command("no file"))
+
+        store.toggleFullFile("a.swift", of: summary)
+
+        try await waitUntil { harness.lastActivity?.title == "Cannot read a.swift at abc123" }
+        #expect(harness.lastActivity?.outcome == .failure)
+        #expect(store.review(of: 7).fullFiles.isEmpty)
+    }
+
+    @Test func theFileLinkUsesTheHeadCommitOrTheBranch() async {
+        script()
+        await store.load(7)
+
+        #expect(store.fileWebURL(path: "App/a.swift", line: 3, of: summary)?.absoluteString == "https://gitlab.example.com/team/app/-/blob/abc123/App/a.swift#L3")
+        #expect(store.fileWebURL(path: "App/a.swift", line: nil, of: PullRequestSummaryFixture.request(iid: 7, source: "feature/login", state: .opened, headSHA: nil))?.absoluteString == "https://gitlab.example.com/team/app/-/blob/feature/login/App/a.swift")
+    }
+
+    @Test func theFileLinkIsMissingBeforeTheHostIsKnown() {
+        #expect(store.fileWebURL(path: "App/a.swift", line: nil, of: summary) == nil)
+    }
 }

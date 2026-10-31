@@ -87,4 +87,8 @@ import Testing
             "position[old_line]=10",
         ])
     }
+
+    @Test func aFileIsReadFromTheRawFilesEndpointAtTheRef() {
+        #expect(GlabPullRequestRepository.fileContentEndpoint(path: "App/a b.swift", ref: "feature/login", project: "team/app") == "projects/team%2Fapp/repository/files/App%2Fa%20b%2Eswift/raw?ref=feature%2Flogin")
+    }
 }

@@ -13,6 +13,8 @@ struct PullRequestDetailActions {
     let openAllDiffThreads: () -> Void
     let foldAllDiffThreads: () -> Void
     let openFile: (_ path: String, _ line: Int?) -> Void
+    let openFileOnWeb: (_ path: String, _ line: Int?) -> Void
+    let toggleFullFile: (_ fileID: PullRequestFileDiff.ID) -> Void
     let resolveThread: (_ threadID: ReviewThread.ID) -> Void
     let reply: (_ threadID: ReviewThread.ID, _ body: String) -> Void
     let setCommentDraft: (_ text: String) -> Void
@@ -41,6 +43,8 @@ struct PullRequestDetailActions {
         openAllDiffThreads: {},
         foldAllDiffThreads: {},
         openFile: { _, _ in },
+        openFileOnWeb: { _, _ in },
+        toggleFullFile: { _ in },
         resolveThread: { _ in },
         reply: { _, _ in },
         setCommentDraft: { _ in },
@@ -71,6 +75,8 @@ struct PullRequestDetailActions {
             openAllDiffThreads: openAllDiffThreads,
             foldAllDiffThreads: foldAllDiffThreads,
             openFile: openFile,
+            openFileOnWeb: openFileOnWeb,
+            toggleFullFile: toggleFullFile,
             resolveThread: resolveThread,
             reply: reply,
             setCommentDraft: setCommentDraft,
@@ -113,6 +119,8 @@ extension PullRequestDetailActions {
             openAllDiffThreads: { detailStore.openAllDiffThreads(of: id) },
             foldAllDiffThreads: { detailStore.foldAllDiffThreads(of: id) },
             openFile: { appActions.openSourceFile(path: $0, line: $1, branch: summary.sourceBranch) },
+            openFileOnWeb: { appActions.open(detailStore.fileWebURL(path: $0, line: $1, of: summary)) },
+            toggleFullFile: { detailStore.toggleFullFile($0, of: summary) },
             resolveThread: { detailStore.resolveThread($0, of: id) },
             reply: { detailStore.reply($1, to: $0, of: id) },
             setCommentDraft: { detailStore.setCommentDraft($0, of: id) },

@@ -5,6 +5,7 @@ import DevHubDomain
 protocol CodeHostLookup: AnyObject {
     var remoteName: String { get }
     var kind: CodeHostKind? { get }
+    var current: CodeHost? { get }
     func codeHost() async throws -> CodeHost
 }
 

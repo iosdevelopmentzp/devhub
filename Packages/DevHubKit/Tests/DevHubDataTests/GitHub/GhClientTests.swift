@@ -29,4 +29,8 @@ import Testing
     @Test func aLogReadAllowsEscapeSequences() {
         #expect(GhClient.logArguments(endpoint: "repos/example/app/actions/jobs/9/logs", host: "github.com") == ["api", "--hostname", "github.com", "--allow-escape-sequences", "repos/example/app/actions/jobs/9/logs"])
     }
+
+    @Test func aRawReadAsksForTheRawMediaType() {
+        #expect(GhClient.rawArguments(endpoint: "repos/example/app/contents/a.swift?ref=abc", host: "github.com") == ["api", "--hostname", "github.com", "-H", "Accept: application/vnd.github.raw+json", "repos/example/app/contents/a.swift?ref=abc"])
+    }
 }

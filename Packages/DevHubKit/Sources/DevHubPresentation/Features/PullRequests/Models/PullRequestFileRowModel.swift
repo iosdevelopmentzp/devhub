@@ -19,6 +19,9 @@ struct PullRequestFileRowModel: Identifiable, Equatable {
     var diffThreads: [Int: [DiffThreadModel]]
     var oldPath: String
     var lineComposer: LineComposerModel?
+    var canOpenOnWeb: Bool
+    var isFull: Bool
+    var fullHint: String?
 
     static func scrollID(_ id: String) -> String {
         "merge-request-file:\(id)"
@@ -41,6 +44,9 @@ struct PullRequestFileRowModel: Identifiable, Equatable {
         threadCountText: "1",
         diffThreads: [2: [.preview]],
         oldPath: "ExampleUI/Calls/CallPresenter.swift",
-        lineComposer: .preview
+        lineComposer: .preview,
+        canOpenOnWeb: true,
+        isFull: false,
+        fullHint: "Show the whole file with the changes in place"
     )
 }

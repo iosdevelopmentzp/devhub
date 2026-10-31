@@ -55,4 +55,9 @@ import Testing
             try GhPullRequestRepository.lineCommentFields(comment)
         }
     }
+
+    @Test func aFileIsReadFromTheContentsEndpointAtTheRef() {
+        #expect(GhPullRequestRepository.fileContentEndpoint(path: "App/Login View.swift", ref: "abc123", repository: .gitHubSample) == "repos/example/app/contents/App/Login%20View.swift?ref=abc123")
+        #expect(GhPullRequestRepository.fileContentEndpoint(path: "a.swift", ref: "feature/login", repository: .gitHubSample) == "repos/example/app/contents/a.swift?ref=feature/login")
+    }
 }

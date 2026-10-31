@@ -6,8 +6,8 @@ struct GlabPullRequestRepository: CodeHostRepository {
 
     func status(branch: String, repository: CodeHost) async throws -> PullRequestStatus {
         let host = try GlabClient.host(of: repository)
-        let project = encoded(GlabClient.projectPath(of: repository))
-        let ref = encoded(branch)
+        let project = Self.encoded(GlabClient.projectPath(of: repository))
+        let ref = Self.encoded(branch)
         async let request = GlabPullRequestParser.mergeRequest(
             from: client.rest("projects/\(project)/merge_requests?source_branch=\(ref)&state=all&order_by=updated_at&per_page=5", host: host)
         )
@@ -44,7 +44,7 @@ struct GlabPullRequestRepository: CodeHostRepository {
 
     func diffs(iid: Int, repository: CodeHost) async throws -> [PullRequestFileDiff] {
         let host = try GlabClient.host(of: repository)
-        let project = encoded(GlabClient.projectPath(of: repository))
+        let project = Self.encoded(GlabClient.projectPath(of: repository))
         return try await GlabDiffParser.files(from: client.rest("projects/\(project)/merge_requests/\(iid)/diffs?per_page=100", host: host))
     }
 
@@ -70,7 +70,7 @@ struct GlabPullRequestRepository: CodeHostRepository {
     }
 
     func retryPipeline(id: Int, repository: CodeHost) async throws {
-        let project = encoded(GlabClient.projectPath(of: repository))
+        let project = Self.encoded(GlabClient.projectPath(of: repository))
         _ = try await client.rest("projects/\(project)/pipelines/\(id)/retry", method: "POST", fields: [], host: try GlabClient.host(of: repository))
     }
 
@@ -116,7 +116,7 @@ struct GlabPullRequestRepository: CodeHostRepository {
     }
 
     func create(_ request: NewPullRequest, repository: CodeHost) async throws -> PullRequestSummary {
-        let project = encoded(GlabClient.projectPath(of: repository))
+        let project = Self.encoded(GlabClient.projectPath(of: repository))
         let data = try await client.rest("projects/\(project)/merge_requests", method: "POST", fields: Self.createFields(request), host: try GlabClient.host(of: repository))
         return try GlabCreatedPullRequestParser.summary(from: data)
     }
@@ -163,7 +163,7 @@ struct GlabPullRequestRepository: CodeHostRepository {
         let discussion = threadID.split(separator: "/").last.map(String.init) ?? threadID
         let text = body.hasPrefix("@") ? " " + body : body
         _ = try await client.rest(
-            "\(mergeRequest(iid, repository))/discussions/\(encoded(discussion))/notes",
+            "\(mergeRequest(iid, repository))/discussions/\(Self.encoded(discussion))/notes",
             method: "POST",
             fields: [(name: "body", value: text)],
             host: try GlabClient.host(of: repository)
@@ -203,7 +203,16 @@ struct GlabPullRequestRepository: CodeHostRepository {
     }
 
     private func job(_ jobID: String, _ repository: CodeHost) -> String {
-        "projects/\(encoded(GlabClient.projectPath(of: repository)))/jobs/\(encoded(jobID))"
+        "projects/\(Self.encoded(GlabClient.projectPath(of: repository)))/jobs/\(Self.encoded(jobID))"
+    }
+
+    func fileContent(path: String, ref: String, repository: CodeHost) async throws -> String {
+        let host = try GlabClient.host(of: repository)
+        return String(decoding: try await client.rest(Self.fileContentEndpoint(path: path, ref: ref, project: GlabClient.projectPath(of: repository)), host: host), as: UTF8.self)
+    }
+
+    static func fileContentEndpoint(path: String, ref: String, project: String) -> String {
+        "projects/\(Self.encoded(project))/repository/files/\(Self.encoded(path))/raw?ref=\(Self.encoded(ref))"
     }
 
     static func lineCommentFields(_ comment: PullRequestLineComment, refs: GlabDiffRefsParser.DiffRefs) -> [(name: String, value: String)] {
@@ -229,10 +238,10 @@ struct GlabPullRequestRepository: CodeHostRepository {
     }
 
     private func mergeRequest(_ iid: Int, _ repository: CodeHost) -> String {
-        "projects/\(encoded(GlabClient.projectPath(of: repository)))/merge_requests/\(iid)"
+        "projects/\(Self.encoded(GlabClient.projectPath(of: repository)))/merge_requests/\(iid)"
     }
 
-    private func encoded(_ value: String) -> String {
+    private static func encoded(_ value: String) -> String {
         value.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? value
     }
 }

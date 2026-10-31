@@ -26,6 +26,7 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
         case addLineComment(iid: Int, comment: PullRequestLineComment, repository: CodeHost)
         case jobLog(jobID: String, repository: CodeHost)
         case retryJob(jobID: String, repository: CodeHost)
+        case fileContent(path: String, ref: String, repository: CodeHost)
     }
 
     private let lock = NSLock()
@@ -40,6 +41,7 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
     private var _createResult: Result<PullRequestSummary, any Error>? = nil
     private var _labelsResult: Result<[String], any Error> = .success([])
     private var _jobLogResult: Result<String, any Error> = .success("")
+    private var _fileContentResult: Result<String, any Error> = .success("")
 
     package init() {}
 
@@ -90,6 +92,11 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
     package var jobLogResult: Result<String, any Error> {
         get { lock.withLock { _jobLogResult } }
         set { lock.withLock { _jobLogResult = newValue } }
+    }
+
+    package var fileContentResult: Result<String, any Error> {
+        get { lock.withLock { _fileContentResult } }
+        set { lock.withLock { _fileContentResult = newValue } }
     }
 
     package func create(_ request: NewPullRequest, repository: CodeHost) async throws -> PullRequestSummary {
@@ -186,6 +193,10 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
 
     package func retryJob(jobID: String, repository: CodeHost) async throws {
         try action(.retryJob(jobID: jobID, repository: repository))
+    }
+
+    package func fileContent(path: String, ref: String, repository: CodeHost) async throws -> String {
+        try record(.fileContent(path: path, ref: ref, repository: repository)) { try _fileContentResult.get() }
     }
 
     private func action(_ call: Call) throws {

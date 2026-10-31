@@ -22,6 +22,16 @@ package enum RepositoryWebLinks {
         return URL(string: base.absoluteString + path)
     }
 
+    package static func fileURL(base: URL, kind: CodeHostKind?, ref: String, path: String, line: Int?) -> URL? {
+        let encodedPath = path.split(separator: "/", omittingEmptySubsequences: false)
+            .map { $0.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? String($0) }
+            .joined(separator: "/")
+        let encodedRef = ref.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ref
+        let prefix = isGitHub(base, kind) ? "/blob/" : "/-/blob/"
+        let anchor = line.map { "#L\($0)" } ?? ""
+        return URL(string: base.absoluteString + prefix + encodedRef + "/" + encodedPath + anchor)
+    }
+
     private static func isGitHub(_ base: URL, _ kind: CodeHostKind?) -> Bool {
         (kind ?? CodeHostPolicy.kind(forHost: base.host() ?? "")) == .github
     }

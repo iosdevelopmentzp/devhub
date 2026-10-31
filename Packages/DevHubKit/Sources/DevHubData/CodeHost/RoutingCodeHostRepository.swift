@@ -97,6 +97,10 @@ struct RoutingCodeHostRepository: CodeHostRepository {
         try await target(repository).retryJob(jobID: jobID, repository: repository)
     }
 
+    func fileContent(path: String, ref: String, repository: CodeHost) async throws -> String {
+        try await target(repository).fileContent(path: path, ref: ref, repository: repository)
+    }
+
     private func target(_ repository: CodeHost) -> any CodeHostRepository {
         switch repository.kind {
         case .github: gitHub

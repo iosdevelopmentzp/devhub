@@ -9,7 +9,7 @@ final class CodeHostRemote: CodeHostLookup {
 
     @ObservationIgnored private let git: any GitRepository
     @ObservationIgnored private let worktrees: any WorktreeLookup
-    @ObservationIgnored private var cached: CodeHost?
+    @ObservationIgnored private(set) var current: CodeHost?
     @ObservationIgnored private var subscription: SubscriptionToken?
 
     init(git: any GitRepository, worktrees: any WorktreeLookup, events: AppEvents) {
@@ -19,7 +19,7 @@ final class CodeHostRemote: CodeHostLookup {
             guard let self else { return }
             switch event {
             case .projectChanged, .configChanged:
-                cached = nil
+                current = nil
                 kind = worktrees.gitSettings.hostKind
             default:
                 break
@@ -32,12 +32,12 @@ final class CodeHostRemote: CodeHostLookup {
     }
 
     func codeHost() async throws -> CodeHost {
-        if let cached { return cached }
+        if let current { return current }
         let settings = worktrees.gitSettings
         guard let url = await git.webURL(checkoutPath: worktrees.mainCheckoutPath, remote: settings.remote),
               let host = CodeHostPolicy.codeHost(webURL: url, kind: settings.hostKind, name: settings.hostName)
         else { throw PullRequestError.noCodeHost }
-        cached = host
+        current = host
         if kind != host.kind {
             kind = host.kind
         }

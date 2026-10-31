@@ -141,4 +141,44 @@ import Testing
         #expect(PullRequestFileRowMapper.lineComposer(review: state, path: "App/Login/a.swift")?.canSend == false)
         #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false), threads: [], words: .gitLab).lineComposer == nil)
     }
+
+    @Test func theWholeFileShowsTheDiffWithTheFileLinesAround() {
+        var state = review(expanded: true)
+        state.fullFiles = ["App/Login/a.swift"]
+        state.fileContents = ["App/Login/a.swift": ["x", "y"]]
+
+        let model = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], words: .gitLab)
+
+        #expect(model.isFull)
+        #expect(model.fullHint == "Show only the changed parts")
+        #expect(model.diff == DiffMapper.model(for: GitDiff(lines: ["@@ -1,1 +1,2 @@", "+x", " y"], droppedLines: 0, isBinary: false)))
+    }
+
+    @Test func theWholeFileWaitsForTheContent() {
+        var state = review(expanded: true)
+        state.fullFiles = ["App/Login/a.swift"]
+
+        let model = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], words: .gitLab)
+
+        #expect(model.isFull)
+        #expect(model.diff == DiffMapper.model(for: file(.modified).diff))
+    }
+
+    @Test func onlyAModifiedOrRenamedTextFileOffersTheWholeFile() {
+        let plain = review(expanded: false)
+
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: plain, threads: [], words: .gitLab).fullHint == "Show the whole file with the changes in place. DevHub reads the file at the last commit of the merge request from GitLab.")
+        #expect(PullRequestFileRowMapper.model(for: file(.renamed), review: plain, threads: [], words: .gitLab).fullHint != nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.added), review: plain, threads: [], words: .gitLab).fullHint == nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.deleted), review: plain, threads: [], words: .gitLab).fullHint == nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified, isTooLarge: true), review: plain, threads: [], words: .gitLab).fullHint == nil)
+    }
+
+    @Test func everyFileButADeletedOneOpensOnTheWeb() {
+        let plain = review(expanded: false)
+
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: plain, threads: [], words: .gitLab).canOpenOnWeb)
+        #expect(PullRequestFileRowMapper.model(for: file(.added), review: plain, threads: [], words: .gitLab).canOpenOnWeb)
+        #expect(PullRequestFileRowMapper.model(for: file(.deleted), review: plain, threads: [], words: .gitLab).canOpenOnWeb == false)
+    }
 }

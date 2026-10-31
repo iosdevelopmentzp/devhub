@@ -22,6 +22,8 @@ final class PullRequestDetailStore {
     private(set) var jobLogs: [String: JobLogState] = [:]
     private(set) var openJobLogs: Set<String> = []
     private(set) var busyJobs: Set<String> = []
+    private(set) var fullFiles: [PullRequestSummary.ID: Set<PullRequestFileDiff.ID>] = [:]
+    private(set) var fileContents: [PullRequestSummary.ID: [String: [String]]] = [:]
 
     enum CommentKind {
         case comment
@@ -58,6 +60,8 @@ final class PullRequestDetailStore {
             lineComment = nil
             jobLogs = [:]
             openJobLogs = []
+            fullFiles = [:]
+            fileContents = [:]
             focus = nil
         }
     }
@@ -85,7 +89,9 @@ final class PullRequestDetailStore {
             isLineCommentBusy: lineComment?.requestID == id && isSendingLineComment,
             jobLogs: jobLogs,
             openJobLogs: openJobLogs,
-            busyJobs: busyJobs
+            busyJobs: busyJobs,
+            fullFiles: fullFiles[id] ?? [],
+            fileContents: fileContents[id] ?? [:]
         )
     }
 
@@ -145,6 +151,41 @@ final class PullRequestDetailStore {
 
     func foldAllDiffThreads(of id: PullRequestSummary.ID) {
         openDiffThreads.subtract((details[id]?.threads ?? []).map(\.id))
+    }
+
+    func fileWebURL(path: String, line: Int?, of summary: PullRequestSummary) -> URL? {
+        guard let host = remote.current else { return nil }
+        return RepositoryWebLinks.fileURL(base: host.webURL, kind: host.kind, ref: summary.headSHA ?? summary.sourceBranch, path: path, line: line)
+    }
+
+    func toggleFullFile(_ fileID: PullRequestFileDiff.ID, of summary: PullRequestSummary) {
+        let id = summary.id
+        var files = fullFiles[id] ?? []
+        if files.remove(fileID) == nil {
+            files.insert(fileID)
+        }
+        fullFiles[id] = files
+        guard files.contains(fileID), fileContents[id]?[fileID] == nil else { return }
+        let ref = summary.headSHA ?? summary.sourceBranch
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let url = try await remote.codeHost()
+                let text = try await repository.fileContent(path: fileID, ref: ref, repository: url)
+                fileContents[id, default: [:]][fileID] = Self.lines(of: text)
+            } catch {
+                activity.log("Cannot read \(fileID) at \(ref)", detail: error.localizedDescription, outcome: .failure)
+                fullFiles[id]?.remove(fileID)
+            }
+        }
+    }
+
+    private static func lines(of text: String) -> [String] {
+        var lines = text.components(separatedBy: "\n")
+        if lines.last == "" {
+            lines.removeLast()
+        }
+        return lines
     }
 
     private func clearFocus(of id: PullRequestSummary.ID) {
@@ -336,6 +377,7 @@ final class PullRequestDetailStore {
     func reload(_ id: PullRequestSummary.ID) async {
         details[id] = nil
         diffs[id] = nil
+        fileContents[id] = nil
         await load(id)
     }
 }

@@ -16,6 +16,8 @@ struct PullRequestReviewState: Equatable {
     var jobLogs: [String: JobLogState] = [:]
     var openJobLogs: Set<String> = []
     var busyJobs: Set<String> = []
+    var fullFiles: Set<PullRequestFileDiff.ID> = []
+    var fileContents: [String: [String]] = [:]
 
     static let initial = PullRequestReviewState(expandedFiles: [], viewedFiles: [], focus: nil, busyThreads: [], showsThreadsInDiff: true, openDiffThreads: [])
 }
