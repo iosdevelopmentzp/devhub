@@ -11,5 +11,9 @@ struct MockUserNotificationRepository: UserNotificationRepository {
         true
     }
 
-    func post(title: String, body: String?) async throws {}
+    func post(title: String, body: String?, target: ActivityTarget?) async throws {}
+
+    func activations() -> AsyncStream<ActivityTarget?> {
+        AsyncStream { $0.finish() }
+    }
 }

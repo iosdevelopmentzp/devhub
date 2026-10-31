@@ -10,7 +10,7 @@ import Testing
         let two = try #require(OwnRequestChangeMapper.report(for: .approved(request, by: ["alex", "sam"]), words: .gitHub))
         let three = try #require(OwnRequestChangeMapper.report(for: .approved(request, by: ["alex", "sam", "lee"]), words: .gitHub))
 
-        #expect(one == OwnRequestChangeMapper.Report(title: "!21 approved by alex", body: "ABC-5: Login", outcome: .success))
+        #expect(one == OwnRequestChangeMapper.Report(title: "!21 approved by alex", body: "ABC-5: Login", outcome: .success, kind: .requestReviews))
         #expect(two.title == "#21 approved by alex and sam")
         #expect(three.title == "#21 approved by alex, sam and lee")
     }
@@ -19,7 +19,7 @@ import Testing
         let one = try #require(OwnRequestChangeMapper.report(for: .changesRequested(request, by: ["alex"]), words: .gitHub))
         let two = try #require(OwnRequestChangeMapper.report(for: .changesRequested(request, by: ["alex", "sam"]), words: .gitLab))
 
-        #expect(one == OwnRequestChangeMapper.Report(title: "Changes requested on #21 by alex", body: "ABC-5: Login", outcome: .info))
+        #expect(one == OwnRequestChangeMapper.Report(title: "Changes requested on #21 by alex", body: "ABC-5: Login", outcome: .info, kind: .requestReviews))
         #expect(two.title == "Changes requested on !21 by alex and sam")
     }
 
@@ -27,7 +27,7 @@ import Testing
         let gitHub = try #require(OwnRequestChangeMapper.report(for: .checksFailed(request), words: .gitHub))
         let gitLab = try #require(OwnRequestChangeMapper.report(for: .checksFailed(request), words: .gitLab))
 
-        #expect(gitHub == OwnRequestChangeMapper.Report(title: "Checks failed on #21", body: "ABC-5: Login", outcome: .failure))
+        #expect(gitHub == OwnRequestChangeMapper.Report(title: "Checks failed on #21", body: "ABC-5: Login", outcome: .failure, kind: .requestChecks))
         #expect(gitLab.title == "Pipeline failed on !21")
     }
 
@@ -35,7 +35,7 @@ import Testing
         let one = try #require(OwnRequestChangeMapper.report(for: .newComments(request, count: 1), words: .gitHub))
         let three = try #require(OwnRequestChangeMapper.report(for: .newComments(request, count: 3), words: .gitHub))
 
-        #expect(one == OwnRequestChangeMapper.Report(title: "1 new comment on #21", body: "ABC-5: Login", outcome: .info))
+        #expect(one == OwnRequestChangeMapper.Report(title: "1 new comment on #21", body: "ABC-5: Login", outcome: .info, kind: .requestComments))
         #expect(three.title == "3 new comments on #21")
     }
 
@@ -47,7 +47,7 @@ import Testing
         let merged = try #require(OwnRequestChangeMapper.report(forGone: request, state: .merged, words: .gitHub))
         let closed = try #require(OwnRequestChangeMapper.report(forGone: request, state: .closed, words: .gitLab))
 
-        #expect(merged == OwnRequestChangeMapper.Report(title: "#21 merged", body: "ABC-5: Login", outcome: .success))
-        #expect(closed == OwnRequestChangeMapper.Report(title: "!21 closed without a merge", body: "ABC-5: Login", outcome: .info))
+        #expect(merged == OwnRequestChangeMapper.Report(title: "#21 merged", body: "ABC-5: Login", outcome: .success, kind: .requestClosed))
+        #expect(closed == OwnRequestChangeMapper.Report(title: "!21 closed without a merge", body: "ABC-5: Login", outcome: .info, kind: .requestClosed))
     }
 }

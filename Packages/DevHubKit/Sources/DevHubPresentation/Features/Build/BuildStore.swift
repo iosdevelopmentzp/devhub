@@ -297,19 +297,19 @@ final class BuildStore: BuildLookup {
                 let sourceName = prepared.worktreeName ?? prepared.path.abbreviatingHome
                 switch goal {
                 case .build:
-                    activity.log("Built \(scheme)", detail: "\(configuration) · \(sourceName)", outcome: .success)
+                    activity.log("Built \(scheme)", detail: "\(configuration) · \(sourceName)", outcome: .success, kind: .build, target: .build)
                     notifier.buildFinished(title: "Built \(scheme)", detail: "\(configuration) · \(sourceName)", failed: false)
                 case .run, .runAndAttach:
-                    activity.log(goal.attachesDebugger ? "Launched \(scheme), Xcode attached" : "Launched \(scheme)", detail: "\(simulator.name) · \(configuration) · \(sourceName)\(profileTitle)", outcome: .success)
+                    activity.log(goal.attachesDebugger ? "Launched \(scheme), Xcode attached" : "Launched \(scheme)", detail: "\(simulator.name) · \(configuration) · \(sourceName)\(profileTitle)", outcome: .success, kind: .build, target: .build)
                     notifier.buildFinished(title: "Launched \(scheme)", detail: "\(simulator.name) · \(sourceName)", failed: false)
                 }
             } catch is CancellationError {
                 state.phase = .idle
-                activity.log("Build cancelled", detail: scheme, outcome: .info)
+                activity.log("Build cancelled", detail: scheme, outcome: .info, kind: .build, target: .build)
             } catch {
                 logCheckoutFailure(error)
                 state.phase = .failed(error.localizedDescription)
-                activity.log("Build failed", detail: error.localizedDescription, outcome: .failure)
+                activity.log("Build failed", detail: error.localizedDescription, outcome: .failure, kind: .build, target: .build)
                 notifier.buildFinished(title: "Build failed: \(scheme)", detail: error.localizedDescription, failed: true)
             }
             buildTask = nil

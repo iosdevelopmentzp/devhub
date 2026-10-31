@@ -58,6 +58,7 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         installMainMenu()
         assembly.usage.startPolling()
         assembly.openPullRequests.startPolling()
+        observeNotificationClicks()
         Task { [assembly] in
             await assembly.config.reload()
             await assembly.mockSets.load()
@@ -70,6 +71,20 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         }
         if mode == .window, layout.isWindowOpen {
             showWindow()
+        }
+    }
+
+    private func observeNotificationClicks() {
+        Task { [weak self, assembly] in
+            for await target in assembly.notifier.activations() {
+                guard let self else { return }
+                show()
+                if let target {
+                    assembly.appActions.open(target)
+                } else {
+                    assembly.appActions.openNotifications()
+                }
+            }
         }
     }
 

@@ -62,7 +62,7 @@ package final class PresentationAssembly {
         session = ProjectSession(projects: projects, selectedProjectID: selectedProjectID, store: store, events: events, detector: ports.projectDetector)
         config = ConfigStore(repository: ports.config, session: session, events: events)
         navigator = Navigator(store: store)
-        activity = ActivityLog(events: recentEvents)
+        activity = ActivityLog(events: recentEvents, store: store)
         toaster = Toaster(write: PasteboardWriter.write)
         hints = HintCenter()
         output = OutputPanelState(store: store, events: events)

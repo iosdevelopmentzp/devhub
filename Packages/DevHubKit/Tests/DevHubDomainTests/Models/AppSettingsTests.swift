@@ -19,7 +19,25 @@ import Testing
         #expect(settings.autoFetchMinutes == 0)
         #expect(settings.windowMode == .panel)
         #expect(settings.usageProviders == .all)
-        #expect(settings.notifyAboutMyRequests)
+        #expect(settings.mutedNotifications.isEmpty)
+    }
+
+    @Test func mutedNotificationKindsAreKeptAndUnknownOnesIgnored() throws {
+        let data = Data(#"{"mutedNotifications":["requestComments","scripts"]}"#.utf8)
+        let broken = Data(#"{"mutedNotifications":["requestComments","unknown"]}"#.utf8)
+
+        var settings = try JSONDecoder().decode(AppSettings.self, from: data)
+        let fallback = try JSONDecoder().decode(AppSettings.self, from: broken)
+
+        #expect(settings.mutedNotifications == [.requestComments, .scripts])
+        #expect(settings.notifies(.requestComments) == false)
+        #expect(settings.notifies(.build))
+        #expect(fallback.mutedNotifications.isEmpty)
+
+        settings.setNotifies(.requestComments, true)
+        settings.setNotifies(.build, false)
+
+        #expect(settings.mutedNotifications == [.scripts, .build])
     }
 
     @Test func theTicketTemplateIsKept() throws {

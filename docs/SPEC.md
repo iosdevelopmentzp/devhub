@@ -261,7 +261,7 @@ Settings opens from the gear in the header. It is not in the tab bar.
 | Section | Content |
 |---|---|
 | General | launch at login, Dock icon, global shortcut |
-| Notifications | the switch and the permission state |
+| Notifications | the main switch, one switch per kind with a description, the permission state |
 | Claude usage | the usage strip, the usage percent in the menu bar |
 | Pull Requests | the review count in the menu bar |
 | Projects | the project list, Add Project, re-detect scheme and bundle ID, manual values |

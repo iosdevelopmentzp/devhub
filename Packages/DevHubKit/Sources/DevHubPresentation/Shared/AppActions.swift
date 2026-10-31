@@ -210,6 +210,19 @@ final class AppActions {
         }
     }
 
+    func open(_ target: ActivityTarget) {
+        switch target {
+        case .pullRequest(let iid): showPullRequest(iid: iid)
+        case .reviewQueue: showPullRequests(scope: .reviewing)
+        case .worktree: navigator.show(.worktrees)
+        case .build: navigator.show(.simulators)
+        }
+    }
+
+    func openNotifications() {
+        navigator.show(.notifications)
+    }
+
     func showPullRequest(iid: Int) {
         navigator.show(.pullRequests)
         Task { [weak self] in

@@ -78,6 +78,32 @@ import Testing
         )
     }
 
+    @Test func activityTargetsOpenTheirPlace() async throws {
+        let assembly = PresentationAssembly.preview()
+
+        assembly.appActions.open(ActivityTarget.reviewQueue)
+        #expect(assembly.navigator.selection == .feature(.pullRequests))
+        #expect(assembly.pullRequests.scope == .reviewing)
+
+        assembly.appActions.open(ActivityTarget.worktree(path: "/w"))
+        #expect(assembly.navigator.selection == .feature(.worktrees))
+
+        assembly.appActions.open(ActivityTarget.build)
+        #expect(assembly.navigator.selection == .feature(.simulators))
+
+        assembly.appActions.open(ActivityTarget.pullRequest(iid: 1839))
+        #expect(assembly.navigator.selection == .feature(.pullRequests))
+        try await waitUntil { assembly.pullRequests.revealedID == 1839 }
+    }
+
+    @Test func openNotificationsShowsTheScreen() {
+        let assembly = PresentationAssembly.preview()
+
+        assembly.appActions.openNotifications()
+
+        #expect(assembly.navigator.selection == .feature(.notifications))
+    }
+
     @Test func todayTargetsOpenTheirPlace() {
         let assembly = PresentationAssembly.preview()
 

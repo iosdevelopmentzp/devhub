@@ -106,7 +106,7 @@ final class OpenPullRequestsStore {
                 continue
             }
             guard let report = OwnRequestChangeMapper.report(for: change, words: words) else { continue }
-            deliver(report)
+            deliver(report, iid: change.request.iid)
         }
     }
 
@@ -115,15 +115,15 @@ final class OpenPullRequestsStore {
             let status = try await repository.status(branch: request.sourceBranch, repository: url)
             guard let info = status.pullRequest, info.iid == request.iid else { return }
             guard let report = OwnRequestChangeMapper.report(forGone: request, state: info.state, words: words) else { return }
-            deliver(report)
+            deliver(report, iid: request.iid)
         } catch {
             activity.log("Cannot read \(words.reference(request.iid))", detail: error.localizedDescription, outcome: .failure)
         }
     }
 
-    private func deliver(_ report: OwnRequestChangeMapper.Report) {
-        activity.log(report.title, detail: report.body, outcome: report.outcome)
-        notifier.postRequestChange(title: report.title, body: report.body)
+    private func deliver(_ report: OwnRequestChangeMapper.Report, iid: Int) {
+        activity.log(report.title, detail: report.body, outcome: report.outcome, kind: report.kind, target: .pullRequest(iid: iid))
+        notifier.notify(report.kind, title: report.title, body: report.body, target: .pullRequest(iid: iid))
     }
 
     private func apply(_ loaded: PullRequestList) {
@@ -137,7 +137,9 @@ final class OpenPullRequestsStore {
         let count = ReviewQueuePolicy.count(in: loaded.requests, username: loaded.username)
         if count != reviewCount {
             if count > reviewCount, loadedAt != nil {
-                notifier.postWhenClosed(title: count == 1 ? "1 request waits for your review" : "\(count) requests wait for your review", body: nil)
+                let title = count == 1 ? "1 \(words.request) waits for your review" : "\(count) \(words.requests) wait for your review"
+                activity.log(title, detail: "", outcome: .info, kind: .reviewRequests, target: .reviewQueue)
+                notifier.notify(.reviewRequests, title: title, body: nil, target: .reviewQueue)
             }
             reviewCount = count
         }

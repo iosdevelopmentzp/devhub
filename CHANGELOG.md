@@ -7,6 +7,9 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Notifications screen: the bell in the header (with a badge of unseen events) lists every event of the last 30 days by day: builds, test runs, changes of your requests, scripts and the other actions of the app. A filter by kind, the header search, Clear, and an arrow on a row opens the place of the event (a request, the review list, the Worktrees tab, the run bar). Home → Recent shows the last 8 and "Show All".
+- A click on a macOS notification opens DevHub at the place of the event. A notification without a place opens the Notifications screen.
+- Settings → Notifications: one switch per kind (builds, test runs, requests waiting for your review, reviews, checks, comments, merged or closed requests, scripts), each with a description of what it sends and what a click opens.
 - Pull Requests: DevHub reports changes of your own open requests. An approval ("#12 approved by alex"), a request for changes ("Changes requested on #12 by sam"), failed checks or pipeline, new comments, a merge or a close show in the Recent list on Home and, while the panel is closed, as a macOS notification. Settings → Notifications → "Notify about my pull requests" turns the notification off. The changes come from the read of the open requests every 5 minutes.
 - AI: "New" in the toolbar starts a new Claude Code or Copilot CLI session in the project folder, in the terminal from Settings. A worktree row has "Start AI Session Here" with both tools, and the ⌘K palette lists "Start Claude Code in <project>" and "Start Copilot CLI in <project>".
 - Build & Run: a "Build" button (⌘B) compiles without an install or a launch. The result line says "Built <scheme>, not launched" and the app path is in the build log. A `kind: command` project runs `build.command` only. `builtin.build` in `home.quickActions` adds the tile to Home, and the ⌘K palette lists "Build".
@@ -73,6 +76,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- Home → Recent keeps the events between launches (30 days, 500 at most) instead of the last 8 in memory. Rows without a detail no longer show an empty line.
+- Settings → Notifications: "Notify about my pull requests" became the four switches for reviews, checks, comments and merged or closed requests. The main switch is now called "Notify while the panel is closed".
 - A launch of an installed app waits until the simulator has booted before it installs or launches.
 - The status line under a simulator is read again 3 s after a launch, so it shows what the app wrote at start.
 - The saved identity settings of the old app (`simulators.identity`) are not read: every simulator starts with no chosen ID. Choose the ID again in the identity panel.

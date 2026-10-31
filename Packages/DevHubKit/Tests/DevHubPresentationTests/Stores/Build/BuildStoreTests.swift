@@ -270,7 +270,7 @@ import DevHubTestSupport
 
         try await waitUntil { hasFinished }
         #expect(harness.notifier.hasUnseenFailure)
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "Build failed: App", body: "Compile error")] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "Build failed: App", body: "Compile error", target: .build)] }
     }
 
     @Test func cancelReturnsToIdle() async throws {
@@ -328,7 +328,7 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.title == "Built App")
         #expect(harness.lastActivity?.outcome == .success)
         try await waitUntil { harness.spies.notifications.posted.count == 1 }
-        #expect(harness.spies.notifications.posted.first == .post(title: "Built App", body: "Debug · \(ProjectSample.path.abbreviatingHome)"))
+        #expect(harness.spies.notifications.posted.first == .post(title: "Built App", body: "Debug · \(ProjectSample.path.abbreviatingHome)", target: .build))
     }
 
     @Test func runBranchCreatesAWorktreeFirst() async throws {

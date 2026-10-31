@@ -10,11 +10,25 @@ struct NotificationsSection: View {
     var body: some View {
         @Bindable var settings = settings
         Section {
-            Toggle("Notify when the panel is closed", isOn: $settings.values.notifyWhenPanelClosed)
-                .hint("A finished or failed build and new requests for your review show a macOS notification while the DevHub panel is closed")
-            Toggle("Notify about my \(words.requests)", isOn: $settings.values.notifyAboutMyRequests)
-                .hint("An approval, failed \(words.checks), new comments or a merge of one of your open \(words.requests) shows a notification while the panel is closed. The Recent list on Home shows these events in any case")
-                .disabled(settings.values.notifyWhenPanelClosed == false)
+            Toggle(isOn: $settings.values.notifyWhenPanelClosed) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Notify while the panel is closed")
+                    Text("The main switch. Off: no notification of the kinds below, except the script ones. Every event still goes to the Notifications list (the bell) and to Recent on Home.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            ForEach(NotificationKind.allCases, id: \.self) { kind in
+                Toggle(isOn: binding(for: kind)) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(NotificationKindText.title(for: kind, words: words))
+                        Text(NotificationKindText.description(for: kind, words: words))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .disabled(settings.values.notifyWhenPanelClosed == false && kind.showsWhilePanelIsOpen == false)
+            }
             LabeledContent("Permission") {
                 HStack(spacing: 8) {
                     Text(permissionText)
@@ -29,13 +43,20 @@ struct NotificationsSection: View {
         } header: {
             Text("Notifications")
         } footer: {
-            Text("A script can also send one with a notify line. While a build runs, the menu bar icon shows a circle; after a failure it shows a red dot until you open the panel.")
+            Text("A click on a notification opens DevHub at the place it is about. While a build runs, the menu bar icon shows a circle; after a failure it shows a red dot until you open the panel.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .task {
             await notifier.refreshPermission()
         }
+    }
+
+    private func binding(for kind: NotificationKind) -> Binding<Bool> {
+        Binding(
+            get: { settings.values.notifies(kind) },
+            set: { settings.values.setNotifies(kind, $0) }
+        )
     }
 
     private var permissionText: String {

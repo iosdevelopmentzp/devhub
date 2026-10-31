@@ -27,7 +27,7 @@ public final class AppContainer: NSObject, NSApplicationDelegate {
             projects: savedProjects ?? [],
             selectedProjectID: store.string(forKey: PreferenceKeys.selectedProject),
             settings: store.decode(AppSettings.self, forKey: PreferenceKeys.settings) ?? AppSettings(),
-            recentEvents: []
+            recentEvents: store.decode([ActivityEvent].self, forKey: PreferenceKeys.recentEvents) ?? []
         )
         super.init()
     }

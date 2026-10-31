@@ -10,59 +10,81 @@ import Testing
         harness.notifier
     }
 
-    @Test func aClosedPanelGetsANotification() async throws {
-        notifier.postWhenClosed(title: "Launched App", body: "iPhone 17")
+    @Test func aClosedPanelGetsANotificationWithItsTarget() async throws {
+        notifier.notify(.tests, title: "Tests passed", body: "12 passed", target: .worktree(path: "/repo/.worktrees/a"))
 
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "Launched App", body: "iPhone 17")] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "Tests passed", body: "12 passed", target: .worktree(path: "/repo/.worktrees/a"))] }
     }
 
-    @Test func anOpenPanelOrTheSettingStopsIt() async {
+    @Test func anOpenPanelOrTheMainSwitchStopsIt() async {
         notifier.panelShown(true)
-        notifier.postWhenClosed(title: "A", body: nil)
+        notifier.notify(.build, title: "A", body: nil, target: .build)
         notifier.panelShown(false)
         harness.settings.values.notifyWhenPanelClosed = false
-        notifier.postWhenClosed(title: "B", body: nil)
+        notifier.notify(.build, title: "B", body: nil, target: .build)
         await harness.settle()
 
         #expect(harness.spies.notifications.posted.isEmpty)
     }
 
-    @Test func aRequestChangeFollowsItsOwnSettingAndThePanelRule() async throws {
-        harness.settings.values.notifyAboutMyRequests = false
-        notifier.postRequestChange(title: "A", body: nil)
-        await harness.settle()
-        #expect(harness.spies.notifications.posted.isEmpty)
+    @Test func aMutedKindIsSilentAndTheOthersAreNot() async throws {
+        harness.settings.values.setNotifies(.requestComments, false)
 
-        harness.settings.values.notifyAboutMyRequests = true
+        notifier.notify(.requestComments, title: "A", body: nil, target: .pullRequest(iid: 1))
+        notifier.notify(.requestReviews, title: "B", body: nil, target: .pullRequest(iid: 1))
+
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "B", body: nil, target: .pullRequest(iid: 1))] }
+    }
+
+    @Test func aScriptNotificationIgnoresThePanelAndTheMainSwitch() async throws {
         notifier.panelShown(true)
-        notifier.postRequestChange(title: "B", body: nil)
-        await harness.settle()
-        #expect(harness.spies.notifications.posted.isEmpty)
+        harness.settings.values.notifyWhenPanelClosed = false
 
-        notifier.panelShown(false)
-        notifier.postRequestChange(title: "C", body: "body")
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "C", body: "body")] }
+        notifier.notify(.scripts, title: "Done", body: "Resources ready", target: nil)
+
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "Done", body: "Resources ready", target: nil)] }
+    }
+
+    @Test func aMutedScriptKindIsSilent() async {
+        harness.settings.values.setNotifies(.scripts, false)
+
+        notifier.notify(.scripts, title: "Done", body: nil, target: nil)
+        await harness.settle()
+
+        #expect(harness.spies.notifications.posted.isEmpty)
     }
 
     @Test func withoutPermissionNothingIsPosted() async {
         harness.spies.notifications.permissionResult = .denied
 
-        notifier.post(title: "A", body: nil)
+        notifier.notify(.scripts, title: "A", body: nil, target: nil)
         await harness.settle()
 
         #expect(harness.spies.notifications.posted.isEmpty)
         #expect(notifier.permission == .denied)
     }
 
-    @Test func aFailureWhileClosedStaysUntilThePanelOpens() {
+    @Test func aFailureWhileClosedStaysUntilThePanelOpens() async throws {
         notifier.buildFinished(title: "Build failed", detail: "x", failed: true)
         #expect(notifier.hasUnseenFailure)
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "Build failed", body: "x", target: .build)] }
 
         notifier.panelShown(true)
         #expect(notifier.hasUnseenFailure == false)
 
         notifier.buildFinished(title: "Build failed", detail: "x", failed: true)
         #expect(notifier.hasUnseenFailure == false)
+    }
+
+    @Test func activationsComeFromTheRepository() async throws {
+        let stream = notifier.activations()
+        harness.spies.notifications.activate(.pullRequest(iid: 4))
+
+        var iterator = stream.makeAsyncIterator()
+        let first = await iterator.next()
+
+        #expect(first == .pullRequest(iid: 4))
+        #expect(harness.spies.notifications.calls.first == .activations)
     }
 
     @Test func requestPermissionAsksAndReadsTheResult() async {

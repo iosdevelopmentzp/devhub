@@ -38,17 +38,26 @@ Each section is explained under "Actions".
 
 | Control | What it does |
 |---|---|
-| Notify when the panel is closed | On by default. While the panel is closed, DevHub posts a macOS notification for a finished or failed build, and for new requests that wait for your review |
-| Notify about my pull requests (or merge requests) | On by default, off when the first switch is off. While the panel is closed, DevHub posts a notification when one of your open requests gets an approval ("#12 approved by alex") or a request for changes, its checks or pipeline fail, it gets new comments, or it is merged or closed. The Recent list on Home shows these events in any case |
+| Notify while the panel is closed | The main switch, on by default. Off: no notification of the kinds below, except the script ones. Every event still goes to the Notifications screen (the bell) and to Recent on Home |
+| Builds | A build or a launch finished, or the build failed. A click on the notification opens the run bar in the Simulators tab |
+| Test runs | The tests of a worktree finished or did not run. A click opens the Worktrees tab |
+| Pull Requests waiting for your review | The number of requests that wait for your review went up. A click opens that list |
+| Reviews of my pull requests | Someone approved your request or asked for changes. A click opens the request |
+| Checks of my pull requests | The checks or pipeline of your request turned to failed. A click opens the request |
+| Comments on my pull requests | Your request got new comments. A click opens the request |
+| My pull requests merged or closed | Your request was merged, or closed without a merge. A click opens the request |
+| Script notifications | A script printed a `notify` line. It shows even while the panel is open and when the main switch is off |
 | Permission | Shows "Not asked yet", "Allowed" or "Denied". **Allow Notifications** asks macOS for permission. When denied, allow DevHub in System Settings → Notifications |
 
 Rules of the notifications:
 
 1. A notification needs the macOS permission.
-2. Build, review and own request notifications appear only while the panel is closed and the switch is on.
-3. A script line `@devhub {"notify": "Title", "body": "…"}` posts a notification even when the panel is open or the switch is off.
+2. Every kind except the script one appears only while the panel is closed and the main switch is on. A kind with its switch off never appears; its events still go to the Notifications screen.
+3. A script line `@devhub {"notify": "Title", "body": "…"}` posts a notification even when the panel is open or the main switch is off, unless "Script notifications" is off.
 4. The menu bar icon shows a circle while a build runs. After a failed build while the panel is closed, it shows a red dot until you open the panel.
 5. Changes of your own requests come from the read of the open requests every 5 minutes ([Pull Requests](pull-requests.md#other-places-that-use-the-same-data)). A refresh after an action of yours in DevHub (a comment, an approval) updates the baseline without a report.
+
+6. A click on a notification opens DevHub at the place of the event: a request, the review list, the Worktrees tab or the run bar. Every event is also in the Notifications screen (the bell in the header, [Notifications](notifications.md)).
 
 ### AI usage
 

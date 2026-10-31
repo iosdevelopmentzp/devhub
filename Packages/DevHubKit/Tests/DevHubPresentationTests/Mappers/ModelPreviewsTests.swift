@@ -46,6 +46,7 @@ import Testing
 
     @Test func homePreviewsBuild() {
         #expect(ActivityRowModel.preview.dotTint == .green)
+        #expect(NotificationSectionModel.preview.rows.isEmpty == false)
         #expect(ProjectCardModel.preview.statusTags.count == 3)
         #expect(QuickActionTileModel.preview.isEnabled)
         #expect(ConfigIssueRowModel.preview.message.isEmpty == false)

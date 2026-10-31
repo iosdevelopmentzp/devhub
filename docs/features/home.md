@@ -18,7 +18,7 @@ The tab has seven parts, from top to bottom.
 4. **Config problems.** This part appears only when a `.devhub` file has an error. Each row shows the file and the reason. A Reload button reads the config again.
 5. **Quick actions.** A grid of tiles, four per line. A tile is a built-in action or a config action. A running action shows a small spinner on its tile. The result of a config action (output view, failure) appears under the grid.
 6. **Scripts.** One row per action with the `home.scripts` placement. A row shows the icon, title, subtitle, file name, "ran 5 min ago" or "never run", the number of inputs and the config layer (`project`, `user` or `global`). The header shows the scripts folder of the first layer that exists. Favorite scripts come first, then the other scripts in the saved order; a new script joins the end of the list in config order.
-7. **Recent.** The last 8 events of the app (commands, failures, info), newest first, with a coloured dot: green for success, red for failure, grey for info.
+7. **Recent.** The last 8 events of the app (builds, test runs, request changes, commands, failures), newest first, with a coloured dot: green for success, red for failure, grey for info. An event with a place shows an arrow button that opens it (the run bar, the Worktrees tab, a request). "Show All" opens the Notifications screen with every event of the last 30 days ([Notifications](notifications.md)).
 
 The header search filters the tiles by title and subtitle, and the script rows by title, subtitle and file name.
 
@@ -85,7 +85,9 @@ The lightbulb button shows a short guide with a header example. The arrow button
 | Control | What it does |
 |---|---|
 | Reload (config problems) | Reads every `.devhub` layer again |
-| Clear (Recent) | Removes all Recent rows |
+| Show All (Recent) | Opens the Notifications screen (the bell in the header) |
+| Arrow button on a Recent row | Opens the place of the event: the run bar, the Worktrees tab, a request or the review list |
+| Clear (Recent) | Removes all events, also from the Notifications screen |
 | Click on a Recent title or detail | Copies the text |
 
 ## Config
@@ -112,11 +114,11 @@ The three config layers and their merge rules are in [Where files live](../exten
 | `scripts.order.<project id>` | The order of the script rows |
 | `scripts.favorites.<project id>` | The favorite scripts, in their order |
 
-The Recent list is not saved. It is empty after a restart.
+The events are saved under `app.recentEvents` and come back after a restart (30 days, 500 events at most).
 
 ## Limits
 
-- Recent keeps only the last 8 events, in memory.
+- Recent shows only the last 8 events; the Notifications screen shows the rest.
 - The New Pull Request tile opens the web page. The form inside DevHub is in the Git and Pull Requests tabs.
 - A tile shows no prompt of its own. The prompt and the result of a config tile appear under the whole grid.
 - `refresh: ["logs"]` does nothing yet.

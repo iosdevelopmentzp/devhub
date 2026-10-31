@@ -10,7 +10,7 @@ final class StoreHarness {
     let useCases: UseCases
     let store: InMemoryKeyValueStore
     let events = AppEvents()
-    let activity = ActivityLog(events: [])
+    let activity: ActivityLog
     let session: ProjectSession
     private(set) var posted: [AppEvent] = []
     private(set) var copied: [String] = []
@@ -21,6 +21,7 @@ final class StoreHarness {
         self.ports = ports
         self.spies = spies
         self.store = store
+        activity = ActivityLog(events: [], store: store)
         useCases = UseCases(ports: ports)
         session = ProjectSession(projects: projects, selectedProjectID: nil, store: store, events: events, detector: ports.projectDetector)
         spies.worktrees.baseBranchResult = "origin/main"

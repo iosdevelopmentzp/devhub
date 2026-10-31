@@ -5,7 +5,7 @@ import Testing
 @testable import DevHubPresentation
 
 @Suite struct WorkspaceActionsTests {
-    let activity = ActivityLog(events: [])
+    let activity = ActivityLog(events: [], store: InMemoryKeyValueStore())
     let opener = SpyWorkspaceOpener()
     let settings = SettingsStore(values: AppSettings(terminal: "iTerm"), store: InMemoryKeyValueStore())
 

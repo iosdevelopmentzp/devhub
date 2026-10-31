@@ -39,7 +39,7 @@ import DevHubTestSupport
 
         await store.refresh()
 
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "1 request waits for your review", body: nil)] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "1 merge request waits for your review", body: nil, target: .reviewQueue)] }
     }
 
     @Test func refreshIfStaleLoadsOnce() async {
@@ -132,7 +132,7 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.title == "!7 approved by alex")
         #expect(harness.lastActivity?.detail == "ABC-7: Mine")
         #expect(harness.lastActivity?.outcome == .success)
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "!7 approved by alex", body: "ABC-7: Mine")] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "!7 approved by alex", body: "ABC-7: Mine", target: .pullRequest(iid: 7))] }
     }
 
     @Test func theFirstLoadReportsNothing() async {
@@ -179,7 +179,7 @@ import DevHubTestSupport
 
         try await waitUntil { harness.activityTitles == ["!7 merged"] }
         #expect(harness.spies.codeHost.calls.last == .status(branch: "feature/mine", repository: remote))
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "!7 merged", body: "ABC-7: Mine")] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "!7 merged", body: "ABC-7: Mine", target: .pullRequest(iid: 7))] }
     }
 
     @Test func aRequestThatIsStillOpenAfterLeavingTheListIsSilent() async throws {
@@ -196,7 +196,7 @@ import DevHubTestSupport
     }
 
     @Test func theSettingStopsTheNotificationButNotTheRecentRow() async throws {
-        harness.settings.values.notifyAboutMyRequests = false
+        harness.settings.values.setNotifies(.requestReviews, false)
         script([mine()])
         await store.refresh()
         script([mine(approvedBy: ["alex"])])

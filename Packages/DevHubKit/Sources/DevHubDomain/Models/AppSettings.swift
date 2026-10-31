@@ -13,7 +13,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
     package var ticketURLTemplate = ""
     package var autoFetchMinutes = 0
     package var notifyWhenPanelClosed = true
-    package var notifyAboutMyRequests = true
+    package var mutedNotifications: Set<NotificationKind> = []
     package var windowMode = WindowMode.panel
 
     package init(
@@ -29,7 +29,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         ticketURLTemplate: String = "",
         autoFetchMinutes: Int = 0,
         notifyWhenPanelClosed: Bool = true,
-        notifyAboutMyRequests: Bool = true,
+        mutedNotifications: Set<NotificationKind> = [],
         windowMode: WindowMode = WindowMode.panel
     ) {
         self.showDockIcon = showDockIcon
@@ -44,7 +44,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         self.ticketURLTemplate = ticketURLTemplate
         self.autoFetchMinutes = autoFetchMinutes
         self.notifyWhenPanelClosed = notifyWhenPanelClosed
-        self.notifyAboutMyRequests = notifyAboutMyRequests
+        self.mutedNotifications = mutedNotifications
         self.windowMode = windowMode
     }
 }
@@ -66,8 +66,22 @@ extension AppSettings {
             ticketURLTemplate: try container.decodeIfPresent(String.self, forKey: .ticketURLTemplate) ?? defaults.ticketURLTemplate,
             autoFetchMinutes: try container.decodeIfPresent(Int.self, forKey: .autoFetchMinutes) ?? defaults.autoFetchMinutes,
             notifyWhenPanelClosed: try container.decodeIfPresent(Bool.self, forKey: .notifyWhenPanelClosed) ?? defaults.notifyWhenPanelClosed,
-            notifyAboutMyRequests: try container.decodeIfPresent(Bool.self, forKey: .notifyAboutMyRequests) ?? defaults.notifyAboutMyRequests,
+            mutedNotifications: (try? container.decodeIfPresent(Set<NotificationKind>.self, forKey: .mutedNotifications)) ?? defaults.mutedNotifications,
             windowMode: (try? container.decodeIfPresent(WindowMode.self, forKey: .windowMode)) ?? defaults.windowMode
         )
+    }
+}
+
+extension AppSettings {
+    package func notifies(_ kind: NotificationKind) -> Bool {
+        mutedNotifications.contains(kind) == false
+    }
+
+    package mutating func setNotifies(_ kind: NotificationKind, _ enabled: Bool) {
+        if enabled {
+            mutedNotifications.remove(kind)
+        } else {
+            mutedNotifications.insert(kind)
+        }
     }
 }

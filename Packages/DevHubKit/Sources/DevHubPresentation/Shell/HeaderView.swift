@@ -8,6 +8,7 @@ struct HeaderView: View {
     @Environment(AppActions.self) private var appActions
     @Environment(ConfigStore.self) private var config
     @Environment(SettingsStore.self) private var settings
+    @Environment(ActivityLog.self) private var activity
     @Environment(\.isPinnedWindow) private var isPinnedWindow
     @Environment(\.togglePin) private var togglePin
     @Environment(\.codeHostWords) private var words
@@ -44,6 +45,26 @@ struct HeaderView: View {
                     tint: isPinnedWindow ? .accentColor : .primary
                 ) {
                     togglePin()
+                }
+            }
+            IconButton(
+                systemImage: activity.unreadCount > 0 ? "bell.badge" : "bell",
+                help: "Notifications: the events of the last 30 days",
+                tint: navigator.selection == .feature(.notifications) ? .accentColor : .primary
+            ) {
+                appActions.openNotifications()
+            }
+            .overlay(alignment: .topTrailing) {
+                if activity.unreadCount > 0 {
+                    Text(activity.unreadCount > 99 ? "99+" : "\(activity.unreadCount)")
+                        .font(.system(size: 9, weight: .bold).monospacedDigit())
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(Color.accentColor, in: Capsule())
+                        .foregroundStyle(Color.white)
+                        .fixedSize()
+                        .offset(x: 8, y: -5)
+                        .allowsHitTesting(false)
                 }
             }
             IconButton(

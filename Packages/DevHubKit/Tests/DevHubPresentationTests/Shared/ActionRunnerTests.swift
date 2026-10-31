@@ -1,11 +1,12 @@
 import DevHubDomain
+import DevHubMocks
 import DevHubTestSupport
 import Foundation
 import Testing
 @testable import DevHubPresentation
 
 @Suite struct ActionRunnerTests {
-    let activity = ActivityLog(events: [])
+    let activity = ActivityLog(events: [], store: InMemoryKeyValueStore())
 
     @Test func busyTitleIsSetSynchronously() async throws {
         let runner = ActionRunner(activity: activity)

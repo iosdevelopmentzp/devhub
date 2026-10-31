@@ -77,11 +77,11 @@ final class TestRunsStore {
                 reportOutcome(for: id, worktree: worktree)
             } catch is CancellationError {
                 runs[id] = nil
-                activity.log("Tests cancelled", detail: "\(worktree.displayName) · \(request.scheme)", outcome: .info)
+                activity.log("Tests cancelled", detail: "\(worktree.displayName) · \(request.scheme)", outcome: .info, kind: .tests, target: .worktree(path: worktree.path))
             } catch {
                 runs[id]?.phase = .notRun(error.localizedDescription, .now)
-                activity.log("Tests did not run: \(worktree.displayName)", detail: error.localizedDescription, outcome: .failure)
-                notifier.postWhenClosed(title: "Tests did not run: \(worktree.displayName)", body: error.localizedDescription)
+                activity.log("Tests did not run: \(worktree.displayName)", detail: error.localizedDescription, outcome: .failure, kind: .tests, target: .worktree(path: worktree.path))
+                notifier.notify(.tests, title: "Tests did not run: \(worktree.displayName)", body: error.localizedDescription, target: .worktree(path: worktree.path))
             }
             tasks[id] = nil
         }
@@ -129,8 +129,8 @@ final class TestRunsStore {
         let counts = TestRunText.counts(passed: run.passed, failed: run.failed, skipped: run.skipped)
         let detail = "\(counts) · \(run.scheme) · \(run.simulatorName)"
         let title = status == .passed ? "Tests passed: \(worktree.displayName)" : "Tests failed: \(worktree.displayName)"
-        activity.log(title, detail: detail, outcome: status == .passed ? .success : .failure)
-        notifier.postWhenClosed(title: title, body: counts)
+        activity.log(title, detail: detail, outcome: status == .passed ? .success : .failure, kind: .tests, target: .worktree(path: worktree.path))
+        notifier.notify(.tests, title: title, body: counts, target: .worktree(path: worktree.path))
     }
 
     private func cancelAll() {

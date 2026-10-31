@@ -31,11 +31,18 @@ struct HomeView: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     SectionHeader("Recent") {
-                        Button("Clear") {
-                            activity.clear()
+                        HStack(spacing: 10) {
+                            Button("Show All (\(activity.events.count))") {
+                                appActions.openNotifications()
+                            }
+                            .buttonStyle(LinkButtonStyle(.accent))
+                            .disabled(activity.events.isEmpty)
+                            Button("Clear") {
+                                activity.clear()
+                            }
+                            .buttonStyle(LinkButtonStyle(.secondary))
+                            .disabled(activity.events.isEmpty)
                         }
-                        .buttonStyle(LinkButtonStyle(.secondary))
-                        .disabled(activity.events.isEmpty)
                     }
                     PanelCard {
                         if activity.events.isEmpty {
@@ -46,7 +53,11 @@ struct HomeView: View {
                             VStack(spacing: 0) {
                                 let rows = activityRows
                                 ForEach(rows) { row in
-                                    ActivityRow(model: row)
+                                    ActivityRow(model: row) {
+                                        if let target = row.target {
+                                            appActions.open(target)
+                                        }
+                                    }
                                     if row.id != rows.last?.id {
                                         Divider()
                                             .padding(.vertical, 6)
@@ -81,7 +92,7 @@ struct HomeView: View {
     }
 
     private var activityRows: [ActivityRowModel] {
-        activity.events.map { ActivityRowMapper.model(for: $0) }
+        activity.events.prefix(ActivityLog.homeLimit).map { ActivityRowMapper.model(for: $0, words: words) }
     }
 }
 

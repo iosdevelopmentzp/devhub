@@ -43,35 +43,33 @@ final class Notifier {
         await refreshPermission()
     }
 
+    func activations() -> AsyncStream<ActivityTarget?> {
+        repository.activations()
+    }
+
     func buildFinished(title: String, detail: String, failed: Bool) {
         if failed, isPanelShown == false {
             hasUnseenFailure = true
         }
-        postWhenClosed(title: title, body: detail)
+        notify(.build, title: title, body: detail, target: .build)
     }
 
-    func postRequestChange(title: String, body: String?) {
-        guard settings.values.notifyAboutMyRequests else { return }
-        postWhenClosed(title: title, body: body)
-    }
-
-    func postWhenClosed(title: String, body: String?) {
-        guard isPanelShown == false, settings.values.notifyWhenPanelClosed else { return }
-        post(title: title, body: body)
-    }
-
-    func post(title: String, body: String?) {
+    func notify(_ kind: NotificationKind, title: String, body: String?, target: ActivityTarget?) {
+        guard settings.values.notifies(kind) else { return }
+        if kind.showsWhilePanelIsOpen == false {
+            guard isPanelShown == false, settings.values.notifyWhenPanelClosed else { return }
+        }
         Task { [weak self] in
             guard let self else { return }
-            await deliver(title: title, body: body)
+            await deliver(title: title, body: body, target: target)
         }
     }
 
-    private func deliver(title: String, body: String?) async {
+    private func deliver(title: String, body: String?, target: ActivityTarget?) async {
         await refreshPermission()
         guard permission == .allowed else { return }
         do {
-            try await repository.post(title: title, body: body)
+            try await repository.post(title: title, body: body, target: target)
         } catch {
             activity.log("Could not show a notification", detail: error.localizedDescription, outcome: .failure)
         }

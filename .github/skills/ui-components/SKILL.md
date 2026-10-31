@@ -86,6 +86,7 @@ Selection: the selected tab is `Color.accentColor` with white text; a selected o
 | `LogTimestamp.text(_:)` | "14:05:09.123", the time of a log line |
 | `ClockTime.text(_:)` | "14:05:09", the start time of a command |
 | `Countdown.text(_:)` | "2h 5m", the time until a usage limit resets |
+| `DayLabel.text(for:now:calendar:)` | "Today", "Yesterday", else the short date, for a section header by day |
 
 Tests never assert on the exact text of locale or clock formatters, only nil or not empty.
 

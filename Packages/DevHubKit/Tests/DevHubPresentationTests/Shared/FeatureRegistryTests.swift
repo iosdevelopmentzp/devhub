@@ -18,7 +18,7 @@ import Testing
 
         #expect(settings.showsInTabBar == false)
         #expect(settings.searchPrompt == nil)
-        #expect(FeatureRegistry.tabBarFeatures.map(\.id) == FeatureID.allCases.filter { $0 != .settings })
+        #expect(FeatureRegistry.tabBarFeatures.map(\.id) == FeatureID.allCases.filter { $0 != .settings && $0 != .notifications })
     }
 
     @Test func everyTabHasTitleIconAndSearchPrompt() {

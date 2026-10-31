@@ -9,13 +9,19 @@ struct ActivityRowModel: Identifiable, Equatable {
     var dateText: String
     var dotTint: Tint
     var dotOpacity: Double
+    var kindTitle: String?
+    var target: ActivityTarget?
+    var openHint: String?
 
     static let preview = ActivityRowModel(
         id: UUID(),
-        title: "Build succeeded",
-        detail: "ExampleApp · iPhone 17 Pro",
+        title: "Built ExampleApp",
+        detail: "Debug · example-app",
         dateText: "2 min. ago",
         dotTint: .green,
-        dotOpacity: 1
+        dotOpacity: 1,
+        kindTitle: "Build",
+        target: .build,
+        openHint: "Open the run bar"
     )
 }
