@@ -144,7 +144,7 @@ The Doctor section checks the tools that DevHub runs. It runs when the section a
 
 1. DevHub searches for each tool in `/opt/homebrew/bin`, `/usr/local/bin`, `~/.local/bin`, then in its own `PATH`.
 2. DevHub runs the version command with a 5 second limit and shows the first version number in the output.
-3. A found tool shows its version and path (click to copy). A missing tool shows "missing" in orange and **Copy Install Command**. A tool without a version also offers the install command.
+3. A found tool shows its version and path (click to copy). A missing tool shows "missing" in orange and **Copy Install Command**. A tool without a version also offers the install command. A tool with a minimum version (`circleci`: 1) shows "<version>, needs 1 or newer" in orange with the upgrade command.
 
 | Tool | Version command | Purpose | Install command |
 |---|---|---|---|
@@ -153,6 +153,7 @@ The Doctor section checks the tools that DevHub runs. It runs when the section a
 | `xcrun` | `xcrun simctl help` (shows "simctl") | Simulators, logs, launches | `sudo xcode-select -s /Applications/Xcode.app` |
 | `gh` | `gh --version` | GitHub pull requests | `brew install gh && gh auth login` |
 | `glab` | `glab --version` | GitLab merge requests | `brew install glab && glab auth login` |
+| `circleci` | `circleci version` | CircleCI workflows, jobs and flaky tests (version 1 or newer) | `brew install circleci && circleci auth login`; an old version: `brew upgrade circleci` |
 | `copilot` | `copilot --version` | Copilot CLI sessions | `npm install -g @github/copilot` |
 | `claude` | `claude --version` | Claude Code sessions and AI review | `npm install -g @anthropic-ai/claude-code` |
 | `python3` | `python3 --version` | Scripts of the example `.devhub` folder | `xcode-select --install` |

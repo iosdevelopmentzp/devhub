@@ -30,4 +30,18 @@ import Testing
         #expect(DoctorRowMapper.notifications(.denied).stateText == "denied")
         #expect(DoctorRowMapper.notifications(.allowed).stateTint == .green)
     }
+
+    @Test func aToolBelowItsMinimumVersionWarnsAndOffersTheUpgrade() {
+        let circleci = DoctorPolicy.tools[5]
+        let old = DoctorRowMapper.model(for: ToolStatus(tool: circleci, path: "/opt/homebrew/bin/circleci", version: "0.1.31425"))
+        let current = DoctorRowMapper.model(for: ToolStatus(tool: circleci, path: "/opt/homebrew/bin/circleci", version: "1.13.0"))
+
+        #expect(old.stateText == "0.1.31425, needs 1 or newer")
+        #expect(old.stateTint == .orange)
+        #expect(old.icon == "exclamationmark.triangle.fill")
+        #expect(old.installCommand == "brew upgrade circleci")
+        #expect(current.stateText == "1.13.0")
+        #expect(current.stateTint == .green)
+        #expect(current.installCommand == nil)
+    }
 }

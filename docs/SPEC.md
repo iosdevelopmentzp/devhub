@@ -143,7 +143,7 @@ Sources:
 |---|---|---|
 | Home | project card, quick actions, scripts, config problems, recent activity | [`features/home.md`](features/home.md) |
 | Git | branch state, remote actions, branches, history, reflog, changes, commit | [`features/git.md`](features/git.md) |
-| Pull Requests | GitHub pull requests through `gh`, GitLab merge requests through `glab` | [`features/pull-requests.md`](features/pull-requests.md) |
+| Pull Requests | GitHub pull requests through `gh`, GitLab merge requests through `glab`, CircleCI jobs through `circleci` | [`features/pull-requests.md`](features/pull-requests.md) |
 | Worktrees | list, create, delete and clean worktrees | [`features/worktrees.md`](features/worktrees.md) |
 | Simulators | the simulator list and the Build & Run bar | [`features/simulators.md`](features/simulators.md) |
 | Device identity | the panel of a simulator row: device ID, profile, clean install | [`features/device-identity.md`](features/device-identity.md) |

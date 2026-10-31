@@ -9,6 +9,18 @@ enum DoctorRowMapper {
         guard let path = status.path else {
             return DoctorRowModel(id: tool.name, name: tool.name, purpose: tool.purpose, stateText: "missing", stateTint: .orange, icon: "exclamationmark.triangle.fill", path: nil, installCommand: tool.installCommand)
         }
+        if let version = status.version, let minimum = tool.minimumMajorVersion, DoctorPolicy.isBelow(minimumMajorVersion: minimum, version: version) {
+            return DoctorRowModel(
+                id: tool.name,
+                name: tool.name,
+                purpose: tool.purpose,
+                stateText: "\(version), needs \(minimum) or newer",
+                stateTint: .orange,
+                icon: "exclamationmark.triangle.fill",
+                path: ProjectPath(path).abbreviated,
+                installCommand: tool.upgradeCommand ?? tool.installCommand
+            )
+        }
         return DoctorRowModel(
             id: tool.name,
             name: tool.name,

@@ -18,4 +18,11 @@ import Testing
         #expect(DoctorPolicy.tools.first { $0.name == "circleci" }?.minimumMajorVersion == 1)
         #expect(DoctorPolicy.tools.filter { $0.minimumMajorVersion != nil }.map(\.name) == ["circleci"])
     }
+
+    @Test func theMajorVersionDecidesWhetherAToolIsTooOld() {
+        #expect(DoctorPolicy.isBelow(minimumMajorVersion: 1, version: "0.1.31425"))
+        #expect(DoctorPolicy.isBelow(minimumMajorVersion: 1, version: "1.13.0") == false)
+        #expect(DoctorPolicy.isBelow(minimumMajorVersion: 2, version: "v1.9") )
+        #expect(DoctorPolicy.isBelow(minimumMajorVersion: 1, version: "custom build") == false)
+    }
 }

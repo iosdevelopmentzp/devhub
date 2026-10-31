@@ -25,6 +25,9 @@ DevHubData/
     GitHub/         GhPullRequestRepository, GhClient, GhPullRequestParser, GhCheckParser, GhDiffParser,
                     GhCreatedPullRequestParser, GhGraphQLQueries
     CodeHost/       RoutingCodeHostRepository (picks gh or glab per remote; see `code-host`)
+    CircleCI/       CircleCIRepository(client:), CircleCIClient, CircleCIJSON, CircleCIWorkflowParser, CircleCIRunParser,
+                    CircleCIJobOutputParser, CircleCITestResultParser, CircleCIFlakyTestParser, CircleCIToolStateParser
+                    (the circleci CLI, ADR 006; see the pull-requests page)
     Simulators/     SimctlSimulatorRepository, SimctlAppLaunchRepository, SimctlMessagingRepository, SimctlRunner,
                     SimctlListParser, ContainerLocator, ProfileDefaultsPlan, AppURLSchemeParser,
                     Dictionary+ChildEnvironment

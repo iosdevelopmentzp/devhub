@@ -1,6 +1,6 @@
 # ADR 006. CircleCI status and actions through the `circleci` CLI
 
-Date: 2026-10-31. Status: in progress. The research is done; the implementation runs step by step (see the step log). The live verification is still open: the Mac has no CircleCI login.
+Date: 2026-10-31. Status: implemented (steps 2 to 8, see the step log). The live verification on a CircleCI project is still open: the Mac has no CircleCI login.
 
 This page is the brief for the implementation. It holds the research results, the design and the plan. The next session reads it first, then the files it names, then starts at step 1 of the plan.
 
@@ -132,3 +132,4 @@ Then in DevHub: open a pull request with CircleCI checks, expand the details, re
 | Commit | Step |
 |---|---|
 | `83ecc5b` | Steps 2 to 4: the Domain models, port, policies and errors; `CircleCIClient`, the parsers, `CircleCIRepository`, the mock and the spy; `ciWorkflowID` from the link of a GitHub check. |
+| `77925a2` | Steps 5 and 8: `PullRequestDetailStore` reads the workflows, the failed tests and the flaky list; the job groups, the row actions, the approve and cancel confirmations, the tool notice; the failed tests with the flaky tags; the feature page, the config rows, STATUS decision 48. |
