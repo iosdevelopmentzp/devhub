@@ -3,6 +3,9 @@ import DevHubDomain
 import DevHubUI
 
 struct OutputEntryView: View {
+    @Environment(Toaster.self) private var toaster
+    @Environment(AppActions.self) private var appActions
+
     let model: OutputEntryModel
     let onCopy: () -> Void
     let onToggle: () -> Void
@@ -17,6 +20,9 @@ struct OutputEntryView: View {
                     .truncationMode(.middle)
                     .copyOnClick(model.command, label: "Command")
                 Spacer(minLength: 6)
+                Text(model.startedText)
+                    .font(.caption2.monospaced())
+                    .foregroundStyle(.secondary)
                 if let folder = model.folder {
                     Text(folder)
                         .font(.caption2.monospaced())
@@ -50,6 +56,8 @@ struct OutputEntryView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 6)
+        .contentShape(Rectangle())
+        .contextMenu { contextMenu }
     }
 
     @ViewBuilder
@@ -63,6 +71,28 @@ struct OutputEntryView: View {
                 .foregroundStyle(model.statusTint.color)
                 .font(.caption)
                 .hint(model.statusHint)
+        }
+    }
+
+    @ViewBuilder
+    private var contextMenu: some View {
+        Button("Copy Command", systemImage: "doc.on.doc") {
+            toaster.copy(model.command, label: "Command")
+        }
+        if let output = model.fullOutput {
+            Button("Copy Output", systemImage: "text.alignleft") {
+                toaster.copy(output, label: "Output")
+            }
+        }
+        Button("Copy Command and Output", systemImage: "doc.on.doc.fill", action: onCopy)
+        if let folder = model.folderPath {
+            Divider()
+            Button("Open Folder in Terminal", systemImage: "terminal") {
+                appActions.openTerminal(at: folder)
+            }
+            Button("Reveal Folder in Finder", systemImage: "folder") {
+                appActions.openInFinder(path: folder)
+            }
         }
     }
 }

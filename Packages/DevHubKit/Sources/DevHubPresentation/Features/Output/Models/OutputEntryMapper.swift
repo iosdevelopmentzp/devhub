@@ -6,10 +6,11 @@ enum OutputEntryMapper {
 
     private static let previewLines = 8
 
-    static func visibleEntries(_ entries: [CommandLog.Entry], showsReads: Bool, query: String) -> [CommandLog.Entry] {
+    static func visibleEntries(_ entries: [CommandLog.Entry], showsReads: Bool, failedOnly: Bool, query: String) -> [CommandLog.Entry] {
         let query = query.trimmingCharacters(in: .whitespaces)
         return entries.filter { entry in
             guard showsReads || entry.kind != .read else { return false }
+            guard failedOnly == false || entry.isFailure else { return false }
             guard query.isEmpty == false else { return true }
             return entry.command.localizedCaseInsensitiveContains(query)
                 || entry.output.localizedCaseInsensitiveContains(query)
@@ -23,6 +24,8 @@ enum OutputEntryMapper {
             command: entry.command,
             commandLine: "$ " + entry.command,
             folder: entry.cwd?.abbreviatingHome,
+            folderPath: entry.cwd,
+            startedText: ClockTime.text(entry.startedAt),
             durationText: DurationFormat.text((entry.finishedAt ?? now).timeIntervalSince(entry.startedAt)),
             isRunning: entry.isRunning,
             statusIcon: entry.isFailure ? "xmark.circle.fill" : "checkmark.circle.fill",
@@ -33,6 +36,7 @@ enum OutputEntryMapper {
             expandIcon: isExpanded ? "chevron.up" : "chevron.down",
             expandHint: isExpanded ? "Show less" : "Show all \(entry.lines.count) lines",
             output: entry.lines.isEmpty ? nil : visibleOutput(for: entry, isExpanded: isExpanded),
+            fullOutput: entry.lines.isEmpty ? nil : entry.output,
             outputTint: entry.isFailure ? .red : nil,
             error: entry.error
         )

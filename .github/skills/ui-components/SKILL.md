@@ -41,7 +41,7 @@ new element. A new shared block goes into DevHubUI and into this table.
 | `LinkButtonStyle` | `.buttonStyle(LinkButtonStyle(.accent, weight: .medium))` | A text button in caption size, `.secondary` or `.accent` |
 | `ExpandableText` | `ExpandableText(attributed, lineLimit: 5)` | Long text with "Show all" and "Show less" |
 | `PlainTextEditor` | `PlainTextEditor(text: $payload)` | A monospaced plain `NSTextView` editor without smart quotes, dashes or spelling correction (JSON, payloads) |
-| `SplitHandle` | `SplitHandle(onDrag: { … }, onEnd: { … })` | A vertical handle between two panes |
+| `SplitHandle` | `SplitHandle(axis: .vertical, onDrag: { … }, onEnd: { … })` | A drag handle between two panes: `.vertical` between left and right (the pull request list), `.horizontal` between top and bottom (the Output panel edge). `onDrag` gets the translation along the drag axis |
 | `ToastView` | in `RootView` | Shows `Toaster.text` at the bottom of the tab |
 | `FolderPicker` | `FolderPicker.chooseFolder(directory:prompt:message:)`, `chooseFile(…)` | `NSOpenPanel` that returns a `URL?` |
 | `WindowAppearance`, `HostWindowReader` | `.background(WindowAppearance(name: .aqua))` | Window appearance and window access from the view tree (`panel-window`) |
@@ -84,6 +84,7 @@ Selection: the selected tab is `Color.accentColor` with white text; a selected o
 | `DurationFormat.text(_:)` | "850 ms", "4.2 s", "1 m 12 s" |
 | `SyncText.text(ahead:behind:)`, `ahead(_:)`, `behind(_:)` | "↑2 ↓1" |
 | `LogTimestamp.text(_:)` | "14:05:09.123", the time of a log line |
+| `ClockTime.text(_:)` | "14:05:09", the start time of a command |
 | `Countdown.text(_:)` | "2h 5m", the time until a usage limit resets |
 
 Tests never assert on the exact text of locale or clock formatters, only nil or not empty.

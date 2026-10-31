@@ -17,23 +17,23 @@ The panel opens by itself when a command fails in a way that DevHub reports as a
 
 ### Panel
 
-The panel is 260 points high. Its header has:
+The panel is 260 points high by default. A drag on its top edge changes the height: 120 points at least, and never more than the window height minus 320 points. A double-click on the edge restores 260. The height is remembered. The header has:
 
 - the number of shown commands;
 - a search field ("Search output");
-- "Show reads";
-- Copy All, Clear and a button that hides the panel.
+- a filter menu (funnel icon) with "Show reads" and "Failed only"; the icon is filled while "Failed only" is on;
+- Follow (arrow to a line, blue while on): on by default, the list scrolls to the newest command and its new lines; off, the list stays where you scrolled;
+- Copy All, Clear and a button that hides the panel. Every icon has a hint.
 
 Each entry shows:
 
 1. A status icon: a spinner while it runs, a green check for an action, a grey check for a read, a red cross for a failure. The hint of the red cross shows the exit code.
 2. The command line, for example `$ git fetch --prune origin`.
-3. The working folder.
-4. The duration.
-5. The last 8 lines of output, red for a failure. "… N more lines above" shows when there are more.
-6. The error text when the process could not start.
+3. The start time (`14:05:09`), the working folder and the duration.
+4. The last 8 lines of output, red for a failure. "… N more lines above" shows when there are more.
+5. The error text when the process could not start.
 
-The list scrolls to the newest entry when an entry is added or gets new lines.
+While Follow is on, the list scrolls to the newest entry when an entry is added or gets new lines.
 
 ### What counts as a read
 
@@ -60,14 +60,18 @@ A command that streams its output (a build, a script, a bootstrap) is never show
 | Action | What it does |
 |---|---|
 | Output (⇧⌘O) in the footer | Shows or hides the panel |
+| Drag the top edge | Changes the height of the panel. A double-click restores the default height |
 | Search output | Filters entries by the command, the output and the error text |
-| Show reads | Also shows read-only commands |
+| Show reads (filter menu) | Also shows read-only commands |
+| Failed only (filter menu) | Shows only the commands that failed: a non-zero exit code or a start error. Running commands are hidden |
+| Follow | On: the list scrolls to the newest command and its new lines. Off: the list stays where you scrolled. Turning it on scrolls to the end once |
 | Copy All | Copies every shown entry as a transcript: `# in <folder>`, `$ <command>`, the output, `# exit code N`, `# <error>` |
 | Clear | Removes every finished entry. Running entries stay |
 | Hide (chevron) | Hides the panel |
 | Copy (entry icon) | Copies the transcript of one entry |
 | Show all N lines / Show less (entry icon) | Shows the whole output of an entry, or the last 8 lines again |
 | Click on the command line | Copies the command |
+| Right-click an entry | Copy Command, Copy Output (when there is output), Copy Command and Output; Open Folder in Terminal and Reveal Folder in Finder when the command ran in a folder |
 
 The panel runs no commands of its own.
 
@@ -81,13 +85,15 @@ The panel reads no `.devhub` field. Config scripts and commands appear in it lik
 |---|---|---|
 | `output.visible` | Whether the panel is open | closed |
 | `output.showsReads` | The "Show reads" box | off |
+| `output.follows` | Follow: `on` or `off` | on |
+| `output.height` | The height of the panel in points | 260 |
 
-The entries themselves are not saved. The search text and the expanded entries are not saved either.
+The entries themselves are not saved. The search text, "Failed only" and the expanded entries are not saved either.
 
 ## Limits
 
 - The log keeps the last 300 entries and the last 4,000 lines of each entry, in memory only. "… N earlier lines dropped" shows when lines were removed.
 - An argument longer than 160 characters is cut with `…`. An argument with a line break (for example a GraphQL query) shows as `'…script…'`.
-- The panel has a fixed height. It cannot be resized.
+- The height is capped by the window: in a small window the panel shows less than the saved height, and the saved value comes back in a taller window.
 - DevHub does not change the output of a shown command. Only the secret and app log kinds are hidden.
 - `xcrun simctl boot` on a booted simulator shows a red row (exit code 149) although the run continues (`docs/STATUS.md`, known gaps).

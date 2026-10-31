@@ -115,7 +115,7 @@ enum WorktreeRowMapper {
 - Cross-feature actions go through `AppActions` (`appActions.buildAndRun(worktreeID:)`). Never `navigator.show` plus a
   store call in one closure.
 - Formatting through `DevHubUI/Formatters/` (`Date+RelativeDescription`, `ByteFormat`, `CountText`,
-  `DurationFormat`, `SyncText`, `LogTimestamp`, `Countdown`). No `DateFormatter` in a view or a mapper.
+  `DurationFormat`, `SyncText`, `LogTimestamp`, `ClockTime`, `Countdown`). No `DateFormatter` in a view or a mapper.
 - Colours through `Theme` and `Tint`. Components from `DevHubUI` (`RowContainer`, `InlineConfirmation`,
   `ListState`, `ListMessage`, `ToolbarBar`, `ListSectionHeader`, `LinkButtonStyle`, `FieldLabel`, `Tag`, `ModelTag`,
   `TagModel`, `IconButton`, …). See `/ui-components`.

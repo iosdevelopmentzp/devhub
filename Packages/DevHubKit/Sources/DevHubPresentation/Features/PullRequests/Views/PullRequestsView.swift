@@ -101,6 +101,7 @@ struct PullRequestsView: View {
                     list(layout)
                         .frame(width: listWidth)
                     SplitHandle(
+                        axis: .vertical,
                         onDrag: { translation in
                             let start = dragStartWidth ?? listWidth
                             dragStartWidth = start

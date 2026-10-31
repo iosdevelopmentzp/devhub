@@ -10,8 +10,8 @@ import Testing
     @Test func visibleEntriesHideReadsUnlessAsked() {
         let entries = [CommandLogEntryFixture.finished, CommandLogEntryFixture.read]
 
-        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: false, query: "").map(\.id) == [CommandLogEntryFixture.finished.id])
-        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: true, query: "").map(\.id) == entries.map(\.id))
+        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: false, failedOnly: false, query: "").map(\.id) == [CommandLogEntryFixture.finished.id])
+        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: true, failedOnly: false, query: "").map(\.id) == entries.map(\.id))
     }
 
     @Test func visibleEntriesMatchCommandOutputOrErrorIgnoringCase() {
@@ -20,10 +20,24 @@ import Testing
         failed.error = "Permission DENIED"
         let entries = [CommandLogEntryFixture.finished, failed]
 
-        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: true, query: " FETCH ").map(\.id) == [CommandLogEntryFixture.finished.id])
-        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: true, query: "new branch").map(\.id) == [CommandLogEntryFixture.finished.id])
-        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: true, query: "denied").map(\.id) == [failed.id])
-        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: true, query: "nothing").isEmpty)
+        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: true, failedOnly: false, query: " FETCH ").map(\.id) == [CommandLogEntryFixture.finished.id])
+        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: true, failedOnly: false, query: "new branch").map(\.id) == [CommandLogEntryFixture.finished.id])
+        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: true, failedOnly: false, query: "denied").map(\.id) == [failed.id])
+        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: true, failedOnly: false, query: "nothing").isEmpty)
+    }
+
+    @Test func failedOnlyKeepsTheFailuresOfEveryKind() {
+        var failedAction = CommandLogEntryFixture.finished
+        failedAction.exitCode = 1
+        var failedRead = CommandLogEntryFixture.read
+        failedRead.error = "boom"
+        var running = CommandLogEntryFixture.finished
+        running.finishedAt = nil
+        running.exitCode = nil
+        let entries = [CommandLogEntryFixture.finished, failedAction, failedRead, running]
+
+        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: false, failedOnly: true, query: "").map(\.id) == [failedAction.id])
+        #expect(OutputEntryMapper.visibleEntries(entries, showsReads: true, failedOnly: true, query: "").map(\.id) == [failedAction.id, failedRead.id])
     }
 
     @Test func finishedSuccessfulAction() {
@@ -35,6 +49,9 @@ import Testing
         #expect(model.command == entry.command)
         #expect(model.commandLine == "$ git -C ~/Projects/ExampleApp fetch --prune")
         #expect(model.folder == "/Users/dev/Projects/ExampleApp".abbreviatingHome)
+        #expect(model.folderPath == "/Users/dev/Projects/ExampleApp")
+        #expect(model.startedText.isEmpty == false)
+        #expect(model.fullOutput == entry.output)
         #expect(model.durationText == "2.5 s")
         #expect(model.isRunning == false)
         #expect(model.statusIcon == "checkmark.circle.fill")
@@ -65,7 +82,9 @@ import Testing
 
         #expect(model.statusTint == .secondary)
         #expect(model.folder == nil)
+        #expect(model.folderPath == nil)
         #expect(model.output == nil)
+        #expect(model.fullOutput == nil)
     }
 
     @Test func failureByExitCode() {

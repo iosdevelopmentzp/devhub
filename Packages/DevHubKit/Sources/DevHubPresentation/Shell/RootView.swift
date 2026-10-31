@@ -35,7 +35,6 @@ struct RootView: View {
                 NoProjectState()
             }
             if output.isVisible {
-                Divider()
                 OutputPanel()
             }
             Divider()
