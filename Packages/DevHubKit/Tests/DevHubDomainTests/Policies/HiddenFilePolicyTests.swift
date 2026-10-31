@@ -2,7 +2,7 @@ import Testing
 @testable import DevHubDomain
 
 @Suite struct HiddenFilePolicyTests {
-    private let patterns = GitSettingsPolicy.defaultHiddenFiles
+    private let patterns = HiddenFilePolicy.suggestedPatterns
 
     @Test(arguments: [
         "Packages/App/Tests/AppTests/LoginTests.swift",
@@ -13,7 +13,7 @@ import Testing
         "Package.resolved",
         "Podfile.lock",
     ])
-    func theDefaultsHideTestsProjectAndLockFiles(path: String) {
+    func theSuggestionsMatchTestsProjectAndLockFiles(path: String) {
         #expect(HiddenFilePolicy.isHidden(path, patterns: patterns))
     }
 
@@ -23,7 +23,7 @@ import Testing
         "Podfile",
         "docs/testing.md",
     ])
-    func otherFilesStayVisible(path: String) {
+    func otherFilesAreNotSuggested(path: String) {
         #expect(HiddenFilePolicy.isHidden(path, patterns: patterns) == false)
     }
 
@@ -40,5 +40,20 @@ import Testing
 
         #expect(HiddenFilePolicy.hiddenPaths(in: paths, patterns: patterns) == ["AppTests/LoginTests.swift", "Package.resolved"])
         #expect(HiddenFilePolicy.hiddenPaths(in: paths, patterns: []).isEmpty)
+    }
+
+    @Test func chosenPathsAreHiddenNextToThePatterns() {
+        let paths = ["App/Login.swift", "App/Generated.swift", "Package.resolved"]
+
+        let hidden = HiddenFilePolicy.hiddenPaths(in: paths, patterns: ["*.resolved"], chosen: ["App/Generated.swift", "Other/Gone.swift"])
+
+        #expect(hidden == ["App/Generated.swift", "Package.resolved"])
+    }
+
+    @Test func theSuggestionsLeaveOutHiddenFilesAndKeepTheOrder() {
+        let paths = ["Podfile.lock", "App/Login.swift", "AppTests/LoginTests.swift", "App.xcodeproj/project.pbxproj"]
+
+        #expect(HiddenFilePolicy.suggestedPaths(in: paths, hidden: ["AppTests/LoginTests.swift"]) == ["Podfile.lock", "App.xcodeproj/project.pbxproj"])
+        #expect(HiddenFilePolicy.suggestedPaths(in: ["App/Login.swift"], hidden: []).isEmpty)
     }
 }

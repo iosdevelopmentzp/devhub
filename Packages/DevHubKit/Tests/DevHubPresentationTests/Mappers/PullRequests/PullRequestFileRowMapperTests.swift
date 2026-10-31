@@ -164,6 +164,24 @@ import Testing
         #expect(model.diff == DiffMapper.model(for: file(.modified).diff))
     }
 
+    @Test func hidingSetsTheTagAndTheEyeButton() {
+        let model = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false), threads: [], words: .gitLab)
+
+        let visible = PullRequestFileRowMapper.hiding(model, isHidden: false, isChosen: false)
+        let chosen = PullRequestFileRowMapper.hiding(model, isHidden: true, isChosen: true)
+        let byPattern = PullRequestFileRowMapper.hiding(model, isHidden: true, isChosen: false)
+
+        #expect(visible.canHide)
+        #expect(visible.canUnhide == false)
+        #expect(visible.hiddenTag == nil)
+        #expect(chosen.canHide == false)
+        #expect(chosen.canUnhide)
+        #expect(chosen.hiddenTag?.hint?.hasPrefix("You hid this file") == true)
+        #expect(byPattern.canHide == false)
+        #expect(byPattern.canUnhide == false)
+        #expect(byPattern.hiddenTag?.hint == "This file matches git.pullRequests.hiddenFiles in project.json")
+    }
+
     @Test func onlyAModifiedOrRenamedTextFileOffersTheWholeFile() {
         let plain = review(expanded: false)
 

@@ -23,4 +23,8 @@ enum PullRequestsPreferenceKeys {
     static func autoRerun(projectID: String) -> String {
         "gitlab.autoRerun.\(projectID)"
     }
+
+    static func hiddenFiles(projectID: String) -> String {
+        "gitlab.hiddenFiles.\(projectID)"
+    }
 }

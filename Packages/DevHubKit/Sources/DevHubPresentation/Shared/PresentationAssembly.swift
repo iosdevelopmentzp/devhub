@@ -30,6 +30,7 @@ package final class PresentationAssembly {
     let ciProjects: CIProjectResolver
     let ciHistory: CIWorkflowHistory
     let ciAutoRerun: CIAutoRerunStore
+    let pullRequestHiddenFiles: PullRequestHiddenFiles
     let branchPullRequest: BranchPullRequestStore
     let pullRequests: PullRequestsStore
     let openPullRequests: OpenPullRequestsStore
@@ -119,6 +120,7 @@ package final class PresentationAssembly {
         codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
         ciProjects = CIProjectResolver(config: config, worktrees: worktrees, remote: codeHostRemote, tools: ports.tools, events: events)
         ciHistory = CIWorkflowHistory(session: session, events: events, store: store)
+        pullRequestHiddenFiles = PullRequestHiddenFiles(session: session, events: events, store: store)
         pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
         openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
         inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
@@ -142,6 +144,7 @@ package final class PresentationAssembly {
             projects: ciProjects,
             history: ciHistory,
             autoRerun: ciAutoRerun,
+            hiddenFiles: pullRequestHiddenFiles,
             activity: activity,
             events: events
         )

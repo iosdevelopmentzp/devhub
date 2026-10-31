@@ -17,7 +17,8 @@ enum PullRequestDetailsMapper {
         }
         guard let details, let diffs else { return PullRequestDetailsModel(content: .loading) }
         let words = context.words
-        let hidden = HiddenFilePolicy.hiddenPaths(in: diffs.map(\.path), patterns: context.hiddenFiles)
+        let paths = diffs.map(\.path)
+        let hidden = HiddenFilePolicy.hiddenPaths(in: paths, patterns: context.hiddenFiles, chosen: review.chosenHiddenFiles)
         let visible = review.showsHiddenFiles ? diffs : diffs.filter { hidden.contains($0.path) == false }
         let additions = visible.reduce(0) { $0 + $1.additions }
         let deletions = visible.reduce(0) { $0 + $1.deletions }
@@ -48,12 +49,19 @@ enum PullRequestDetailsMapper {
                     filesTitle: "Files \(visible.count) · +\(additions) −\(deletions)" + (viewedCount > 0 ? " · \(viewedCount) viewed" : ""),
                     hiddenFilesTitle: hiddenFilesTitle(count: hidden.count, shown: review.showsHiddenFiles),
                     hiddenFilesHint: hidden.isEmpty ? nil : hiddenFilesHint(count: hidden.count, shown: review.showsHiddenFiles),
+                    hideSuggestion: hideSuggestion(HiddenFilePolicy.suggestedPaths(in: paths, hidden: hidden)),
                     showsHiddenFiles: review.showsHiddenFiles,
                     canExpandAllFiles: visible.count - viewedCount > expandedCount,
                     canCollapseAllFiles: expandedCount > 0,
                     hasThreadsInDiff: threadRows.contains { $0.canShowInDiff },
                     showsThreadsInDiff: review.showsThreadsInDiff,
-                    files: visible.map { PullRequestFileRowMapper.model(for: $0, review: review, threads: threadRows, words: words) }
+                    files: visible.map { file in
+                        PullRequestFileRowMapper.hiding(
+                            PullRequestFileRowMapper.model(for: file, review: review, threads: threadRows, words: words),
+                            isHidden: hidden.contains(file.path),
+                            isChosen: review.chosenHiddenFiles.contains(file.path)
+                        )
+                    }
                 )
             )
         )
@@ -105,16 +113,28 @@ enum PullRequestDetailsMapper {
         return PullRequestDetailsModel.CINotice(text: text, command: command)
     }
 
+    static func hideSuggestion(_ paths: [String]) -> PullRequestDetailsModel.HideSuggestion? {
+        guard paths.isEmpty == false else { return nil }
+        let names = paths.prefix(3).map { ($0 as NSString).lastPathComponent }
+        let rest = paths.count > 3 ? " and \(paths.count - 3) more" : ""
+        return PullRequestDetailsModel.HideSuggestion(
+            text: "\(CountText.count(paths.count, "file")) \(paths.count == 1 ? "looks" : "look") like tests, project files or lock files",
+            actionTitle: paths.count == 1 ? "Hide It" : "Hide Them",
+            hint: "Hide \(names.joined(separator: ", "))\(rest) in the requests of this project. \"Show N hidden\" lists them again.",
+            paths: paths
+        )
+    }
+
     private static func hiddenFilesTitle(count: Int, shown: Bool) -> String? {
         guard count > 0 else { return nil }
         return shown ? "Hide \(count)" : "Show \(count) hidden"
     }
 
     private static func hiddenFilesHint(count: Int, shown: Bool) -> String {
-        let files = CountText.count(count, "file")
-        return shown
-            ? "\(files) match git.pullRequests.hiddenFiles (tests, project files, lock files by default). Click to hide them again."
-            : "\(files) match git.pullRequests.hiddenFiles (tests, project files, lock files by default) and stay hidden until you show them. Click to show them."
+        let reason = count == 1
+            ? "1 file is hidden: you hid it, or it matches git.pullRequests.hiddenFiles."
+            : "\(count) files are hidden: you hid them, or they match git.pullRequests.hiddenFiles."
+        return shown ? "\(reason) Click to hide them again." : "\(reason) Click to show them."
     }
 
     private static func jobTitle(_ job: PipelineJob) -> String {

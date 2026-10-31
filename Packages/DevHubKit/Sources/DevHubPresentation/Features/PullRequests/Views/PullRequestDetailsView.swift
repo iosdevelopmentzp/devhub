@@ -114,6 +114,9 @@ struct PullRequestDetailsView: View {
             }
             VStack(alignment: .leading, spacing: 6) {
                 filesHeader(loaded)
+                if let suggestion = loaded.hideSuggestion {
+                    hideSuggestionLine(suggestion)
+                }
                 LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
                     ForEach(loaded.files) { file in
                         PullRequestFileRow(model: file, actions: actions)
@@ -301,6 +304,23 @@ struct PullRequestDetailsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
+        }
+    }
+
+    private func hideSuggestionLine(_ suggestion: PullRequestDetailsModel.HideSuggestion) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "eye.slash")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(suggestion.text)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Button(suggestion.actionTitle) {
+                actions.hideFiles(suggestion.paths)
+            }
+            .buttonStyle(LinkButtonStyle(.accent, weight: .medium))
+            .fixedSize()
+            .hint(suggestion.hint)
         }
     }
 

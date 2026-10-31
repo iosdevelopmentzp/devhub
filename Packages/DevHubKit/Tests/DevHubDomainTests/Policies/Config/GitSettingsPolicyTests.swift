@@ -70,7 +70,7 @@ import Testing
             targets: nil,
             template: nil,
             staleDays: 14,
-            hiddenFiles: ["*Tests/*", "*Tests.swift", "*.xcodeproj/*", "*.resolved", "*.lock"],
+            hiddenFiles: [],
             isDraft: false,
             deleteSourceBranch: true,
             squash: false,

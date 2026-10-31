@@ -47,6 +47,7 @@ final class PullRequestDetailStore {
     @ObservationIgnored private let projects: CIProjectResolver
     @ObservationIgnored private let history: CIWorkflowHistory
     @ObservationIgnored private let autoRerun: any CIAutoRerunLookup
+    @ObservationIgnored private let hiddenFiles: PullRequestHiddenFiles
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private var loading: Set<PullRequestSummary.ID> = []
     @ObservationIgnored private var ciLoading: Set<String> = []
@@ -67,6 +68,7 @@ final class PullRequestDetailStore {
         projects: CIProjectResolver,
         history: CIWorkflowHistory,
         autoRerun: any CIAutoRerunLookup,
+        hiddenFiles: PullRequestHiddenFiles,
         activity: ActivityLog,
         events: AppEvents
     ) {
@@ -77,6 +79,7 @@ final class PullRequestDetailStore {
         self.projects = projects
         self.history = history
         self.autoRerun = autoRerun
+        self.hiddenFiles = hiddenFiles
         self.activity = activity
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
@@ -152,7 +155,8 @@ final class PullRequestDetailStore {
             autoRerunPlan: autoRerun.plan(for: id),
             openJobDetails: openJobDetails,
             openTestMessages: openTestMessages,
-            openCIHistoryRuns: openCIHistoryRuns
+            openCIHistoryRuns: openCIHistoryRuns,
+            chosenHiddenFiles: hiddenFiles.paths
         )
     }
 
@@ -178,6 +182,14 @@ final class PullRequestDetailStore {
     func collapseAllFiles(of id: PullRequestSummary.ID) {
         expandedFiles[id] = []
         clearFocus(of: id)
+    }
+
+    func hideFiles(_ paths: [String]) {
+        hiddenFiles.hide(paths)
+    }
+
+    func unhideFile(_ path: String) {
+        hiddenFiles.unhide(path)
     }
 
     func toggleHiddenFiles(of id: PullRequestSummary.ID) {

@@ -22,6 +22,9 @@ struct PullRequestFileRowModel: Identifiable, Equatable {
     var canOpenOnWeb: Bool
     var isFull: Bool
     var fullHint: String?
+    var hiddenTag: TagModel? = nil
+    var canHide = true
+    var canUnhide = false
 
     static func scrollID(_ id: String) -> String {
         "merge-request-file:\(id)"

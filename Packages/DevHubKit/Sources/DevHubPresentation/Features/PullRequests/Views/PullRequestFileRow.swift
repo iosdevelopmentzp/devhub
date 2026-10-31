@@ -68,6 +68,9 @@ struct PullRequestFileRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .onTapGesture { actions.toggleFile(model.id) }
+            if let hiddenTag = model.hiddenTag {
+                ModelTag(model: hiddenTag)
+            }
             if let threadCountText = model.threadCountText {
                 Label(threadCountText, systemImage: "bubble.left")
                     .font(.caption)
@@ -94,6 +97,15 @@ struct PullRequestFileRow: View {
             if model.canOpenOnWeb {
                 IconButton(systemImage: "safari", help: "Open the whole file in the browser at the last commit. Right-click a diff line to open it at that line.") {
                     actions.openFileOnWeb(model.path, nil)
+                }
+            }
+            if model.canUnhide {
+                IconButton(systemImage: "eye", help: "Show this file again in the requests of this project") {
+                    actions.unhideFile(model.path)
+                }
+            } else if model.canHide {
+                IconButton(systemImage: "eye.slash", help: "Hide this file in the requests of this project. \"Show N hidden\" lists it again.") {
+                    actions.hideFiles([model.path])
                 }
             }
             IconButton(systemImage: "arrow.up.forward.app", help: "Open in the editor chosen in Settings, from the branch's checkout or the main checkout. Double-click a diff line to open it at that line.") {

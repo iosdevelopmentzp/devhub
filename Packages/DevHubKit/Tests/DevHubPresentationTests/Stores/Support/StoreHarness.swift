@@ -132,6 +132,8 @@ final class StoreHarness {
 
     lazy var ciHistory = CIWorkflowHistory(session: session, events: events, store: store)
 
+    lazy var pullRequestHiddenFiles = PullRequestHiddenFiles(session: session, events: events, store: store)
+
     lazy var ciAutoRerun = CIAutoRerunStore(
         repository: ports.codeHost,
         ci: ports.ci,
@@ -159,6 +161,7 @@ final class StoreHarness {
         projects: ciProjects,
         history: ciHistory,
         autoRerun: ciAutoRerun,
+        hiddenFiles: pullRequestHiddenFiles,
         activity: activity,
         events: events
     )

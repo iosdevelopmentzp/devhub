@@ -84,7 +84,7 @@ Review and job facts in the values:
 | `PipelineJob.stage` | the workflow name (`checkSuite.workflowRun.workflow.name`) | the stage name |
 | `PipelineJob.duration`, `allowsFailure`, `failureMessage` | `completedAt - startedAt`; never; the check run `title` when it failed and differs from the name | `duration`, `allowFailure`, `failureMessage` |
 
-`PullRequestReviewMapper` turns the review facts into the "Approved by", "Changes requested", "Waiting for" and "Assigned to" lines of the details. `HiddenFilePolicy` (Domain) and `git.pullRequests.hiddenFiles` decide which files the details hide until "Show N hidden".
+`PullRequestReviewMapper` turns the review facts into the "Approved by", "Changes requested", "Waiting for" and "Assigned to" lines of the details. `HiddenFilePolicy` (Domain), the paths the user hid (`PullRequestHiddenFiles`, per project) and `git.pullRequests.hiddenFiles` decide which files the details hide until "Show N hidden". Nothing is hidden by default; `HiddenFilePolicy.suggestedPatterns` only feeds the "Hide Them" suggestion line.
 
 ### Clients and errors
 
@@ -159,7 +159,7 @@ Other repository facts: `squashOnMerge` (GitHub `viewerDefaultMergeMethod` is `S
 | `git.host.kind` | `github` or `gitlab`; set it for GitHub Enterprise on a host without `github` in the name |
 | `git.host.name` | the value for `--hostname` |
 | `git.pullRequests.targets`, `template`, `staleDays`, `defaults.*` | the new request form and the `stale` tag (`PullRequestSettings`) |
-| `git.pullRequests.hiddenFiles` | glob patterns of the files hidden from the details file list (`PullRequestSettings.hiddenFiles`, `HiddenFilePolicy`); the default hides tests, Xcode project files and lock files |
+| `git.pullRequests.hiddenFiles` | glob patterns of the files hidden from the details file list (`PullRequestSettings.hiddenFiles`, `HiddenFilePolicy`); the default is `[]`: nothing is hidden until the user or this list says so |
 | `ai.reviewCommand` | "Fix threads with AI" |
 | `when.host` | shows a config action only for one kind (`ActionCondition.host`, `ActionConditionFacts.hostKind`) |
 | the `pullRequests.row` placement | config actions in the row menu, with `DEVHUB_PR_NUMBER` and `DEVHUB_PR_URL` |

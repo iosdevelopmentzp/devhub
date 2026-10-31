@@ -31,6 +31,7 @@ struct PullRequestReviewState: Equatable {
     var openJobDetails: Set<String> = []
     var openTestMessages: Set<String> = []
     var openCIHistoryRuns: Set<String> = []
+    var chosenHiddenFiles: Set<String> = []
 
     static let initial = PullRequestReviewState(expandedFiles: [], viewedFiles: [], focus: nil, busyThreads: [], showsThreadsInDiff: true, openDiffThreads: [])
 }

@@ -87,6 +87,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- Pull Requests: the details hide no files by default. The eye-slash button of a file hides it in the requests of this project, and the eye button shows it again. A line under the files header names the tests, Xcode project files and lock files of the request, and "Hide Them" hides them only when you click it. Patterns in `git.pullRequests.hiddenFiles` still hide files. Before, tests, project files and lock files were hidden without a choice.
 - Pull Requests: the failure reason of a job and the failed test list of a CircleCI job are folded by default. The job line shows "› reason" or "› N failed tests"; a click opens them, and each test message opens on its own. Before, a job with many failed tests filled the details. The open state lives in the detail store, so it stays while the list redraws.
 - Home → Recent keeps the events between launches (30 days, 500 at most) instead of the last 8 in memory. Rows without a detail no longer show an empty line.
 - Settings → Notifications: "Notify about my pull requests" became the four switches for reviews, checks, comments and merged or closed requests. The main switch is now called "Notify while the panel is closed".

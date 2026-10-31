@@ -669,4 +669,14 @@ import DevHubTestSupport
         #expect(store.openTestMessages.isEmpty)
         #expect(store.openCIHistoryRuns.isEmpty)
     }
+
+    @Test func hideAndUnhideGoThroughTheProjectList() {
+        store.hideFiles(["Podfile.lock", "Package.resolved"])
+        let hidden = store.review(of: 7).chosenHiddenFiles
+        store.unhideFile("Podfile.lock")
+
+        #expect(hidden == ["Podfile.lock", "Package.resolved"])
+        #expect(store.review(of: 8).chosenHiddenFiles == ["Package.resolved"])
+        #expect(harness.pullRequestHiddenFiles.paths == ["Package.resolved"])
+    }
 }

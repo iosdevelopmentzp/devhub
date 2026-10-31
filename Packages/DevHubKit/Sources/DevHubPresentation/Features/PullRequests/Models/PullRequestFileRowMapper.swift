@@ -34,6 +34,21 @@ enum PullRequestFileRowMapper {
         )
     }
 
+    static func hiding(_ model: PullRequestFileRowModel, isHidden: Bool, isChosen: Bool) -> PullRequestFileRowModel {
+        var hidden = model
+        hidden.canHide = isHidden == false
+        hidden.canUnhide = isChosen
+        hidden.hiddenTag = isHidden
+            ? TagModel(
+                "hidden",
+                tint: .secondary,
+                systemImage: "eye.slash",
+                hint: isChosen ? "You hid this file in the requests of this project. The eye button shows it again." : "This file matches git.pullRequests.hiddenFiles in project.json"
+            )
+            : nil
+        return hidden
+    }
+
     static func expanded(_ file: PullRequestFileDiff, review: PullRequestReviewState) -> PullRequestFileDiff {
         guard let lines = review.fileContents[file.id], let diff = DiffContextExpansion.expanded(file.diff, fileLines: lines) else { return file }
         return PullRequestFileDiff(oldPath: file.oldPath, path: file.path, kind: file.kind, additions: file.additions, deletions: file.deletions, diff: diff, isTooLarge: file.isTooLarge)

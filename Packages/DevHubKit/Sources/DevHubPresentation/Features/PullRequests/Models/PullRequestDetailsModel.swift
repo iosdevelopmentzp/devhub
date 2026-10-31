@@ -18,6 +18,13 @@ struct PullRequestDetailsModel: Equatable {
         var command: String
     }
 
+    struct HideSuggestion: Equatable {
+        var text: String
+        var actionTitle: String
+        var hint: String
+        var paths: [String]
+    }
+
     struct AutoRerun: Equatable {
         struct Choice: Equatable, Hashable {
             var count: Int
@@ -53,6 +60,7 @@ struct PullRequestDetailsModel: Equatable {
         var filesTitle: String
         var hiddenFilesTitle: String?
         var hiddenFilesHint: String?
+        var hideSuggestion: HideSuggestion?
         var showsHiddenFiles: Bool
         var canExpandAllFiles: Bool
         var canCollapseAllFiles: Bool
@@ -90,6 +98,7 @@ struct PullRequestDetailsModel: Equatable {
                 filesTitle: "Files 1 · +2 −1",
                 hiddenFilesTitle: "Show 2 hidden",
                 hiddenFilesHint: "2 files match git.pullRequests.hiddenFiles. Click to show them.",
+                hideSuggestion: HideSuggestion(text: "2 files look like tests, project files or lock files", actionTitle: "Hide Them", hint: "Hide LoginTests.swift and project.pbxproj in the requests of this project", paths: ["AppTests/LoginTests.swift", "App.xcodeproj/project.pbxproj"]),
                 showsHiddenFiles: false,
                 canExpandAllFiles: false,
                 canCollapseAllFiles: true,

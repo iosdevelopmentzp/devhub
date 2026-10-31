@@ -6,7 +6,6 @@ package enum GitSettingsPolicy {
     package static let defaultTicketPattern = #"^([A-Z][A-Z0-9]+-\d+)"#
     package static let defaultTicketFormat = "$1: "
     package static let defaultStaleDays = 14
-    package static let defaultHiddenFiles = ["*Tests/*", "*Tests.swift", "*.xcodeproj/*", "*.resolved", "*.lock"]
     package static let defaultReviewCommand = "claude \"$(cat {prompt})\""
     package static let defaultCopilotCommand = "copilot -i \"$(cat {prompt})\""
 
@@ -50,7 +49,7 @@ package enum GitSettingsPolicy {
             targets: targets?.isEmpty == false ? targets : nil,
             template: meaningful(config?.template),
             staleDays: config?.staleDays.map { max($0, 1) } ?? defaultStaleDays,
-            hiddenFiles: config?.hiddenFiles?.compactMap(meaningful) ?? defaultHiddenFiles,
+            hiddenFiles: config?.hiddenFiles?.compactMap(meaningful) ?? [],
             isDraft: config?.defaults?.draft ?? false,
             deleteSourceBranch: config?.defaults?.deleteSourceBranch ?? true,
             squash: config?.defaults?.squash ?? false,

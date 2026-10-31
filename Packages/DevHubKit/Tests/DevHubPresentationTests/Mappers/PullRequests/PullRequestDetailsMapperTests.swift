@@ -116,6 +116,50 @@ import DevHubTestSupport
         #expect(shown.canCollapseAllFiles)
     }
 
+    @Test func filesYouHidStayOutOfTheListAndCanBeShownAgain() throws {
+        var hiddenState = review(expanded: [])
+        hiddenState.chosenHiddenFiles = ["b.png"]
+        var shownState = hiddenState
+        shownState.showsHiddenFiles = true
+
+        let hidden = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: hiddenState, context: context()))
+        let shown = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: shownState, context: context()))
+
+        #expect(hidden.files.map(\.id) == ["a.swift"])
+        #expect(hidden.hiddenFilesTitle == "Show 1 hidden")
+        #expect(hidden.hiddenFilesHint == "1 file is hidden: you hid it, or it matches git.pullRequests.hiddenFiles. Click to show them.")
+        #expect(hidden.files[0].canHide)
+        #expect(hidden.files[0].hiddenTag == nil)
+        #expect(shown.files.map(\.id) == ["a.swift", "b.png"])
+        #expect(shown.files[1].canHide == false)
+        #expect(shown.files[1].canUnhide)
+        #expect(shown.files[1].hiddenTag?.text == "hidden")
+    }
+
+    @Test func nothingIsHiddenWithoutAChoiceButTestsAndLockFilesAreSuggested() throws {
+        let lock = PullRequestFileDiff(oldPath: "Podfile.lock", path: "Podfile.lock", kind: .modified, additions: 1, deletions: 1, diff: GitDiff(lines: [], droppedLines: 0, isBinary: false), isTooLarge: false)
+
+        let model = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files + [testFile, lock], error: nil, review: review(expanded: []), context: context()))
+        let suggestion = try #require(model.hideSuggestion)
+
+        #expect(model.files.map(\.id) == ["a.swift", "b.png", "AppTests/LoginTests.swift", "Podfile.lock"])
+        #expect(model.hiddenFilesTitle == nil)
+        #expect(suggestion.paths == ["AppTests/LoginTests.swift", "Podfile.lock"])
+        #expect(suggestion.text == "2 files look like tests, project files or lock files")
+        #expect(suggestion.actionTitle == "Hide Them")
+        #expect(suggestion.hint.hasPrefix("Hide LoginTests.swift, Podfile.lock in the requests of this project."))
+    }
+
+    @Test func aSuggestionNamesThreeFilesThenCountsTheRest() throws {
+        let suggestion = try #require(PullRequestDetailsMapper.hideSuggestion(["A/aTests.swift", "B/bTests.swift", "c.lock", "d.lock", "e.resolved"]))
+        let single = try #require(PullRequestDetailsMapper.hideSuggestion(["c.lock"]))
+
+        #expect(suggestion.hint.hasPrefix("Hide aTests.swift, bTests.swift, c.lock and 2 more in the requests"))
+        #expect(single.text == "1 file looks like tests, project files or lock files")
+        #expect(single.actionTitle == "Hide It")
+        #expect(PullRequestDetailsMapper.hideSuggestion([]) == nil)
+    }
+
     @Test func aThreadOnAHiddenFileCannotBeShownInTheDiff() throws {
         let thread = ReviewThread(id: "t", noteID: nil, author: "sam", body: "Test this", filePath: "AppTests/LoginTests.swift", line: 1, isOnOldLine: false, replies: [])
         let withThread = PullRequestDetails(description: "", threads: [thread])
