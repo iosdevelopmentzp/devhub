@@ -8,6 +8,8 @@ struct PullRequestDetailsView: View {
     let model: PullRequestDetailsModel
     let actions: PullRequestDetailActions
 
+    @State private var confirmingCancelWorkflowID: String?
+
     var body: some View {
         Group {
             switch model.content {
@@ -65,6 +67,12 @@ struct PullRequestDetailsView: View {
                             .hint("Open this \(words.request) in its own window that stays open after the panel closes")
                     }
                 }
+            }
+            if let notice = loaded.ciNotice {
+                NoticeBar(notice.text, systemImage: "wrench.and.screwdriver", tint: .orange, actionTitle: "Run in Terminal") {
+                    actions.runCISetup(notice.command)
+                }
+                .hint(notice.command)
             }
             if loaded.failedJobs.isEmpty == false {
                 FlowLayout(spacing: 6) {
@@ -124,31 +132,86 @@ struct PullRequestDetailsView: View {
             ForEach(loaded.jobGroups) { group in
                 VStack(alignment: .leading, spacing: 4) {
                     if let title = group.title {
-                        HStack(spacing: 6) {
-                            Image(systemName: group.icon)
-                                .font(.caption2)
-                                .foregroundStyle(group.tint.color)
-                                .frame(width: 16)
-                            Text(title)
-                                .font(.caption.weight(.semibold))
-                            Text(group.statusText)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding(.top, 4)
-                        .hint("Stage \(title): \(group.statusText)")
+                        groupHeader(group, title: title)
+                    }
+                    if let workflowID = group.workflowID, confirmingCancelWorkflowID == workflowID {
+                        InlineConfirmation(
+                            "Cancel the workflow \(title(of: group))? Its running jobs stop.",
+                            confirmTitle: "Cancel Workflow",
+                            confirmRole: .destructive,
+                            onCancel: { confirmingCancelWorkflowID = nil },
+                            onConfirm: {
+                                confirmingCancelWorkflowID = nil
+                                actions.cancelWorkflow(workflowID)
+                            }
+                        )
+                        .padding(.leading, 12)
                     }
                     ForEach(group.jobs) { job in
                         PipelineJobRow(
                             model: job,
                             onToggleLog: { job.jobID.map(actions.toggleJobLog) },
-                            onRetry: { job.jobID.map { actions.retryJob($0, job.title) } }
+                            onRetry: { job.jobID.map { actions.retryJob($0, job.title) } },
+                            onApprove: { job.jobID.map { actions.approveJob($0, job.title) } }
                         )
                         .padding(.leading, group.title == nil ? 0 : 12)
                     }
                 }
             }
         }
+        .animation(.snappy(duration: 0.18), value: confirmingCancelWorkflowID)
+    }
+
+    private func groupHeader(_ group: PipelineJobGroupModel, title: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: group.icon)
+                .font(.caption2)
+                .foregroundStyle(group.tint.color)
+                .frame(width: 16)
+            Text(title)
+                .font(.caption.weight(.semibold))
+            if let sourceText = group.sourceText {
+                PlainTag(sourceText, systemImage: "circle.dotted.circle")
+                    .hint("The jobs of this workflow come from the circleci tool")
+            }
+            Text(group.statusText)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            if group.workflowID != nil {
+                Spacer(minLength: 4)
+                if group.isBusy {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+                if let workflowID = group.workflowID, group.canRerunFailed {
+                    Button("Re-run Failed", systemImage: "arrow.clockwise") {
+                        actions.rerunWorkflow(workflowID, true)
+                    }
+                    .hint(group.rerunFailedHint)
+                }
+                if let workflowID = group.workflowID, group.canRerunAll {
+                    Button("Re-run All", systemImage: "arrow.counterclockwise") {
+                        actions.rerunWorkflow(workflowID, false)
+                    }
+                    .hint(group.rerunAllHint)
+                }
+                if let workflowID = group.workflowID, group.canCancel {
+                    Button("Cancel", systemImage: "stop.circle") {
+                        confirmingCancelWorkflowID = workflowID
+                    }
+                    .disabled(confirmingCancelWorkflowID == workflowID)
+                    .hint(group.cancelHint)
+                }
+            }
+        }
+        .buttonStyle(LinkButtonStyle(.accent))
+        .font(.caption)
+        .padding(.top, 4)
+        .hint(group.workflowID == nil ? "Stage \(title): \(group.statusText)" : "Workflow \(title): \(group.statusText)")
+    }
+
+    private func title(of group: PipelineJobGroupModel) -> String {
+        group.title ?? "CircleCI"
     }
 
     private func review(_ lines: [PullRequestReviewLineModel]) -> some View {

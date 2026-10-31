@@ -92,4 +92,136 @@ import Testing
         #expect(row.isBusy)
         #expect(row.retryHint == "Run this job again")
     }
+
+    // MARK: CircleCI
+
+    private let workflowID = "11111111-2222-3333-4444-555555555555"
+
+    private var workflow: CIWorkflow {
+        CIWorkflow(id: workflowID, name: "build-and-test", status: .failed, runID: "run-1", jobs: [
+            CIJob(id: "job-build", name: "build", status: .success, isApproval: false),
+            CIJob(id: "job-unit", name: "unit-tests", status: .failed, isApproval: false),
+            CIJob(id: "job-approve", name: "approve-release", status: .manual, isApproval: true),
+        ])
+    }
+
+    private var ciJobs: [PipelineJob] {
+        [
+            PipelineJob(name: "ci/circleci: unit-tests", stage: nil, webURL: nil, id: nil, status: .failed, ciWorkflowID: workflowID),
+            PipelineJob(name: "build-and-test - 1a2b3c4d", stage: nil, webURL: nil, id: nil, status: .failed, ciWorkflowID: workflowID),
+            PipelineJob(name: "notes", stage: "Check", webURL: nil, id: "9", status: .success),
+        ]
+    }
+
+    private func ciReview(toolState: CIToolState? = CIToolState(isInstalled: true, version: "1.13.0", isLoggedIn: true), loaded: Bool = true) -> PullRequestReviewState {
+        var review = PullRequestReviewState.initial
+        review.hasCIProvider = true
+        review.ciToolState = toolState
+        guard loaded else { return review }
+        review.ciWorkflows = [workflowID: workflow]
+        review.ciFailedTests = ["job-unit": [
+            CITestResult(className: "LoginTests", name: "testRetry", result: "failure", runTime: 1, message: "boom"),
+            CITestResult(className: "BadgeTests", name: "testCount", result: "failure", runTime: 1, message: nil),
+        ]]
+        review.ciFlakyTests = [CIFlakyTest(className: "LoginTests", name: "testRetry", jobName: "unit-tests", workflowName: "build-and-test", timesFlaked: 3)]
+        return review
+    }
+
+    @Test func aLoadedWorkflowReplacesTheGitHubChecksThatPointAtIt() {
+        let groups = PipelineJobRowMapper.groups(for: ciJobs, review: ciReview(), words: .gitHub)
+
+        #expect(groups.map(\.title) == ["build-and-test", "Check"])
+        #expect(groups[0].id == "circleci:\(workflowID)")
+        #expect(groups[0].sourceText == "CircleCI")
+        #expect(groups[0].jobs.map(\.title) == ["unit-tests", "approve-release", "build"])
+        #expect(groups[0].statusText == "1 failed")
+        #expect(groups[0].canRerunFailed)
+        #expect(groups[0].canRerunAll)
+        #expect(groups[0].canCancel == false)
+        #expect(groups[1].jobs.map(\.title) == ["notes"])
+    }
+
+    @Test func aFailedCircleCIJobListsItsTestsWithTheFlakyTags() {
+        let groups = PipelineJobRowMapper.groups(for: ciJobs, review: ciReview(), words: .gitHub)
+        let unit = groups[0].jobs[0]
+
+        #expect(unit.flakyTag?.text == "1 of 2 flaky")
+        #expect(unit.flakyTag?.tint == .orange)
+        #expect(unit.failedTests.map(\.title) == ["LoginTests.testRetry", "BadgeTests.testCount"])
+        #expect(unit.failedTests.map(\.flakyText) == ["flaky · flaked 3 times", nil])
+        #expect(unit.failedTests[0].message == "boom")
+        #expect(unit.canRetry)
+        #expect(unit.canShowLog)
+        #expect(unit.canApprove == false)
+        #expect(unit.retryHint.contains("build-and-test"))
+    }
+
+    @Test func anApprovalJobOnHoldCanBeApproved() {
+        let groups = PipelineJobRowMapper.groups(for: ciJobs, review: ciReview(), words: .gitHub)
+        let approval = groups[0].jobs[1]
+
+        #expect(approval.statusText == "waiting for approval")
+        #expect(approval.canApprove)
+        #expect(approval.canShowLog == false)
+        #expect(approval.canRetry == false)
+    }
+
+    @Test func anApprovalWithoutARunIDCannotBeApproved() {
+        var review = ciReview()
+        review.ciWorkflows = [workflowID: CIWorkflow(id: workflowID, name: "build-and-test", status: .manual, runID: nil, jobs: workflow.jobs)]
+
+        let group = PipelineJobRowMapper.groups(for: ciJobs, review: review, words: .gitHub)[0]
+
+        #expect(group.jobs[1].canApprove == false)
+        #expect(group.statusText == "1 failed")
+        #expect(group.canCancel)
+    }
+
+    @Test func aRunningWorkflowCanBeCancelledButNotRerun() {
+        var review = ciReview()
+        review.ciWorkflows = [workflowID: CIWorkflow(id: workflowID, name: "build-and-test", status: .running, runID: "run-1", jobs: [CIJob(id: "j", name: "build", status: .running, isApproval: false)])]
+
+        let group = PipelineJobRowMapper.groups(for: ciJobs, review: review, words: .gitHub)[0]
+
+        #expect(group.canCancel)
+        #expect(group.canRerunAll == false)
+        #expect(group.canRerunFailed == false)
+        #expect(group.statusText == "1 running")
+        #expect(group.jobs[0].canShowLog == false)
+    }
+
+    @Test func aBusyWorkflowHidesItsActions() {
+        var review = ciReview()
+        review.ciBusyWorkflows = [workflowID]
+
+        let group = PipelineJobRowMapper.groups(for: ciJobs, review: review, words: .gitHub)[0]
+
+        #expect(group.isBusy)
+        #expect(group.canRerunFailed == false)
+        #expect(group.jobs[0].isBusy)
+        #expect(group.jobs[0].canRetry == false)
+        #expect(group.jobs[1].canApprove == false)
+    }
+
+    @Test func gitHubRowsKeepANoteWhileTheWorkflowIsNotLoaded() {
+        let reading = PipelineJobRowMapper.groups(for: ciJobs, review: ciReview(loaded: false), words: .gitHub)
+        var failed = ciReview(loaded: false)
+        failed.ciWorkflowErrors = [workflowID: "no workflow"]
+        let withError = PipelineJobRowMapper.groups(for: ciJobs, review: failed, words: .gitHub)
+        let notInstalled = PipelineJobRowMapper.groups(for: ciJobs, review: ciReview(toolState: .missing, loaded: false), words: .gitHub)
+        let noProvider = PipelineJobRowMapper.groups(for: ciJobs, review: .initial, words: .gitHub)
+
+        #expect(reading.map(\.title) == ["other", "Check"])
+        #expect(reading[0].jobs.map(\.noteText) == ["Reading the CircleCI workflow…", "Reading the CircleCI workflow…"])
+        #expect(withError[0].jobs.map(\.noteText) == ["CircleCI: no workflow", "CircleCI: no workflow"])
+        #expect(notInstalled[0].jobs.map(\.noteText) == [nil, nil])
+        #expect(noProvider[0].jobs.map(\.noteText) == [nil, nil])
+    }
+
+    @Test func theFlakyTagNamesTheCount() {
+        #expect(PipelineJobRowMapper.flakyTag(flakyCount: 0, failedCount: 2) == nil)
+        #expect(PipelineJobRowMapper.flakyTag(flakyCount: 2, failedCount: 2)?.text == "flaky")
+        #expect(PipelineJobRowMapper.flakyTag(flakyCount: 1, failedCount: 1)?.hint == "The failed test is flaky: it passed on a re-run before (CircleCI Insights)")
+        #expect(PipelineJobRowMapper.flakyTag(flakyCount: 1, failedCount: 3)?.text == "1 of 3 flaky")
+    }
 }

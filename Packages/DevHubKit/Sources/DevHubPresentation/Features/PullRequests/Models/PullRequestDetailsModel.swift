@@ -13,11 +13,17 @@ struct PullRequestDetailsModel: Equatable {
         var url: URL?
     }
 
+    struct CINotice: Equatable {
+        var text: String
+        var command: String
+    }
+
     struct Loaded: Equatable {
         var pipelineTag: TagModel?
         var pipelineURL: URL?
         var pipelineDurationText: String?
         var canCancelPipeline: Bool
+        var ciNotice: CINotice?
         var failedJobs: [JobLink]
         var jobsTitle: String
         var jobGroups: [PipelineJobGroupModel]
@@ -47,9 +53,10 @@ struct PullRequestDetailsModel: Equatable {
                 pipelineURL: URL(string: "https://gitlab.com/example/app/-/pipelines/1842"),
                 pipelineDurationText: "9 m 0 s",
                 canCancelPipeline: true,
+                ciNotice: nil,
                 failedJobs: [],
                 jobsTitle: "Pipeline 1 · 1 failed",
-                jobGroups: [.preview],
+                jobGroups: [.preview, .previewCircleCI],
                 reviewLines: [
                     .preview,
                     PullRequestReviewLineModel(id: "waiting", title: "Waiting for", tags: [TagModel("sam", tint: .orange, systemImage: "hourglass", hint: "Review requested from sam, no answer yet")]),

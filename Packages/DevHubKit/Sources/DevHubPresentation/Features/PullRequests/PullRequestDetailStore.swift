@@ -24,6 +24,12 @@ final class PullRequestDetailStore {
     private(set) var busyJobs: Set<String> = []
     private(set) var fullFiles: [PullRequestSummary.ID: Set<PullRequestFileDiff.ID>] = [:]
     private(set) var fileContents: [PullRequestSummary.ID: [String: [String]]] = [:]
+    private(set) var ciToolState: CIToolState?
+    private(set) var ciWorkflows: [String: CIWorkflow] = [:]
+    private(set) var ciWorkflowErrors: [String: String] = [:]
+    private(set) var ciFailedTests: [String: [CITestResult]] = [:]
+    private(set) var ciFlakyTests: [CIFlakyTest] = []
+    private(set) var ciBusyWorkflows: Set<String> = []
 
     enum CommentKind {
         case comment
@@ -31,24 +37,48 @@ final class PullRequestDetailStore {
     }
 
     @ObservationIgnored private let repository: CodeHostRepository
+    @ObservationIgnored private let ci: any CIRepository
     @ObservationIgnored private let remote: any CodeHostLookup
     @ObservationIgnored private let prompts: any ReviewPromptRepository
+    @ObservationIgnored private let config: ConfigStore
+    @ObservationIgnored private let worktrees: any WorktreeLookup
+    @ObservationIgnored private let tools: any ToolLocating
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private var loading: Set<PullRequestSummary.ID> = []
+    @ObservationIgnored private var ciLoading: Set<String> = []
+    @ObservationIgnored private var ciFlakyLoaded = false
+    @ObservationIgnored private var ciProjectCache: CIProject?
     @ObservationIgnored private var subscription: SubscriptionToken?
+
+    private static let failedTestJobLimit = 5
 
     var words: CodeHostWords {
         remote.words
     }
 
-    init(repository: CodeHostRepository, remote: any CodeHostLookup, prompts: any ReviewPromptRepository, activity: ActivityLog, events: AppEvents) {
+    init(
+        repository: CodeHostRepository,
+        ci: any CIRepository,
+        remote: any CodeHostLookup,
+        prompts: any ReviewPromptRepository,
+        config: ConfigStore,
+        worktrees: any WorktreeLookup,
+        tools: any ToolLocating,
+        activity: ActivityLog,
+        events: AppEvents
+    ) {
         self.repository = repository
+        self.ci = ci
         self.remote = remote
         self.prompts = prompts
+        self.config = config
+        self.worktrees = worktrees
+        self.tools = tools
         self.activity = activity
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             guard case .projectChanged = event else { return }
+            resetCI()
             details = [:]
             diffs = [:]
             errors = [:]
@@ -91,7 +121,14 @@ final class PullRequestDetailStore {
             openJobLogs: openJobLogs,
             busyJobs: busyJobs,
             fullFiles: fullFiles[id] ?? [],
-            fileContents: fileContents[id] ?? [:]
+            fileContents: fileContents[id] ?? [:],
+            hasCIProvider: hasCIProvider(for: id),
+            ciToolState: ciToolState,
+            ciWorkflows: ciWorkflows,
+            ciWorkflowErrors: ciWorkflowErrors,
+            ciFailedTests: ciFailedTests,
+            ciFlakyTests: ciFlakyTests,
+            ciBusyWorkflows: ciBusyWorkflows
         )
     }
 
@@ -215,6 +252,7 @@ final class PullRequestDetailStore {
             let (description, files) = try await (loadedDetails, loadedDiffs)
             details[id] = description
             diffs[id] = files
+            loadCI(of: id)
         } catch is CancellationError {
         } catch {
             errors[id] = error.localizedDescription
@@ -324,11 +362,16 @@ final class PullRequestDetailStore {
         openJobLogs.insert(jobID)
         if case .loaded = jobLogs[jobID] { return }
         jobLogs[jobID] = .loading
+        let ciProject = ciWorkflow(containing: jobID) == nil ? nil : ciProject(for: [])
         Task { [weak self] in
             guard let self else { return }
             do {
-                let url = try await remote.codeHost()
-                jobLogs[jobID] = .loaded(try await repository.jobLog(jobID: jobID, repository: url))
+                if let ciProject {
+                    jobLogs[jobID] = .loaded(try await ci.jobLog(jobID: jobID, project: ciProject))
+                } else {
+                    let url = try await remote.codeHost()
+                    jobLogs[jobID] = .loaded(try await repository.jobLog(jobID: jobID, repository: url))
+                }
             } catch {
                 jobLogs[jobID] = .failure(error.localizedDescription)
             }
@@ -336,6 +379,10 @@ final class PullRequestDetailStore {
     }
 
     func retryJob(_ jobID: String, named name: String, of id: PullRequestSummary.ID) {
+        if let workflow = ciWorkflow(containing: jobID) {
+            rerunWorkflow(workflow.id, fromFailed: true, of: id)
+            return
+        }
         guard busyJobs.contains(jobID) == false else { return }
         busyJobs.insert(jobID)
         let title = "Retried \(name) of \(remote.words.reference(id))"
@@ -375,9 +422,173 @@ final class PullRequestDetailStore {
     }
 
     func reload(_ id: PullRequestSummary.ID) async {
+        clearCI(of: id)
         details[id] = nil
         diffs[id] = nil
         fileContents[id] = nil
         await load(id)
+    }
+
+    // MARK: - CI
+
+    var ciCheckoutPath: String {
+        worktrees.mainCheckoutPath
+    }
+
+    var ciProvider: CIProvider? {
+        let checkout = worktrees.mainCheckoutPath
+        let hasConfigFile = tools.fileExists(atPath: CIPolicy.circleCIConfigPath(checkoutPath: checkout))
+        return CIPolicy.provider(config: config.resolved.project.ci, hasCircleCIConfig: hasConfigFile)
+    }
+
+    func ciWorkflow(containing jobID: String) -> CIWorkflow? {
+        ciWorkflows.values.first { workflow in workflow.jobs.contains { $0.id == jobID } }
+    }
+
+    func rerunWorkflow(_ workflowID: String, fromFailed: Bool, of id: PullRequestSummary.ID) {
+        let name = ciWorkflows[workflowID]?.name ?? "the workflow"
+        let title = fromFailed ? "Re-ran the failed jobs of \(name)" : "Re-ran \(name)"
+        runCI(workflowID: workflowID, of: id, title) { [ci] in
+            try await ci.rerun(workflowID: workflowID, fromFailed: fromFailed, project: $0)
+        }
+    }
+
+    func cancelWorkflow(_ workflowID: String, of id: PullRequestSummary.ID) {
+        let name = ciWorkflows[workflowID]?.name ?? "the workflow"
+        runCI(workflowID: workflowID, of: id, "Cancelled \(name)") { [ci] in
+            try await ci.cancel(workflowID: workflowID, project: $0)
+        }
+    }
+
+    func approveJob(_ jobID: String, named name: String, of id: PullRequestSummary.ID) {
+        guard let workflow = ciWorkflow(containing: jobID), let runID = workflow.runID else { return }
+        runCI(workflowID: workflow.id, of: id, "Approved \(name) of \(workflow.name)") { [ci] in
+            try await ci.approve(runID: runID, job: name, project: $0)
+        }
+    }
+
+    private func runCI(workflowID: String, of id: PullRequestSummary.ID, _ title: String, _ work: @escaping @Sendable (CIProject) async throws -> Void) {
+        guard ciBusyWorkflows.contains(workflowID) == false else { return }
+        ciBusyWorkflows.insert(workflowID)
+        let project = ciProject(for: details[id]?.jobs ?? [])
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await work(project)
+                activity.log(title, detail: "", outcome: .success)
+                ciBusyWorkflows.remove(workflowID)
+                await reload(id)
+            } catch {
+                activity.log("\(title) failed", detail: error.localizedDescription, outcome: .failure)
+                ciBusyWorkflows.remove(workflowID)
+            }
+        }
+    }
+
+    private func hasCIProvider(for id: PullRequestSummary.ID) -> Bool {
+        guard details[id]?.jobs.contains(where: { $0.ciWorkflowID != nil }) == true else { return false }
+        return ciProvider != nil
+    }
+
+    private func ciProject(for jobs: [PipelineJob]) -> CIProject {
+        if let ciProjectCache {
+            return ciProjectCache
+        }
+        let slug = config.resolved.project.ci?.project ?? jobs.lazy.compactMap { CIWorkflowLink.parse($0.webURL?.absoluteString)?.slug }.first
+        let project = CIProject(checkoutPath: worktrees.mainCheckoutPath, slug: slug)
+        if slug != nil {
+            ciProjectCache = project
+        }
+        return project
+    }
+
+    private func loadCI(of id: PullRequestSummary.ID) {
+        guard let jobs = details[id]?.jobs else { return }
+        var missing: [String] = []
+        for workflowID in jobs.compactMap(\.ciWorkflowID) where ciWorkflows[workflowID] == nil && ciLoading.contains(workflowID) == false && missing.contains(workflowID) == false {
+            missing.append(workflowID)
+        }
+        guard missing.isEmpty == false, ciProvider != nil else { return }
+        let project = ciProject(for: jobs)
+        let workflowIDs = missing
+        ciLoading.formUnion(workflowIDs)
+        Task { [weak self] in
+            guard let self else { return }
+            defer { ciLoading.subtract(workflowIDs) }
+            guard await checkCITool(project: project) else { return }
+            for workflowID in workflowIDs {
+                await loadCIWorkflow(workflowID, project: project)
+            }
+        }
+    }
+
+    private func checkCITool(project: CIProject) async -> Bool {
+        if let ciToolState {
+            return CIPolicy.installCommand(for: ciToolState) == nil
+        }
+        do {
+            let state = try await ci.toolState(project: project)
+            ciToolState = state
+            return CIPolicy.installCommand(for: state) == nil
+        } catch {
+            activity.log("Cannot check the circleci tool", detail: error.localizedDescription, outcome: .failure)
+            return false
+        }
+    }
+
+    private func loadCIWorkflow(_ workflowID: String, project: CIProject) async {
+        do {
+            let workflow = try await ci.workflow(id: workflowID, project: project)
+            ciWorkflows[workflowID] = workflow
+            ciWorkflowErrors[workflowID] = nil
+            await loadCIFailedTests(of: workflow, project: project)
+        } catch {
+            ciWorkflowErrors[workflowID] = error.localizedDescription
+            activity.log("Cannot read the CircleCI workflow", detail: error.localizedDescription, outcome: .failure)
+        }
+    }
+
+    private func loadCIFailedTests(of workflow: CIWorkflow, project: CIProject) async {
+        let failedJobs = workflow.jobs.filter { $0.status == .failed && ciFailedTests[$0.id] == nil }.prefix(Self.failedTestJobLimit)
+        for job in failedJobs {
+            do {
+                ciFailedTests[job.id] = try await ci.failedTests(jobID: job.id, project: project)
+            } catch {
+                ciFailedTests[job.id] = []
+                activity.log("Cannot read the failed tests of \(job.name)", detail: error.localizedDescription, outcome: .failure)
+            }
+        }
+        let hasFailedTests = failedJobs.contains { (ciFailedTests[$0.id] ?? []).isEmpty == false }
+        guard hasFailedTests, ciFlakyLoaded == false else { return }
+        ciFlakyLoaded = true
+        do {
+            ciFlakyTests = try await ci.flakyTests(project: project)
+        } catch {
+            ciFlakyLoaded = false
+            activity.log("Cannot read the flaky tests of the project", detail: error.localizedDescription, outcome: .failure)
+        }
+    }
+
+    private func clearCI(of id: PullRequestSummary.ID) {
+        for workflowID in details[id]?.jobs.compactMap(\.ciWorkflowID) ?? [] {
+            for job in ciWorkflows[workflowID]?.jobs ?? [] {
+                ciFailedTests[job.id] = nil
+                jobLogs[job.id] = nil
+                openJobLogs.remove(job.id)
+            }
+            ciWorkflows[workflowID] = nil
+            ciWorkflowErrors[workflowID] = nil
+        }
+    }
+
+    private func resetCI() {
+        ciToolState = nil
+        ciWorkflows = [:]
+        ciWorkflowErrors = [:]
+        ciFailedTests = [:]
+        ciFlakyTests = []
+        ciBusyWorkflows = []
+        ciFlakyLoaded = false
+        ciProjectCache = nil
     }
 }

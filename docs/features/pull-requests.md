@@ -48,7 +48,7 @@ The header search filters the loaded rows by title, number, author, branches and
 ### Details
 
 1. The checks or pipeline tag (click opens it in the browser), the duration, "Cancel" while it runs, and "Open in Window".
-2. The checks or jobs of the last commit, grouped by stage (GitLab) or by workflow (GitHub). A group header shows the state of the group; inside, failed jobs come first, then running, waiting and passed. Each row shows the status, the name, how long the job ran, an "allowed to fail" mark, and the failure message (GitLab) or the check title (GitHub) when it failed. Buttons: the log icon shows the last 200 lines of the log inside DevHub (timestamps, colours and tokens removed, with Copy Log); Retry runs a failed or cancelled job again; the globe opens it in the browser. Log and Retry need a GitHub Actions job or a GitLab job; an external status check has only the link. Without the job list (an old answer), the failed jobs show as links.
+2. The checks or jobs of the last commit, grouped by stage (GitLab) or by workflow (GitHub). A group header shows the state of the group; inside, failed jobs come first, then running, waiting and passed. Each row shows the status, the name, how long the job ran, an "allowed to fail" mark, and the failure message (GitLab) or the check title (GitHub) when it failed. Buttons: the log icon shows the last 200 lines of the log inside DevHub (timestamps, colours and tokens removed, with Copy Log); Retry runs a failed or cancelled job again; the globe opens it in the browser. Log and Retry need a GitHub Actions job or a GitLab job; an external status check has only the link. Without the job list (an old answer), the failed jobs show as links. With CircleCI (see the CircleCI section), a check that points at a CircleCI workflow is replaced by the jobs of that workflow.
 3. The review block: "Approved by", "Changes requested", "Waiting for" (a requested reviewer without an answer) and "Assigned to", one tag per person; "you" stands for your own account. An open request without reviewers says "none requested". GitHub takes the latest review of each person and the review requests; GitLab takes the review state of each reviewer.
 4. The description.
 5. The review threads: author, time, file and line, the full text with inline markdown (selectable), and the replies behind "N replies". Each thread has Reply, Resolve, "Show in diff", "Open file at this line" and "Open in browser".
@@ -170,6 +170,43 @@ Refresh rules:
 
 When the tool is not logged in, the list shows the command `gh auth login --hostname <host>` (or `glab auth login --hostname <host>`) with a Copy Command button.
 
+## CircleCI
+
+Source: `Packages/DevHubKit/Sources/DevHubData/CircleCI/`, `DevHubDomain/Policies/CIPolicy.swift`, `CIWorkflowLink.swift`, `CircleCIStatusMapper.swift`, `FlakyTestPolicy.swift`, `DevHubPresentation/Features/PullRequests/PullRequestDetailStore.swift`, `PipelineJobRowMapper.swift`. Design: [ADR 006](../adr/006-circleci-integration.md).
+
+A GitHub project can run its checks on CircleCI. GitHub then shows one check per workflow (the GitHub App, `<workflow> - <id>`) or one status per job (the OAuth integration, `ci/circleci: <job>`), each with a link that carries the workflow UUID. The GitHub checks stay the source of truth for the state. The `circleci` tool adds the jobs, the logs, the actions and the test results.
+
+### When it is on
+
+1. `ci.kind` in `project.json`: `"circleci"` turns it on, `"none"` turns it off.
+2. Without `ci.kind`: on when `.circleci/config.yml` exists in the main checkout.
+3. The `circleci` tool must be installed (`brew install circleci`, version 1.0 or newer) and logged in (`circleci auth login`). When it is not, the details show one line with the command and a "Run in Terminal" button, and the CircleCI checks stay links.
+
+### What it shows
+
+1. When the details load, DevHub checks the tool once per project (`circleci version --json`, `circleci setting list --json`), then reads every workflow that a check points at (`circleci workflow get <uuid> --json`). The check rows that point at the workflow are replaced by one group per workflow, named after it and marked "CircleCI": the jobs with their state, failed first; a job that waits for approval says "waiting for approval".
+2. A failed job lists its failed tests (`circleci testresult list <job> --json`, at most 5 jobs per workflow): the test name (click to copy) and its message. When at least one test failed, DevHub reads the flaky tests of the project once (`circleci api api/v2/insights/<slug>/flaky-tests`). A failed test that is in that list gets a "flaky · flaked N times" tag, and the job row gets a "flaky" tag, or "N of M flaky" when only some of the failed tests are flaky. The slug comes from `ci.project`, else from the CircleCI link of the check (`gh/<owner>/<repo>` or `circleci/<org id>/<project id>`); without a slug there is no flaky list.
+3. The log button of a finished job shows the last 200 lines of its steps (`circleci job output list <job> --json`), each step under a `== <step name>` header with the exit code of a failed step.
+4. The group header has "Re-run Failed" and "Re-run All" when the workflow is finished, and "Cancel" (inline confirmation) while it runs or waits. The retry button of a failed job runs the failed jobs of its workflow again. A job that waits for approval has an Approve button with an inline confirmation. After an action DevHub reads the request again; a re-run makes a new workflow, which shows when GitHub reports it.
+5. While the workflow is read, the GitHub rows say "Reading the CircleCI workflow…"; when the read fails, they say "CircleCI: <error>" and the failure is in Recent.
+
+### Commands
+
+Every command runs in the main checkout, so the tool resolves the project from `.circleci/info.yml` or the remote `origin`. With `ci.project`, every command also gets `--project <slug>`.
+
+| Action | Command |
+|---|---|
+| Tool state | `circleci version --json`, `circleci setting list --json` |
+| Workflow and jobs | `circleci workflow get <uuid> --json` |
+| Failed tests of a job | `circleci testresult list <job> --json` |
+| Flaky tests of the project | `circleci api api/v2/insights/<slug>/flaky-tests` |
+| Job log | `circleci job output list <job> --json` |
+| Re-run | `circleci workflow rerun <uuid> [--from-failed] --json` |
+| Cancel | `circleci workflow cancel <uuid> --force` |
+| Approve | `circleci run approve <run> --job <job name> --force --json` |
+
+The reads are `.read` in the Output panel; re-run, cancel and approve are actions. The fixtures of the parsers follow the CLI reference of October 2026 and still have to be checked on a live project (ADR 006).
+
 ## Config
 
 | Field | Effect | Reference |
@@ -184,6 +221,7 @@ When the tool is not logged in, the list shows the command `gh auth login --host
 | `git.pullRequests.defaults.draft`, `.deleteSourceBranch`, `.squash` | The boxes of the new request form. The last two apply only on GitLab | [`project.json`](../extensions.md#2-projectjson) |
 | `git.commitPrefix.pattern`, `git.ticketURL` | The ticket chip and the ticket key in a new title | [`project.json`](../extensions.md#2-projectjson) |
 | `ai.commands` | The command of each AI tool for "Fix Threads with AI" | [`project.json`](../extensions.md#2-projectjson) |
+| `ci.kind`, `ci.project` | CircleCI on or off, and the project slug for `--project` and the flaky test list | [`project.json`](../extensions.md#2-projectjson) |
 | Actions with `pullRequests.row` | Items in the row menus | [Placements](../extensions.md#33-placements) |
 | `when.host` | Shows an action only for GitHub or only for GitLab | [Actions](../extensions.md#3-actions) |
 | `refresh: ["pullRequests"]` | Reads the list, the open requests and the request line again after an action | [Actions](../extensions.md#3-actions) |

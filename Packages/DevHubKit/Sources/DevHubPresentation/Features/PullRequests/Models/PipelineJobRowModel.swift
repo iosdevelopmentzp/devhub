@@ -2,6 +2,13 @@ import Foundation
 import DevHubUI
 
 struct PipelineJobRowModel: Identifiable, Equatable {
+    struct FailedTest: Identifiable, Equatable {
+        let id: String
+        var title: String
+        var message: String?
+        var flakyText: String?
+    }
+
     let id: String
     var jobID: String?
     var title: String
@@ -18,6 +25,11 @@ struct PipelineJobRowModel: Identifiable, Equatable {
     var canRetry: Bool
     var retryHint: String
     var isBusy: Bool
+    var canApprove = false
+    var approveHint = ""
+    var noteText: String?
+    var flakyTag: TagModel?
+    var failedTests: [FailedTest] = []
 
     static let preview = PipelineJobRowModel(
         id: "71",
@@ -36,5 +48,32 @@ struct PipelineJobRowModel: Identifiable, Equatable {
         canRetry: true,
         retryHint: "Run this job again",
         isBusy: false
+    )
+
+    static let previewCircleCI = PipelineJobRowModel(
+        id: "job-unit-tests",
+        jobID: "job-unit-tests",
+        title: "unit-tests",
+        icon: "xmark.circle.fill",
+        tint: .red,
+        statusText: "failed",
+        durationText: nil,
+        allowedToFailText: nil,
+        failureText: nil,
+        url: nil,
+        canShowLog: true,
+        isLogOpen: false,
+        log: nil,
+        canRetry: true,
+        retryHint: "Run the failed jobs of build-and-test again",
+        isBusy: false,
+        canApprove: false,
+        approveHint: "",
+        noteText: nil,
+        flakyTag: TagModel("1 of 2 flaky", tint: .orange, systemImage: "shuffle", hint: "1 of 2 failed tests is flaky: it passed on a re-run before (CircleCI Insights)"),
+        failedTests: [
+            FailedTest(id: "LoginViewModelTests.testRetryAfterTimeout", title: "LoginViewModelTests.testRetryAfterTimeout", message: "XCTAssertEqual failed: (\"retrying\") is not equal to (\"idle\")", flakyText: "flaky · flaked 7 times"),
+            FailedTest(id: "ProfileBadgeTests.testBadgeCount", title: "ProfileBadgeTests.testBadgeCount", message: "XCTAssertEqual failed: (3) is not equal to (2)", flakyText: nil),
+        ]
     )
 }

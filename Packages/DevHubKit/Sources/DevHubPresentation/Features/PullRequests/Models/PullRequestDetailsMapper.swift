@@ -31,6 +31,7 @@ enum PullRequestDetailsMapper {
                     pipelineURL: summary.pipeline?.webURL,
                     pipelineDurationText: (details.pipelineDuration ?? summary.pipeline?.duration).map { "took \(DurationFormat.text(TimeInterval($0)))" },
                     canCancelPipeline: summary.pipeline.map { $0.id != nil && PipelineStatePolicy.isActive($0.status) } ?? false,
+                    ciNotice: ciNotice(review: review),
                     failedJobs: details.jobs.isEmpty ? details.failedJobs.map { PullRequestDetailsModel.JobLink(title: jobTitle($0), url: $0.webURL) } : [],
                     jobsTitle: PipelineJobRowMapper.title(for: details.jobs, words: words),
                     jobGroups: PipelineJobRowMapper.groups(for: details.jobs, review: review, words: words),
@@ -65,6 +66,19 @@ enum PullRequestDetailsMapper {
             canRequestChanges: summary.permissions.canRequestChanges && summary.state == .opened,
             requestChangesHint: "Send the comment as a review that asks for changes before \(reference) can merge"
         )
+    }
+
+    static func ciNotice(review: PullRequestReviewState) -> PullRequestDetailsModel.CINotice? {
+        guard review.hasCIProvider, let state = review.ciToolState, let command = CIPolicy.installCommand(for: state) else { return nil }
+        let text: String
+        if state.isInstalled == false {
+            text = "The circleci tool is not installed, so the CircleCI jobs show as links only."
+        } else if let version = state.version, CIPolicy.isSupported(version: version) == false {
+            text = "The circleci tool is version \(version); DevHub needs 1.0 or newer for the CircleCI jobs."
+        } else {
+            text = "The circleci tool is not logged in, so the CircleCI jobs show as links only."
+        }
+        return PullRequestDetailsModel.CINotice(text: text, command: command)
     }
 
     private static func hiddenFilesTitle(count: Int, shown: Bool) -> String? {

@@ -38,6 +38,7 @@ package extension MockData {
             PipelineJob(name: "unit-tests", stage: "test", webURL: URL(string: "https://gitlab.com/example/app/-/jobs/71"), id: "71", status: .failed, duration: 130, failureMessage: "The script exited with code 65"),
             PipelineJob(name: "lint", stage: "test", webURL: URL(string: "https://gitlab.com/example/app/-/jobs/72"), id: "72", status: .failed, duration: 40, allowsFailure: true),
             PipelineJob(name: "ui-tests", stage: "test", webURL: URL(string: "https://gitlab.com/example/app/-/jobs/73"), id: "73", status: .running),
+            PipelineJob(name: "ci/circleci: unit-tests", stage: nil, webURL: URL(string: "https://app.circleci.example.com/pipelines/github/example/app/42/workflows/" + ciWorkflowID + "/jobs/7"), id: nil, status: .failed, ciWorkflowID: ciWorkflowID),
         ]
     )
 

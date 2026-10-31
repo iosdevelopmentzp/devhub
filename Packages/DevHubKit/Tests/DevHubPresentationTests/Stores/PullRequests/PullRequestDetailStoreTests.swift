@@ -419,4 +419,163 @@ import DevHubTestSupport
     @Test func theFileLinkIsMissingBeforeTheHostIsKnown() {
         #expect(store.fileWebURL(path: "App/a.swift", line: nil, of: summary) == nil)
     }
+
+    // MARK: CircleCI
+
+    private let workflowID = "11111111-2222-3333-4444-555555555555"
+
+    private var ciDetails: PullRequestDetails {
+        PullRequestDetails(
+            description: "CI",
+            threads: [],
+            jobs: [
+                PipelineJob(name: "ci/circleci: unit-tests", stage: nil, webURL: URL(string: "https://app.circleci.example.com/pipelines/github/example/app/42/workflows/\(workflowID)/jobs/7"), id: nil, status: .failed, ciWorkflowID: workflowID),
+                PipelineJob(name: "lint", stage: "Check", webURL: nil, id: "9", status: .success),
+            ]
+        )
+    }
+
+    private var ciProject: CIProject {
+        CIProject(checkoutPath: harness.worktrees.mainCheckoutPath, slug: "gh/example/app")
+    }
+
+    private func scriptCI() {
+        script()
+        harness.spies.codeHost.detailsResult = .success(ciDetails)
+        harness.spies.tools.existingFiles = [CIPolicy.circleCIConfigPath(checkoutPath: harness.worktrees.mainCheckoutPath)]
+        harness.spies.ci.workflowResult = .success(CIWorkflow(id: workflowID, name: "build-and-test", status: .failed, runID: "run-1", jobs: [
+            CIJob(id: "job-unit", name: "unit-tests", status: .failed, isApproval: false),
+            CIJob(id: "job-approve", name: "approve-release", status: .manual, isApproval: true),
+        ]))
+        harness.spies.ci.failedTestsResult = .success([CITestResult(className: "LoginTests", name: "testRetry", result: "failure", runTime: 1, message: "boom")])
+        harness.spies.ci.flakyTestsResult = .success([CIFlakyTest(className: "LoginTests", name: "testRetry", jobName: "unit-tests", workflowName: "build-and-test", timesFlaked: 3)])
+    }
+
+    @Test func loadReadsTheCircleCIWorkflowItsFailedTestsAndTheFlakyList() async throws {
+        scriptCI()
+
+        await store.load(7)
+        try await waitUntil { store.ciFlakyTests.isEmpty == false }
+
+        #expect(store.ciToolState?.isLoggedIn == true)
+        #expect(store.ciWorkflows[workflowID]?.name == "build-and-test")
+        #expect(store.ciFailedTests["job-unit"]?.map(\.name) == ["testRetry"])
+        #expect(harness.spies.ci.calls == [
+            .toolState(project: ciProject),
+            .workflow(id: workflowID, project: ciProject),
+            .failedTests(jobID: "job-unit", project: ciProject),
+            .flakyTests(project: ciProject),
+        ])
+        #expect(store.review(of: 7).hasCIProvider)
+    }
+
+    @Test func withoutTheConfigFileNoCircleCICallIsMade() async {
+        scriptCI()
+        harness.spies.tools.existingFiles = []
+
+        await store.load(7)
+        await harness.settle()
+
+        #expect(harness.spies.ci.calls.isEmpty)
+        #expect(store.review(of: 7).hasCIProvider == false)
+    }
+
+    @Test func theConfigKindTurnsTheDetectionOffAndOn() async throws {
+        scriptCI()
+        harness.spies.tools.existingFiles = []
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(ci: CIConfig(kind: "circleci", project: "gh/example/app")), actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+
+        await store.load(7)
+        try await waitUntil { store.ciWorkflows[workflowID] != nil }
+
+        #expect(harness.spies.ci.calls.first == .toolState(project: ciProject))
+    }
+
+    @Test func aMissingToolStopsAfterTheToolCheck() async throws {
+        scriptCI()
+        harness.spies.ci.toolStateResult = .success(.missing)
+
+        await store.load(7)
+        try await waitUntil { store.ciToolState == .missing }
+        await harness.settle()
+
+        #expect(harness.spies.ci.calls == [.toolState(project: ciProject)])
+        #expect(store.ciWorkflows.isEmpty)
+    }
+
+    @Test func aWorkflowReadFailureIsKeptAndLogged() async throws {
+        scriptCI()
+        harness.spies.ci.workflowResult = .failure(CIError.command("no workflow"))
+
+        await store.load(7)
+        try await waitUntil { store.ciWorkflowErrors[workflowID] == "no workflow" }
+
+        #expect(harness.lastActivity?.outcome == .failure)
+    }
+
+    @Test func theLogOfACircleCIJobComesFromTheTool() async throws {
+        scriptCI()
+        harness.spies.ci.jobLogResult = .success("== Run tests\nfailed")
+        await store.load(7)
+        try await waitUntil { store.ciWorkflows[workflowID] != nil }
+
+        store.toggleJobLog("job-unit")
+        try await waitUntil { store.jobLogs["job-unit"] == .loaded("== Run tests\nfailed") }
+
+        #expect(harness.spies.ci.calls.contains(.jobLog(jobID: "job-unit", project: ciProject)))
+        #expect(harness.spies.codeHost.calls.contains { if case .jobLog = $0 { true } else { false } } == false)
+    }
+
+    @Test func retryOfACircleCIJobRerunsTheFailedJobsOfItsWorkflowAndReloads() async throws {
+        scriptCI()
+        await store.load(7)
+        try await waitUntil { store.ciWorkflows[workflowID] != nil }
+
+        store.retryJob("job-unit", named: "unit-tests", of: 7)
+        try await waitUntil { store.ciBusyWorkflows.isEmpty && store.isLoaded(7) && store.ciWorkflows[workflowID] != nil }
+
+        #expect(harness.spies.ci.calls.contains(.rerun(workflowID: workflowID, fromFailed: true, project: ciProject)))
+        #expect(harness.activityTitles.contains("Re-ran the failed jobs of build-and-test"))
+        #expect(harness.spies.ci.calls.filter { if case .workflow = $0 { true } else { false } }.count == 2)
+    }
+
+    @Test func cancelAndApproveGoToTheWorkflowAndItsRun() async throws {
+        scriptCI()
+        await store.load(7)
+        try await waitUntil { store.ciWorkflows[workflowID] != nil }
+
+        store.cancelWorkflow(workflowID, of: 7)
+        try await waitUntil { store.ciBusyWorkflows.isEmpty && store.ciWorkflows[workflowID] != nil }
+        store.approveJob("job-approve", named: "approve-release", of: 7)
+        try await waitUntil { store.ciBusyWorkflows.isEmpty && harness.activityTitles.contains("Approved approve-release of build-and-test") }
+
+        #expect(harness.spies.ci.calls.contains(.cancel(workflowID: workflowID, project: ciProject)))
+        #expect(harness.spies.ci.calls.contains(.approve(runID: "run-1", job: "approve-release", project: ciProject)))
+        #expect(harness.activityTitles.contains("Cancelled build-and-test"))
+    }
+
+    @Test func aFailedCircleCIActionIsLoggedAndClearsTheBusyFlag() async throws {
+        scriptCI()
+        harness.spies.ci.actionError = CIError.notLoggedIn
+        await store.load(7)
+        try await waitUntil { store.ciWorkflows[workflowID] != nil }
+
+        store.rerunWorkflow(workflowID, fromFailed: false, of: 7)
+        try await waitUntil { store.ciBusyWorkflows.isEmpty && harness.lastActivity?.title == "Re-ran build-and-test failed" }
+
+        #expect(harness.lastActivity?.outcome == .failure)
+        #expect(store.ciWorkflows[workflowID] != nil)
+    }
+
+    @Test func aProjectChangeForgetsTheCircleCIState() async throws {
+        scriptCI()
+        await store.load(7)
+        try await waitUntil { store.ciWorkflows[workflowID] != nil }
+
+        harness.events.post(.projectChanged)
+
+        #expect(store.ciWorkflows.isEmpty)
+        #expect(store.ciToolState == nil)
+    }
 }

@@ -117,7 +117,17 @@ package final class PresentationAssembly {
         pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
         openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
         inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
-        pullRequestDetails = PullRequestDetailStore(repository: ports.codeHost, remote: codeHostRemote, prompts: ports.reviewPrompts, activity: activity, events: events)
+        pullRequestDetails = PullRequestDetailStore(
+            repository: ports.codeHost,
+            ci: ports.ci,
+            remote: codeHostRemote,
+            prompts: ports.reviewPrompts,
+            config: config,
+            worktrees: worktrees,
+            tools: ports.tools,
+            activity: activity,
+            events: events
+        )
         newPullRequest = NewPullRequestStore(
             git: ports.git,
             codeHost: ports.codeHost,

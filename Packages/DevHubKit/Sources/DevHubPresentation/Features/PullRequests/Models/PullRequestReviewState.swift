@@ -18,6 +18,13 @@ struct PullRequestReviewState: Equatable {
     var busyJobs: Set<String> = []
     var fullFiles: Set<PullRequestFileDiff.ID> = []
     var fileContents: [String: [String]] = [:]
+    var hasCIProvider = false
+    var ciToolState: CIToolState?
+    var ciWorkflows: [String: CIWorkflow] = [:]
+    var ciWorkflowErrors: [String: String] = [:]
+    var ciFailedTests: [String: [CITestResult]] = [:]
+    var ciFlakyTests: [CIFlakyTest] = []
+    var ciBusyWorkflows: Set<String> = []
 
     static let initial = PullRequestReviewState(expandedFiles: [], viewedFiles: [], focus: nil, busyThreads: [], showsThreadsInDiff: true, openDiffThreads: [])
 }

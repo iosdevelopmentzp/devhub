@@ -213,4 +213,25 @@ import DevHubTestSupport
         state.isCommentBusy = true
         #expect(PullRequestDetailsMapper.commentBox(summary: allowed, review: state, words: .gitHub).canSend == false)
     }
+
+    @Test func theCircleCINoticeFollowsTheToolState() {
+        var review = PullRequestReviewState.initial
+        #expect(PullRequestDetailsMapper.ciNotice(review: review) == nil)
+
+        review.hasCIProvider = true
+        #expect(PullRequestDetailsMapper.ciNotice(review: review) == nil)
+
+        review.ciToolState = .missing
+        #expect(PullRequestDetailsMapper.ciNotice(review: review)?.command == "brew install circleci && circleci auth login")
+
+        review.ciToolState = CIToolState(isInstalled: true, version: "0.1.3", isLoggedIn: false)
+        #expect(PullRequestDetailsMapper.ciNotice(review: review)?.text.contains("0.1.3") == true)
+        #expect(PullRequestDetailsMapper.ciNotice(review: review)?.command == "brew upgrade circleci")
+
+        review.ciToolState = CIToolState(isInstalled: true, version: "1.13.0", isLoggedIn: false)
+        #expect(PullRequestDetailsMapper.ciNotice(review: review)?.command == "circleci auth login")
+
+        review.ciToolState = CIToolState(isInstalled: true, version: "1.13.0", isLoggedIn: true)
+        #expect(PullRequestDetailsMapper.ciNotice(review: review) == nil)
+    }
 }

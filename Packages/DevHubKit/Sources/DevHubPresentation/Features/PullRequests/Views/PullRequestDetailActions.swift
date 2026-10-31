@@ -25,6 +25,10 @@ struct PullRequestDetailActions {
     let cancelLineComment: () -> Void
     let toggleJobLog: (_ jobID: String) -> Void
     let retryJob: (_ jobID: String, _ name: String) -> Void
+    let approveJob: (_ jobID: String, _ name: String) -> Void
+    let rerunWorkflow: (_ workflowID: String, _ fromFailed: Bool) -> Void
+    let cancelWorkflow: (_ workflowID: String) -> Void
+    let runCISetup: (_ command: String) -> Void
     let cancelPipeline: () -> Void
     let fixThreads: (AIProvider) -> Void
     let runConfigAction: (_ actionID: ConfigActionItemModel.ID) -> Void
@@ -55,6 +59,10 @@ struct PullRequestDetailActions {
         cancelLineComment: {},
         toggleJobLog: { _ in },
         retryJob: { _, _ in },
+        approveJob: { _, _ in },
+        rerunWorkflow: { _, _ in },
+        cancelWorkflow: { _ in },
+        runCISetup: { _ in },
         cancelPipeline: {},
         fixThreads: { _ in },
         runConfigAction: { _ in },
@@ -87,6 +95,10 @@ struct PullRequestDetailActions {
             cancelLineComment: cancelLineComment,
             toggleJobLog: toggleJobLog,
             retryJob: retryJob,
+            approveJob: approveJob,
+            rerunWorkflow: rerunWorkflow,
+            cancelWorkflow: cancelWorkflow,
+            runCISetup: runCISetup,
             cancelPipeline: cancelPipeline,
             fixThreads: fixThreads,
             runConfigAction: runConfigAction,
@@ -133,6 +145,10 @@ extension PullRequestDetailActions {
             cancelLineComment: { detailStore.cancelLineComment() },
             toggleJobLog: { detailStore.toggleJobLog($0) },
             retryJob: { detailStore.retryJob($0, named: $1, of: id) },
+            approveJob: { detailStore.approveJob($0, named: $1, of: id) },
+            rerunWorkflow: { detailStore.rerunWorkflow($0, fromFailed: $1, of: id) },
+            cancelWorkflow: { detailStore.cancelWorkflow($0, of: id) },
+            runCISetup: { appActions.runInTerminal($0, at: detailStore.ciCheckoutPath, title: "Started the CircleCI setup in Terminal") },
             cancelPipeline: { pullRequests.perform(.cancelPipeline, on: id) },
             fixThreads: { appActions.fixThreads(with: $0, summary) },
             runConfigAction: { actionID in
