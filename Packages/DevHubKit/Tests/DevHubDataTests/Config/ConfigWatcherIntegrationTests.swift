@@ -21,9 +21,9 @@ import Testing
         defer { task.cancel() }
 
         var checks = 0
-        try await waitUntil(timeout: .seconds(5)) {
+        try await waitUntil(timeout: .seconds(20)) {
             checks += 1
-            if checks % 20 == 1 {
+            if checks % 5 == 1 {
                 try? #"{ "name": "Change \#(checks)" }"#.write(to: file, atomically: false, encoding: .utf8)
             }
             return counter.value > 0

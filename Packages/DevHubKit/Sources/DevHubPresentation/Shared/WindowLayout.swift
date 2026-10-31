@@ -107,7 +107,7 @@ final class WindowLayout {
         NSScreen.screens.first { $0.frame.insetBy(dx: -1, dy: -1).contains(point) }
     }
 
-    private static func clamped(_ proposed: CGSize, to room: CGSize) -> CGSize {
+    static func clamped(_ proposed: CGSize, to room: CGSize) -> CGSize {
         CGSize(
             width: min(max(proposed.width, minimumSize.width), room.width).rounded(.down),
             height: min(max(proposed.height, minimumSize.height), room.height).rounded(.down)

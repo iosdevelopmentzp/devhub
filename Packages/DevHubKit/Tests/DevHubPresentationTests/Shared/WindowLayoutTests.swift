@@ -36,9 +36,13 @@ import Testing
         #expect(WindowLayout(store: store).size == WindowLayout.defaultSize)
     }
 
-    @Test func clampedRespectsMinimumSize() {
-        #expect(WindowLayout.clamped(CGSize(width: 10, height: 10)) == WindowLayout.minimumSize)
-        #expect(WindowLayout.clamped(CGSize(width: 10, height: 700)) == CGSize(width: 640, height: 700))
+    @Test func clampedRespectsMinimumSizeAndTheRoomOnTheScreen() {
+        let room = CGSize(width: 1440, height: 900)
+
+        #expect(WindowLayout.clamped(CGSize(width: 10, height: 10), to: room) == WindowLayout.minimumSize)
+        #expect(WindowLayout.clamped(CGSize(width: 10, height: 700), to: room) == CGSize(width: 640, height: 700))
+        #expect(WindowLayout.clamped(CGSize(width: 2000, height: 2000), to: room) == room)
+        #expect(WindowLayout.clamped(CGSize(width: 800.7, height: 700.2), to: room) == CGSize(width: 800, height: 700))
     }
 
     @Test func sizeChangeIsSaved() {
