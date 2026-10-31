@@ -90,6 +90,8 @@ Numbered. What, then why. A later session must not undo these without a new numb
 
 45. Notification kinds are stored as the muted set (`AppSettings.mutedNotifications`), so a new kind is on by default and an old settings file keeps every kind on. The events of the app (`ActivityLog`) carry a kind and a place (`ActivityTarget`) and are saved for 30 days (`ActivityRetentionPolicy`, 500 at most) under `app.recentEvents`; the same event feeds the macOS notification, the Notifications screen and Recent on Home. Why: one list to look at, one place to mute a kind, and a click that leads somewhere.
 
+46. CI runs on a GitHub-hosted `macos-26` runner (`.github/workflows/ci.yml`): layer check, anonymity check with the built-in patterns only, Debug build, smoke check, every test. Why: two process hangs in `ShellRunner` and a test race were found by hand in parallel sessions; a run on a clean machine catches them before a push lands on `main`. The denylist is private, so CI cannot check the owner words.
+
 ## Next steps
 
 The rewrite plan (ADR 001, M0 to M8) and ADR 005 are complete. Ideas for later: video recording in the simulator QA panel (needs a SIGINT stop in `ShellRunner`), a build issue list for `kind: command` projects, a warning for a saved project whose folder no longer exists.

@@ -306,3 +306,15 @@ Not covered: approve and unapprove (GitLab may not allow approving your own requ
 3. `Scripts/smoke.sh` prints `alive`.
 4. New logic has a test. A missing test counts as a failure.
 5. A changed view was seen on the screen or in a snapshot.
+
+## 13. CI on GitHub Actions
+
+`.github/workflows/ci.yml` runs on a GitHub-hosted `macos-26` runner for each push of `main` and each pull request. The steps are the same as before a local commit, in this order:
+
+1. `Scripts/check-layers.sh`.
+2. `Scripts/check-anonymous.sh`. The denylist lives outside the repository, so CI checks only the built-in patterns (bundle IDs, plist suites, hosts).
+3. `SKIP_LAYER_CHECK=1 Scripts/build.sh Debug`.
+4. `Scripts/smoke.sh`.
+5. `Scripts/test.sh`, every test, the integration suites included. `GhIntegrationTests` and `GlabIntegrationTests` skip themselves without their environment variables.
+
+A run takes about ten minutes, most of it the first build. The Actions tab of the repository shows the state of the last run on `main`; there is no badge, because the repository slug may not appear in the files. A red run on `main` is fixed before any other push.

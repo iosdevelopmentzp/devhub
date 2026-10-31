@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Layer check
+        run: Scripts/check-layers.sh
+
+      - name: Anonymity check
+        run: Scripts/check-anonymous.sh
+
+      - name: Build
+        run: SKIP_LAYER_CHECK=1 Scripts/build.sh Debug
+
+      - name: Smoke
+        run: Scripts/smoke.sh
+
+      - name: Tests
+        run: Scripts/test.sh
