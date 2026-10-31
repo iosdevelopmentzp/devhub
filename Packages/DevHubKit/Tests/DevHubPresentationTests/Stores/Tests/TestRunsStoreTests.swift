@@ -20,7 +20,7 @@ import DevHubTestSupport
     }
 
     private func finished() async throws {
-        try await waitUntil { [store, worktree] in store.runs[worktree.id]?.isRunning == false }
+        try await waitUntil { [store, worktree, harness] in store.runs[worktree.id]?.isRunning == false && harness.lastActivity != nil }
     }
 
     @Test func runsTheTestsOfTheWorktreeOnTheTargetSimulator() async throws {
