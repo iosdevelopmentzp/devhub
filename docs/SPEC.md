@@ -130,7 +130,7 @@ Sources:
 
 - DevHub posts macOS notifications only while the panel and the pinned window are closed. Settings has the switch "Notify when the panel is closed" (on by default) and an "Allow Notifications" button. DevHub asks for the permission only from that button.
 - Events: a build finished or failed, and the number of requests that wait for your review went up.
-- Changes of your own open requests, with the switch "Notify about my pull requests": an approval, failed checks or pipeline, new comments, a merge or a close. DevHub compares two reads of the open requests (every 5 minutes); a request that left the list gets one status read to tell a merge from a close. The Recent list on Home shows these events even while the panel is open.
+- Changes of your own open requests, with the switch "Notify about my pull requests": an approval, a request for changes, failed checks or pipeline, new comments, a merge or a close. DevHub compares two reads of the open requests (every 5 minutes); a request that left the list gets one status read to tell a merge from a close. The Recent list on Home shows these events even while the panel is open.
 - The `notify` directive of a script always posts a notification when the permission is given. It does not check the panel or the switch.
 
 ---

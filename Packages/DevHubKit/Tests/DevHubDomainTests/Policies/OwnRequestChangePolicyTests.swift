@@ -22,6 +22,15 @@ import Testing
         #expect(OwnRequestChangePolicy.changes(from: [before], to: [after], username: username).isEmpty)
     }
 
+    @Test func aNewRequestForChangesIsReportedOnce() {
+        let before = request(1)
+        let after = request(1, changesRequestedBy: ["alex"])
+
+        #expect(OwnRequestChangePolicy.changes(from: [before], to: [after], username: username) == [.changesRequested(after, by: ["alex"])])
+        #expect(OwnRequestChangePolicy.changes(from: [after], to: [after], username: username).isEmpty)
+        #expect(OwnRequestChangePolicy.changes(from: [before], to: [request(1, changesRequestedBy: ["me"])], username: username).isEmpty)
+    }
+
     @Test func checksAreReportedWhenTheyStartToFail() {
         let running = request(1, pipeline: .running)
         let failed = request(1, pipeline: .failed)
@@ -60,7 +69,7 @@ import Testing
         #expect(changes == [.approved(after[1], by: ["alex"]), .checksFailed(after[0]), .newComments(after[0], count: 1)])
     }
 
-    private func request(_ iid: Int, author: String = "me", approvedBy: [String] = [], pipeline: CheckStatus? = nil, comments: Int = 0) -> PullRequestSummary {
+    private func request(_ iid: Int, author: String = "me", approvedBy: [String] = [], changesRequestedBy: [String] = [], pipeline: CheckStatus? = nil, comments: Int = 0) -> PullRequestSummary {
         PullRequestSummary(
             iid: iid,
             title: "ABC-\(iid): Change",
@@ -76,7 +85,8 @@ import Testing
             updatedAt: nil,
             pipeline: pipeline.map { PipelineInfo(status: $0, webURL: nil, updatedAt: nil) },
             approvedBy: approvedBy,
-            labels: []
+            labels: [],
+            changesRequestedBy: changesRequestedBy
         )
     }
 }

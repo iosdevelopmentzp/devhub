@@ -15,6 +15,14 @@ import Testing
         #expect(three.title == "#21 approved by alex, sam and lee")
     }
 
+    @Test func aRequestForChangesNamesTheReviewers() throws {
+        let one = try #require(OwnRequestChangeMapper.report(for: .changesRequested(request, by: ["alex"]), words: .gitHub))
+        let two = try #require(OwnRequestChangeMapper.report(for: .changesRequested(request, by: ["alex", "sam"]), words: .gitLab))
+
+        #expect(one == OwnRequestChangeMapper.Report(title: "Changes requested on #21 by alex", body: "ABC-5: Login", outcome: .info))
+        #expect(two.title == "Changes requested on !21 by alex and sam")
+    }
+
     @Test func failedChecksUseTheWordsOfTheHost() throws {
         let gitHub = try #require(OwnRequestChangeMapper.report(for: .checksFailed(request), words: .gitHub))
         let gitLab = try #require(OwnRequestChangeMapper.report(for: .checksFailed(request), words: .gitLab))

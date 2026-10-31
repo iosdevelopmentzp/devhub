@@ -13,6 +13,10 @@ package enum OwnRequestChangePolicy {
             if approvers.isEmpty == false {
                 changes.append(.approved(request, by: approvers))
             }
+            let requesters = request.changesRequestedBy.filter { $0 != username && old.changesRequestedBy.contains($0) == false }
+            if requesters.isEmpty == false {
+                changes.append(.changesRequested(request, by: requesters))
+            }
             if request.pipeline?.status == .failed, old.pipeline?.status != .failed {
                 changes.append(.checksFailed(request))
             }
