@@ -28,6 +28,9 @@ struct PullRequestReviewState: Equatable {
     var ciHistory: [CIWorkflowRecord] = []
     var showsCIHistory = false
     var autoRerunPlan: CIAutoRerunPlan?
+    var openJobDetails: Set<String> = []
+    var openTestMessages: Set<String> = []
+    var openCIHistoryRuns: Set<String> = []
 
     static let initial = PullRequestReviewState(expandedFiles: [], viewedFiles: [], focus: nil, busyThreads: [], showsThreadsInDiff: true, openDiffThreads: [])
 }

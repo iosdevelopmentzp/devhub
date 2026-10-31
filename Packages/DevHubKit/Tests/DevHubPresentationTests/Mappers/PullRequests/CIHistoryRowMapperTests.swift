@@ -18,7 +18,7 @@ import DevHubUI
             CIJob(id: "j2", name: "lint", status: .success, isApproval: false),
         ]
 
-        let model = CIHistoryRowMapper.model(for: record(status: .failed, jobs: jobs, tests: ["j1": [test]]), flaky: flaky, words: .gitHub)
+        let model = CIHistoryRowMapper.model(for: record(status: .failed, jobs: jobs, tests: ["j1": [test]]), flaky: flaky, isOpen: false, openTestMessages: [], words: .gitHub)
 
         #expect(model.id == "w1")
         #expect(model.title == "build")
@@ -35,7 +35,7 @@ import DevHubUI
     }
 
     @Test func aPassedRunHasNothingToOpen() {
-        let model = CIHistoryRowMapper.model(for: record(status: .success, jobs: [CIJob(id: "j1", name: "unit-tests", status: .success, isApproval: false)]), flaky: [], words: .gitHub)
+        let model = CIHistoryRowMapper.model(for: record(status: .success, jobs: [CIJob(id: "j1", name: "unit-tests", status: .success, isApproval: false)]), flaky: [], isOpen: false, openTestMessages: [], words: .gitHub)
 
         #expect(model.statusTag.text == "passed")
         #expect(model.statusTag.tint == .green)
@@ -44,8 +44,22 @@ import DevHubUI
         #expect(model.toggleHint == "This run has no failed jobs to show")
     }
 
+    @Test func anOpenRunShowsItsJobsAndRemembersOpenMessages() {
+        let jobs = [CIJob(id: "j1", name: "unit-tests", status: .failed, isApproval: false)]
+        let failed = record(status: .failed, jobs: jobs, tests: ["j1": [test]])
+        let passed = record(status: .success, jobs: [])
+
+        let open = CIHistoryRowMapper.model(for: failed, flaky: [], isOpen: true, openTestMessages: ["j1/LoginTests.testRetry"], words: .gitHub)
+        let empty = CIHistoryRowMapper.model(for: passed, flaky: [], isOpen: true, openTestMessages: [], words: .gitHub)
+
+        #expect(open.isOpen)
+        #expect(open.toggleHint == "Hide the failed jobs")
+        #expect(open.failedJobs.first?.tests.map(\.isMessageOpen) == [true])
+        #expect(empty.isOpen == false)
+    }
+
     @Test func aRunWithoutANameGetsAPlainTitle() {
-        let model = CIHistoryRowMapper.model(for: record(name: "", status: .canceled, jobs: []), flaky: [], words: .gitHub)
+        let model = CIHistoryRowMapper.model(for: record(name: "", status: .canceled, jobs: []), flaky: [], isOpen: false, openTestMessages: [], words: .gitHub)
 
         #expect(model.title == "CircleCI workflow")
     }

@@ -31,6 +31,9 @@ final class PullRequestDetailStore {
     private(set) var ciFlakyTests: [CIFlakyTest] = []
     private(set) var ciBusyWorkflows: Set<String> = []
     private(set) var shownCIHistory: Set<PullRequestSummary.ID> = []
+    private(set) var openJobDetails: Set<String> = []
+    private(set) var openTestMessages: Set<String> = []
+    private(set) var openCIHistoryRuns: Set<String> = []
 
     enum CommentKind {
         case comment
@@ -92,6 +95,9 @@ final class PullRequestDetailStore {
     private func resetProject() {
         resetCI()
         shownCIHistory = []
+        openJobDetails = []
+        openTestMessages = []
+        openCIHistoryRuns = []
         details = [:]
         diffs = [:]
         errors = [:]
@@ -143,7 +149,10 @@ final class PullRequestDetailStore {
             ciBusyWorkflows: ciBusyWorkflows,
             ciHistory: CIHistoryPolicy.previous(in: history.records(for: id), current: Set(details[id]?.jobs.compactMap(\.ciWorkflowID) ?? [])),
             showsCIHistory: shownCIHistory.contains(id),
-            autoRerunPlan: autoRerun.plan(for: id)
+            autoRerunPlan: autoRerun.plan(for: id),
+            openJobDetails: openJobDetails,
+            openTestMessages: openTestMessages,
+            openCIHistoryRuns: openCIHistoryRuns
         )
     }
 
@@ -370,6 +379,24 @@ final class PullRequestDetailStore {
                 activity.log("\(title) failed", detail: error.localizedDescription, outcome: .failure)
                 isSendingLineComment = false
             }
+        }
+    }
+
+    func toggleJobDetails(_ key: String) {
+        toggle(key, in: \.openJobDetails)
+    }
+
+    func toggleTestMessage(_ key: String) {
+        toggle(key, in: \.openTestMessages)
+    }
+
+    func toggleCIHistoryRun(_ workflowID: String) {
+        toggle(workflowID, in: \.openCIHistoryRuns)
+    }
+
+    private func toggle(_ key: String, in set: ReferenceWritableKeyPath<PullRequestDetailStore, Set<String>>) {
+        if self[keyPath: set].remove(key) == nil {
+            self[keyPath: set].insert(key)
         }
     }
 

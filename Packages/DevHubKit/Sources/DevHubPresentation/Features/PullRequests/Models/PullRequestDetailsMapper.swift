@@ -38,7 +38,7 @@ enum PullRequestDetailsMapper {
                     autoRerun: autoRerun(review: review),
                     ciHistoryTitle: review.ciHistory.isEmpty ? nil : "Previous CircleCI runs \(review.ciHistory.count)",
                     showsCIHistory: review.showsCIHistory,
-                    ciHistory: review.ciHistory.map { CIHistoryRowMapper.model(for: $0, flaky: review.ciFlakyTests, words: words) },
+                    ciHistory: review.ciHistory.map { CIHistoryRowMapper.model(for: $0, flaky: review.ciFlakyTests, isOpen: review.openCIHistoryRuns.contains($0.id), openTestMessages: review.openTestMessages, words: words) },
                     reviewLines: PullRequestReviewMapper.lines(for: summary, username: context.username, words: words),
                     description: description(details.description),
                     threadsTitle: details.threads.isEmpty ? "No open threads" : "Open threads \(details.threads.count)",

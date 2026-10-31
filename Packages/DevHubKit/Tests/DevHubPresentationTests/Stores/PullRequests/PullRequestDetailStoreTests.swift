@@ -644,4 +644,29 @@ import DevHubTestSupport
         #expect(store.review(of: 7).autoRerunPlan == plan)
         #expect(store.review(of: 8).autoRerunPlan == nil)
     }
+
+    @Test func jobDetailsTestMessagesAndEarlierRunsOpenAndClose() {
+        store.toggleJobDetails("job-unit")
+        store.toggleTestMessage("job-unit/LoginTests.testRetry")
+        store.toggleCIHistoryRun("old-workflow")
+        let open = store.review(of: 7)
+        store.toggleJobDetails("job-unit")
+
+        #expect(open.openJobDetails == ["job-unit"])
+        #expect(open.openTestMessages == ["job-unit/LoginTests.testRetry"])
+        #expect(open.openCIHistoryRuns == ["old-workflow"])
+        #expect(store.review(of: 7).openJobDetails.isEmpty)
+    }
+
+    @Test func aProjectChangeFoldsEverythingAgain() {
+        store.toggleJobDetails("job-unit")
+        store.toggleTestMessage("job-unit/LoginTests.testRetry")
+        store.toggleCIHistoryRun("old-workflow")
+
+        harness.events.post(.projectChanged)
+
+        #expect(store.openJobDetails.isEmpty)
+        #expect(store.openTestMessages.isEmpty)
+        #expect(store.openCIHistoryRuns.isEmpty)
+    }
 }

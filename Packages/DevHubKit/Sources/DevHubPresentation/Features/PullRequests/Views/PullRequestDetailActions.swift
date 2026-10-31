@@ -24,6 +24,9 @@ struct PullRequestDetailActions {
     let sendLineComment: () -> Void
     let cancelLineComment: () -> Void
     let toggleJobLog: (_ jobID: String) -> Void
+    let toggleJobDetails: (_ key: String) -> Void
+    let toggleTestMessage: (_ testID: String) -> Void
+    let toggleCIHistoryRun: (_ workflowID: String) -> Void
     let retryJob: (_ jobID: String, _ name: String) -> Void
     let approveJob: (_ jobID: String, _ name: String) -> Void
     let rerunWorkflow: (_ workflowID: String, _ fromFailed: Bool) -> Void
@@ -62,6 +65,9 @@ struct PullRequestDetailActions {
         sendLineComment: {},
         cancelLineComment: {},
         toggleJobLog: { _ in },
+        toggleJobDetails: { _ in },
+        toggleTestMessage: { _ in },
+        toggleCIHistoryRun: { _ in },
         retryJob: { _, _ in },
         approveJob: { _, _ in },
         rerunWorkflow: { _, _ in },
@@ -102,6 +108,9 @@ struct PullRequestDetailActions {
             sendLineComment: sendLineComment,
             cancelLineComment: cancelLineComment,
             toggleJobLog: toggleJobLog,
+            toggleJobDetails: toggleJobDetails,
+            toggleTestMessage: toggleTestMessage,
+            toggleCIHistoryRun: toggleCIHistoryRun,
             retryJob: retryJob,
             approveJob: approveJob,
             rerunWorkflow: rerunWorkflow,
@@ -157,6 +166,9 @@ extension PullRequestDetailActions {
             sendLineComment: { detailStore.sendLineComment(headSHA: summary.headSHA) },
             cancelLineComment: { detailStore.cancelLineComment() },
             toggleJobLog: { detailStore.toggleJobLog($0) },
+            toggleJobDetails: { detailStore.toggleJobDetails($0) },
+            toggleTestMessage: { detailStore.toggleTestMessage($0) },
+            toggleCIHistoryRun: { detailStore.toggleCIHistoryRun($0) },
             retryJob: { detailStore.retryJob($0, named: $1, of: id) },
             approveJob: { detailStore.approveJob($0, named: $1, of: id) },
             rerunWorkflow: { detailStore.rerunWorkflow($0, fromFailed: $1, of: id) },

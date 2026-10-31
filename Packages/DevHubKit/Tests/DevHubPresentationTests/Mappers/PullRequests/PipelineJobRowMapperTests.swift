@@ -156,6 +156,36 @@ import Testing
         #expect(unit.retryHint.contains("build-and-test"))
     }
 
+    @Test func theFailureMessageOfAJobIsFoldedUntilOpened() {
+        let folded = PipelineJobRowMapper.groups(for: jobs, review: .initial, words: .gitLab).flatMap(\.jobs)
+        var review = PullRequestReviewState.initial
+        review.openJobDetails = ["2"]
+        let open = PipelineJobRowMapper.groups(for: jobs, review: review, words: .gitLab).flatMap(\.jobs)
+
+        #expect(folded[2].detailsTitle == "reason")
+        #expect(folded[2].isDetailsOpen == false)
+        #expect(folded[2].detailsHint == "Show why this job failed")
+        #expect(folded[1].detailsTitle == nil)
+        #expect(open[2].isDetailsOpen)
+        #expect(open[2].detailsHint == "Hide the failure message")
+    }
+
+    @Test func theFailedTestsOfACircleCIJobAreFoldedUntilOpened() {
+        var review = ciReview()
+        let folded = PipelineJobRowMapper.groups(for: ciJobs, review: review, words: .gitHub)[0].jobs[0]
+        review.openJobDetails = ["job-unit"]
+        review.openTestMessages = ["job-unit/LoginTests.testRetry"]
+        let open = PipelineJobRowMapper.groups(for: ciJobs, review: review, words: .gitHub)[0].jobs[0]
+
+        #expect(folded.detailsTitle == "2 failed tests")
+        #expect(folded.isDetailsOpen == false)
+        #expect(folded.failedTests.map(\.id) == ["job-unit/LoginTests.testRetry", "job-unit/BadgeTests.testCount"])
+        #expect(folded.failedTests.allSatisfy { $0.isMessageOpen == false })
+        #expect(open.isDetailsOpen)
+        #expect(open.detailsHint == "Hide the failed tests")
+        #expect(open.failedTests.map(\.isMessageOpen) == [true, false])
+    }
+
     @Test func anApprovalJobOnHoldCanBeApproved() {
         let groups = PipelineJobRowMapper.groups(for: ciJobs, review: ciReview(), words: .gitHub)
         let approval = groups[0].jobs[1]

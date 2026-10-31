@@ -7,6 +7,7 @@ struct PipelineJobRowModel: Identifiable, Equatable {
         var title: String
         var message: String?
         var flakyText: String?
+        var isMessageOpen = false
     }
 
     let id: String
@@ -30,6 +31,9 @@ struct PipelineJobRowModel: Identifiable, Equatable {
     var noteText: String?
     var flakyTag: TagModel?
     var failedTests: [FailedTest] = []
+    var detailsTitle: String? = nil
+    var detailsHint = ""
+    var isDetailsOpen = false
 
     static let preview = PipelineJobRowModel(
         id: "71",
@@ -48,6 +52,10 @@ struct PipelineJobRowModel: Identifiable, Equatable {
         canRetry: true,
         retryHint: "Run this job again",
         isBusy: false
+,
+        detailsTitle: "reason",
+        detailsHint: "Hide the failure message",
+        isDetailsOpen: true
     )
 
     static let previewCircleCI = PipelineJobRowModel(
@@ -72,8 +80,12 @@ struct PipelineJobRowModel: Identifiable, Equatable {
         noteText: nil,
         flakyTag: TagModel("1 of 2 flaky", tint: .orange, systemImage: "shuffle", hint: "1 of 2 failed tests is flaky: it passed on a re-run before (CircleCI Insights)"),
         failedTests: [
-            FailedTest(id: "LoginViewModelTests.testRetryAfterTimeout", title: "LoginViewModelTests.testRetryAfterTimeout", message: "XCTAssertEqual failed: (\"retrying\") is not equal to (\"idle\")", flakyText: "flaky · flaked 7 times"),
-            FailedTest(id: "ProfileBadgeTests.testBadgeCount", title: "ProfileBadgeTests.testBadgeCount", message: "XCTAssertEqual failed: (3) is not equal to (2)", flakyText: nil),
+            FailedTest(id: "job-unit-tests/LoginViewModelTests.testRetryAfterTimeout", title: "LoginViewModelTests.testRetryAfterTimeout", message: "XCTAssertEqual failed: (\"retrying\") is not equal to (\"idle\")", flakyText: "flaky · flaked 7 times", isMessageOpen: true),
+            FailedTest(id: "job-unit-tests/ProfileBadgeTests.testBadgeCount", title: "ProfileBadgeTests.testBadgeCount", message: "XCTAssertEqual failed: (3) is not equal to (2)", flakyText: nil),
         ]
+,
+        detailsTitle: "2 failed tests",
+        detailsHint: "Hide the failed tests",
+        isDetailsOpen: true
     )
 }

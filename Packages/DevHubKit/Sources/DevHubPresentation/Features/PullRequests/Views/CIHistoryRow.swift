@@ -3,17 +3,14 @@ import DevHubUI
 
 struct CIHistoryRow: View {
     let model: CIHistoryRowModel
-
-    @State private var isOpen = false
-    @State private var expandedTestIDs: Set<String> = []
+    let onToggle: () -> Void
+    let onToggleTestMessage: (_ testID: String) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
-                Button {
-                    isOpen.toggle()
-                } label: {
-                    Image(systemName: isOpen ? "chevron.down" : "chevron.right")
+                Button(action: onToggle) {
+                    Image(systemName: model.isOpen ? "chevron.down" : "chevron.right")
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(.secondary)
                         .frame(width: 12, height: 12)
@@ -21,7 +18,7 @@ struct CIHistoryRow: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(model.failedJobs.isEmpty)
-                .hint(isOpen ? "Hide the failed jobs" : model.toggleHint)
+                .hint(model.toggleHint)
                 Text(model.title)
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
@@ -36,7 +33,7 @@ struct CIHistoryRow: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
-            if isOpen {
+            if model.isOpen {
                 ForEach(model.failedJobs) { job in
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
@@ -50,8 +47,8 @@ struct CIHistoryRow: View {
                                 .hintWhenTruncated(job.title)
                         }
                         ForEach(job.tests) { test in
-                            FailedTestLine(model: test, isExpanded: expandedTestIDs.contains(test.id)) {
-                                toggleMessage(of: test)
+                            FailedTestLine(model: test) {
+                                onToggleTestMessage(test.id)
                             }
                             .padding(.leading, 24)
                         }
@@ -60,21 +57,11 @@ struct CIHistoryRow: View {
                 }
             }
         }
-        .animation(.snappy(duration: 0.18), value: isOpen)
-        .animation(.snappy(duration: 0.18), value: expandedTestIDs)
-    }
-
-    private func toggleMessage(of test: PipelineJobRowModel.FailedTest) {
-        if expandedTestIDs.contains(test.id) {
-            expandedTestIDs.remove(test.id)
-        } else {
-            expandedTestIDs.insert(test.id)
-        }
     }
 }
 
 #Preview {
-    CIHistoryRow(model: .preview)
+    CIHistoryRow(model: .preview, onToggle: {}, onToggleTestMessage: { _ in })
         .padding()
         .frame(width: 560)
         .previewEnvironment()

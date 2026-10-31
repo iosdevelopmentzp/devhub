@@ -3,7 +3,6 @@ import DevHubUI
 
 struct FailedTestLine: View {
     let model: PipelineJobRowModel.FailedTest
-    let isExpanded: Bool
     let onToggle: () -> Void
 
     var body: some View {
@@ -24,17 +23,17 @@ struct FailedTestLine: View {
                 }
                 if model.message != nil {
                     Button(action: onToggle) {
-                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        Image(systemName: model.isMessageOpen ? "chevron.down" : "chevron.right")
                             .font(.caption2.weight(.semibold))
                             .foregroundStyle(.secondary)
                             .frame(width: 12, height: 12)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .hint(isExpanded ? "Hide the message" : "Show the message")
+                    .hint(model.isMessageOpen ? "Hide the message" : "Show the message")
                 }
             }
-            if isExpanded, let message = model.message {
+            if model.isMessageOpen, let message = model.message {
                 Text(message)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -47,7 +46,7 @@ struct FailedTestLine: View {
 }
 
 #Preview {
-    FailedTestLine(model: PipelineJobRowModel.previewCircleCI.failedTests[0], isExpanded: true, onToggle: {})
+    FailedTestLine(model: PipelineJobRowModel.previewCircleCI.failedTests[0], onToggle: {})
         .padding()
         .frame(width: 480)
 }

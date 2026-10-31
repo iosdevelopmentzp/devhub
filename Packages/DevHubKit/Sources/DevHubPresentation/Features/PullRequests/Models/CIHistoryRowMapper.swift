@@ -3,13 +3,13 @@ import DevHubDomain
 import DevHubUI
 
 enum CIHistoryRowMapper {
-    static func model(for record: CIWorkflowRecord, flaky: [CIFlakyTest], words: CodeHostWords) -> CIHistoryRowModel {
+    static func model(for record: CIWorkflowRecord, flaky: [CIFlakyTest], isOpen: Bool, openTestMessages: Set<String>, words: CodeHostWords) -> CIHistoryRowModel {
         let status = record.workflow.status
         let failedJobs = record.failedJobs.map { job in
             CIHistoryRowModel.FailedJob(
                 id: job.id,
                 title: job.name,
-                tests: (record.failedTests[job.id] ?? []).map { PipelineJobRowMapper.failedTest($0, flaky: flaky) }
+                tests: (record.failedTests[job.id] ?? []).map { PipelineJobRowMapper.failedTest($0, jobID: job.id, flaky: flaky, openMessages: openTestMessages) }
             )
         }
         return CIHistoryRowModel(
@@ -24,7 +24,8 @@ enum CIHistoryRowMapper {
             timeText: record.recordedAt.relativeDescription,
             summaryText: summary(failedJobs: failedJobs.count, failedTests: record.failedTestCount),
             failedJobs: failedJobs,
-            toggleHint: failedJobs.isEmpty ? "This run has no failed jobs to show" : "Show the failed jobs and tests of this run"
+            isOpen: isOpen && failedJobs.isEmpty == false,
+            toggleHint: toggleHint(hasFailedJobs: failedJobs.isEmpty == false, isOpen: isOpen)
         )
     }
 
@@ -35,5 +36,10 @@ enum CIHistoryRowMapper {
             parts.append(CountText.count(failedTests, "failed test", "failed tests"))
         }
         return parts.joined(separator: " · ")
+    }
+
+    private static func toggleHint(hasFailedJobs: Bool, isOpen: Bool) -> String {
+        guard hasFailedJobs else { return "This run has no failed jobs to show" }
+        return isOpen ? "Hide the failed jobs" : "Show the failed jobs and tests of this run"
     }
 }

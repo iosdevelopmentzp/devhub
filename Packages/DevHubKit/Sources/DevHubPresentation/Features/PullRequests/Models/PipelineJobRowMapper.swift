@@ -62,6 +62,7 @@ enum PipelineJobRowMapper {
         let key = job.id ?? "\(index):\(job.name)"
         let isFinished = unfinishedStatuses.contains(job.status) == false
         let failedButAllowed = job.status == .failed && job.allowsFailure
+        let isDetailsOpen = review.openJobDetails.contains(key)
         return PipelineJobRowModel(
             id: key,
             jobID: job.id,
@@ -79,7 +80,10 @@ enum PipelineJobRowMapper {
             canRetry: job.id != nil && [.failed, .canceled].contains(job.status),
             retryHint: "Run this \(words.job) again",
             isBusy: job.id.map(review.busyJobs.contains) ?? false,
-            noteText: ciNote(for: job, review: review)
+            noteText: ciNote(for: job, review: review),
+            detailsTitle: job.failureMessage == nil ? nil : "reason",
+            detailsHint: isDetailsOpen ? "Hide the failure message" : "Show why this \(words.job) failed",
+            isDetailsOpen: isDetailsOpen
         )
     }
 
@@ -112,6 +116,7 @@ enum PipelineJobRowMapper {
 
     static func model(for job: CIJob, of workflow: CIWorkflow, review: PullRequestReviewState, words: CodeHostWords) -> PipelineJobRowModel {
         let failedTests = review.ciFailedTests[job.id] ?? []
+        let isDetailsOpen = review.openJobDetails.contains(job.id)
         let flakyCount = FlakyTestPolicy.flakyCount(of: failedTests, in: review.ciFlakyTests)
         let isBusy = review.ciBusyWorkflows.contains(workflow.id)
         let waitsForApproval = job.isApproval && job.status == .manual
@@ -137,16 +142,21 @@ enum PipelineJobRowMapper {
             approveHint: "Approve this job: the jobs that wait for it start (circleci run approve)",
             noteText: nil,
             flakyTag: flakyTag(flakyCount: flakyCount, failedCount: failedTests.count),
-            failedTests: failedTests.map { failedTest($0, flaky: review.ciFlakyTests) }
+            failedTests: failedTests.map { failedTest($0, jobID: job.id, flaky: review.ciFlakyTests, openMessages: review.openTestMessages) },
+            detailsTitle: failedTests.isEmpty ? nil : CountText.count(failedTests.count, "failed test", "failed tests"),
+            detailsHint: isDetailsOpen ? "Hide the failed tests" : "Show the failed tests of this job",
+            isDetailsOpen: isDetailsOpen
         )
     }
 
-    static func failedTest(_ test: CITestResult, flaky: [CIFlakyTest]) -> PipelineJobRowModel.FailedTest {
-        PipelineJobRowModel.FailedTest(
-            id: "\(test.className).\(test.name)",
+    static func failedTest(_ test: CITestResult, jobID: String, flaky: [CIFlakyTest], openMessages: Set<String>) -> PipelineJobRowModel.FailedTest {
+        let id = "\(jobID)/\(test.className).\(test.name)"
+        return PipelineJobRowModel.FailedTest(
+            id: id,
             title: test.className.isEmpty ? test.name : "\(test.className).\(test.name)",
             message: test.message,
-            flakyText: FlakyTestPolicy.timesFlaked(test, in: flaky).map { "flaky · flaked \(CountText.count($0, "time", "times"))" }
+            flakyText: FlakyTestPolicy.timesFlaked(test, in: flaky).map { "flaky · flaked \(CountText.count($0, "time", "times"))" },
+            isMessageOpen: openMessages.contains(id)
         )
     }
 

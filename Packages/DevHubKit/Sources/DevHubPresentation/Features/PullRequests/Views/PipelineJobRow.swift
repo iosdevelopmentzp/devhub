@@ -10,9 +10,10 @@ struct PipelineJobRow: View {
     let onToggleLog: () -> Void
     let onRetry: () -> Void
     let onApprove: () -> Void
+    let onToggleDetails: () -> Void
+    let onToggleTestMessage: (_ testID: String) -> Void
 
     @State private var isConfirmingApprove = false
-    @State private var expandedTestIDs: Set<String> = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -42,6 +43,9 @@ struct PipelineJobRow: View {
                 }
                 if let flakyTag = model.flakyTag {
                     ModelTag(model: flakyTag)
+                }
+                if let detailsTitle = model.detailsTitle {
+                    detailsToggle(detailsTitle)
                 }
                 Spacer(minLength: 4)
                 if model.isBusy {
@@ -86,40 +90,50 @@ struct PipelineJobRow: View {
                 )
                 .padding(.leading, 24)
             }
-            if let failureText = model.failureText {
-                Text(failureText)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-                    .textSelection(.enabled)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.leading, 24)
-            }
             if let noteText = model.noteText {
                 Text(noteText)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .padding(.leading, 24)
             }
-            ForEach(model.failedTests) { test in
-                FailedTestLine(model: test, isExpanded: expandedTestIDs.contains(test.id)) {
-                    toggleMessage(of: test)
+            if model.isDetailsOpen {
+                if let failureText = model.failureText {
+                    Text(failureText)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.leading, 24)
                 }
-                .padding(.leading, 24)
+                ForEach(model.failedTests) { test in
+                    FailedTestLine(model: test) {
+                        onToggleTestMessage(test.id)
+                    }
+                    .padding(.leading, 24)
+                }
             }
             if model.isLogOpen, let log = model.log {
                 logView(log)
             }
         }
         .animation(.snappy(duration: 0.18), value: isConfirmingApprove)
-        .animation(.snappy(duration: 0.18), value: expandedTestIDs)
+        .animation(.snappy(duration: 0.18), value: model.isDetailsOpen)
     }
 
-    private func toggleMessage(of test: PipelineJobRowModel.FailedTest) {
-        if expandedTestIDs.contains(test.id) {
-            expandedTestIDs.remove(test.id)
-        } else {
-            expandedTestIDs.insert(test.id)
+    private func detailsToggle(_ title: String) -> some View {
+        Button(action: onToggleDetails) {
+            HStack(spacing: 3) {
+                Image(systemName: model.isDetailsOpen ? "chevron.down" : "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                Text(title)
+                    .font(.caption2)
+            }
+            .foregroundStyle(.secondary)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .fixedSize()
+        .hint(model.detailsHint)
     }
 
     @ViewBuilder
@@ -159,8 +173,8 @@ struct PipelineJobRow: View {
 
 #Preview {
     VStack(alignment: .leading, spacing: 12) {
-        PipelineJobRow(model: .preview, onToggleLog: {}, onRetry: {}, onApprove: {})
-        PipelineJobRow(model: .previewCircleCI, onToggleLog: {}, onRetry: {}, onApprove: {})
+        PipelineJobRow(model: .preview, onToggleLog: {}, onRetry: {}, onApprove: {}, onToggleDetails: {}, onToggleTestMessage: { _ in })
+        PipelineJobRow(model: .previewCircleCI, onToggleLog: {}, onRetry: {}, onApprove: {}, onToggleDetails: {}, onToggleTestMessage: { _ in })
     }
     .previewEnvironment()
     .padding()

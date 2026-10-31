@@ -140,3 +140,4 @@ Then in DevHub: open a pull request with CircleCI checks, expand the details, re
 | `b016ec9` | Steps 6 and 7: the Doctor warns about a `circleci` tool below 1.0 with `brew upgrade circleci`; the settings page, the skills and the status. |
 | `59e20db` | Fix: `CIWorkflowLink` reads the `workflow/<uuid>/job/<uuid>` link of a commit status; the slug falls back to the GitHub remote; the message of a failed test is folded by default. |
 | `7553c3d` | Step 9: `CIWorkflowHistory` and "Previous CircleCI runs"; `CIAutoRerunStore`, `CIAutoRerunPolicy` and the "Auto re-run" menu; `CIProjectResolver`; the `pullRequestChecksChanged` event; `DEVHUB_PORTS=mock` for headless snapshots. |
+| `619a147` | Fix: `--project` only on `run list` and `run approve`; the other commands reject the flag (a patch tested on a second Mac with a live project). |

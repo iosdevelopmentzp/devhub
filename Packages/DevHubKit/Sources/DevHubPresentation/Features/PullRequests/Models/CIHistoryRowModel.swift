@@ -14,6 +14,7 @@ struct CIHistoryRowModel: Identifiable, Equatable {
     var timeText: String?
     var summaryText: String
     var failedJobs: [FailedJob]
+    var isOpen: Bool
     var toggleHint: String
 
     static let preview = CIHistoryRowModel(
@@ -23,6 +24,7 @@ struct CIHistoryRowModel: Identifiable, Equatable {
         timeText: "2 hr. ago",
         summaryText: "1 failed job · 2 failed tests",
         failedJobs: [FailedJob(id: "job-unit-tests", title: "unit-tests", tests: PipelineJobRowModel.previewCircleCI.failedTests)],
-        toggleHint: "Show the failed jobs and tests of this run"
+        isOpen: true,
+        toggleHint: "Hide the failed jobs"
     )
 }

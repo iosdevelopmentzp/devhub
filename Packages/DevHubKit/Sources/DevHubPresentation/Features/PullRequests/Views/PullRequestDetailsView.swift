@@ -158,7 +158,9 @@ struct PullRequestDetailsView: View {
                             model: job,
                             onToggleLog: { job.jobID.map(actions.toggleJobLog) },
                             onRetry: { job.jobID.map { actions.retryJob($0, job.title) } },
-                            onApprove: { job.jobID.map { actions.approveJob($0, job.title) } }
+                            onApprove: { job.jobID.map { actions.approveJob($0, job.title) } },
+                            onToggleDetails: { actions.toggleJobDetails(job.id) },
+                            onToggleTestMessage: actions.toggleTestMessage
                         )
                         .padding(.leading, group.title == nil ? 0 : 12)
                     }
@@ -223,7 +225,7 @@ struct PullRequestDetailsView: View {
             }
             if loaded.showsCIHistory {
                 ForEach(loaded.ciHistory) { record in
-                    CIHistoryRow(model: record)
+                    CIHistoryRow(model: record, onToggle: { actions.toggleCIHistoryRun(record.id) }, onToggleTestMessage: actions.toggleTestMessage)
                         .padding(.leading, 12)
                 }
             }
