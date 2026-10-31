@@ -37,6 +37,7 @@ struct GitHeader: View {
                         operationBanner(operationText, canContinue: model.canContinueOperation)
                     }
                     actions(model)
+                    OperationSlot(origin: .git)
                     ConfigActionResults(placement: .gitPills, slot: Placement.gitPills.slot)
                     if let confirming {
                         confirmation(confirming, model: model)

@@ -7,9 +7,10 @@ import Testing
 
 @Suite struct ActionRunnerTests {
     let activity = ActivityLog(events: [], store: InMemoryKeyValueStore())
+    let operations = OperationLog()
 
     @Test func busyTitleIsSetSynchronously() async throws {
-        let runner = ActionRunner(activity: activity)
+        let runner = ActionRunner(activity: activity, operations: operations, origin: .git)
         #expect(runner.busyTitle == nil)
 
         runner.run("Fetch", detail: "origin") {}
@@ -19,7 +20,7 @@ import Testing
     }
 
     @Test func successLogsTitleAndDetail() async throws {
-        let runner = ActionRunner(activity: activity)
+        let runner = ActionRunner(activity: activity, operations: operations, origin: .git)
 
         runner.run("Fetch", detail: "origin") {}
         try await waitUntil { activity.events.isEmpty == false }
@@ -32,7 +33,7 @@ import Testing
     }
 
     @Test func failureLogsDefaultTitleAndErrorDescription() async throws {
-        let runner = ActionRunner(activity: activity)
+        let runner = ActionRunner(activity: activity, operations: operations, origin: .git)
 
         runner.run("Push", detail: "origin") { throw Failure() }
         try await waitUntil { activity.events.isEmpty == false }
@@ -45,7 +46,7 @@ import Testing
     }
 
     @Test func failureUsesFailureTitleWhenGiven() async throws {
-        let runner = ActionRunner(activity: activity)
+        let runner = ActionRunner(activity: activity, operations: operations, origin: .git)
 
         runner.run("Push", detail: "origin", failureTitle: "Could not push") { throw Failure() }
         try await waitUntil { activity.events.isEmpty == false }
@@ -54,7 +55,7 @@ import Testing
     }
 
     @Test func successCallsOnSuccessThenCompletion() async throws {
-        let runner = ActionRunner(activity: activity)
+        let runner = ActionRunner(activity: activity, operations: operations, origin: .git)
         let steps = Steps()
 
         runner.run(
@@ -71,7 +72,7 @@ import Testing
     }
 
     @Test func failureCallsOnFailureThenCompletion() async throws {
-        let runner = ActionRunner(activity: activity)
+        let runner = ActionRunner(activity: activity, operations: operations, origin: .git)
         let steps = Steps()
 
         runner.run(
@@ -85,6 +86,48 @@ import Testing
         try await waitUntil { steps.items.count == 2 }
 
         #expect(steps.items == ["failure busy=nil", "completion busy=nil"])
+    }
+
+    @Test func theWorkRunsInsideItsOperation() async throws {
+        let runner = ActionRunner(activity: activity, operations: operations, origin: .git)
+        let steps = Steps()
+
+        runner.run("Fetch", detail: "origin") {
+            steps.items.append(OperationScope.current?.uuidString ?? "none")
+        }
+        try await waitUntil { operations.running.isEmpty }
+
+        let record = try #require(operations.latest(at: .git))
+        #expect(steps.items == [record.id.uuidString])
+        #expect(record.title == "Fetch")
+        #expect(record.status == .succeeded)
+        #expect(record.canRetry)
+    }
+
+    @Test func aFailureEndsTheOperationWithTheMessage() async throws {
+        let runner = ActionRunner(activity: activity, operations: operations, origin: .changes)
+
+        runner.run("Push", detail: "origin") { throw Failure() }
+        try await waitUntil { operations.running.isEmpty }
+
+        #expect(operations.latest(at: .changes)?.failureMessage == "rejected by remote")
+    }
+
+    @Test func retryRunsTheSameWorkAgain() async throws {
+        let runner = ActionRunner(activity: activity, operations: operations, origin: .git)
+        let steps = Steps()
+        runner.run("Push", detail: "origin") {
+            steps.items.append("push")
+            throw Failure()
+        }
+        try await waitUntil { runner.busyTitle == nil && operations.running.isEmpty }
+        let failed = try #require(operations.latest(at: .git))
+
+        operations.retry(failed.id)
+        try await waitUntil { steps.items.count == 2 && operations.running.isEmpty }
+
+        #expect(operations.records.count == 2)
+        #expect(operations.latest(at: .git)?.id != failed.id)
     }
 }
 

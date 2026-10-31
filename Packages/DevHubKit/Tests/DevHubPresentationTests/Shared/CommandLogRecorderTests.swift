@@ -10,7 +10,7 @@ import Testing
         let recorder = CommandLogRecorder(log: log)
         let id = UUID()
 
-        recorder.record(CommandEvent(id: id, payload: .started(command: "git status", cwd: nil, kind: .read)))
+        recorder.record(CommandEvent(id: id, payload: .started(command: "git status", cwd: nil, kind: .read, operationID: nil)))
 
         try await waitUntil { log.entries.isEmpty == false }
         #expect(log.entries.first?.id == id)
@@ -22,7 +22,7 @@ import Testing
         let id = UUID()
 
         await Task.detached {
-            recorder.record(CommandEvent(id: id, payload: .started(command: "git fetch", cwd: nil, kind: .action)))
+            recorder.record(CommandEvent(id: id, payload: .started(command: "git fetch", cwd: nil, kind: .action, operationID: nil)))
             recorder.record(CommandEvent(id: id, payload: .output(["done"])))
             recorder.record(CommandEvent(id: id, payload: .finished(exitCode: 0, error: nil)))
         }.value

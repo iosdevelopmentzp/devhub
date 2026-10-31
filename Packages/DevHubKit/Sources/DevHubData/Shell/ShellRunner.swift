@@ -17,7 +17,7 @@ package actor ShellRunner {
     nonisolated func run(_ executable: String, _ arguments: [String], cwd: String?, environment: [String: String]) async throws -> ShellResult {
         let id = UUID()
         let kind = CommandKind.classify(executable, arguments)
-        recorder.record(CommandEvent(id: id, payload: .started(command: CommandFormatter.displayCommand(executable, arguments), cwd: cwd, kind: kind)))
+        recorder.record(CommandEvent(id: id, payload: .started(command: CommandFormatter.displayCommand(executable, arguments), cwd: cwd, kind: kind, operationID: OperationScope.current)))
         do {
             let result = try await ProcessOutput.run(Self.makeProcess(executable, arguments, cwd: cwd, environment: environment))
             if kind.hidesOutput == false {
@@ -60,7 +60,7 @@ package actor ShellRunner {
         let id = UUID()
         let batcher = LineBatcher(id: id, recorder: recorder)
         let kind = CommandKind.classify(executable, arguments)
-        recorder.record(CommandEvent(id: id, payload: .started(command: CommandFormatter.displayCommand(executable, arguments), cwd: cwd, kind: kind == .read ? .action : kind)))
+        recorder.record(CommandEvent(id: id, payload: .started(command: CommandFormatter.displayCommand(executable, arguments), cwd: cwd, kind: kind == .read ? .action : kind, operationID: OperationScope.current)))
         do {
             try process.run()
         } catch {

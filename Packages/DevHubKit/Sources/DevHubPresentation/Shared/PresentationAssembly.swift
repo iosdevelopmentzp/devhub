@@ -10,6 +10,7 @@ package final class PresentationAssembly {
     let config: ConfigStore
     let navigator: Navigator
     let activity: ActivityLog
+    let operations: OperationLog
     let toaster: Toaster
     let notifier: Notifier
     let doctor: DoctorStore
@@ -68,6 +69,7 @@ package final class PresentationAssembly {
         config = ConfigStore(repository: ports.config, session: session, events: events)
         navigator = Navigator(store: store)
         activity = ActivityLog(events: recentEvents, store: store)
+        operations = OperationLog()
         toaster = Toaster(write: PasteboardWriter.write)
         hints = HintCenter()
         output = OutputPanelState(store: store, events: events)
@@ -101,6 +103,7 @@ package final class PresentationAssembly {
             pushCurrentBranch: useCases.pushCurrentBranch,
             worktrees: worktrees,
             activity: activity,
+            operations: operations,
             events: events,
             store: store
         )
@@ -113,6 +116,7 @@ package final class PresentationAssembly {
             commitChanges: useCases.commit,
             checkout: git,
             activity: activity,
+            operations: operations,
             events: events
         )
         history = CommitHistoryStore(repository: ports.changes, checkout: git, activity: activity, events: events, store: store)
@@ -157,7 +161,7 @@ package final class PresentationAssembly {
             activity: activity,
             events: events
         )
-        simulators = SimulatorsStore(repository: ports.simulators, activity: activity, events: events, store: store)
+        simulators = SimulatorsStore(repository: ports.simulators, activity: activity, operations: operations, events: events, store: store)
         identity = IdentityStore(
             repository: ports.launcher,
             launchInstalledApp: useCases.launchInstalledApp,
@@ -211,6 +215,7 @@ package final class PresentationAssembly {
             workspace: workspace,
             toaster: toaster,
             activity: activity,
+            operations: operations,
             notifier: notifier,
             events: events,
             store: store,
@@ -233,7 +238,7 @@ package final class PresentationAssembly {
             store: store
         )
         network = NetworkStore(session: session, simulators: simulators, mockTraffic: mockServer, events: events, store: store)
-        messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, events: events, store: store)
+        messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, operations: operations, events: events, store: store)
         simulatorQA = SimulatorQAStore(repository: ports.simulatorSettings, activity: activity, screenshotFolder: "~/Desktop", now: { .now })
         aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, worktrees: worktrees, store: store)
         appActions = AppActions(

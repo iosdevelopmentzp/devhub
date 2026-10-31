@@ -25,10 +25,10 @@ final class SimulatorsStore: SimulatorLookup {
 
     private static let favoritesKey = "simulators.favorites"
 
-    init(repository: SimulatorRepository, activity: ActivityLog, events: AppEvents, store: any KeyValueStore) {
+    init(repository: SimulatorRepository, activity: ActivityLog, operations: OperationLog, events: AppEvents, store: any KeyValueStore) {
         self.repository = repository
         self.activity = activity
-        runner = ActionRunner(activity: activity)
+        runner = ActionRunner(activity: activity, operations: operations, origin: .simulators)
         self.events = events
         self.store = store
         favoriteOrder = store.strings(forKey: Self.favoritesKey) ?? []

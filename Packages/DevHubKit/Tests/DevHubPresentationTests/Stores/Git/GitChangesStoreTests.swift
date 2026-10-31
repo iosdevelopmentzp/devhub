@@ -306,6 +306,7 @@ import DevHubTestSupport
             commitChanges: CommitUseCase(git: PushRejectingGitRepository()),
             checkout: harness.git,
             activity: harness.activity,
+            operations: harness.operations,
             events: harness.events
         )
         harness.spies.changes.changesResult = .success([GitFileChangeSample.staged])

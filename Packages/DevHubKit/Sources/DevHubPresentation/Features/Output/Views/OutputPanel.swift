@@ -90,6 +90,8 @@ struct OutputPanel: View {
         return Menu {
             Toggle("Show reads", isOn: $output.showsReads)
             Toggle("Failed only", isOn: $failedOnly)
+            Divider()
+            Toggle("Open When a Command Fails", isOn: $output.opensOnFailure)
         } label: {
             Image(systemName: failedOnly ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
                 .font(.system(size: 12, weight: .medium))

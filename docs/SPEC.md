@@ -39,7 +39,7 @@ The core is generic. Swift code never names a project, a path, a bundle ID, a ho
 5. **Search in every list.** The header search filters the list of the current tab. Long pickers have a search field.
 6. **Fast open.** The panel opens at once with the last state and refreshes in the background.
 7. **A missing tool does not break the app.** When `gh`, `glab`, `copilot` or `claude` is missing or not logged in, the feature shows what to install or run. The other tabs work.
-8. **Every failure is visible.** A failed command opens the Output panel. A failed action adds a red line to the Recent list on Home. No error is caught without a message.
+8. **Every failure is visible.** A failed action shows an operation card at the place where it started: the failed step, its exit code and the lines that explain it. It also adds a red line to the Recent list on Home. No error is caught without a message.
 
 ### 1.4 Non-goals
 
@@ -103,12 +103,22 @@ Settings offers a fixed list: ⌥⌘D (default), ⌃⌥Space, ⌃⌥D or Off. Th
 - One entry per command: a status dot, the command line, the start time, the working folder, the duration, the exit code and a copy button. Output lines appear while the command runs. A right-click copies the command or the output, or opens the folder in the terminal or Finder.
 - The log keeps 300 entries and 4,000 lines per entry.
 - The panel is 260 points high by default. A drag on its top edge changes the height, a double-click restores it; the height is saved.
-- The filter menu has "Show reads" (read-only commands such as `git status` and `simctl list`, hidden by default) and "Failed only".
+- The filter menu has "Show reads" (read-only commands such as `git status` and `simctl list`, hidden by default), "Failed only" and "Open When a Command Fails".
 - Follow (on by default) keeps the list at the newest command. Off, the list stays where you scrolled.
 - A `secret` command (`security`, `gh auth token`) records no output: "Output hidden: it contains credentials."
 - An app log stream records no lines: "App log lines are shown in the Logs tab only."
 - Search over commands and output, Copy All, Save to a file, Clear. An entry can be opened in the editor (a scratch file in `~/.devhub/scratch/`) or saved on its own.
-- The Output panel opens by itself when a command fails.
+- The Output panel opens by itself when a command fails only with "Open When a Command Fails" on (off by default). The operation card shows the failure instead.
+
+### 2.6.1 Operations
+
+An operation is one action that you started: a push, a commit, a config action or script, a simulator action. Every command that runs for it belongs to it.
+
+- A card at the place of the action (under the Git header, under the commit box, under the tile grid or the script row, under the Simulators toolbar, in the push panel) shows the operation while it runs: the steps with a spinner, a check mark or a cross, the time, the last output line and the progress of a script. A script with Stop shows a stop button.
+- A failed operation keeps its card: "<title> failed", the message, the steps, the lines of the failed step that explain the failure (lines with `error`, `fatal`, `rejected`, `hint` and similar words, else the last lines), Retry, Copy Error, Full Output (the whole output of the failed step inside the card) and a close button.
+- A finished operation whose step failed (a commit whose push failed) is orange: "<title> · a step failed".
+- A successful operation shows a green line with the time for 4 seconds.
+- The footer shows the running operation and its progress, "N running", or "N failed" in red until you open the list. A click opens the operations of this session: the running ones and the last 30 finished ones. "Clear Finished" empties the list. Nothing is saved.
 
 ### 2.7 Command palette (⌘K)
 
@@ -555,7 +565,7 @@ Run these checks by hand on a test repository with a remote and the example fold
 5. Press the pin button. A floating window opens with the same content and stays open after a click outside.
 6. Choose ⌥⌘D in Settings, close the panel and press ⌥⌘D. The panel opens.
 7. On a clean checkout, press ⌘K, type a branch name and choose "Switch to <branch>". The branch changes, and the command appears in the Output panel. With local changes, the palette shows the Git tab and a toast instead.
-8. Run a command that fails (for example Pull on a branch that has no upstream). The Output panel opens by itself and shows a red entry.
+8. Run a command that fails (for example Pull on a branch that has no upstream). A red card under the Git header names the failed step and the reason, with Retry, Copy Error and Full Output. The footer shows "1 failed". The Output panel shows a red entry.
 
 ### Home
 

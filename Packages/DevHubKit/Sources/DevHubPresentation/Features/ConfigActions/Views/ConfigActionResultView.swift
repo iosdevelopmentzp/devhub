@@ -8,6 +8,7 @@ struct ConfigActionResultView: View {
     let action: ResolvedAction
 
     var body: some View {
+        OperationSlot(origin: .action(action.id))
         if let run = visibleRun {
             HStack(alignment: .top, spacing: 6) {
                 content(run)
@@ -25,17 +26,11 @@ struct ConfigActionResultView: View {
 
     private var visibleRun: ConfigActionRun? {
         guard let run = store.runs[action.id] else { return nil }
-        return run.view?.isEmpty == false || run.failureMessage != nil ? run : nil
+        return run.view?.isEmpty == false ? run : nil
     }
 
     private func content(_ run: ConfigActionRun) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            if let message = run.failureMessage {
-                Label(message, systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption)
-                    .foregroundStyle(Tint.red.color)
-                    .textSelection(.enabled)
-            }
             if let view = run.view {
                 if view.pairs.isEmpty == false {
                     KeyValueBlock(pairs: view.pairs)

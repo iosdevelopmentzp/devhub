@@ -170,6 +170,7 @@ import DevHubTestSupport
         try await finish("fail")
 
         #expect(store.runs["fail"]?.failureMessage == "Exited with code 2.")
+        #expect(harness.operations.latest(at: .action("fail"))?.failureMessage == "Exited with code 2.")
         #expect(harness.lastActivity?.outcome == .failure)
         #expect(harness.postCount("commandFailed") == 0)
     }
@@ -199,11 +200,12 @@ import DevHubTestSupport
         store.request(action, item: .none, slot: "s")
 
         try await waitUntil { store.runs["dir"]?.view?.text == "All good" }
-        #expect(store.progress?.text == "Step 1")
+        #expect(harness.operations.latest(at: .action("dir"))?.progressText == "Step 1")
+        #expect(harness.operations.latest(at: .action("dir"))?.fraction == 0.5)
         #expect(harness.copied == ["abc"])
         harness.spies.scripts.finishAll()
         try await finish("dir")
-        #expect(store.progress == nil)
+        #expect(harness.operations.latest(at: .action("dir"))?.status == .succeeded)
         #expect(store.runs["dir"]?.view?.text == "All good")
     }
 
@@ -241,8 +243,40 @@ import DevHubTestSupport
         try await finish("long")
 
         #expect(store.runs["long"]?.status == .cancelled)
+        #expect(harness.operations.latest(at: .action("long"))?.status == .cancelled)
         store.dismissResult(of: "long")
         #expect(store.runs["long"] == nil)
+    }
+
+    @Test func retryOfAFailedOperationRunsTheActionAgain() async throws {
+        harness.spies.scripts.events = [.output("boom"), .exited(1)]
+        let action = ConfigSample.action("again")
+        await load([action])
+        store.request(action, item: .none, slot: "s")
+        try await finish("again")
+        let failed = try #require(harness.operations.latest(at: .action("again")))
+
+        harness.operations.retry(failed.id)
+        try await waitUntil { harness.spies.scripts.calls.count == 2 }
+        try await finish("again")
+
+        #expect(harness.operations.records.filter { $0.origin == .action("again") }.count == 2)
+        #expect(harness.operations.record(failed.id)?.isDismissed == true)
+    }
+
+    @Test func stopOfTheOperationCancelsTheRun() async throws {
+        harness.spies.scripts.holdsOpen = true
+        let action = ConfigSample.action("halt")
+        await load([action])
+        store.request(action, item: .none, slot: "s")
+        try await waitUntil { harness.spies.scripts.calls.count == 1 }
+        let running = try #require(harness.operations.latest(at: .action("halt")))
+        #expect(running.canStop)
+
+        harness.operations.stop(running.id)
+        try await finish("halt")
+
+        #expect(harness.operations.record(running.id)?.status == .cancelled)
     }
 
     @Test func aSecondRunWhileRunningIsIgnored() async throws {

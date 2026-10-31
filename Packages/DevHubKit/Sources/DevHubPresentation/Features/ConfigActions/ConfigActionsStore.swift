@@ -8,7 +8,6 @@ import DevHubUI
 final class ConfigActionsStore {
     private(set) var pending: PendingConfigAction?
     private(set) var runs: [String: ConfigActionRun] = [:]
-    private(set) var progress: ConfigActionProgress?
     private(set) var lastRunDates: [String: Date]
 
     @ObservationIgnored let config: ConfigStore
@@ -23,12 +22,14 @@ final class ConfigActionsStore {
     @ObservationIgnored let workspace: WorkspaceActions
     @ObservationIgnored let toaster: Toaster
     @ObservationIgnored let activity: ActivityLog
+    @ObservationIgnored let operations: OperationLog
     @ObservationIgnored let notifier: Notifier
     @ObservationIgnored let events: AppEvents
     @ObservationIgnored let store: any KeyValueStore
     @ObservationIgnored let appVersion: String
     @ObservationIgnored let home: String
     @ObservationIgnored var tasks: [String: Task<Void, Never>] = [:]
+    @ObservationIgnored var operationIDs: [String: OperationRecord.ID] = [:]
 
     init(
         config: ConfigStore,
@@ -43,6 +44,7 @@ final class ConfigActionsStore {
         workspace: WorkspaceActions,
         toaster: Toaster,
         activity: ActivityLog,
+        operations: OperationLog,
         notifier: Notifier,
         events: AppEvents,
         store: any KeyValueStore,
@@ -61,6 +63,7 @@ final class ConfigActionsStore {
         self.workspace = workspace
         self.toaster = toaster
         self.activity = activity
+        self.operations = operations
         self.notifier = notifier
         self.events = events
         self.store = store
@@ -142,9 +145,24 @@ final class ConfigActionsStore {
         guard isRunning(action.id) == false else { return }
         remember(inputs, for: action)
         runs[action.id] = ConfigActionRun(status: .running, startedAt: Date())
+        let operationID = operations.start(
+            action.config.title,
+            at: .action(action.id),
+            retry: { [weak self] in
+                guard let self else { return }
+                run(action, item: item, inputs: inputs)
+            },
+            stop: { [weak self] in
+                guard let self else { return }
+                stop(action.id)
+            }
+        )
+        operationIDs[action.id] = operationID
         tasks[action.id] = Task { [weak self] in
             guard let self else { return }
-            await execute(action, item: item, inputs: inputs)
+            await OperationScope.$current.withValue(operationID) {
+                await execute(action, item: item, inputs: inputs)
+            }
         }
     }
 
@@ -159,10 +177,6 @@ final class ConfigActionsStore {
 
     func setRun(_ run: ConfigActionRun?, for id: String) {
         runs[id] = run
-    }
-
-    func setProgress(_ value: ConfigActionProgress?) {
-        progress = value
     }
 
     func recordRun(of id: String, at date: Date) {

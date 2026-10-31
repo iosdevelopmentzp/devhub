@@ -47,6 +47,7 @@ struct CommitBox: View {
                 .hint("Commit the staged files (⌘↩)")
             }
             .controlSize(.small)
+            OperationSlot(origin: .changes)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)

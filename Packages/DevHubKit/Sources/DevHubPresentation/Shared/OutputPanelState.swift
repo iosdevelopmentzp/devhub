@@ -19,6 +19,9 @@ final class OutputPanelState {
     var followsOutput: Bool {
         didSet { store.set(followsOutput ? "on" : "off", forKey: Keys.follows) }
     }
+    var opensOnFailure: Bool {
+        didSet { store.set(opensOnFailure, forKey: Keys.opensOnFailure) }
+    }
     private(set) var height: CGFloat {
         didSet { store.set([Double(height)], forKey: Keys.height) }
     }
@@ -31,10 +34,11 @@ final class OutputPanelState {
         isVisible = store.bool(forKey: Keys.visible)
         showsReads = store.bool(forKey: Keys.showsReads)
         followsOutput = store.string(forKey: Keys.follows) != "off"
+        opensOnFailure = store.bool(forKey: Keys.opensOnFailure)
         height = store.doubles(forKey: Keys.height)?.first.map { max(CGFloat($0), Self.minimumHeight) } ?? Self.defaultHeight
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
-            guard case .commandFailed = event else { return }
+            guard case .commandFailed = event, opensOnFailure else { return }
             isVisible = true
         }
     }
@@ -61,6 +65,7 @@ final class OutputPanelState {
         static let visible = "output.visible"
         static let showsReads = "output.showsReads"
         static let follows = "output.follows"
+        static let opensOnFailure = "output.opensOnFailure"
         static let height = "output.height"
     }
 }

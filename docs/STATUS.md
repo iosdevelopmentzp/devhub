@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-10-27 (ADR 005: window mode, ports from the main DevHub, daily tools)
+Last updated: 2026-11-01 (ADR 007: operations with steps; daily tools in progress)
 
 ## Stage
 
@@ -94,8 +94,11 @@ Numbered. What, then why. A later session must not undo these without a new numb
 47. CI runs the tests serially (`Scripts/test.sh --no-parallel`). Why: `swift test` queues every test at once, and in a parallel run every hop to the main actor waits for the queued main-actor tests: about 3 s on 14 cores, about 10 s on the 3-core runner, which is the `waitUntil` timeout, so the store tests timed out in every second CI run. A serial run has no queue. A local run stays parallel: 3 s is far from the timeout and the run takes 4 s instead of 17 s.
 48. CircleCI through one Domain port (`CIRepository`) over the `circleci` CLI, on only when `CIPolicy.provider` finds `ci.kind: "circleci"` or `.circleci/config.yml` in the main checkout. Why: the GitHub checks stay the source of truth for the state (the link of a check carries the workflow UUID, `CIWorkflowLink`), and the tool adds the jobs, the logs, re-run, cancel, approve and the failed tests with the flaky label from CircleCI Insights. DevHub never calls the CircleCI web API itself and never holds the token (ADR 006). The fixtures follow the CLI reference; a live check is still open.
 49. CircleCI history and auto re-run live in Presentation over the existing ports: `CIWorkflowHistory` saves finished workflows per project and request in the `KeyValueStore` (`CIHistoryPolicy`: 20 runs, 50 tests per job, 4000 characters per message); `CIAutoRerunStore` keeps one `CIAutoRerunPlan` per request, checks every minute from `AppWindows`, and decides with `CIAutoRerunPolicy` (re-run from failed while tries are left, wait 10 minutes for the new workflow of a re-run, stop on pass, cancel or the last try). `CIProjectResolver` holds the provider and slug rules that both stores use. Why: no new port is needed, the plan must survive a restart and run with the panel closed, and the detail store reads the history and the plan through `CIWorkflowHistory` and `CIAutoRerunLookup` instead of owning them.
+50. **Operations (ADR 007).** Every action that a user starts is an operation. `OperationScope.current` (a Domain `@TaskLocal`) tags every command that `ShellRunner` starts inside it; `OperationLog` keeps the operations of the session in memory; a card at the place of the action shows the steps, the failure digest (`FailureDigestPolicy`) and Retry. The Output panel stays the full transcript and opens on a failure only with "Open When a Command Fails". Build & Run and the worktree test runs keep their own panels. A new place that runs commands for the user goes through `ActionRunner` or `OperationLog.start` and shows an `OperationSlot`, never a busy title alone.
 
 ## Next steps
+
+ADR 007 (operations and daily tools) is in progress: its plan lists the open steps (operations in the other places, Xcode per project, crash reports, app data, changed since your review, reviewers and assignees, AI text and Explain, disk cleanup).
 
 The rewrite plan (ADR 001, M0 to M8) and ADR 005 are complete. Ideas for later: video recording in the simulator QA panel (needs a SIGINT stop in `ShellRunner`), a build issue list for `kind: command` projects, a warning for a saved project whose folder no longer exists.
 

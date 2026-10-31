@@ -161,8 +161,13 @@ reads. `gh auth token` is `secret`.
 A new command that only reads belongs in the `read` list, with a line in `CommandKindTests`.
 
 When an action fails, the store logs it to `ActivityLog` and may post `AppEvent.commandFailed`; `OutputPanelState`
-then opens the Output panel. A failed read (for example `git status` in a folder without a repository) is expected
-and stays hidden.
+opens the Output panel only when "Open When a Command Fails" is on. A failed read (for example `git status` in a
+folder without a repository) is expected and stays hidden.
+
+`ShellRunner` puts `OperationScope.current` (a Domain `@TaskLocal` UUID) into the `started` event of every command.
+`ActionRunner` and `ConfigActionsStore` set it with `OperationScope.$current.withValue(id)`, so the commands of one
+action form the steps of its operation card (`OperationLog`, `OperationCardMapper`). A command started from a
+`Task.detached` loses the ID; a plain `Task {}` and an `AsyncThrowingStream` build closure keep it.
 
 ## Shared runners
 

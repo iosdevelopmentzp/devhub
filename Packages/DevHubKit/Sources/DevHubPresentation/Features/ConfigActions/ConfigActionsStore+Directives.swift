@@ -20,7 +20,9 @@ extension ConfigActionsStore {
         let title = action.config.title
         switch directive {
         case let .progress(text, fraction):
-            setProgress(ConfigActionProgress(actionID: action.id, actionTitle: title, text: text, fraction: fraction))
+            if let operationID = operationIDs[action.id] {
+                operations.setProgress(of: operationID, text: text, fraction: fraction)
+            }
         case let .toast(text):
             toaster.show(text)
         case let .copy(text):

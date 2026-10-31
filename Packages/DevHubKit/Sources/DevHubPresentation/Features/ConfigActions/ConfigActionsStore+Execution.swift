@@ -21,9 +21,6 @@ extension ConfigActionsStore {
             status = Task.isCancelled ? .cancelled : .failed(error.localizedDescription)
         }
         tasks[action.id] = nil
-        if progress?.actionID == action.id {
-            setProgress(nil)
-        }
         finish(action, status: status, outcome: outcome, startedAt: startedAt)
     }
 
@@ -86,10 +83,25 @@ extension ConfigActionsStore {
         return exitCode
     }
 
+    private func finishOperation(of id: String, status: ConfigActionRun.Status) {
+        guard let operationID = operationIDs[id] else { return }
+        switch status {
+        case .succeeded:
+            operations.succeed(operationID)
+        case let .failed(message):
+            operations.fail(operationID, message: message)
+        case .cancelled:
+            operations.cancel(operationID)
+        case .running:
+            break
+        }
+    }
+
     private func finish(_ action: ResolvedAction, status: ConfigActionRun.Status, outcome: ConfigActionOutcome, startedAt: Date) {
         let finishedAt = Date()
         let title = action.config.title
         setRun(ConfigActionRun(status: status, startedAt: startedAt, finishedAt: finishedAt, view: outcome.view), for: action.id)
+        finishOperation(of: action.id, status: status)
         recordRun(of: action.id, at: finishedAt)
         switch status {
         case .succeeded:

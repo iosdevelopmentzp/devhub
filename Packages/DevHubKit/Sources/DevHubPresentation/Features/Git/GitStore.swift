@@ -62,6 +62,7 @@ final class GitStore: CheckoutContext {
         pushCurrentBranch: PushCurrentBranchUseCase,
         worktrees: any WorktreeLookup,
         activity: ActivityLog,
+        operations: OperationLog,
         events: AppEvents,
         store: any KeyValueStore
     ) {
@@ -75,7 +76,7 @@ final class GitStore: CheckoutContext {
         self.worktrees = worktrees
         self.events = events
         self.store = store
-        runner = ActionRunner(activity: activity)
+        runner = ActionRunner(activity: activity, operations: operations, origin: .git)
         self.activity = activity
         isMergedCollapsed = store.decode(Bool.self, forKey: Self.mergedCollapsedKey) ?? true
         section = store.string(forKey: Self.sectionKey).flatMap(Section.init(rawValue:)) ?? .local

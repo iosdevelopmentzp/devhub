@@ -81,13 +81,24 @@ import Testing
         #expect(store.doubles(forKey: "output.height") == [260])
     }
 
-    @Test func commandFailedShowsThePanel() {
+    @Test func commandFailedShowsThePanelWhenAsked() {
         let state = OutputPanelState(store: store, events: events)
+        state.opensOnFailure = true
 
         events.post(.commandFailed)
 
         #expect(state.isVisible)
         #expect(store.bool(forKey: "output.visible"))
+        #expect(store.bool(forKey: "output.opensOnFailure"))
+    }
+
+    @Test func commandFailedKeepsThePanelHiddenByDefault() {
+        let state = OutputPanelState(store: store, events: events)
+
+        events.post(.commandFailed)
+
+        #expect(state.opensOnFailure == false)
+        #expect(state.isVisible == false)
     }
 
     @Test func otherEventsKeepThePanelHidden() {

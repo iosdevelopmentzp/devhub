@@ -9,7 +9,7 @@ import Testing
     @Test func startedAddsRunningEntry() throws {
         let id = UUID()
 
-        log.handle(CommandEvent(id: id, payload: .started(command: "git fetch", cwd: "/tmp/repo", kind: .action)))
+        log.handle(CommandEvent(id: id, payload: .started(command: "git fetch", cwd: "/tmp/repo", kind: .action, operationID: nil)))
 
         let entry = try #require(log.entries.first)
         #expect(log.entries.count == 1)
@@ -21,6 +21,14 @@ import Testing
         #expect(entry.droppedLines == 0)
         #expect(entry.isRunning)
         #expect(entry.isFailure == false)
+    }
+
+    @Test func startedKeepsTheOperation() {
+        let operationID = UUID()
+
+        log.handle(CommandEvent(id: UUID(), payload: .started(command: "git push", cwd: nil, kind: .action, operationID: operationID)))
+
+        #expect(log.entries.first?.operationID == operationID)
     }
 
     @Test func outputAppendsLinesToTheMatchingEntry() throws {
@@ -141,6 +149,6 @@ import Testing
     }
 
     private func start(_ id: UUID, kind: CommandKind) {
-        log.handle(CommandEvent(id: id, payload: .started(command: "cmd", cwd: nil, kind: kind)))
+        log.handle(CommandEvent(id: id, payload: .started(command: "cmd", cwd: nil, kind: kind, operationID: nil)))
     }
 }

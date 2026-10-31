@@ -112,6 +112,7 @@ struct MessagingPanel: View {
                     .hint("xcrun simctl push <udid> \(messaging.bundleID(for: simulator)) <payload>")
                 }
             }
+            OperationSlot(origin: .messaging)
         }
         .padding(10)
         .background(Color.teal.opacity(0.05), in: RoundedRectangle(cornerRadius: 8, style: .continuous))

@@ -64,6 +64,19 @@ import Testing
         #expect(events.last?.finishedError == nil)
     }
 
+    @Test func startedCarriesTheCurrentOperation() async throws {
+        let operationID = UUID()
+
+        try await OperationScope.$current.withValue(operationID) {
+            _ = try await runner.run("true", [], cwd: nil)
+            _ = try await runner.stream("true", [], cwd: nil) { _ in }
+        }
+        _ = try await runner.run("true", [], cwd: nil)
+
+        let started = recorder.events.filter { $0.stage == "started" }
+        #expect(started.map(\.startedOperationID) == [operationID, operationID, nil])
+    }
+
     @Test func silentCommandRecordsNoOutput() async throws {
         _ = try await runner.run("true", [], cwd: nil)
 

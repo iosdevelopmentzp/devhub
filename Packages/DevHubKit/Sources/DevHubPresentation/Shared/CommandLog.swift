@@ -11,6 +11,7 @@ package final class CommandLog {
         var command: String
         var cwd: String?
         var kind: CommandKind
+        var operationID: UUID?
         var startedAt: Date
         var finishedAt: Date?
         var exitCode: Int32?
@@ -34,8 +35,8 @@ package final class CommandLog {
 
     func handle(_ event: CommandEvent) {
         switch event.payload {
-        case .started(let command, let cwd, let kind):
-            entries.append(Entry(id: event.id, command: command, cwd: cwd, kind: kind, startedAt: .now, lines: hiddenLines(for: kind), droppedLines: 0))
+        case .started(let command, let cwd, let kind, let operationID):
+            entries.append(Entry(id: event.id, command: command, cwd: cwd, kind: kind, operationID: operationID, startedAt: .now, lines: hiddenLines(for: kind), droppedLines: 0))
             if entries.count > Self.maxEntries {
                 entries.removeFirst(entries.count - Self.maxEntries)
             }

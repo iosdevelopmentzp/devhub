@@ -24,11 +24,11 @@ final class MessagingStore {
     @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private let store: any KeyValueStore
 
-    init(repository: SimulatorMessagingRepository, session: ProjectSession, identity: any IdentityLookup, activity: ActivityLog, events: AppEvents, store: any KeyValueStore) {
+    init(repository: SimulatorMessagingRepository, session: ProjectSession, identity: any IdentityLookup, activity: ActivityLog, operations: OperationLog, events: AppEvents, store: any KeyValueStore) {
         self.repository = repository
         self.session = session
         self.identity = identity
-        runner = ActionRunner(activity: activity)
+        runner = ActionRunner(activity: activity, operations: operations, origin: .messaging)
         self.events = events
         self.store = store
         urlHistory = store.strings(forKey: Keys.urls) ?? []

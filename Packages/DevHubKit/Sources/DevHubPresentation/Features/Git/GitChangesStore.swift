@@ -33,6 +33,7 @@ final class GitChangesStore {
         commitChanges: CommitUseCase,
         checkout: any CheckoutContext,
         activity: ActivityLog,
+        operations: OperationLog,
         events: AppEvents
     ) {
         self.repository = repository
@@ -42,7 +43,7 @@ final class GitChangesStore {
         self.checkout = checkout
         self.activity = activity
         self.events = events
-        runner = ActionRunner(activity: activity)
+        runner = ActionRunner(activity: activity, operations: operations, origin: .changes)
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             switch event {

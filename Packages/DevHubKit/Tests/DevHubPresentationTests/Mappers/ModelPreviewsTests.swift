@@ -8,6 +8,8 @@ import Testing
         #expect(BranchChoiceModel.preview.id == "feature/login-flow")
         #expect(BuildSourceMenuModel.preview.worktrees.count == 1)
         #expect(RunBarModel.preview.target?.name == "iPhone 16 Pro")
+        #expect(OperationCardModel.preview.tint == .red)
+        #expect(OperationsIndicatorModel.preview.isRunning)
     }
 
     @Test func claudePreviewsBuild() {

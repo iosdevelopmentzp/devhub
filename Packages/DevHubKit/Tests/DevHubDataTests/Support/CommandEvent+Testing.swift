@@ -1,4 +1,5 @@
 import DevHubDomain
+import Foundation
 
 extension CommandEvent {
     var stage: String {
@@ -10,13 +11,18 @@ extension CommandEvent {
     }
 
     var startedCommand: String? {
-        guard case .started(let command, _, _) = payload else { return nil }
+        guard case .started(let command, _, _, _) = payload else { return nil }
         return command
     }
 
     var startedKind: CommandKind? {
-        guard case .started(_, _, let kind) = payload else { return nil }
+        guard case .started(_, _, let kind, _) = payload else { return nil }
         return kind
+    }
+
+    var startedOperationID: UUID? {
+        guard case .started(_, _, _, let operationID) = payload else { return nil }
+        return operationID
     }
 
     var outputLines: [String]? {

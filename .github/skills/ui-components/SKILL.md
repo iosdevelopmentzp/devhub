@@ -47,8 +47,12 @@ new element. A new shared block goes into DevHubUI and into this table.
 | `WindowAppearance`, `HostWindowReader` | `.background(WindowAppearance(name: .aqua))` | Window appearance and window access from the view tree (`panel-window`) |
 
 Feature views that look shared are not shared blocks: the usage bars (`Features/Usage/`), `ConfigActionBar` and
-`ConfigActionMenuItems` (`Features/ConfigActions/`), `LaunchPicker` (`Features/Build/`). They live in
-DevHubPresentation because they read stores or Domain types.
+`ConfigActionMenuItems` (`Features/ConfigActions/`), `LaunchPicker` (`Features/Build/`), `OperationSlot`,
+`OperationCard` and `OperationsIndicator` (`Features/Operations/`). They live in DevHubPresentation because they read
+stores or Domain types.
+
+A place that runs commands for the user shows `OperationSlot(origin:)` under its controls instead of a busy title
+alone. The slot shows the newest operation of that origin: steps, the failure digest, Retry, Copy Error, Full Output.
 
 ## Theme and Tint
 

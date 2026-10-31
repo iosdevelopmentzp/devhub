@@ -67,6 +67,7 @@ final class StoreHarness {
         workspace: workspace,
         toaster: toaster,
         activity: activity,
+        operations: operations,
         notifier: notifier,
         events: events,
         store: store,
@@ -105,9 +106,12 @@ final class StoreHarness {
         pushCurrentBranch: useCases.pushCurrentBranch,
         worktrees: worktrees,
         activity: activity,
+        operations: operations,
         events: events,
         store: store
     )
+
+    lazy var operations = OperationLog()
 
     lazy var branchMarks = BranchMarksStore(session: session, events: events, store: store)
     lazy var scriptList = ScriptListStore(session: session, events: events, store: store)
@@ -119,6 +123,7 @@ final class StoreHarness {
         commitChanges: useCases.commit,
         checkout: git,
         activity: activity,
+        operations: operations,
         events: events
     )
 
@@ -176,7 +181,7 @@ final class StoreHarness {
         events: events
     )
 
-    lazy var simulators = SimulatorsStore(repository: ports.simulators, activity: activity, events: events, store: store)
+    lazy var simulators = SimulatorsStore(repository: ports.simulators, activity: activity, operations: operations, events: events, store: store)
 
     lazy var identity = IdentityStore(
         repository: ports.launcher,
@@ -233,7 +238,7 @@ final class StoreHarness {
     lazy var network = NetworkStore(session: session, simulators: simulators, mockTraffic: mockServer, events: events, store: store)
 
     lazy var simulatorQA = SimulatorQAStore(repository: ports.simulatorSettings, activity: activity, screenshotFolder: "/tmp/DevHubTests/Shots", now: { Date(timeIntervalSince1970: 1_800_000_000) })
-    lazy var messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, events: events, store: store)
+    lazy var messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, operations: operations, events: events, store: store)
 
     lazy var aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, worktrees: worktrees, store: store)
 

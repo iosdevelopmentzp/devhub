@@ -13,7 +13,7 @@ The footer has an "Output" button (⇧⌘O). It shows or hides the panel. Before
 - a spinner while a command that is not a read runs;
 - a red dot when one of the last 5 commands failed and was not a read.
 
-The panel opens by itself when a command fails in a way that DevHub reports as a failure (for example a failed git action, a failed push after a commit, or a script that prints an `error` directive).
+A failed action shows an operation card at the place where it started, with the failed step, the lines that explain it and the whole output on request (see "Operations" below). The panel opens by itself on such a failure only when "Open When a Command Fails" is on in the filter menu (off by default).
 
 ### Panel
 
@@ -21,7 +21,7 @@ The panel is 260 points high by default. A drag on its top edge changes the heig
 
 - the number of shown commands;
 - a search field ("Search output");
-- a filter menu (funnel icon) with "Show reads" and "Failed only"; the icon is filled while "Failed only" is on;
+- a filter menu (funnel icon) with "Show reads", "Failed only" and "Open When a Command Fails"; the icon is filled while "Failed only" is on;
 - Follow (arrow to a line, blue while on): on by default, the list scrolls to the newest command and its new lines; off, the list stays where you scrolled;
 - Copy All, Clear and a button that hides the panel. Every icon has a hint.
 
@@ -64,6 +64,7 @@ A command that streams its output (a build, a script, a bootstrap) is never show
 | Search output | Filters entries by the command, the output and the error text |
 | Show reads (filter menu) | Also shows read-only commands |
 | Failed only (filter menu) | Shows only the commands that failed: a non-zero exit code or a start error. Running commands are hidden |
+| Open When a Command Fails (filter menu) | Opens the panel by itself when an action fails, as before the operation cards. Saved |
 | Follow | On: the list scrolls to the newest command and its new lines. Off: the list stays where you scrolled. Turning it on scrolls to the end once |
 | Copy All | Copies every shown entry as a transcript: `# in <folder>`, `$ <command>`, the output, `# exit code N`, `# <error>` |
 | Save (arrow into tray) | Saves the same transcript to a file of your choice (a save panel, `devhub-output.log` by default). A Recent row says "Saved <name>" |
@@ -76,6 +77,31 @@ A command that streams its output (a build, a script, a bootstrap) is never show
 
 The panel runs no commands of its own.
 
+## Operations
+
+An operation is one action that you started. `OperationScope.current` (a Domain task-local ID) is set while the action works, and `ShellRunner` puts it into the `started` event of every command, so the command log knows which commands belong to which action. `OperationLog` (`Shared/Operations/`) keeps the running operations and the last 30 finished ones, in memory only.
+
+Code: `DevHubPresentation/Shared/Operations/`, `Features/Operations/`, `Shared/ActionRunner.swift`, `DevHubDomain/Models/OperationScope.swift`, `DevHubDomain/Policies/FailureDigestPolicy.swift`.
+
+| Place | Card | Started by |
+|---|---|---|
+| Git tab, under the header | `OperationOrigin.git` | Fetch, Pull, Push, Force Push, Rebase, Stash, Switch, Update, Delete and the other actions of `GitStore` |
+| Git tab, under the commit box | `.changes` | Commit, Commit & Push, Stage, Unstage, Discard |
+| Under a tile grid, a script row, the Git pills, a toolbar bar, a custom tab action | `.action(<id>)` | config actions and scripts; the `progress` line moves the bar of the card and the footer |
+| Simulators, under the toolbar | `.simulators` | Boot, Shut Down, Erase, Remove Apps and the other actions of `SimulatorsStore` |
+| The push panel of a simulator | `.messaging` | Send Push |
+
+A card shows:
+
+- while it runs: a spinner, the title, the time since the start, the steps (commands that are not reads, and reads that failed) with their duration, the last output line, the progress bar of a script and Stop for a config action;
+- after a failure: "<title> failed" in red, the message, the steps with a red cross on the failed one, the lines of the failed step that explain it (`FailureDigestPolicy`: lines with `error`, `fatal`, `failed`, `rejected`, `conflict`, `denied`, `not found`, `hint:` and similar words, else the last 6 lines, at most 8 lines, colour codes removed), and Retry, Copy Error, Full Output and a close button;
+- after a success with a failed step (a commit whose push failed): an orange card "<title> · a step failed" with the same failure part;
+- after a success: a green line with the duration that goes away after 4 seconds.
+
+A new operation at the same place replaces the card of the last one. Retry runs the same action again with the same inputs.
+
+The footer shows the operations next to the build state: the title and progress of a running operation, "N running", or "N failed" in red until the list is opened. A click opens the list of this session with the same cards; the close button of a card removes it from the list, and "Clear Finished" removes every finished one.
+
 ## Config
 
 The panel reads no `.devhub` field. Config scripts and commands appear in it like every other process: a `run.script` or `run.command` action, a header script, a source script of a custom tab, `build.command`, `run.command`, the simulator status script and the worktree bootstrap script. See [Actions](../extensions.md#3-actions) and [Script line protocol](../extensions.md#7-script-line-protocol).
@@ -87,6 +113,7 @@ The panel reads no `.devhub` field. Config scripts and commands appear in it lik
 | `output.visible` | Whether the panel is open | closed |
 | `output.showsReads` | The "Show reads" box | off |
 | `output.follows` | Follow: `on` or `off` | on |
+| `output.opensOnFailure` | "Open When a Command Fails" in the filter menu | off |
 | `output.height` | The height of the panel in points | 260 |
 
 The entries themselves are not saved. The search text, "Failed only" and the expanded entries are not saved either.

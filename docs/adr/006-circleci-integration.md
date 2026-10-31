@@ -142,3 +142,4 @@ Then in DevHub: open a pull request with CircleCI checks, expand the details, re
 | `7553c3d` | Step 9: `CIWorkflowHistory` and "Previous CircleCI runs"; `CIAutoRerunStore`, `CIAutoRerunPolicy` and the "Auto re-run" menu; `CIProjectResolver`; the `pullRequestChecksChanged` event; `DEVHUB_PORTS=mock` for headless snapshots. |
 | `619a147` | Fix: `--project` only on `run list` and `run approve`; the other commands reject the flag (a patch tested on a second Mac with a live project). |
 | `92420d9` | The failure reason of a job and the failed tests of a CircleCI job are folded by default; the open state of job details, test messages and earlier runs lives in `PullRequestDetailStore`. |
+| `8e9e457` | Pull Requests: no files are hidden by default; the eye-slash and eye buttons of a file and `PullRequestHiddenFiles`; the "Hide Them" suggestion from `HiddenFilePolicy.suggestedPatterns`. |

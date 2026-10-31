@@ -7,6 +7,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Operations: an action you start shows a card at its place while it runs and after it ends: under the Git header (fetch, pull, push, rebase, stash, switch…), under the commit box, under a tile grid, a script row, the Git pills or a toolbar for config actions and scripts, under the Simulators toolbar and in the push panel. The card lists the commands of the action as steps with a spinner, a check mark or a cross and their time, the last output line, and the progress bar of a script with Stop. A failed action keeps a red card: the message, the failed step with its exit code, the lines of its output that explain the failure (`error`, `fatal`, `rejected`, `hint` and similar), Retry, Copy Error and Full Output. A commit whose push failed shows an orange card. A success shows a green line for 4 seconds.
+- The footer shows the running operation with its progress, "N running", or "N failed" in red. A click lists the operations of this session (the last 30 finished ones) with the same cards.
 - Pull Requests with CircleCI: "Auto re-run" on the line of the checks title runs the failed jobs of a workflow again each time it fails, up to 3, 5, 10 or 20 times. DevHub checks every minute while it runs, also with the panel closed, and the plan survives a restart. Each re-run, the pass, the stop after a cancel and the stop after the last try are lines in Recent and notifications. A workflow that ran again waits up to 10 minutes for its new workflow.
 - Pull Requests with CircleCI: "Previous CircleCI runs" under the jobs lists the earlier workflows of the request with their state, time, failed jobs and failed tests, folded by default. DevHub saves every finished workflow it reads (20 per request). "Forget" removes them.
 - Settings → Doctor checks the `circleci` tool. A version below 1 shows in orange as "<version>, needs 1 or newer" with `brew upgrade circleci` as the command to copy.
@@ -87,6 +89,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- The Output panel no longer opens by itself when an action fails: the operation card shows the reason. "Open When a Command Fails" in its filter menu brings the old behaviour back.
+- The footer no longer shows only the `progress` line of a running script: the operations indicator shows it, and the card of the action shows the bar.
 - Pull Requests: the details hide no files by default. The eye-slash button of a file hides it in the requests of this project, and the eye button shows it again. A line under the files header names the tests, Xcode project files and lock files of the request, and "Hide Them" hides them only when you click it. Patterns in `git.pullRequests.hiddenFiles` still hide files. Before, tests, project files and lock files were hidden without a choice.
 - Pull Requests: the failure reason of a job and the failed test list of a CircleCI job are folded by default. The job line shows "› reason" or "› N failed tests"; a click opens them, and each test message opens on its own. Before, a job with many failed tests filled the details. The open state lives in the detail store, so it stays while the list redraws.
 - Home → Recent keeps the events between launches (30 days, 500 at most) instead of the last 8 in memory. Rows without a detail no longer show an empty line.
@@ -154,6 +158,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- ADR 007: operations with steps and the plan of the daily tools. The data-layer skill explains `OperationScope`.
+- Debug builds: `DEVHUB_PORTS=mock` also shows a failed push card in the Git tab and a running script in the footer.
 - Debug builds: `DEVHUB_PORTS=mock` starts the app on the preview assembly (mock ports, an in-memory store, sample projects), so a headless snapshot can show screens that need data the live repositories do not have, such as the CircleCI part of the pull request details.
 - CI runs the tests one after another (`Scripts/test.sh --no-parallel`). In a parallel run, every hop to the main actor waits for the queued main-actor tests of the run: about 10 s on the 3-core runner, so the store tests timed out in every second run. The script-timeout integration test sleeps 30 s instead of 5 s, so a late timer still stops a running script.
 - GitHub Actions: `.github/workflows/ci.yml` runs the layer check, the anonymity check (built-in patterns only: the denylist stays outside the repository), the Debug build, the smoke check and every test on a `macos-26` runner for each push of `main` and each pull request.
