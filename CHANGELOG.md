@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- "Fix with AI" on a failed test run (Worktrees) and on the build errors of the run bar: DevHub writes the failed tests, their messages and the compiler errors into a prompt file and starts Claude Code or Copilot CLI in the terminal inside the checkout. "Fix Threads with AI" on a pull request offers the same two tools. The command of each tool comes from `ai.commands` (`ai.reviewCommand` still works as the Claude command).
 - Pull Requests: a new comment on your own request names its author ("sam commented on #12", "sam and lee commented on #12 (3 new comments)"). Your own comments no longer count as news. DevHub reads the last 10 comments and the last review comments of a request (GitHub) or the last 20 notes (GitLab) with the list.
 - Pull Requests: while the panel is closed, DevHub reads the open requests every 2 minutes instead of 5, so the reports of your own requests arrive sooner.
 - Notifications screen: the bell in the header (with a badge of unseen events) lists every event of the last 30 days by day: builds, test runs, changes of your requests, scripts and the other actions of the app. A filter by kind, the header search, Clear, and an arrow on a row opens the place of the event (a request, the review list, the Worktrees tab, the run bar). Home → Recent shows the last 8 and "Show All".

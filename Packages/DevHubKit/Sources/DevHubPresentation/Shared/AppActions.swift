@@ -8,6 +8,7 @@ import DevHubUI
 final class AppActions {
     @ObservationIgnored private let navigator: Navigator
     @ObservationIgnored private let build: BuildStore
+    @ObservationIgnored private let testRuns: TestRunsStore
     @ObservationIgnored private let git: GitStore
     @ObservationIgnored private let pullRequests: PullRequestsStore
     @ObservationIgnored private let newPullRequest: NewPullRequestStore
@@ -23,6 +24,7 @@ final class AppActions {
     init(
         navigator: Navigator,
         build: BuildStore,
+        testRuns: TestRunsStore,
         git: GitStore,
         pullRequests: PullRequestsStore,
         newPullRequest: NewPullRequestStore,
@@ -37,6 +39,7 @@ final class AppActions {
     ) {
         self.navigator = navigator
         self.build = build
+        self.testRuns = testRuns
         self.git = git
         self.pullRequests = pullRequests
         self.newPullRequest = newPullRequest
@@ -246,13 +249,34 @@ final class AppActions {
         }
     }
 
-    func fixThreadsWithClaude(_ summary: PullRequestSummary) {
+    func fixThreads(with provider: AIProvider, _ summary: PullRequestSummary) {
         Task { [weak self] in
             guard let self else { return }
             guard let promptPath = await pullRequestDetails.writeReviewPrompt(for: summary) else { return }
             guard let path = await checkoutPath(creatingWorktreeFor: summary.sourceBranch) else { return }
-            workspace.runInTerminal(ReviewPromptBuilder.command(promptPath: promptPath, template: git.gitSettings.pullRequests.reviewCommand), at: path, title: "Started the AI command on the threads of \(pullRequests.words.reference(summary.iid))")
+            runAICommand(provider, promptPath: promptPath, at: path, title: "Started \(AISessionRowMapper.toolTitle(for: provider)) on the threads of \(pullRequests.words.reference(summary.iid))")
         }
+    }
+
+    func fixTests(with provider: AIProvider, worktreeID: Worktree.ID) {
+        Task { [weak self] in
+            guard let self else { return }
+            guard let promptPath = await testRuns.writeFixPrompt(worktreeID: worktreeID) else { return }
+            runAICommand(provider, promptPath: promptPath, at: worktreeID, title: "Started \(AISessionRowMapper.toolTitle(for: provider)) on the failed tests")
+        }
+    }
+
+    func fixBuild(with provider: AIProvider) {
+        Task { [weak self] in
+            guard let self else { return }
+            guard let promptPath = await build.writeFixPrompt(), let path = build.lastSourcePath else { return }
+            runAICommand(provider, promptPath: promptPath, at: path, title: "Started \(AISessionRowMapper.toolTitle(for: provider)) on the build errors")
+        }
+    }
+
+    private func runAICommand(_ provider: AIProvider, promptPath: String, at path: String, title: String) {
+        let template = git.gitSettings.pullRequests.aiCommands[provider] ?? GitSettingsPolicy.aiCommands(nil)[provider] ?? ""
+        workspace.runInTerminal(ReviewPromptBuilder.command(promptPath: promptPath, template: template), at: path, title: title)
     }
 
     private func checkoutPath(creatingWorktreeFor branch: String) async -> String? {

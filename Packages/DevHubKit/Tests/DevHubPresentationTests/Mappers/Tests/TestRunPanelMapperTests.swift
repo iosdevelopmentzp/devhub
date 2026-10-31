@@ -78,6 +78,20 @@ import Testing
         #expect(model.issues.first?.location == "Login.swift:3")
     }
 
+    @Test func canFixOnlyAfterARunWithFailuresOrIssues() {
+        var failed = run(.finished(.failed, started))
+        failed.failures = [failure]
+        var broken = run(.notRun("exit 65", started))
+        broken.issues = [BuildIssue(severity: .error, path: nil, line: nil, column: nil, message: "boom")]
+        var running = run(.running(step: "Running tests"))
+        running.failures = [failure]
+
+        #expect(TestRunPanelMapper.model(for: failed).canFix)
+        #expect(TestRunPanelMapper.model(for: broken).canFix)
+        #expect(TestRunPanelMapper.model(for: running).canFix == false)
+        #expect(TestRunPanelMapper.model(for: run(.finished(.passed, started))).canFix == false)
+    }
+
     @Test func noTestsRanIsSaidPlainly() {
         #expect(TestRunPanelMapper.model(for: run(.finished(.passed, started))).detail == "No tests ran · 0 ms · iPhone 17")
     }

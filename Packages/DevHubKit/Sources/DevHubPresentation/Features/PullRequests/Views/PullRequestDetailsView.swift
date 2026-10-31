@@ -213,11 +213,7 @@ struct PullRequestDetailsView: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                 if fixThreads {
-                    Button("Fix with Claude…", systemImage: "sparkles", action: actions.fixThreads)
-                        .buttonStyle(LinkButtonStyle(.accent))
-                        .font(.caption)
-                        .fixedSize()
-                        .hint("Write the open threads into a prompt and start Claude in Terminal, in the worktree of the source branch. DevHub creates the worktree when there is none.")
+                    AIProviderMenu(title: "Fix with AI", systemImage: "sparkles", hint: "Writes the open threads into a prompt file and starts the tool in the terminal, in the worktree of the source branch. DevHub creates the worktree when there is none.", onPick: actions.fixThreads)
                 }
             }
             content()

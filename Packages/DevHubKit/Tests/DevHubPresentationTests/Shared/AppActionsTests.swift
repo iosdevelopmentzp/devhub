@@ -35,11 +35,18 @@ import Testing
         spies.worktrees.listResult = .success([WorktreeSample.main, WorktreeSample.feature])
         await assembly.worktrees.refresh()
 
-        assembly.appActions.fixThreadsWithClaude(PullRequestSummaryFixture.open)
+        assembly.appActions.fixThreads(with: .claude, PullRequestSummaryFixture.open)
 
         let command = "claude \"$(cat '/tmp/prompts/mr-21.md')\""
         try await waitUntil {
             spies.opener.calls.contains(.runInTerminal(AppSettings().terminal, path: WorktreeSample.feature.path, command: command))
+        }
+
+        assembly.appActions.fixThreads(with: .copilot, PullRequestSummaryFixture.open)
+
+        let copilot = "copilot -i \"$(cat '/tmp/prompts/mr-21.md')\""
+        try await waitUntil {
+            spies.opener.calls.contains(.runInTerminal(AppSettings().terminal, path: WorktreeSample.feature.path, command: copilot))
         }
         #expect(spies.worktrees.calls.contains { if case .create = $0 { true } else { false } } == false)
     }
@@ -49,10 +56,32 @@ import Testing
         let assembly = spyAssembly(ports)
         spies.git.webURLResult = URL(string: "https://gitlab.example.com/team/app")
 
-        assembly.appActions.fixThreadsWithClaude(PullRequestSummaryFixture.open)
+        assembly.appActions.fixThreads(with: .claude, PullRequestSummaryFixture.open)
 
         try await waitUntil { assembly.activity.events.first?.title == "!21 has no open threads" }
         #expect(spies.opener.calls.isEmpty)
+    }
+
+    @Test func fixBuildWithoutErrorsStartsNothing() async throws {
+        let (ports, spies) = Ports.spies()
+        let assembly = spyAssembly(ports)
+
+        assembly.appActions.fixBuild(with: .copilot)
+
+        try await waitUntil { assembly.activity.events.first?.title == "Nothing to fix" }
+        #expect(spies.opener.calls.isEmpty)
+        #expect(spies.reviewPrompts.calls.isEmpty)
+    }
+
+    @Test func fixTestsWithoutARunStartsNothing() async {
+        let (ports, spies) = Ports.spies()
+        let assembly = spyAssembly(ports)
+
+        assembly.appActions.fixTests(with: .claude, worktreeID: "/tmp/none")
+        await Task.yield()
+
+        #expect(spies.opener.calls.isEmpty)
+        #expect(spies.reviewPrompts.calls.isEmpty)
     }
 
     @Test func startAISessionRunsTheToolInTheFolder() async throws {

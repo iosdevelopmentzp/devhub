@@ -8,6 +8,7 @@ package enum GitSettingsPolicy {
     package static let defaultStaleDays = 14
     package static let defaultHiddenFiles = ["*Tests/*", "*Tests.swift", "*.xcodeproj/*", "*.resolved", "*.lock"]
     package static let defaultReviewCommand = "claude \"$(cat {prompt})\""
+    package static let defaultCopilotCommand = "copilot -i \"$(cat {prompt})\""
 
     package static func settings(for config: ProjectConfig) -> GitSettings {
         let git = config.git
@@ -53,8 +54,15 @@ package enum GitSettingsPolicy {
             isDraft: config?.defaults?.draft ?? false,
             deleteSourceBranch: config?.defaults?.deleteSourceBranch ?? true,
             squash: config?.defaults?.squash ?? false,
-            reviewCommand: meaningful(ai?.reviewCommand) ?? defaultReviewCommand
+            aiCommands: aiCommands(ai)
         )
+    }
+
+    package static func aiCommands(_ ai: AIConfig?) -> [AIProvider: String] {
+        [
+            .claude: meaningful(ai?.commands?[AIProvider.claude.rawValue]) ?? meaningful(ai?.reviewCommand) ?? defaultReviewCommand,
+            .copilot: meaningful(ai?.commands?[AIProvider.copilot.rawValue]) ?? defaultCopilotCommand,
+        ]
     }
 
     private static func meaningful(_ value: String?) -> String? {

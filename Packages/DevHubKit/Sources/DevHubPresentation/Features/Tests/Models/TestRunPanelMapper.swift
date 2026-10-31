@@ -19,7 +19,8 @@ enum TestRunPanelMapper {
             issuesTitle: issues.isEmpty ? nil : BuildIssuesMapper.title(for: run.issues),
             issues: issues,
             resultBundlePath: run.resultBundlePath,
-            canRunAgain: run.isRunning == false
+            canRunAgain: run.isRunning == false,
+            canFix: run.isRunning == false && (run.failures.isEmpty == false || run.issues.isEmpty == false)
         )
         switch run.phase {
         case .running(let step):

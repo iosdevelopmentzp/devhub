@@ -14,6 +14,7 @@ final class TestRunsStore {
     @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let notifier: Notifier
+    @ObservationIgnored private let prompts: any ReviewPromptRepository
     @ObservationIgnored private var tasks: [Worktree.ID: Task<Void, Never>] = [:]
     @ObservationIgnored private var subscription: SubscriptionToken?
 
@@ -26,7 +27,8 @@ final class TestRunsStore {
         config: ConfigStore,
         activity: ActivityLog,
         notifier: Notifier,
-        events: AppEvents
+        events: AppEvents,
+        prompts: any ReviewPromptRepository
     ) {
         self.runTests = runTests
         self.build = build
@@ -34,6 +36,7 @@ final class TestRunsStore {
         self.config = config
         self.activity = activity
         self.notifier = notifier
+        self.prompts = prompts
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             switch event {
@@ -84,6 +87,21 @@ final class TestRunsStore {
                 notifier.notify(.tests, title: "Tests did not run: \(worktree.displayName)", body: error.localizedDescription, target: .worktree(path: worktree.path))
             }
             tasks[id] = nil
+        }
+    }
+
+    func writeFixPrompt(worktreeID id: Worktree.ID) async -> String? {
+        guard let run = runs[id], run.isRunning == false, let worktree = worktrees.worktree(atPath: id) else { return nil }
+        guard run.failures.isEmpty == false || run.issues.isEmpty == false else {
+            activity.log("Nothing to fix in \(worktree.displayName)", detail: "The last run has no failed test and no compiler error.", outcome: .info)
+            return nil
+        }
+        let prompt = FixPromptBuilder.tests(scheme: run.scheme, checkoutName: worktree.displayName, passed: run.passed, failed: run.failed, skipped: run.skipped, failures: run.failures, issues: run.issues)
+        do {
+            return try await prompts.save(prompt, name: FixPromptBuilder.fileName(forTestsOf: worktree.displayName))
+        } catch {
+            activity.log("Cannot write the fix prompt of \(worktree.displayName)", detail: error.localizedDescription, outcome: .failure)
+            return nil
         }
     }
 

@@ -56,7 +56,8 @@ All fields optional. Missing values are detected (see "default").
 | `git.pullRequests.defaults.draft` | bool | `false` | the Draft box of the new request form |
 | `git.pullRequests.defaults.deleteSourceBranch` | bool | `true` | the "Delete source branch" box of the new request form |
 | `git.pullRequests.defaults.squash` | bool | `false` | the Squash box of the new request form |
-| `ai.reviewCommand` | string | `claude "$(cat {prompt})"` | "Fix threads with AI" runs this command in a terminal inside the worktree; `{prompt}` becomes the quoted path of the prompt file |
+| `ai.commands` | object | `{ "claude": "claude \"$(cat {prompt})\"", "copilot": "copilot -i \"$(cat {prompt})\"" }` | one command per AI tool (`claude`, `copilot`). "Fix with AI" (review threads, failed tests, build errors) runs the command of the chosen tool in a terminal inside the checkout; `{prompt}` becomes the quoted path of the prompt file |
+| `ai.reviewCommand` | string | — | the old name of `ai.commands.claude`; read when `ai.commands.claude` is missing |
 | `launch.profiles[]` | [profile] | `[]` | section 5 |
 | `launch.identity.variable` | string | — | the environment variable that carries the identity of a launch (a device or account ID). The identity panel of a simulator chooses the value. Without `launch.identity` the panel is hidden |
 | `launch.identity.keptVariable` | string | — | a second variable that gets the same value, for an app that keeps the identity across launches; it is empty when no identity is chosen. When the app binary contains this name, the identity panel shows "ID kept" |

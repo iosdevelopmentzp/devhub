@@ -4,6 +4,7 @@ import Foundation
 package final class SpyReviewPromptRepository: ReviewPromptRepository, @unchecked Sendable {
     package enum Call: Hashable {
         case save(String, iid: Int)
+        case saveNamed(String, name: String)
     }
 
     private let lock = NSLock()
@@ -21,9 +22,24 @@ package final class SpyReviewPromptRepository: ReviewPromptRepository, @unchecke
         set { lock.withLock { _saveResult = newValue } }
     }
 
+    package var savedPrompts: [String] {
+        calls.compactMap { call in
+            switch call {
+            case .save(let prompt, _), .saveNamed(let prompt, _): prompt
+            }
+        }
+    }
+
     package func save(_ prompt: String, iid: Int) async throws -> String {
         try lock.withLock {
             _calls.append(.save(prompt, iid: iid))
+            return try _saveResult.get()
+        }
+    }
+
+    package func save(_ prompt: String, name: String) async throws -> String {
+        try lock.withLock {
+            _calls.append(.saveNamed(prompt, name: name))
             return try _saveResult.get()
         }
     }

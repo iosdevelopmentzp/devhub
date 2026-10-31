@@ -8,6 +8,7 @@ struct WorktreesView: View {
     @Environment(BuildStore.self) private var build
     @Environment(TestRunsStore.self) private var testRuns
     @Environment(ConfigActionsStore.self) private var configActions
+    @Environment(AppActions.self) private var appActions
 
     @State private var confirmingDeleteID: Worktree.ID?
     @State private var launchID: Worktree.ID?
@@ -78,6 +79,7 @@ struct WorktreesView: View {
                                 onRunTests: { testRuns.run(worktreeID: model.id) },
                                 onCancelTests: { testRuns.cancel(worktreeID: model.id) },
                                 onDismissTests: { testRuns.dismiss(worktreeID: model.id) },
+                                onFixTests: { appActions.fixTests(with: $0, worktreeID: model.id) },
                                 onConfigAction: { runConfigAction($0, for: model) }
                             )
                             if let pending = configActions.pending(in: Placement.worktreesRow.slot(for: model.path)) {

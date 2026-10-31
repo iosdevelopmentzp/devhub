@@ -103,11 +103,11 @@ After each action DevHub logs the result in Recent and reads the list again.
 
 ### Fix threads with AI
 
-"Fix Threads with AI…" (menu) and "Fix with Claude…" (details) are shown when the request has open threads.
+"Fix Threads with AI" (menu) and "Fix with AI" (details) are shown when the request has open threads. Both offer Claude Code and Copilot CLI.
 
 1. DevHub reads the details and writes the open threads into `~/.devhub/prompts/mr-<n>.md`.
 2. It finds the worktree of the source branch. When there is none, it creates one.
-3. It opens the terminal app from Settings in that worktree and runs `ai.reviewCommand`. The default is `claude "$(cat {prompt})"`, where `{prompt}` is the quoted path of the prompt file.
+3. It opens the terminal app from Settings in that worktree and runs the command of the chosen tool from `ai.commands` (`claude` or `copilot`). The defaults are `claude "$(cat {prompt})"` and `copilot -i "$(cat {prompt})"`, where `{prompt}` is the quoted path of the prompt file.
 
 ### Details actions
 
@@ -178,7 +178,7 @@ When the tool is not logged in, the list shows the command `gh auth login --host
 | `git.pullRequests.hiddenFiles` | Patterns of the files that the details hide until "Show N hidden" (default: tests, Xcode project files, lock files) | [`project.json`](../extensions.md#2-projectjson) |
 | `git.pullRequests.defaults.draft`, `.deleteSourceBranch`, `.squash` | The boxes of the new request form. The last two apply only on GitLab | [`project.json`](../extensions.md#2-projectjson) |
 | `git.commitPrefix.pattern`, `git.ticketURL` | The ticket chip and the ticket key in a new title | [`project.json`](../extensions.md#2-projectjson) |
-| `ai.reviewCommand` | The command of "Fix threads with AI" | [`project.json`](../extensions.md#2-projectjson) |
+| `ai.commands` | The command of each AI tool for "Fix Threads with AI" | [`project.json`](../extensions.md#2-projectjson) |
 | Actions with `pullRequests.row` | Items in the row menus | [Placements](../extensions.md#33-placements) |
 | `when.host` | Shows an action only for GitHub or only for GitLab | [Actions](../extensions.md#3-actions) |
 | `refresh: ["pullRequests"]` | Reads the list, the open requests and the request line again after an action | [Actions](../extensions.md#3-actions) |

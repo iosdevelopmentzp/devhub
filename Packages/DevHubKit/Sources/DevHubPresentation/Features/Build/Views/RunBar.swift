@@ -66,10 +66,15 @@ struct RunBar: View {
                     outcomeRow(outcome, canShowLog: model.canShowLog)
                 }
                 if build.issues.isEmpty == false {
-                    BuildIssuesList(title: BuildIssuesMapper.title(for: build.issues), rows: BuildIssuesMapper.rows(for: build.issues)) { row in
-                        guard let path = row.path else { return }
-                        appActions.openFile(path: path, line: row.line)
-                    }
+                    BuildIssuesList(
+                        title: BuildIssuesMapper.title(for: build.issues),
+                        rows: BuildIssuesMapper.rows(for: build.issues),
+                        onOpen: { row in
+                            guard let path = row.path else { return }
+                            appActions.openFile(path: path, line: row.line)
+                        },
+                        onFix: build.issues.contains { $0.severity == .error } ? { appActions.fixBuild(with: $0) } : nil
+                    )
                 }
             }
         }

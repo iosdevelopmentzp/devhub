@@ -74,7 +74,7 @@ import Testing
             isDraft: false,
             deleteSourceBranch: true,
             squash: false,
-            reviewCommand: #"claude "$(cat {prompt})""#
+            aiCommands: [.claude: #"claude "$(cat {prompt})""#, .copilot: #"copilot -i "$(cat {prompt})""#]
         ))
     }
 
@@ -106,8 +106,17 @@ import Testing
             isDraft: true,
             deleteSourceBranch: false,
             squash: true,
-            reviewCommand: "codex {prompt}"
+            aiCommands: [.claude: "codex {prompt}", .copilot: #"copilot -i "$(cat {prompt})""#]
         ))
+    }
+
+    @Test func aiCommandsComeFromTheCommandsMapBeforeTheOldReviewCommand() {
+        let both = AIConfig(reviewCommand: "old {prompt}", commands: ["claude": "new {prompt}", "copilot": "cop {prompt}", "other": "x"])
+        let blank = AIConfig(reviewCommand: " ", commands: ["copilot": " "])
+
+        #expect(GitSettingsPolicy.aiCommands(both) == [.claude: "new {prompt}", .copilot: "cop {prompt}"])
+        #expect(GitSettingsPolicy.aiCommands(blank) == [.claude: GitSettingsPolicy.defaultReviewCommand, .copilot: GitSettingsPolicy.defaultCopilotCommand])
+        #expect(GitSettingsPolicy.aiCommands(nil)[.copilot] == #"copilot -i "$(cat {prompt})""#)
     }
 
     @Test func theTemplateDependsOnTheHost() {

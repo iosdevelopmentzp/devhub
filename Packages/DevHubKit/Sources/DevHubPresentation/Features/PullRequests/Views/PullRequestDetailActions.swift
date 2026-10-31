@@ -24,7 +24,7 @@ struct PullRequestDetailActions {
     let toggleJobLog: (_ jobID: String) -> Void
     let retryJob: (_ jobID: String, _ name: String) -> Void
     let cancelPipeline: () -> Void
-    let fixThreads: () -> Void
+    let fixThreads: (AIProvider) -> Void
     let runConfigAction: (_ actionID: ConfigActionItemModel.ID) -> Void
     let openWindow: (() -> Void)?
     let retry: () -> Void
@@ -52,7 +52,7 @@ struct PullRequestDetailActions {
         toggleJobLog: { _ in },
         retryJob: { _, _ in },
         cancelPipeline: {},
-        fixThreads: {},
+        fixThreads: { _ in },
         runConfigAction: { _ in },
         openWindow: {},
         retry: {}
@@ -126,7 +126,7 @@ extension PullRequestDetailActions {
             toggleJobLog: { detailStore.toggleJobLog($0) },
             retryJob: { detailStore.retryJob($0, named: $1, of: id) },
             cancelPipeline: { pullRequests.perform(.cancelPipeline, on: id) },
-            fixThreads: { appActions.fixThreadsWithClaude(summary) },
+            fixThreads: { appActions.fixThreads(with: $0, summary) },
             runConfigAction: { actionID in
                 configActions.request(
                     id: actionID,

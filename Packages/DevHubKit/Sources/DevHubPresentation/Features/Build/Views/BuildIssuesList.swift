@@ -1,10 +1,12 @@
 import SwiftUI
+import DevHubDomain
 import DevHubUI
 
 struct BuildIssuesList: View {
     let title: String
     let rows: [BuildIssueRowModel]
     let onOpen: (BuildIssueRowModel) -> Void
+    let onFix: ((AIProvider) -> Void)?
 
     @State private var showsAll = false
 
@@ -18,6 +20,9 @@ struct BuildIssuesList: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                 Spacer()
+                if let onFix {
+                    AIProviderMenu(title: "Fix with AI", systemImage: "sparkles", hint: "Writes the errors into a prompt file and starts the tool in the terminal, inside the build source", onPick: onFix)
+                }
                 if rows.count > Self.collapsedCount {
                     Button(showsAll ? "Show fewer" : "Show all \(rows.count)") {
                         showsAll.toggle()
@@ -70,7 +75,7 @@ struct BuildIssuesList: View {
 }
 
 #Preview {
-    BuildIssuesList(title: "1 error", rows: [.preview], onOpen: { _ in })
+    BuildIssuesList(title: "1 error", rows: [.preview], onOpen: { _ in }, onFix: { _ in })
         .padding()
         .frame(width: 560)
 }

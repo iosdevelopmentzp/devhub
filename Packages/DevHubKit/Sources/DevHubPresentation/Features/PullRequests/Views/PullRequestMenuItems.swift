@@ -9,7 +9,7 @@ struct PullRequestMenuItems: View {
     let model: PullRequestRowModel
     let actions: [PullRequestActionModel]
     let onPerform: (PullRequestActionModel.Kind) -> Void
-    let onFixThreads: () -> Void
+    let onFixThreads: (AIProvider) -> Void
     let onConfigAction: (ConfigActionItemModel.ID) -> Void
 
     var body: some View {
@@ -31,7 +31,11 @@ struct PullRequestMenuItems: View {
         Button("Copy Link with Title", systemImage: "text.bubble") { toaster.copy(model.linkText, label: "Link with title") }
         Button("Copy Branch Name", systemImage: "doc.on.doc") { toaster.copy(model.sourceBranch) }
         if model.canFixThreads {
-            Button("Fix Threads with AI…", systemImage: "sparkles", action: onFixThreads)
+            Menu("Fix Threads with AI", systemImage: "sparkles") {
+                ForEach(AIProvider.allCases, id: \.self) { provider in
+                    Button(AISessionRowMapper.toolTitle(for: provider)) { onFixThreads(provider) }
+                }
+            }
         }
         if model.configActions.isEmpty == false {
             Divider()

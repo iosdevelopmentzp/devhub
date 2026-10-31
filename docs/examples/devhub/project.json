@@ -1,6 +1,12 @@
 {
   "name": "Example App",
   "kind": "xcode",
+  "ai": {
+    "commands": {
+      "claude": "claude \"$(cat {prompt})\"",
+      "copilot": "copilot -i \"$(cat {prompt})\""
+    }
+  },
   "xcode": {
     "container": "ExampleApp.xcworkspace",
     "scheme": "ExampleApp",

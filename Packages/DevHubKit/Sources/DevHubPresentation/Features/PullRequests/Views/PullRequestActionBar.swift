@@ -12,7 +12,7 @@ struct PullRequestActionBar: View {
     let onCancelLaunch: () -> Void
     let onAction: (PullRequestActionModel.Kind) -> Void
     let onMerge: (_ kind: PullRequestActionModel.Kind, _ squash: Bool, _ removeSourceBranch: Bool) -> Void
-    let onFixThreads: () -> Void
+    let onFixThreads: (AIProvider) -> Void
     let onConfigAction: (ConfigActionItemModel.ID) -> Void
 
     @State private var confirmingMerge: PullRequestActionModel.Kind?
@@ -81,7 +81,7 @@ struct PullRequestActionBar: View {
 }
 
 #Preview {
-    PullRequestActionBar(model: .preview, isPickingLaunch: false, onRequestLaunch: {}, onCancelLaunch: {}, onAction: { _ in }, onMerge: { _, _, _ in }, onFixThreads: {}, onConfigAction: { _ in })
+    PullRequestActionBar(model: .preview, isPickingLaunch: false, onRequestLaunch: {}, onCancelLaunch: {}, onAction: { _ in }, onMerge: { _, _, _ in }, onFixThreads: { _ in }, onConfigAction: { _ in })
         .previewEnvironment()
         .padding()
         .frame(width: 560)

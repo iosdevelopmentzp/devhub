@@ -20,6 +20,7 @@ struct WorktreeRow: View {
     let onRunTests: () -> Void
     let onCancelTests: () -> Void
     let onDismissTests: () -> Void
+    let onFixTests: (AIProvider) -> Void
     let onConfigAction: (ConfigActionItemModel.ID) -> Void
 
     @State private var deleteDerivedData = true
@@ -93,7 +94,8 @@ struct WorktreeRow: View {
                     onRunAgain: onRunTests,
                     onOpenFailure: { openFile($0.path, line: $0.line) },
                     onOpenIssue: { openFile($0.path, line: $0.line) },
-                    onOpenResults: { appActions.open(URL(fileURLWithPath: $0)) }
+                    onOpenResults: { appActions.open(URL(fileURLWithPath: $0)) },
+                    onFix: onFixTests
                 )
             }
         }
@@ -274,6 +276,7 @@ struct WorktreeRow: View {
         onRunTests: {},
         onCancelTests: {},
         onDismissTests: {},
+        onFixTests: { _ in },
         onConfigAction: { _ in }
     )
     .frame(width: 680)

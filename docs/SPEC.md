@@ -302,7 +302,7 @@ It describes how the project builds, runs and connects. Every field is optional.
 | `xcode.*` | container, scheme, schemes, configuration, bundle ID, bundle IDs per scheme |
 | `build.command`, `run.command` | the build and run scripts of a `kind: command` project |
 | `git.*` | remote, host kind and name, base branch, protected branches, commit prefix, ticket link, worktree folder and bootstrap, pull request targets, template, stale days, form defaults |
-| `ai.reviewCommand` | the command of "Fix threads with AI" |
+| `ai.commands` | one command per AI tool (`claude`, `copilot`) for "Fix with AI": review threads, failed tests, build errors |
 | `launch.profiles[]` | environment, arguments, defaults, storage, upstream, production flag, clean install |
 | `launch.identity.*` | the device ID variable and its rules |
 | `network.*` | `baseURLVariable`, `mocksFolder` |

@@ -14,6 +14,7 @@ struct TestRunPanelModel: Equatable {
     var issues: [BuildIssueRowModel]
     var resultBundlePath: String?
     var canRunAgain: Bool
+    var canFix: Bool
 
     static let preview = TestRunPanelModel(
         title: "Tests failed · ExampleApp",
@@ -27,6 +28,7 @@ struct TestRunPanelModel: Equatable {
         issuesTitle: nil,
         issues: [],
         resultBundlePath: "/tmp/DevHub-tests/ExampleApp.xcresult",
-        canRunAgain: true
+        canRunAgain: true,
+        canFix: true
     )
 }

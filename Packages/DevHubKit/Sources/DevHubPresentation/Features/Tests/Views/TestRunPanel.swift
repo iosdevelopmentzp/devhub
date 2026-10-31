@@ -1,4 +1,5 @@
 import SwiftUI
+import DevHubDomain
 import DevHubUI
 
 struct TestRunPanel: View {
@@ -9,6 +10,7 @@ struct TestRunPanel: View {
     let onOpenFailure: (TestFailureRowModel) -> Void
     let onOpenIssue: (BuildIssueRowModel) -> Void
     let onOpenResults: (String) -> Void
+    let onFix: (AIProvider) -> Void
 
     @State private var showsAllFailures = false
 
@@ -31,7 +33,7 @@ struct TestRunPanel: View {
                 failureList(title)
             }
             if let title = model.issuesTitle {
-                BuildIssuesList(title: title, rows: model.issues, onOpen: onOpenIssue)
+                BuildIssuesList(title: title, rows: model.issues, onOpen: onOpenIssue, onFix: nil)
             }
             if model.isRunning == false {
                 footer
@@ -132,6 +134,9 @@ struct TestRunPanel: View {
             Button("Run Again", systemImage: "arrow.clockwise", action: onRunAgain)
                 .buttonStyle(LinkButtonStyle(.accent))
                 .disabled(model.canRunAgain == false)
+            if model.canFix {
+                AIProviderMenu(title: "Fix with AI", systemImage: "sparkles", hint: "Writes the failed tests and the compiler errors into a prompt file and starts the tool in the terminal, inside this worktree", onPick: onFix)
+            }
             if let bundle = model.resultBundlePath {
                 Button("Open Results in Xcode", systemImage: "doc.richtext") {
                     onOpenResults(bundle)
@@ -151,7 +156,8 @@ struct TestRunPanel: View {
         onRunAgain: {},
         onOpenFailure: { _ in },
         onOpenIssue: { _ in },
-        onOpenResults: { _ in }
+        onOpenResults: { _ in },
+        onFix: { _ in }
     )
     .padding()
     .frame(width: 640)

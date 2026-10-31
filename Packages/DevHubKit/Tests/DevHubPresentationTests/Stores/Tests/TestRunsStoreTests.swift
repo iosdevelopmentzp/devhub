@@ -53,6 +53,39 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.outcome == .failure)
     }
 
+    @Test func writeFixPromptSavesTheFailedTestsOfTheLastRun() async throws {
+        await prepare()
+        harness.spies.testRuns.runEvents = [
+            .testFinished(TestCaseResult(suite: "LoginTests", name: "testLogout", status: .failed, duration: 0.1)),
+            .failure(TestFailure(test: "LoginTests.testLogout", file: "LoginTests.swift", path: "/repo/LoginTests.swift", line: 9, message: "boom")),
+        ]
+        harness.spies.testRuns.runResult = .success(TestRunReport(status: .failed, resultBundlePath: nil))
+        harness.spies.reviewPrompts.saveResult = .success("/tmp/prompts/fix-tests-feature-login.md")
+        store.run(worktreeID: worktree.id)
+        try await finished()
+
+        let path = await store.writeFixPrompt(worktreeID: worktree.id)
+
+        #expect(path == "/tmp/prompts/fix-tests-feature-login.md")
+        let prompt = try #require(harness.spies.reviewPrompts.savedPrompts.first)
+        #expect(prompt.hasPrefix("# Failed tests of AppTests in feature/login"))
+        #expect(prompt.contains("## Failure 1: `LoginTests.testLogout` (`LoginTests.swift:9`)"))
+        #expect(harness.spies.reviewPrompts.calls.first == .saveNamed(prompt, name: "fix-tests-feature-login"))
+    }
+
+    @Test func writeFixPromptAfterAPassedRunSaysNothingToFix() async throws {
+        await prepare()
+        harness.spies.testRuns.runEvents = [.testFinished(TestCaseResult(suite: nil, name: "a", status: .passed, duration: 0.1))]
+        store.run(worktreeID: worktree.id)
+        try await finished()
+
+        let path = await store.writeFixPrompt(worktreeID: worktree.id)
+
+        #expect(path == nil)
+        #expect(harness.lastActivity?.title == "Nothing to fix in feature/login")
+        #expect(harness.spies.reviewPrompts.calls.isEmpty)
+    }
+
     @Test func aPassedRunLogsSuccess() async throws {
         await prepare()
         harness.spies.testRuns.runEvents = [.testFinished(TestCaseResult(suite: nil, name: "a", status: .passed, duration: 0.1))]

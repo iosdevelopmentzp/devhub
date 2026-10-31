@@ -465,6 +465,30 @@ import DevHubTestSupport
         #expect(store.issues == [issue])
     }
 
+    @Test func writeFixPromptSavesTheErrorsOfTheLastBuild() async throws {
+        let issue = BuildIssue(severity: .error, path: "/a.swift", line: 1, column: 2, message: "boom")
+        harness.spies.build.buildEvents = [.issue(issue)]
+        harness.spies.reviewPrompts.saveResult = .success("/tmp/prompts/fix-build-app.md")
+        store.run()
+        try await waitUntil { hasFinished }
+
+        let path = await store.writeFixPrompt()
+
+        #expect(path == "/tmp/prompts/fix-build-app.md")
+        let prompt = try #require(harness.spies.reviewPrompts.savedPrompts.first)
+        #expect(prompt.hasPrefix("# Build errors of App in"))
+        #expect(prompt.contains("- `/a.swift:1`: boom"))
+        #expect(harness.spies.reviewPrompts.calls.first == .saveNamed(prompt, name: "fix-build-app"))
+    }
+
+    @Test func writeFixPromptWithoutErrorsSaysNothingToFix() async {
+        let path = await store.writeFixPrompt()
+
+        #expect(path == nil)
+        #expect(harness.lastActivity?.title == "Nothing to fix")
+        #expect(harness.spies.reviewPrompts.calls.isEmpty)
+    }
+
     // MARK: Manual schemes
 
     @Test func addedSchemeJoinsTheOptionsAndIsSelected() {

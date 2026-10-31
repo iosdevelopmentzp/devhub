@@ -98,6 +98,8 @@ A `@devhub {"progress": …}` line updates the step text. A `@devhub {"error": �
 
 While `xcodebuild` runs, DevHub reads every `<file>:<line>:<column>: error: …` and `… warning: …` line, and every `error: …` line without a file. The run bar lists them under the result: a title such as "2 errors · 5 warnings", errors first, five lines with "Show all N". A click on a line opens the file at that line in the editor from Settings. A repeated line shows once; the list keeps at most 200 lines and is cleared when the next build starts. A `kind: command` project has no list: its scripts print their own output.
 
+When the list has at least one error, "Fix with AI" next to the title writes the errors (and the warnings, marked as second) into a prompt file (`~/.devhub/prompts/fix-build-<scheme>.md`) and starts Claude Code or Copilot CLI in the terminal inside the build source (the main checkout or the chosen worktree), with the command from `ai.commands`.
+
 ### Install and launch
 
 These steps are shared by both project kinds (`AppInstallStep`).

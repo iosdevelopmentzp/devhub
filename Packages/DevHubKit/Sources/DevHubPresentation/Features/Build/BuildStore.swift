@@ -30,6 +30,8 @@ final class BuildStore: BuildLookup {
     @ObservationIgnored private let notifier: Notifier
     @ObservationIgnored let events: AppEvents
     @ObservationIgnored private let store: any KeyValueStore
+    @ObservationIgnored private let prompts: any ReviewPromptRepository
+    private(set) var lastSourcePath: String?
     @ObservationIgnored private var runOptions: [String: SimulatorRunOptions]
     @ObservationIgnored private var buildTask: Task<Void, Never>?
     @ObservationIgnored private var subscription: SubscriptionToken?
@@ -52,7 +54,8 @@ final class BuildStore: BuildLookup {
         activity: ActivityLog,
         notifier: Notifier,
         events: AppEvents,
-        store: any KeyValueStore
+        store: any KeyValueStore,
+        prompts: any ReviewPromptRepository
     ) {
         self.repository = repository
         self.buildAndRun = buildAndRun
@@ -68,6 +71,7 @@ final class BuildStore: BuildLookup {
         self.notifier = notifier
         self.events = events
         self.store = store
+        self.prompts = prompts
         runOptions = store.decode([String: SimulatorRunOptions].self, forKey: Self.runOptionsKey) ?? [:]
         state.scheme = session.selectedProject.scheme
         manualSchemes = loadManualSchemes()
@@ -241,6 +245,20 @@ final class BuildStore: BuildLookup {
         run(goal: .runAndAttach)
     }
 
+    func writeFixPrompt() async -> String? {
+        guard issues.contains(where: { $0.severity == .error }), let path = lastSourcePath else {
+            activity.log("Nothing to fix", detail: "The last build has no compiler error.", outcome: .info)
+            return nil
+        }
+        let prompt = FixPromptBuilder.build(scheme: state.scheme, checkoutName: path.abbreviatingHome, issues: issues)
+        do {
+            return try await prompts.save(prompt, name: FixPromptBuilder.fileName(forBuildOf: state.scheme))
+        } catch {
+            activity.log("Cannot write the fix prompt", detail: error.localizedDescription, outcome: .failure)
+            return nil
+        }
+    }
+
     func cancel() {
         buildTask?.cancel()
     }
@@ -273,6 +291,7 @@ final class BuildStore: BuildLookup {
                 let prepared = try await prepare()
                 try Task.checkCancellation()
                 logPrepared(prepared)
+                lastSourcePath = prepared.path
                 let request = BuildRequest(
                     projectPath: prepared.path,
                     container: container,

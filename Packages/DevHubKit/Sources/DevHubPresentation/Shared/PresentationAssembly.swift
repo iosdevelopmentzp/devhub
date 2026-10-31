@@ -151,9 +151,10 @@ package final class PresentationAssembly {
             activity: activity,
             notifier: notifier,
             events: events,
-            store: store
+            store: store,
+            prompts: ports.reviewPrompts
         )
-        testRuns = TestRunsStore(runTests: useCases.runTests, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events)
+        testRuns = TestRunsStore(runTests: useCases.runTests, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events, prompts: ports.reviewPrompts)
         simulatorStatuses = SimulatorStatusStore(
             readStatus: useCases.readSimulatorStatus,
             config: config,
@@ -206,6 +207,7 @@ package final class PresentationAssembly {
         appActions = AppActions(
             navigator: navigator,
             build: build,
+            testRuns: testRuns,
             git: git,
             pullRequests: pullRequests,
             newPullRequest: newPullRequest,
