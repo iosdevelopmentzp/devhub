@@ -10,7 +10,8 @@ enum GlabGraphQLQueries {
     userPermissions { canMerge canApprove } \
     headPipeline { status updatedAt duration finishedAt failedJobsCount detailedStatus { detailsPath } } \
     approvedBy { nodes { username } } labels { nodes { title } } assignees { nodes { username } } \
-    reviewers { nodes { username mergeRequestInteraction { reviewState } } } }
+    reviewers { nodes { username mergeRequestInteraction { reviewState } } } \
+    notes(last: 20) { nodes { id system author { username } } } }
     """
 
     private static let connection = "(state: $state, sort: UPDATED_DESC, first: 100, after: $after) { \(fields) }"

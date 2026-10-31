@@ -63,7 +63,7 @@ The header search filters the loaded rows by title, number, author, branches and
 - Local and remote branch rows show the open request of the branch.
 - The tab bar shows a badge with the number of requests that wait for your review.
 - When that number grows while the panel is closed, DevHub posts a macOS notification ("2 pull requests wait for your review") and a Recent row; a click on either opens the "To review" scope.
-- Changes of your own open requests between two reads go to the Recent list on Home and, while the panel is closed, to a macOS notification (one switch per kind in Settings → Notifications; a click opens the request): "#12 approved by alex" (new approvers, not you), "Changes requested on #12 by sam" (a new review that asks for changes), "Checks failed on #12" (the checks or pipeline turned to failed), "2 new comments on #12" (the comment count grew), "#12 merged" and "#12 closed without a merge". A request that left the open list gets one status read of its branch (the request line read) to learn its final state; a request that is still open (for example beyond the first page) is silent. A new request of yours and the first read after a start or a project switch report nothing. A refresh after your own action in DevHub updates the baseline without a report.
+- Changes of your own open requests between two reads go to the Recent list on Home and, while the panel is closed, to a macOS notification (one switch per kind in Settings → Notifications; a click opens the request): "#12 approved by alex" (new approvers, not you), "Changes requested on #12 by sam" (a new review that asks for changes), "Checks failed on #12" (the checks or pipeline turned to failed), "sam commented on #12" (new comments by someone else, with their authors; your own comments are silent; "2 new comments on #12" when the host gives no authors), "#12 merged" and "#12 closed without a merge". A request that left the open list gets one status read of its branch (the request line read) to learn its final state; a request that is still open (for example beyond the first page) is silent. A new request of yours and the first read after a start or a project switch report nothing. A refresh after your own action in DevHub updates the baseline without a report.
 
 ## Actions
 
@@ -160,7 +160,7 @@ The Create button says "Push & Create" when step 1 is needed.
 Refresh rules:
 
 - The list reads again when the tab opens and the last read is older than 60 seconds, and when the scope or state changes. A page that was read before shows at once from memory.
-- The open requests read again every 5 minutes, and after every request action.
+- The open requests read again every 5 minutes (every 2 minutes while the panel is closed, so that the reports of your own requests arrive sooner), and after every request action.
 - The request line in the Git tab reads again after 90 seconds per branch.
 
 When the tool is not logged in, the list shows the command `gh auth login --hostname <host>` (or `glab auth login --hostname <host>`) with a Copy Command button.

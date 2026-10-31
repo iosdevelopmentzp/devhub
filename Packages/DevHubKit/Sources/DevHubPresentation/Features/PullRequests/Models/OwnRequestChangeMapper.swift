@@ -19,8 +19,8 @@ enum OwnRequestChangeMapper {
             return Report(title: "Changes requested on \(reference) by \(names(reviewers))", body: request.title, outcome: .info, kind: .requestReviews)
         case .checksFailed(let request):
             return Report(title: "\(words.checksTitle) failed on \(reference)", body: request.title, outcome: .failure, kind: .requestChecks)
-        case .newComments(let request, let count):
-            return Report(title: "\(CountText.count(count, "new comment", "new comments")) on \(reference)", body: request.title, outcome: .info, kind: .requestComments)
+        case .newComments(let request, let count, let authors):
+            return Report(title: commentsTitle(count: count, authors: authors, reference: reference), body: request.title, outcome: .info, kind: .requestComments)
         case .gone:
             return nil
         }
@@ -36,6 +36,13 @@ enum OwnRequestChangeMapper {
         case .opened, .locked, .other:
             return nil
         }
+    }
+
+    private static func commentsTitle(count: Int, authors: [String], reference: String) -> String {
+        let counted = CountText.count(count, "new comment", "new comments")
+        guard authors.isEmpty == false else { return "\(counted) on \(reference)" }
+        guard count > authors.count else { return "\(names(authors)) commented on \(reference)" }
+        return "\(names(authors)) commented on \(reference) (\(counted))"
     }
 
     private static func names(_ names: [String]) -> String {

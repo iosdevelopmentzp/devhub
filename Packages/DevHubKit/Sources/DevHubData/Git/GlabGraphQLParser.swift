@@ -19,6 +19,12 @@ enum GlabGraphQLParser {
         let username: String
     }
 
+    private struct NoteMark: Decodable {
+        let id: String
+        let system: Bool?
+        let author: User?
+    }
+
     private struct Label: Decodable {
         let title: String
     }
@@ -72,6 +78,7 @@ enum GlabGraphQLParser {
         let conflicts: Bool?
         let detailedMergeStatus: String?
         let userNotesCount: Int?
+        let notes: Nodes<NoteMark>?
         let updatedAt: Date?
         let headPipeline: Pipeline?
         let approvedBy: Nodes<User>?
@@ -291,6 +298,7 @@ enum GlabGraphQLParser {
             assignees: node.assignees?.nodes.map(\.username) ?? [],
             reviewers: node.reviewers?.nodes.map(\.username) ?? [],
             changesRequestedBy: node.reviewers?.nodes.filter(\.requestedChanges).map(\.username) ?? [],
+            recentComments: (node.notes?.nodes ?? []).filter { $0.system != true }.map { RecentComment(id: $0.id, author: $0.author?.username ?? "") },
             createdAt: node.createdAt,
             mergedAt: node.mergedAt,
             closedAt: node.closedAt,

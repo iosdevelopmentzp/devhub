@@ -19,6 +19,15 @@ enum GhPullRequestParser {
         let login: String
     }
 
+    private struct CommentMark: Decodable {
+        let databaseId: Int?
+        let author: Login?
+    }
+
+    private struct ThreadComments: Decodable {
+        let comments: Nodes<CommentMark>
+    }
+
     private struct Name: Decodable {
         let name: String
     }
@@ -69,6 +78,8 @@ enum GhPullRequestParser {
         let mergeStateStatus: String?
         let reviewDecision: String?
         let totalCommentsCount: Int?
+        let comments: Nodes<CommentMark>?
+        let recentThreads: Nodes<ThreadComments>?
         let additions: Int?
         let deletions: Int?
         let changedFiles: Int?
@@ -310,6 +321,7 @@ enum GhPullRequestParser {
             assignees: node.assignees?.nodes.map(\.login) ?? [],
             reviewers: (node.reviewRequests?.nodes ?? []).compactMap { $0.requestedReviewer?.login },
             changesRequestedBy: (node.latestReviews?.nodes ?? []).filter { $0.state == "CHANGES_REQUESTED" }.compactMap { $0.author?.login },
+            recentComments: recentComments(node),
             createdAt: node.createdAt,
             mergedAt: node.mergedAt,
             closedAt: node.closedAt,
@@ -340,6 +352,18 @@ enum GhPullRequestParser {
         case "CLOSED": .closed
         default: .other(name?.lowercased() ?? "")
         }
+    }
+
+    private static func recentComments(_ node: PullRequestNode) -> [RecentComment] {
+        let marks = (node.comments?.nodes ?? []) + (node.recentThreads?.nodes ?? []).flatMap(\.comments.nodes)
+        var comments: [RecentComment] = []
+        for mark in marks {
+            guard let id = mark.databaseId else { continue }
+            let comment = RecentComment(id: String(id), author: mark.author?.login ?? "")
+            guard comments.contains(comment) == false else { continue }
+            comments.append(comment)
+        }
+        return comments
     }
 
     private static func detail(_ node: PullRequestNode) -> MergeReadiness? {

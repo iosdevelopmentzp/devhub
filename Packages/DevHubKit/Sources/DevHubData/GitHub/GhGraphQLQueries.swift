@@ -13,7 +13,9 @@ enum GhGraphQLQueries {
     totalCommentsCount additions deletions changedFiles headRefOid createdAt updatedAt mergedAt closedAt mergedBy { login } \
     autoMergeRequest { enabledAt } labels(first: 20) { nodes { name } } latestReviews(first: 20) { nodes { state author { login } } } \
     assignees(first: 10) { nodes { login } } reviewRequests(first: 10) { nodes { requestedReviewer { ... on User { login } } } } \
-    reviewThreads(first: 100) { totalCount nodes { isResolved } } commitCount: commits { totalCount } \(checks)
+    reviewThreads(first: 100) { totalCount nodes { isResolved } } commitCount: commits { totalCount } \
+    comments(last: 10) { nodes { databaseId author { login } } } \
+    recentThreads: reviewThreads(last: 10) { nodes { comments(last: 2) { nodes { databaseId author { login } } } } } \(checks)
     """
 
     private static let repositoryFields = "viewerPermission viewerDefaultMergeMethod deleteBranchOnMerge autoMergeAllowed"

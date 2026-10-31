@@ -16,6 +16,7 @@ import Testing
         #expect(GlabGraphQLQueries.list(scope).contains("headPipeline"))
         #expect(GlabGraphQLQueries.list(scope).contains("diffStatsSummary { additions deletions fileCount }"))
         #expect(GlabGraphQLQueries.list(scope).contains("userPermissions { canMerge canApprove }"))
+        #expect(GlabGraphQLQueries.list(scope).contains("notes(last: 20) { nodes { id system author { username } } }"))
         #expect(GlabGraphQLQueries.listVariables(query, after: nil, projectPath: "team/app").map { "\($0.name)=\($0.value)" } == variables)
     }
 

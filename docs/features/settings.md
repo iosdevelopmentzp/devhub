@@ -44,7 +44,7 @@ Each section is explained under "Actions".
 | Pull Requests waiting for your review | The number of requests that wait for your review went up. A click opens that list |
 | Reviews of my pull requests | Someone approved your request or asked for changes. A click opens the request |
 | Checks of my pull requests | The checks or pipeline of your request turned to failed. A click opens the request |
-| Comments on my pull requests | Your request got new comments. A click opens the request |
+| Comments on my pull requests | Someone else commented on your request ("sam commented on #12"). Your own comments are silent. A click opens the request |
 | My pull requests merged or closed | Your request was merged, or closed without a merge. A click opens the request |
 | Script notifications | A script printed a `notify` line. It shows even while the panel is open and when the main switch is off |
 | Permission | Shows "Not asked yet", "Allowed" or "Denied". **Allow Notifications** asks macOS for permission. When denied, allow DevHub in System Settings → Notifications |
@@ -55,7 +55,7 @@ Rules of the notifications:
 2. Every kind except the script one appears only while the panel is closed and the main switch is on. A kind with its switch off never appears; its events still go to the Notifications screen.
 3. A script line `@devhub {"notify": "Title", "body": "…"}` posts a notification even when the panel is open or the main switch is off, unless "Script notifications" is off.
 4. The menu bar icon shows a circle while a build runs. After a failed build while the panel is closed, it shows a red dot until you open the panel.
-5. Changes of your own requests come from the read of the open requests every 5 minutes ([Pull Requests](pull-requests.md#other-places-that-use-the-same-data)). A refresh after an action of yours in DevHub (a comment, an approval) updates the baseline without a report.
+5. Changes of your own requests come from the read of the open requests every 5 minutes, or every 2 minutes while the panel is closed ([Pull Requests](pull-requests.md#other-places-that-use-the-same-data)). A refresh after an action of yours in DevHub (a comment, an approval) updates the baseline without a report.
 
 6. A click on a notification opens DevHub at the place of the event: a request, the review list, the Worktrees tab or the run bar. Every event is also in the Notifications screen (the bell in the header, [Notifications](notifications.md)).
 

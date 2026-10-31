@@ -23,7 +23,7 @@ enum NotificationKindText {
         case .reviewRequests: "The number of \(words.requests) that wait for your review went up. A click opens that list."
         case .requestReviews: "Someone approved your \(words.request) or asked for changes. A click opens the \(words.request)."
         case .requestChecks: "The \(words.checks) of your \(words.request) turned to failed. A click opens the \(words.request)."
-        case .requestComments: "Your \(words.request) got new comments. A click opens the \(words.request)."
+        case .requestComments: "Someone else commented on your \(words.request). Your own comments are silent. A click opens the \(words.request)."
         case .requestClosed: "Your \(words.request) was merged, or closed without a merge. A click opens the \(words.request)."
         case .scripts: "A script printed a notify line. It shows even while the panel is open and when the main switch is off."
         }

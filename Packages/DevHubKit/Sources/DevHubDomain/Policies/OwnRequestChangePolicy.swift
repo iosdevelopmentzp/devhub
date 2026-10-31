@@ -20,14 +20,29 @@ package enum OwnRequestChangePolicy {
             if request.pipeline?.status == .failed, old.pipeline?.status != .failed {
                 changes.append(.checksFailed(request))
             }
-            let added = request.commentCount - old.commentCount
-            if added > 0 {
-                changes.append(.newComments(request, count: added))
+            if let comments = newComments(of: request, since: old, username: username) {
+                changes.append(comments)
             }
         }
         let gone = before.values
             .filter { old in now.contains { $0.iid == old.iid } == false }
             .sorted { $0.iid < $1.iid }
         return changes + gone.map(OwnRequestChange.gone)
+    }
+
+    private static func newComments(of request: PullRequestSummary, since old: PullRequestSummary, username: String) -> OwnRequestChange? {
+        let added = request.commentCount - old.commentCount
+        guard added > 0 else { return nil }
+        guard request.recentComments.isEmpty == false || old.recentComments.isEmpty == false else {
+            return .newComments(request, count: added, by: [])
+        }
+        let known = Set(old.recentComments.map(\.id))
+        let fresh = request.recentComments.filter { known.contains($0.id) == false && $0.author != username }
+        guard fresh.isEmpty == false else { return nil }
+        var authors: [String] = []
+        for comment in fresh where authors.contains(comment.author) == false {
+            authors.append(comment.author)
+        }
+        return .newComments(request, count: fresh.count, by: authors)
     }
 }

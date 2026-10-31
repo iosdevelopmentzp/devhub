@@ -15,6 +15,8 @@ import Testing
     }
 
     @Test func theChecksCarryTheirTitleAndWorkflow() {
+        #expect(GhGraphQLQueries.list.contains("comments(last: 10) { nodes { databaseId author { login } } }"))
+        #expect(GhGraphQLQueries.list.contains("recentThreads: reviewThreads(last: 10) { nodes { comments(last: 2) { nodes { databaseId author { login } } } } }"))
         #expect(GhGraphQLQueries.list.contains("... on CheckRun { databaseId name title conclusion status detailsUrl startedAt completedAt checkSuite { workflowRun { databaseId workflow { name } } } }"))
         #expect(GhGraphQLQueries.details.contains("comments(first: 100) { nodes { databaseId body author { login } createdAt } }"))
     }

@@ -32,11 +32,15 @@ import Testing
     }
 
     @Test func commentsAreCounted() throws {
-        let one = try #require(OwnRequestChangeMapper.report(for: .newComments(request, count: 1), words: .gitHub))
-        let three = try #require(OwnRequestChangeMapper.report(for: .newComments(request, count: 3), words: .gitHub))
+        let one = try #require(OwnRequestChangeMapper.report(for: .newComments(request, count: 1, by: []), words: .gitHub))
+        let three = try #require(OwnRequestChangeMapper.report(for: .newComments(request, count: 3, by: []), words: .gitHub))
+        let sam = try #require(OwnRequestChangeMapper.report(for: .newComments(request, count: 1, by: ["sam"]), words: .gitHub))
+        let many = try #require(OwnRequestChangeMapper.report(for: .newComments(request, count: 3, by: ["sam", "lee"]), words: .gitLab))
 
         #expect(one == OwnRequestChangeMapper.Report(title: "1 new comment on #21", body: "ABC-5: Login", outcome: .info, kind: .requestComments))
         #expect(three.title == "3 new comments on #21")
+        #expect(sam == OwnRequestChangeMapper.Report(title: "sam commented on #21", body: "ABC-5: Login", outcome: .info, kind: .requestComments))
+        #expect(many.title == "sam and lee commented on !21 (3 new comments)")
     }
 
     @Test func aGoneRequestNeedsItsFinalState() throws {

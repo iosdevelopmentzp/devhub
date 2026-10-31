@@ -7,6 +7,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Pull Requests: a new comment on your own request names its author ("sam commented on #12", "sam and lee commented on #12 (3 new comments)"). Your own comments no longer count as news. DevHub reads the last 10 comments and the last review comments of a request (GitHub) or the last 20 notes (GitLab) with the list.
+- Pull Requests: while the panel is closed, DevHub reads the open requests every 2 minutes instead of 5, so the reports of your own requests arrive sooner.
 - Notifications screen: the bell in the header (with a badge of unseen events) lists every event of the last 30 days by day: builds, test runs, changes of your requests, scripts and the other actions of the app. A filter by kind, the header search, Clear, and an arrow on a row opens the place of the event (a request, the review list, the Worktrees tab, the run bar). Home → Recent shows the last 8 and "Show All".
 - A click on a macOS notification opens DevHub at the place of the event. A notification without a place opens the Notifications screen.
 - Settings → Notifications: one switch per kind (builds, test runs, requests waiting for your review, reviews, checks, comments, merged or closed requests, scripts), each with a description of what it sends and what a click opens.

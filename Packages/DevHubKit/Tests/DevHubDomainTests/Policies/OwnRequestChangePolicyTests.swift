@@ -45,8 +45,31 @@ import Testing
         let before = request(1, comments: 2)
         let after = request(1, comments: 5)
 
-        #expect(OwnRequestChangePolicy.changes(from: [before], to: [after], username: username) == [.newComments(after, count: 3)])
+        #expect(OwnRequestChangePolicy.changes(from: [before], to: [after], username: username) == [.newComments(after, count: 3, by: [])])
         #expect(OwnRequestChangePolicy.changes(from: [after], to: [before], username: username).isEmpty)
+    }
+
+    @Test func newCommentsNameTheirAuthorsAndSkipMine() {
+        let before = request(1, comments: 2, recent: [RecentComment(id: "1", author: "alex"), RecentComment(id: "2", author: "me")])
+        let after = request(1, comments: 5, recent: [RecentComment(id: "2", author: "me"), RecentComment(id: "3", author: "sam"), RecentComment(id: "4", author: "sam"), RecentComment(id: "5", author: "me")])
+
+        #expect(OwnRequestChangePolicy.changes(from: [before], to: [after], username: username) == [.newComments(after, count: 2, by: ["sam"])])
+    }
+
+    @Test func onlyMyOwnNewCommentsAreSilent() {
+        let before = request(1, comments: 1, recent: [RecentComment(id: "1", author: "alex")])
+        let after = request(1, comments: 2, recent: [RecentComment(id: "1", author: "alex"), RecentComment(id: "2", author: "me")])
+
+        #expect(OwnRequestChangePolicy.changes(from: [before], to: [after], username: username).isEmpty)
+    }
+
+    @Test func aHigherCountWithoutRecentCommentsFallsBackToTheCount() {
+        let before = request(1, comments: 1)
+        let after = request(1, comments: 2)
+        let upgraded = request(1, comments: 2, recent: [RecentComment(id: "9", author: "lee")])
+
+        #expect(OwnRequestChangePolicy.changes(from: [before], to: [after], username: username) == [.newComments(after, count: 1, by: [])])
+        #expect(OwnRequestChangePolicy.changes(from: [before], to: [upgraded], username: username) == [.newComments(upgraded, count: 1, by: ["lee"])])
     }
 
     @Test func aRequestThatLeftTheOpenListIsGone() {
@@ -66,10 +89,10 @@ import Testing
 
         let changes = OwnRequestChangePolicy.changes(from: before, to: after, username: username)
 
-        #expect(changes == [.approved(after[1], by: ["alex"]), .checksFailed(after[0]), .newComments(after[0], count: 1)])
+        #expect(changes == [.approved(after[1], by: ["alex"]), .checksFailed(after[0]), .newComments(after[0], count: 1, by: [])])
     }
 
-    private func request(_ iid: Int, author: String = "me", approvedBy: [String] = [], changesRequestedBy: [String] = [], pipeline: CheckStatus? = nil, comments: Int = 0) -> PullRequestSummary {
+    private func request(_ iid: Int, author: String = "me", approvedBy: [String] = [], changesRequestedBy: [String] = [], pipeline: CheckStatus? = nil, comments: Int = 0, recent: [RecentComment] = []) -> PullRequestSummary {
         PullRequestSummary(
             iid: iid,
             title: "ABC-\(iid): Change",
@@ -86,7 +109,8 @@ import Testing
             pipeline: pipeline.map { PipelineInfo(status: $0, webURL: nil, updatedAt: nil) },
             approvedBy: approvedBy,
             labels: [],
-            changesRequestedBy: changesRequestedBy
+            changesRequestedBy: changesRequestedBy,
+            recentComments: recent
         )
     }
 }

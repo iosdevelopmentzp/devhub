@@ -22,7 +22,7 @@ Every event that DevHub can also send as a macOS notification carries a kind. Ev
 | Pull Requests waiting for your review | the number of requests that wait for your review went up | the Pull Requests tab in the "To review" scope |
 | Reviews of my pull requests | someone approved your request or asked for changes | the request |
 | Checks of my pull requests | the checks or pipeline of your request turned to failed | the request |
-| Comments on my pull requests | new comments on your request | the request |
+| Comments on my pull requests | someone else commented on your request; your own comments are silent | the request |
 | My pull requests merged or closed | your request was merged, or closed without a merge | the request |
 | Script notifications | a script printed a `notify` line | nothing |
 

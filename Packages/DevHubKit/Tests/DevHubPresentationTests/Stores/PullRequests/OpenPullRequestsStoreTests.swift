@@ -118,8 +118,24 @@ import DevHubTestSupport
 
     // MARK: Changes of my requests
 
-    private func mine(approvedBy: [String] = [], pipeline: PipelineInfo? = nil, comments: Int = 0) -> PullRequestSummary {
-        PullRequestSummaryFixture.request(iid: 7, source: "feature/mine", state: .opened, author: "me", comments: comments, pipeline: pipeline, approvedBy: approvedBy, title: "ABC-7: Mine")
+    private func mine(approvedBy: [String] = [], pipeline: PipelineInfo? = nil, comments: Int = 0, recent: [RecentComment] = []) -> PullRequestSummary {
+        PullRequestSummaryFixture.request(iid: 7, source: "feature/mine", state: .opened, author: "me", comments: comments, pipeline: pipeline, approvedBy: approvedBy, recentComments: recent, title: "ABC-7: Mine")
+    }
+
+    @Test func aCommentBySomeoneElseNamesTheAuthor() async throws {
+        script([mine(comments: 1, recent: [RecentComment(id: "1", author: "me")])])
+        await store.refresh()
+        script([mine(comments: 2, recent: [RecentComment(id: "1", author: "me"), RecentComment(id: "2", author: "sam")])])
+
+        await store.refresh()
+
+        try await waitUntil { harness.activityTitles == ["sam commented on !7"] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "sam commented on !7", body: "ABC-7: Mine", target: .pullRequest(iid: 7))] }
+    }
+
+    @Test func thePollIntervalIsShorterWhileThePanelIsClosed() {
+        #expect(OpenPullRequestsStore.pollInterval(panelShown: true) == .seconds(300))
+        #expect(OpenPullRequestsStore.pollInterval(panelShown: false) == .seconds(120))
     }
 
     @Test func anApprovalOfMyRequestIsReportedAndNotified() async throws {

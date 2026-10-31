@@ -7,7 +7,7 @@ enum GlabGraphQLFixture {
       {"iid":"21","title":"ABC-5: Login","state":"opened","draft":false,
        "webUrl":"https://gitlab.example.com/team/app/-/merge_requests/21","author":{"username":"sam"},
        "sourceBranch":"feature/login","targetBranch":"dev","conflicts":true,"detailedMergeStatus":"NOT_APPROVED",
-       "userNotesCount":3,"updatedAt":"2026-01-02T03:04:05Z","createdAt":"2025-12-20T10:00:00Z",
+       "userNotesCount":3,"notes":{"nodes":[{"id":"gid://gitlab/Note/9","system":false,"author":{"username":"kim"}},{"id":"gid://gitlab/Note/10","system":true,"author":{"username":"bot"}}]},"updatedAt":"2026-01-02T03:04:05Z","createdAt":"2025-12-20T10:00:00Z",
        "mergedAt":null,"closedAt":null,"mergeUser":null,"commitCount":4,
        "diffStatsSummary":{"additions":120,"deletions":30,"fileCount":7},
        "resolvableDiscussionsCount":5,"resolvedDiscussionsCount":2,"divergedFromTargetBranch":true,

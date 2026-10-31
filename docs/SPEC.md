@@ -128,10 +128,11 @@ Sources:
 
 ### 2.8 Notifications
 
-- DevHub posts macOS notifications only while the panel and the pinned window are closed. Settings has the switch "Notify when the panel is closed" (on by default) and an "Allow Notifications" button. DevHub asks for the permission only from that button.
-- Events: a build finished or failed, and the number of requests that wait for your review went up.
-- Changes of your own open requests, with the switch "Notify about my pull requests": an approval, a request for changes, failed checks or pipeline, new comments, a merge or a close. DevHub compares two reads of the open requests (every 5 minutes); a request that left the list gets one status read to tell a merge from a close. The Recent list on Home shows these events even while the panel is open.
-- The `notify` directive of a script always posts a notification when the permission is given. It does not check the panel or the switch.
+- DevHub posts macOS notifications only while the panel and the pinned window are closed. Settings has the main switch "Notify while the panel is closed" (on by default), one switch per kind with a description, and an "Allow Notifications" button. DevHub asks for the permission only from that button.
+- Kinds: builds (finished, launched or failed), test runs of a worktree, more requests waiting for your review, and changes of your own open requests: an approval or a request for changes, failed checks or pipeline, new comments by someone else ("sam commented on #12"), a merge or a close. DevHub compares two reads of the open requests (every 5 minutes, every 2 minutes while the panel is closed); a request that left the list gets one status read to tell a merge from a close.
+- The `notify` directive of a script posts a notification when the permission is given, even while the panel is open and with the main switch off, unless its kind is muted.
+- A click on a notification opens DevHub at the place of the event (a request, the review list, the Worktrees tab, the run bar). A notification without a place opens the Notifications screen.
+- The Notifications screen (the bell in the header, with a badge of unseen events) lists every event of the last 30 days (500 at most, saved between launches) by day, with a filter by kind, the header search, Clear and an arrow that opens the place of an event. Home → Recent shows the last 8 of them.
 
 ---
 

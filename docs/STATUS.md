@@ -115,6 +115,5 @@ The rewrite plan (ADR 001, M0 to M8) and ADR 005 are complete. Ideas for later: 
 - The messaging panel and Resume in the AI tab were checked by tests only: a headless snapshot cannot open the panel or click a button.
 - The global shortcut was checked only with headless snapshots, not with a real key press. The right-click menu of the status item was checked with a synthetic right click (ADR 005 W2).
 - Esc clears the search field but does not close the panel. A click outside the panel closes it.
-- A comment you post on your own request outside DevHub (on the web) counts as a new comment in the next report. DevHub knows only the comment count of a request, not the authors.
 - The "Build" button, the resizable Output panel, the "New" AI session menu and the own request reports were checked by tests and headless snapshots, not by clicks.
 - A click on a macOS notification (the `didReceive` delegate call) was checked by tests of the codec only: no real notification was clicked in this session.

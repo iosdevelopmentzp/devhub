@@ -22,6 +22,7 @@ final class OpenPullRequestsStore {
 
     private static let staleAfter: TimeInterval = 60
     private static let pollInterval: Duration = .seconds(300)
+    private static let closedPanelPollInterval: Duration = .seconds(120)
 
     var words: CodeHostWords {
         remote.words
@@ -65,9 +66,13 @@ final class OpenPullRequestsStore {
             while Task.isCancelled == false {
                 guard let self else { return }
                 await refresh()
-                try? await Task.sleep(for: Self.pollInterval)
+                try? await Task.sleep(for: Self.pollInterval(panelShown: notifier.isPanelShown))
             }
         }
+    }
+
+    static func pollInterval(panelShown: Bool) -> Duration {
+        panelShown ? pollInterval : closedPanelPollInterval
     }
 
     func refreshIfStale() async {

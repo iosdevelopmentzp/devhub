@@ -39,6 +39,7 @@ import Testing
             assignees: ["sam"],
             reviewers: ["me", "kim", "lee"],
             changesRequestedBy: ["me"],
+            recentComments: [RecentComment(id: "gid://gitlab/Note/9", author: "kim")],
             createdAt: ISO8601.date(from: "2025-12-20T10:00:00Z"),
             mergedAt: nil,
             closedAt: nil,
