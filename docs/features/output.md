@@ -66,12 +66,13 @@ A command that streams its output (a build, a script, a bootstrap) is never show
 | Failed only (filter menu) | Shows only the commands that failed: a non-zero exit code or a start error. Running commands are hidden |
 | Follow | On: the list scrolls to the newest command and its new lines. Off: the list stays where you scrolled. Turning it on scrolls to the end once |
 | Copy All | Copies every shown entry as a transcript: `# in <folder>`, `$ <command>`, the output, `# exit code N`, `# <error>` |
+| Save (arrow into tray) | Saves the same transcript to a file of your choice (a save panel, `devhub-output.log` by default). A Recent row says "Saved <name>" |
 | Clear | Removes every finished entry. Running entries stay |
 | Hide (chevron) | Hides the panel |
 | Copy (entry icon) | Copies the transcript of one entry |
 | Show all N lines / Show less (entry icon) | Shows the whole output of an entry, or the last 8 lines again |
 | Click on the command line | Copies the command |
-| Right-click an entry | Copy Command, Copy Output (when there is output), Copy Command and Output; Open Folder in Terminal and Reveal Folder in Finder when the command ran in a folder |
+| Right-click an entry | Copy Command, Copy Output (when there is output), Copy Command and Output; Open in Editor (writes the transcript of the entry to `~/.devhub/scratch/output-<time>.log` and opens it in the editor from Settings); Save Output… (a save panel); Open Folder in Terminal and Reveal Folder in Finder when the command ran in a folder |
 
 The panel runs no commands of its own.
 

@@ -7,6 +7,7 @@ import Testing
 @Suite struct WorkspaceActionsTests {
     let activity = ActivityLog(events: [], store: InMemoryKeyValueStore())
     let opener = SpyWorkspaceOpener()
+    let files = SpyTextFileRepository()
     let settings = SettingsStore(values: AppSettings(terminal: "iTerm"), store: InMemoryKeyValueStore())
 
     @Test func openTerminalSuccessLogsInfo() async throws {
@@ -102,6 +103,38 @@ import Testing
     }
 
     private func makeActions() -> WorkspaceActions {
-        WorkspaceActions(settings: settings, activity: activity, opener: opener)
+        WorkspaceActions(settings: settings, activity: activity, opener: opener, files: files)
+    }
+
+    @Test func openInEditorWritesAScratchFileAndOpensItInTheEditor() async throws {
+        let actions = makeActions()
+        files.scratchResult = .success("/tmp/scratch/output.log")
+
+        actions.openInEditor(text: "$ git status\n", name: "output.log")
+
+        try await waitUntil { opener.calls == [.openFile("/tmp/scratch/output.log", line: nil, editor: "Xcode")] }
+        #expect(files.calls == [.writeScratch("$ git status\n", name: "output.log")])
+    }
+
+    @Test func saveTextWritesTheFileAndLogsIt() async throws {
+        let actions = makeActions()
+
+        actions.saveText("log", to: "/Users/alex/Desktop/build.log")
+        try await waitUntil { activity.events.isEmpty == false }
+
+        #expect(files.calls == [.write("log", path: "/Users/alex/Desktop/build.log")])
+        #expect(activity.events.first?.title == "Saved build.log")
+        #expect(activity.events.first?.outcome == .success)
+    }
+
+    @Test func aFailedSaveLogsTheError() async throws {
+        let actions = makeActions()
+        files.writeError = TestError.scripted("read-only")
+
+        actions.saveText("log", to: "/x/build.log")
+        try await waitUntil { activity.events.isEmpty == false }
+
+        #expect(activity.events.first?.title == "Could not save build.log")
+        #expect(activity.events.first?.outcome == .failure)
     }
 }

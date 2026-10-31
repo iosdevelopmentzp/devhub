@@ -68,7 +68,7 @@ package final class PresentationAssembly {
         output = OutputPanelState(store: store, events: events)
         layout = WindowLayout(store: store)
         settings = SettingsStore(values: initialSettings, store: store)
-        workspace = WorkspaceActions(settings: settings, activity: activity, opener: ports.opener)
+        workspace = WorkspaceActions(settings: settings, activity: activity, opener: ports.opener, files: ports.textFiles)
         notifier = Notifier(repository: ports.notifications, settings: settings, activity: activity)
         doctor = DoctorStore(checkTools: useCases.checkTools, attacher: ports.attacher)
         keepAwake = KeepAwakeStore(preventer: ports.sleep, activity: activity)

@@ -9,11 +9,13 @@ final class WorkspaceActions {
     @ObservationIgnored private let settings: SettingsStore
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let opener: any WorkspaceOpening
+    @ObservationIgnored private let files: any TextFileRepository
 
-    init(settings: SettingsStore, activity: ActivityLog, opener: any WorkspaceOpening) {
+    init(settings: SettingsStore, activity: ActivityLog, opener: any WorkspaceOpening, files: any TextFileRepository) {
         self.settings = settings
         self.activity = activity
         self.opener = opener
+        self.files = files
     }
 
     func openTerminal(at path: String) {
@@ -68,6 +70,30 @@ final class WorkspaceActions {
             let failure = await opener.openInEditor(editor, path: path)
             guard let self, let failure else { return }
             activity.log("Could not open \(editor)", detail: failure, outcome: .failure)
+        }
+    }
+
+    func openInEditor(text: String, name: String) {
+        Task { [weak self, files] in
+            guard let self else { return }
+            do {
+                let path = try await files.writeScratch(text, name: name)
+                openFile(path: path, line: nil)
+            } catch {
+                activity.log("Could not write \(name)", detail: error.localizedDescription, outcome: .failure)
+            }
+        }
+    }
+
+    func saveText(_ text: String, to path: String) {
+        Task { [weak self, files] in
+            guard let self else { return }
+            do {
+                try await files.write(text, to: path)
+                activity.log("Saved \((path as NSString).lastPathComponent)", detail: path.abbreviatingHome, outcome: .success)
+            } catch {
+                activity.log("Could not save \((path as NSString).lastPathComponent)", detail: error.localizedDescription, outcome: .failure)
+            }
         }
     }
 

@@ -79,7 +79,7 @@ final class StoreHarness {
     lazy var doctor = DoctorStore(checkTools: useCases.checkTools, attacher: ports.attacher)
     lazy var keepAwake = KeepAwakeStore(preventer: ports.sleep, activity: activity)
 
-    lazy var workspace = WorkspaceActions(settings: settings, activity: activity, opener: ports.opener)
+    lazy var workspace = WorkspaceActions(settings: settings, activity: activity, opener: ports.opener, files: ports.textFiles)
 
     lazy var usage = UsageStore(repository: ports.usage, copilotRepository: ports.copilotUsage)
 

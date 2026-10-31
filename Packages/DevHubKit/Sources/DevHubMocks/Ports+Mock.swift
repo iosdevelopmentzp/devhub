@@ -25,6 +25,7 @@ extension Ports {
             attacher: MockXcodeAttacher(),
             projectDetector: MockProjectDetector(),
             reviewPrompts: MockReviewPromptRepository(),
+            textFiles: MockTextFileRepository(),
             config: MockConfigRepository(),
             scripts: MockScriptRunner(),
             tools: MockToolLocator(),

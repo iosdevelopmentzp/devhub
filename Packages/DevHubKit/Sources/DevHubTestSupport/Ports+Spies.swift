@@ -24,6 +24,7 @@ package extension Ports {
             attacher: spies.attacher,
             projectDetector: spies.projectDetector,
             reviewPrompts: spies.reviewPrompts,
+            textFiles: spies.textFiles,
             config: spies.config,
             scripts: spies.scripts,
             tools: spies.tools,

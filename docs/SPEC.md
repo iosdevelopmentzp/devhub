@@ -107,7 +107,7 @@ Settings offers a fixed list: ⌥⌘D (default), ⌃⌥Space, ⌃⌥D or Off. Th
 - Follow (on by default) keeps the list at the newest command. Off, the list stays where you scrolled.
 - A `secret` command (`security`, `gh auth token`) records no output: "Output hidden: it contains credentials."
 - An app log stream records no lines: "App log lines are shown in the Logs tab only."
-- Search over commands and output, Copy All, Clear.
+- Search over commands and output, Copy All, Save to a file, Clear. An entry can be opened in the editor (a scratch file in `~/.devhub/scratch/`) or saved on its own.
 - The Output panel opens by itself when a command fails.
 
 ### 2.7 Command palette (⌘K)

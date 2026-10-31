@@ -314,6 +314,15 @@ final class AppActions {
         workspace.openInEditor(path: path, editor: editor)
     }
 
+    func openInEditor(text: String, name: String) {
+        workspace.openInEditor(text: text, name: name)
+    }
+
+    func saveText(_ text: String, suggestedName: String) {
+        guard let url = FolderPicker.saveFile(suggestedName: suggestedName, prompt: "Save", message: "Choose where to save the text.") else { return }
+        workspace.saveText(text, to: url.path)
+    }
+
     func openTerminal(at path: String) {
         workspace.openTerminal(at: path)
     }

@@ -21,6 +21,7 @@ package struct PortSpies: Sendable {
     package let attacher = SpyXcodeAttacher()
     package let projectDetector = SpyProjectDetector()
     package let reviewPrompts = SpyReviewPromptRepository()
+    package let textFiles = SpyTextFileRepository()
     package let config = SpyConfigRepository()
     package let scripts = SpyScriptRunner()
     package let tools = SpyToolLocator()

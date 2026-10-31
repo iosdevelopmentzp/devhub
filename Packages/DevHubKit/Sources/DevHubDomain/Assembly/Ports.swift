@@ -21,6 +21,7 @@ package struct Ports: Sendable {
     package let attacher: any XcodeAttaching
     package let projectDetector: any ProjectDetecting
     package let reviewPrompts: any ReviewPromptRepository
+    package let textFiles: any TextFileRepository
     package let config: any ConfigRepository
     package let scripts: any ScriptRunning
     package let tools: any ToolLocating
@@ -49,6 +50,7 @@ package struct Ports: Sendable {
         attacher: any XcodeAttaching,
         projectDetector: any ProjectDetecting,
         reviewPrompts: any ReviewPromptRepository,
+        textFiles: any TextFileRepository,
         config: any ConfigRepository,
         scripts: any ScriptRunning,
         tools: any ToolLocating,
@@ -76,6 +78,7 @@ package struct Ports: Sendable {
         self.attacher = attacher
         self.projectDetector = projectDetector
         self.reviewPrompts = reviewPrompts
+        self.textFiles = textFiles
         self.config = config
         self.scripts = scripts
         self.tools = tools

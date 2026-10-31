@@ -17,6 +17,18 @@ package enum FolderPicker {
     }
 
     @MainActor
+    package static func saveFile(suggestedName: String, prompt: String, message: String) -> URL? {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = suggestedName
+        panel.canCreateDirectories = true
+        panel.prompt = prompt
+        panel.message = message
+        NSApp.activate()
+        guard panel.runModal() == .OK else { return nil }
+        return panel.url
+    }
+
+    @MainActor
     package static func chooseFile(directory: URL, prompt: String, message: String) -> URL? {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = false

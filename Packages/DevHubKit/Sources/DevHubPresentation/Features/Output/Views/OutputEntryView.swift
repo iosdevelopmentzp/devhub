@@ -7,6 +7,7 @@ struct OutputEntryView: View {
     @Environment(AppActions.self) private var appActions
 
     let model: OutputEntryModel
+    let transcript: String
     let onCopy: () -> Void
     let onToggle: () -> Void
 
@@ -85,6 +86,13 @@ struct OutputEntryView: View {
             }
         }
         Button("Copy Command and Output", systemImage: "doc.on.doc.fill", action: onCopy)
+        Divider()
+        Button("Open in Editor", systemImage: "doc.text") {
+            appActions.openInEditor(text: transcript, name: "output-\(model.startedText.replacingOccurrences(of: ":", with: "-")).log")
+        }
+        Button("Save Output…", systemImage: "square.and.arrow.down") {
+            appActions.saveText(transcript, suggestedName: "output.log")
+        }
         if let folder = model.folderPath {
             Divider()
             Button("Open Folder in Terminal", systemImage: "terminal") {
@@ -98,6 +106,6 @@ struct OutputEntryView: View {
 }
 
 #Preview {
-    OutputEntryView(model: .preview, onCopy: {}, onToggle: {})
+    OutputEntryView(model: .preview, transcript: "", onCopy: {}, onToggle: {})
         .previewEnvironment()
 }

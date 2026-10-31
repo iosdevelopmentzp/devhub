@@ -7,6 +7,7 @@ struct OutputPanel: View {
     @Environment(CommandLog.self) private var commandLog
     @Environment(Toaster.self) private var toaster
     @Environment(WindowLayout.self) private var layout
+    @Environment(AppActions.self) private var appActions
 
     @State private var expandedIDs: Set<UUID> = []
     @State private var query = ""
@@ -70,6 +71,10 @@ struct OutputPanel: View {
                     toaster.copy(OutputEntryMapper.transcript(for: entries), label: "Output")
                 }
                 .disabled(entries.isEmpty)
+                IconButton(systemImage: "square.and.arrow.down", help: "Save every shown command with its folder, output and exit code to a file") {
+                    appActions.saveText(OutputEntryMapper.transcript(for: entries), suggestedName: "devhub-output.log")
+                }
+                .disabled(entries.isEmpty)
                 IconButton(systemImage: "trash", help: "Remove the finished commands from the log") {
                     commandLog.clear()
                 }
@@ -112,6 +117,7 @@ struct OutputPanel: View {
                     ForEach(entries) { entry in
                         OutputEntryView(
                             model: OutputEntryMapper.model(for: entry, isExpanded: expandedIDs.contains(entry.id), now: .now),
+                            transcript: OutputEntryMapper.transcript(for: entry),
                             onCopy: { toaster.copy(OutputEntryMapper.transcript(for: entry), label: "Command and output") },
                             onToggle: { toggle(entry.id) }
                         )
