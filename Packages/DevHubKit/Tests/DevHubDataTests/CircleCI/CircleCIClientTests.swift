@@ -8,10 +8,10 @@ import Testing
     @Test func readsAskForJSON() {
         #expect(CircleCIClient.versionArguments() == ["version", "--json"])
         #expect(CircleCIClient.settingArguments() == ["setting", "list", "--json"])
-        #expect(CircleCIClient.workflowArguments(id: "w1", slug: nil) == ["workflow", "get", "w1", "--json"])
+        #expect(CircleCIClient.workflowArguments(id: "w1") == ["workflow", "get", "w1", "--json"])
         #expect(CircleCIClient.runListArguments(branch: "main", limit: 10, slug: nil) == ["run", "list", "--branch", "main", "--limit", "10", "--json"])
-        #expect(CircleCIClient.jobOutputArguments(jobID: "j1", slug: nil) == ["job", "output", "list", "j1", "--json"])
-        #expect(CircleCIClient.testResultArguments(jobID: "j1", slug: nil) == ["testresult", "list", "j1", "--json"])
+        #expect(CircleCIClient.jobOutputArguments(jobID: "j1") == ["job", "output", "list", "j1", "--json"])
+        #expect(CircleCIClient.testResultArguments(jobID: "j1") == ["testresult", "list", "j1", "--json"])
     }
 
     @Test func theFlakyTestsComeFromTheInsightsAPI() {
@@ -19,15 +19,16 @@ import Testing
     }
 
     @Test func actionsSkipThePromptAndAskForJSON() {
-        #expect(CircleCIClient.rerunArguments(workflowID: "w1", fromFailed: true, slug: nil) == ["workflow", "rerun", "w1", "--from-failed", "--json"])
-        #expect(CircleCIClient.rerunArguments(workflowID: "w1", fromFailed: false, slug: nil) == ["workflow", "rerun", "w1", "--json"])
-        #expect(CircleCIClient.cancelArguments(workflowID: "w1", slug: nil) == ["workflow", "cancel", "w1", "--force"])
+        #expect(CircleCIClient.rerunArguments(workflowID: "w1", fromFailed: true) == ["workflow", "rerun", "w1", "--from-failed", "--json"])
+        #expect(CircleCIClient.rerunArguments(workflowID: "w1", fromFailed: false) == ["workflow", "rerun", "w1", "--json"])
+        #expect(CircleCIClient.cancelArguments(workflowID: "w1") == ["workflow", "cancel", "w1", "--force"])
         #expect(CircleCIClient.approveArguments(runID: "r1", job: "approve-release", slug: nil) == ["run", "approve", "r1", "--job", "approve-release", "--force", "--json"])
     }
 
-    @Test func aConfiguredSlugIsPassedAsTheProject() {
-        #expect(CircleCIClient.workflowArguments(id: "w1", slug: "gh/example/app") == ["workflow", "get", "w1", "--json", "--project", "gh/example/app"])
-        #expect(CircleCIClient.cancelArguments(workflowID: "w1", slug: "") == ["workflow", "cancel", "w1", "--force"])
+    @Test func onlyRunListAndApproveTakeTheProjectFlag() {
+        #expect(CircleCIClient.runListArguments(branch: "main", limit: 5, slug: "gh/example/app") == ["run", "list", "--branch", "main", "--limit", "5", "--json", "--project", "gh/example/app"])
+        #expect(CircleCIClient.approveArguments(runID: "r1", job: "a", slug: "gh/example/app") == ["run", "approve", "r1", "--job", "a", "--force", "--json", "--project", "gh/example/app"])
+        #expect(CircleCIClient.approveArguments(runID: "r1", job: "a", slug: "") == ["run", "approve", "r1", "--job", "a", "--force", "--json"])
     }
 
     @Test func errorsNameTheMissingToolOrTheLogin() {

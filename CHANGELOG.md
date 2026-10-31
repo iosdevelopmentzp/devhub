@@ -117,6 +117,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- Pull Requests with CircleCI: the jobs showed "CircleCI: unknown flag: --project". The `circleci` commands `workflow get`, `workflow rerun`, `workflow cancel`, `job output list` and `testresult list` take an ID and do not know that flag. DevHub now passes `--project` only to `run list` and `run approve`.
 - Pull Requests: a CircleCI check sent as a commit status (`ci/circleci: <job>`) links to `…/workflow/<uuid>/job/<uuid>`, with the segment in the singular. DevHub did not read that link, so the CircleCI jobs never showed and no `circleci` command ran. Both link forms are read now. Such a link carries no project slug, so the flaky labels take the slug from `ci.project`, else from the GitHub remote (`gh/<owner>/<repo>`).
 - Pull Requests: the message of a failed CircleCI test is hidden by default. A chevron next to the test name shows the full message and hides it again. Before, every message showed at once, and a long one filled the details.
 - A streamed command (a build, a test run, a script, a log stream) no longer holds a thread of the Swift concurrency pool while it waits for output. With few cores (the CI runner) the integration tests starved the store tests, which then timed out.

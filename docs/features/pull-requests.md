@@ -208,7 +208,7 @@ The runs are saved per project and request (`gitlab.ciHistory.<project>.<number>
 
 ### Commands
 
-Every command runs in the main checkout, so the tool resolves the project from `.circleci/info.yml` or the remote `origin`. With `ci.project`, every command also gets `--project <slug>`.
+Every command runs in the main checkout, so the tool resolves the project from `.circleci/info.yml` or the remote `origin`. With `ci.project` or a slug from the check link, `run list` and `run approve` also get `--project <slug>`. The other commands (`workflow`, `job`, `testresult`) take an ID and have no such flag.
 
 | Action | Command |
 |---|---|
@@ -237,7 +237,7 @@ The reads are `.read` in the Output panel; re-run, cancel and approve are action
 | `git.pullRequests.defaults.draft`, `.deleteSourceBranch`, `.squash` | The boxes of the new request form. The last two apply only on GitLab | [`project.json`](../extensions.md#2-projectjson) |
 | `git.commitPrefix.pattern`, `git.ticketURL` | The ticket chip and the ticket key in a new title | [`project.json`](../extensions.md#2-projectjson) |
 | `ai.commands` | The command of each AI tool for "Fix Threads with AI" | [`project.json`](../extensions.md#2-projectjson) |
-| `ci.kind`, `ci.project` | CircleCI on or off, and the project slug for `--project` and the flaky test list | [`project.json`](../extensions.md#2-projectjson) |
+| `ci.kind`, `ci.project` | CircleCI on or off, and the project slug for `--project` of `run list` and `run approve` and for the flaky test list | [`project.json`](../extensions.md#2-projectjson) |
 | Actions with `pullRequests.row` | Items in the row menus | [Placements](../extensions.md#33-placements) |
 | `when.host` | Shows an action only for GitHub or only for GitLab | [Actions](../extensions.md#3-actions) |
 | `refresh: ["pullRequests"]` | Reads the list, the open requests and the request line again after an action | [Actions](../extensions.md#3-actions) |

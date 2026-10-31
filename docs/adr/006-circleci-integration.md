@@ -49,7 +49,7 @@ The rule of the code host layer (ADR 003) applies here too: DevHub does not call
 | My runs | `circleci my runs --json` | |
 | Tool state | `circleci version --json`, `circleci setting list --json` | |
 
-Project resolution: the CLI takes `--project <slug>`; without it, it reads `.circleci/info.yml` (written by `circleci project link`), then the git remote `origin` of the working directory. So DevHub runs every command with `cwd` set to the main checkout and no `--project`. A slug is `gh/<org>/<repo>` for the GitHub OAuth integration and `circleci/<orgID>/<projectID>` for the GitHub App integration.
+Project resolution: the CLI takes `--project <slug>` on `run list` and `run approve` only (the commands that take an ID, such as `workflow get`, `job output list` and `testresult list`, reject the flag: "unknown flag: --project"); without it, it reads `.circleci/info.yml` (written by `circleci project link`), then the git remote `origin` of the working directory. So DevHub runs every command with `cwd` set to the main checkout and passes `--project` only to those two. A slug is `gh/<org>/<repo>` for the GitHub OAuth integration and `circleci/<orgID>/<projectID>` for the GitHub App integration.
 
 ### How CircleCI shows up in GitHub
 
@@ -139,3 +139,4 @@ Then in DevHub: open a pull request with CircleCI checks, expand the details, re
 | `77925a2` | Steps 5 and 8: `PullRequestDetailStore` reads the workflows, the failed tests and the flaky list; the job groups, the row actions, the approve and cancel confirmations, the tool notice; the failed tests with the flaky tags; the feature page, the config rows, STATUS decision 48. |
 | `b016ec9` | Steps 6 and 7: the Doctor warns about a `circleci` tool below 1.0 with `brew upgrade circleci`; the settings page, the skills and the status. |
 | `59e20db` | Fix: `CIWorkflowLink` reads the `workflow/<uuid>/job/<uuid>` link of a commit status; the slug falls back to the GitHub remote; the message of a failed test is folded by default. |
+| `7553c3d` | Step 9: `CIWorkflowHistory` and "Previous CircleCI runs"; `CIAutoRerunStore`, `CIAutoRerunPolicy` and the "Auto re-run" menu; `CIProjectResolver`; the `pullRequestChecksChanged` event; `DEVHUB_PORTS=mock` for headless snapshots. |

@@ -41,32 +41,32 @@ struct CircleCIClient {
         ["setting", "list", "--json"]
     }
 
-    static func workflowArguments(id: String, slug: String?) -> [String] {
-        withProject(["workflow", "get", id, "--json"], slug: slug)
+    static func workflowArguments(id: String) -> [String] {
+        ["workflow", "get", id, "--json"]
     }
 
     static func runListArguments(branch: String, limit: Int, slug: String?) -> [String] {
         withProject(["run", "list", "--branch", branch, "--limit", String(limit), "--json"], slug: slug)
     }
 
-    static func jobOutputArguments(jobID: String, slug: String?) -> [String] {
-        withProject(["job", "output", "list", jobID, "--json"], slug: slug)
+    static func jobOutputArguments(jobID: String) -> [String] {
+        ["job", "output", "list", jobID, "--json"]
     }
 
-    static func testResultArguments(jobID: String, slug: String?) -> [String] {
-        withProject(["testresult", "list", jobID, "--json"], slug: slug)
+    static func testResultArguments(jobID: String) -> [String] {
+        ["testresult", "list", jobID, "--json"]
     }
 
     static func flakyTestsArguments(slug: String) -> [String] {
         ["api", "api/v2/insights/\(slug)/flaky-tests"]
     }
 
-    static func rerunArguments(workflowID: String, fromFailed: Bool, slug: String?) -> [String] {
-        withProject(["workflow", "rerun", workflowID] + (fromFailed ? ["--from-failed"] : []) + ["--json"], slug: slug)
+    static func rerunArguments(workflowID: String, fromFailed: Bool) -> [String] {
+        ["workflow", "rerun", workflowID] + (fromFailed ? ["--from-failed"] : []) + ["--json"]
     }
 
-    static func cancelArguments(workflowID: String, slug: String?) -> [String] {
-        withProject(["workflow", "cancel", workflowID, "--force"], slug: slug)
+    static func cancelArguments(workflowID: String) -> [String] {
+        ["workflow", "cancel", workflowID, "--force"]
     }
 
     static func approveArguments(runID: String, job: String, slug: String?) -> [String] {

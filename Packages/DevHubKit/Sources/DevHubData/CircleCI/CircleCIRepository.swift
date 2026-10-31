@@ -20,7 +20,7 @@ struct CircleCIRepository: CIRepository {
     }
 
     func workflow(id: String, project: CIProject) async throws -> CIWorkflow {
-        let data = try await client.run(CircleCIClient.workflowArguments(id: id, slug: project.slug), project: project)
+        let data = try await client.run(CircleCIClient.workflowArguments(id: id), project: project)
         return try CircleCIWorkflowParser.workflow(from: data, id: id)
     }
 
@@ -30,12 +30,12 @@ struct CircleCIRepository: CIRepository {
     }
 
     func jobLog(jobID: String, project: CIProject) async throws -> String {
-        let data = try await client.run(CircleCIClient.jobOutputArguments(jobID: jobID, slug: project.slug), project: project)
+        let data = try await client.run(CircleCIClient.jobOutputArguments(jobID: jobID), project: project)
         return try CircleCIJobOutputParser.log(from: data)
     }
 
     func failedTests(jobID: String, project: CIProject) async throws -> [CITestResult] {
-        let data = try await client.run(CircleCIClient.testResultArguments(jobID: jobID, slug: project.slug), project: project)
+        let data = try await client.run(CircleCIClient.testResultArguments(jobID: jobID), project: project)
         return try CircleCITestResultParser.results(from: data)
     }
 
@@ -46,11 +46,11 @@ struct CircleCIRepository: CIRepository {
     }
 
     func rerun(workflowID: String, fromFailed: Bool, project: CIProject) async throws {
-        _ = try await client.run(CircleCIClient.rerunArguments(workflowID: workflowID, fromFailed: fromFailed, slug: project.slug), project: project)
+        _ = try await client.run(CircleCIClient.rerunArguments(workflowID: workflowID, fromFailed: fromFailed), project: project)
     }
 
     func cancel(workflowID: String, project: CIProject) async throws {
-        _ = try await client.run(CircleCIClient.cancelArguments(workflowID: workflowID, slug: project.slug), project: project)
+        _ = try await client.run(CircleCIClient.cancelArguments(workflowID: workflowID), project: project)
     }
 
     func approve(runID: String, job: String, project: CIProject) async throws {
