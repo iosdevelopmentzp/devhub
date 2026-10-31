@@ -58,9 +58,9 @@ CircleCI reports to GitHub in two ways, and a project can have both:
 | Integration | What GitHub gets | Check name | Link |
 |---|---|---|---|
 | GitHub App (CircleCI Checks) | one check per workflow | `<workflow name> - <8 characters of the pipeline definition ID>` | `app.circleci.com/pipelines/circleci/<orgID>/<projectID>/<pipeline number>/workflows/<workflow uuid>` |
-| OAuth, "VCS Status Updates" on | one commit status per job | `ci/circleci: <job name>`; approval and no-op jobs `ci/circleci: <workflow>/<job>` | `app.circleci.com/pipelines/github/<org>/<repo>/<pipeline number>/workflows/<workflow uuid>/jobs/<job number>` |
+| OAuth, "VCS Status Updates" on | one commit status per job | `ci/circleci: <job name>`; approval and no-op jobs `ci/circleci: <workflow>/<job>` | `app.circleci.com/workflow/<workflow uuid>/job/<job uuid>` (seen live); the reference also shows `app.circleci.com/pipelines/github/<org>/<repo>/<pipeline number>/workflows/<workflow uuid>/jobs/<job number>` |
 
-Both links carry the workflow UUID after `/workflows/`. That UUID is the bridge: DevHub reads the GitHub checks as today, takes the UUID from `detailsUrl` or `targetUrl`, and asks `circleci workflow get <uuid> --json` for the jobs, the run ID and the approval jobs. No listing of pipelines is needed to find the right workflow. An approval job on hold is not visible as an action in GitHub at all, so `run approve` is the only way to approve from DevHub.
+Both links carry the workflow UUID after `/workflows/` or `/workflow/`. That UUID is the bridge: DevHub reads the GitHub checks as today, takes the UUID from `detailsUrl` or `targetUrl`, and asks `circleci workflow get <uuid> --json` for the jobs, the run ID and the approval jobs. No listing of pipelines is needed to find the right workflow. An approval job on hold is not visible as an action in GitHub at all, so `run approve` is the only way to approve from DevHub.
 
 ## Decisions
 
@@ -92,6 +92,8 @@ Both links carry the workflow UUID after `/workflows/`. That UUID is the bridge:
 - `circleci project link` writes `.circleci/info.yml` (confirmed by the reference). `circleci api`: paths are relative to `/api/v3`; a path that starts with `api` is sent as is; exit code 4 on 4xx and 5xx.
 - JSON fields per the reference: `workflow get` gives `id`, `name`, `phase`, `outcome`, `current_outcome`, `run_id`, `created_at`, `ended_at`, `jobs[]` with `id`, `name`, `phase`, `outcome`, `current_outcome`, `type`; `job get` gives `id`, `name`, `type`, `status`, `started_at`, `stopped_at`, `workflow_id`, `pipeline_id`, `executions[].steps[]`; `job output list` gives `steps[]` with `num`, `name`, `type`, `phase`, `outcome`, `exit_code`, `command`, `output`; `run list` gives `id`, `phase`, `outcome`, `current_outcome`, `branch`, `tag`, `revision`, `created_at`; `run approve` answers `run_id`, `workflow_id`, `workflow_name`, `job_id`, `job_name` and takes `--job <name-or-uuid>`, so no approval request id is needed. Neither `workflow get` nor `job get` carries a job number or a web link, so DevHub shows no per-job link; the workflow link from GitHub stays.
 - The values of `phase` and `outcome` are not listed in the reference. `CircleCIStatusMapper` maps every spelling it knows (`success`, `succeeded`, `failed`, `failing`, `error`, `running`, `on_hold`, `blocked`, `canceled`, `cancelled`, `not_run`, `skipped`, `queued`, `created`, `pending`) and keeps the rest as `.other(name)`, so an unknown value shows as its own text instead of a wrong state.
+
+- Live check of 2026-10-31 (a project with the OAuth integration): a commit status `ci/circleci: <job>` links to `app.circleci.com/workflow/<uuid>/job/<uuid>`, with `workflow` in the singular and no project in the path. `CIWorkflowLink.parse` reads both forms. `circleci workflow get <uuid> --json` reads such a workflow and returns its jobs. Without a slug in the link, the Insights call takes `ci.project`, else `gh/<owner>/<repo>` from the GitHub remote.
 
 
 ## Plan
@@ -133,3 +135,4 @@ Then in DevHub: open a pull request with CircleCI checks, expand the details, re
 |---|---|
 | `83ecc5b` | Steps 2 to 4: the Domain models, port, policies and errors; `CircleCIClient`, the parsers, `CircleCIRepository`, the mock and the spy; `ciWorkflowID` from the link of a GitHub check. |
 | `77925a2` | Steps 5 and 8: `PullRequestDetailStore` reads the workflows, the failed tests and the flaky list; the job groups, the row actions, the approve and cancel confirmations, the tool notice; the failed tests with the flaky tags; the feature page, the config rows, STATUS decision 48. |
+| `b016ec9` | Steps 6 and 7: the Doctor warns about a `circleci` tool below 1.0 with `brew upgrade circleci`; the settings page, the skills and the status. |

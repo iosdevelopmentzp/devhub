@@ -100,7 +100,7 @@ The rewrite plan (ADR 001, M0 to M8) and ADR 005 are complete. Ideas for later: 
 
 ## Known gaps
 
-- CircleCI: the parsers follow the CLI reference of October 2026; no live project was checked (`circleci auth login` and a project with `.circleci/config.yml` are needed). The approve command and the field names of `workflow get` are open questions in ADR 006.
+- CircleCI: the parsers follow the CLI reference of October 2026. A live project with the OAuth integration showed that a commit status links to `app.circleci.com/workflow/<uuid>/job/<uuid>` (read since the fix) and that `circleci workflow get` answers such a workflow with its jobs. The field names of the parsers against a live answer and the approve command are still open questions in ADR 006.
 - Window mode: the global shortcut and a real click on the Dock icon were not tried; `open` on the running app (the same reopen event) was.
 - The simulator QA panel, the line comment box and the job log were checked by tests and by running the commands by hand, not by clicks in the panel.
 - The project list keeps projects whose folder no longer exists (for example old test folders). They show in the menu, the palette and the right-click menu.

@@ -14,7 +14,7 @@ package enum CIWorkflowLink {
     package static func parse(_ url: String?) -> Link? {
         guard let url, url.contains("circleci") else { return nil }
         let parts = url.split(separator: "/").map(String.init)
-        guard let workflowsIndex = parts.firstIndex(of: "workflows"), workflowsIndex + 1 < parts.count else { return nil }
+        guard let workflowsIndex = parts.firstIndex(where: { $0 == "workflows" || $0 == "workflow" }), workflowsIndex + 1 < parts.count else { return nil }
         let workflowID = parts[workflowsIndex + 1].split(separator: "?").first.map(String.init) ?? ""
         guard isUUID(workflowID) else { return nil }
         return Link(workflowID: workflowID, slug: slug(in: parts))

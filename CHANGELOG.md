@@ -115,6 +115,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- Pull Requests: a CircleCI check sent as a commit status (`ci/circleci: <job>`) links to `…/workflow/<uuid>/job/<uuid>`, with the segment in the singular. DevHub did not read that link, so the CircleCI jobs never showed and no `circleci` command ran. Both link forms are read now. Such a link carries no project slug, so the flaky labels take the slug from `ci.project`, else from the GitHub remote (`gh/<owner>/<repo>`).
+- Pull Requests: the message of a failed CircleCI test is hidden by default. A chevron next to the test name shows the full message and hides it again. Before, every message showed at once, and a long one filled the details.
 - A streamed command (a build, a test run, a script, a log stream) no longer holds a thread of the Swift concurrency pool while it waits for output. With few cores (the CI runner) the integration tests starved the store tests, which then timed out.
 - The mock server returns from Stop only when the port is closed.
 - A streamed command (a build, a script, a worktree bootstrap, a log stream) could hang DevHub after the process had already exited: the wait for the exit ran a run loop that never woke up. DevHub now waits for the termination callback of the process. The full test run hung in the same place two times out of three.

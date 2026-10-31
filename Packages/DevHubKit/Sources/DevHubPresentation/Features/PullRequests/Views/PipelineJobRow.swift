@@ -12,6 +12,7 @@ struct PipelineJobRow: View {
     let onApprove: () -> Void
 
     @State private var isConfirmingApprove = false
+    @State private var expandedTestIDs: Set<String> = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -107,10 +108,12 @@ struct PipelineJobRow: View {
             }
         }
         .animation(.snappy(duration: 0.18), value: isConfirmingApprove)
+        .animation(.snappy(duration: 0.18), value: expandedTestIDs)
     }
 
     private func failedTest(_ test: PipelineJobRowModel.FailedTest) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        let isExpanded = expandedTestIDs.contains(test.id)
+        return VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 6) {
                 Image(systemName: "xmark")
                     .font(.caption2.weight(.bold))
@@ -125,17 +128,38 @@ struct PipelineJobRow: View {
                     Tag(flakyText, tint: .orange, systemImage: "shuffle")
                         .hint("This test is in the flaky list of CircleCI Insights: it failed and then passed on a re-run")
                 }
+                if test.message != nil {
+                    Button {
+                        toggleMessage(of: test)
+                    } label: {
+                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 12, height: 12)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .hint(isExpanded ? "Hide the message" : "Show the message")
+                }
             }
-            if let message = test.message {
+            if isExpanded, let message = test.message {
                 Text(message)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
-                    .lineLimit(3)
                     .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.leading, 16)
             }
         }
         .padding(.leading, 24)
+    }
+
+    private func toggleMessage(of test: PipelineJobRowModel.FailedTest) {
+        if expandedTestIDs.contains(test.id) {
+            expandedTestIDs.remove(test.id)
+        } else {
+            expandedTestIDs.insert(test.id)
+        }
     }
 
     @ViewBuilder

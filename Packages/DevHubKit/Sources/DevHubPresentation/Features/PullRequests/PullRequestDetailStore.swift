@@ -494,7 +494,9 @@ final class PullRequestDetailStore {
         if let ciProjectCache {
             return ciProjectCache
         }
-        let slug = config.resolved.project.ci?.project ?? jobs.lazy.compactMap { CIWorkflowLink.parse($0.webURL?.absoluteString)?.slug }.first
+        let linkSlug = jobs.lazy.compactMap { CIWorkflowLink.parse($0.webURL?.absoluteString)?.slug }.first
+        let remoteSlug = remote.current.flatMap { $0.kind == .github ? "gh/\($0.path)" : nil }
+        let slug = config.resolved.project.ci?.project ?? linkSlug ?? remoteSlug
         let project = CIProject(checkoutPath: worktrees.mainCheckoutPath, slug: slug)
         if slug != nil {
             ciProjectCache = project

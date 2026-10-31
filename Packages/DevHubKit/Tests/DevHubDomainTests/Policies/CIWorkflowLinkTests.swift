@@ -34,4 +34,10 @@ import Testing
 
         #expect(link == CIWorkflowLink.Link(workflowID: workflowID, slug: nil))
     }
+
+    @Test func aCommitStatusLinkWithTheSingularSegmentGivesTheWorkflowWithoutASlug() {
+        let link = CIWorkflowLink.parse("https://app.circleci.example.com/workflow/\(workflowID)/job/22222222-3333-4444-5555-666666666666")
+
+        #expect(link == CIWorkflowLink.Link(workflowID: workflowID, slug: nil))
+    }
 }

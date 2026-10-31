@@ -578,4 +578,17 @@ import DevHubTestSupport
         #expect(store.ciWorkflows.isEmpty)
         #expect(store.ciToolState == nil)
     }
+
+    @Test func aLinkWithoutASlugFallsBackToTheGitHubRemote() async throws {
+        scriptCI()
+        harness.spies.git.webURLResult = CodeHost.gitHubSample.webURL
+        harness.spies.codeHost.detailsResult = .success(PullRequestDetails(description: "CI", threads: [], jobs: [
+            PipelineJob(name: "ci/circleci: unit-tests", stage: nil, webURL: URL(string: "https://app.circleci.example.com/workflow/\(workflowID)/job/22222222-3333-4444-5555-666666666666"), id: nil, status: .failed, ciWorkflowID: workflowID),
+        ]))
+
+        await store.load(7)
+        try await waitUntil { store.ciFlakyTests.isEmpty == false }
+
+        #expect(harness.spies.ci.calls.first == .toolState(project: CIProject(checkoutPath: harness.worktrees.mainCheckoutPath, slug: "gh/example/app")))
+    }
 }
