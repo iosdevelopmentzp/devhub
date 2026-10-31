@@ -229,6 +229,14 @@ struct WorktreeRow: View {
             appActions.openTerminal(at: model.path)
         }
         .disabled(model.canOpen == false)
+        Menu("Start AI Session Here", systemImage: "sparkles") {
+            ForEach(AIProvider.allCases, id: \.self) { provider in
+                Button(AISessionRowMapper.toolTitle(for: provider), systemImage: "sparkles") {
+                    appActions.startAISession(provider, at: model.path)
+                }
+            }
+        }
+        .disabled(model.canOpen == false)
         Divider()
         Button("Copy Path", systemImage: "doc.on.doc") {
             toaster.copy(model.path)

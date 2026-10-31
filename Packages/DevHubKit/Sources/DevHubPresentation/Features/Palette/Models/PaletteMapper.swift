@@ -7,7 +7,7 @@ enum PaletteMapper {
 
     static func items(from sources: PaletteSources, actionTitle: (CatalogAction) -> String) -> [PaletteItem] {
         tabItems(sources) + projectItems(sources) + actionItems(sources, title: actionTitle) + simulatorItems(sources) + branchItems(sources)
-            + worktreeItems(sources) + pullRequestItems(sources) + sessionItems(sources) + [keepAwakeItem(sources), settingsItem]
+            + worktreeItems(sources) + pullRequestItems(sources) + sessionItems(sources) + newSessionItems(sources) + [keepAwakeItem(sources), settingsItem]
     }
 
     static func matches(_ items: [PaletteItem], query: String) -> [PaletteItem] {
@@ -132,6 +132,20 @@ enum PaletteMapper {
                 systemImage: isFavorite ? "star.fill" : "sparkles",
                 section: "AI sessions",
                 command: .resumeSession(command: session.terminalCommand, folder: session.cwd, title: "Resumed \(AISessionRowMapper.title(for: session.provider)) session")
+            )
+        }
+    }
+
+    private static func newSessionItems(_ sources: PaletteSources) -> [PaletteItem] {
+        guard let project = sources.projects.first(where: { $0.id == sources.selectedProjectID }) else { return [] }
+        return AIProvider.allCases.map { provider in
+            PaletteItem(
+                id: "newsession:\(provider.rawValue)",
+                title: "Start \(AISessionRowMapper.toolTitle(for: provider)) in \(project.name)",
+                subtitle: "A new session in \(project.path.abbreviatingHome)",
+                systemImage: "plus.bubble",
+                section: "AI sessions",
+                command: .startSession(provider: provider, folder: project.path)
             )
         }
     }

@@ -43,7 +43,17 @@ import Testing
         #expect(commands.contains(.openFolder(WorktreeFixture.linked.path)))
         #expect(commands.contains(.showPullRequest(PullRequestSummaryFixture.open.iid)))
         #expect(commands.contains(.resumeSession(command: AISessionFixture.session.terminalCommand, folder: AISessionFixture.session.cwd, title: "Resumed Claude session")))
+        #expect(commands.contains(.startSession(provider: .claude, folder: ProjectSample.app.path)))
+        #expect(commands.contains(.startSession(provider: .copilot, folder: ProjectSample.app.path)))
         #expect(commands.last == .openSettings)
+    }
+
+    @Test func aNewSessionItemNamesTheToolAndTheProject() throws {
+        let item = try #require(items.first { $0.command == .startSession(provider: .claude, folder: ProjectSample.app.path) })
+
+        #expect(item.title == "Start Claude Code in \(ProjectSample.app.name)")
+        #expect(item.section == "AI sessions")
+        #expect(item.systemImage == "plus.bubble")
     }
 
     @Test func theCurrentBranchTheMainWorktreeAndTheTargetAreLeftOut() {
@@ -83,7 +93,7 @@ import Testing
         favored.sessions = [AISessionFixture.session, second]
         favored.favoriteSessionIDs = ["favorite"]
 
-        let sessions = PaletteMapper.items(from: favored) { $0.id }.filter { $0.section == "AI sessions" }
+        let sessions = PaletteMapper.items(from: favored) { $0.id }.filter { $0.id.hasPrefix("session:") }
 
         #expect(sessions.map(\.id) == ["session:favorite", "session:\(AISessionFixture.session.id)"])
         #expect(sessions.first?.systemImage == "star.fill")

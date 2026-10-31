@@ -39,6 +39,13 @@ enum AISessionRowMapper {
         }
     }
 
+    static func toolTitle(for provider: AIProvider) -> String {
+        switch provider {
+        case .copilot: "Copilot CLI"
+        case .claude: "Claude Code"
+        }
+    }
+
     private static func icon(for provider: AIProvider) -> String {
         switch provider {
         case .copilot: "chevron.left.forwardslash.chevron.right"

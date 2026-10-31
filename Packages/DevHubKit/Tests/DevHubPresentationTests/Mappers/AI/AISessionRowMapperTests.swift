@@ -78,4 +78,9 @@ import Testing
         #expect(plain.favoriteIcon == "star")
         #expect(plain.favoriteTint == .secondary)
     }
+
+    @Test func toolTitlesNameTheCommandLineTools() {
+        #expect(AISessionRowMapper.toolTitle(for: .claude) == "Claude Code")
+        #expect(AISessionRowMapper.toolTitle(for: .copilot) == "Copilot CLI")
+    }
 }

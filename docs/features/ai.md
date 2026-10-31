@@ -8,7 +8,7 @@ Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/AI/`, `Features/
 
 ### Session list
 
-1. **The toolbar:** the number of sessions, the provider filter (Copilot, Claude, Both), the scope (This project, All) and a refresh button.
+1. **The toolbar:** the number of sessions, the provider filter (Copilot, Claude, Both), the scope (This project, All), the "New" menu (a new Claude Code or Copilot CLI session in the project folder) and a refresh button.
 2. **The list.** Favorite sessions come first, in a "Favorites" section with a yellow star and a count. The other sessions are grouped by day: "Today", "Yesterday", then the weekday and date. The newest session is first.
 
 Each row shows:
@@ -55,9 +55,10 @@ The Claude line is always there. The Copilot line appears only when DevHub found
 | Copy resume command | Copies the command with the folder | `cd '<folder>' && claude --resume <id>` (or `copilot`) |
 | Copy session ID | Copies the ID | none |
 | Show folder in Finder | Opens the folder. Off when the folder is missing | none |
+| New → Claude Code in `<project>`, Copilot CLI in `<project>` (toolbar) | Opens the terminal of Settings in the project folder and starts a new session. The session appears in the list after its first prompt. A worktree row has the same items under "Start AI Session Here", for the worktree folder, and the ⌘K palette lists "Start Claude Code in `<project>`" | `claude` or `copilot` |
 | Refresh | Reads the sessions again | none |
 
-How Resume opens the terminal:
+How Resume and New open the terminal:
 
 1. DevHub writes a temporary `run-<uuid>.command` file into `<temporary folder>/DevHub/`. The file removes itself, changes to the folder and runs the command in an interactive login shell (`$SHELL -i -l -c …`). The shell stays open after the command.
 2. DevHub opens the file with the terminal app: `open -a <Terminal|iTerm2|Warp> <file>`, or `open -na Ghostty --args --working-directory=<folder> -e <file>`.

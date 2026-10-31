@@ -55,6 +55,16 @@ import Testing
         #expect(spies.opener.calls.isEmpty)
     }
 
+    @Test func startAISessionRunsTheToolInTheFolder() async throws {
+        let (ports, spies) = Ports.spies()
+        let assembly = spyAssembly(ports)
+
+        assembly.appActions.startAISession(.copilot, at: "/tmp/DevHubTests/wt")
+
+        try await waitUntil { spies.opener.calls == [.runInTerminal(AppSettings().terminal, path: "/tmp/DevHubTests/wt", command: "copilot")] }
+        try await waitUntil { assembly.activity.events.first?.title == "Started a Copilot session" }
+    }
+
     private func spyAssembly(_ ports: Ports) -> PresentationAssembly {
         PresentationAssembly(
             ports: ports,

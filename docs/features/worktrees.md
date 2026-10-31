@@ -85,6 +85,7 @@ Hover buttons, the same items in the context menu (right-click):
 | Open in Finder | — | `NSWorkspace.open` |
 | Open in Xcode | Opens `xcode.container` in the worktree, else the first `.xcworkspace`, else the first `.xcodeproj` | `open -a Xcode <container>` |
 | Open in Terminal | Opens the terminal app from Settings | `open -a <terminal> <path>` |
+| Start AI Session Here → Claude Code, Copilot CLI (menu) | Opens the terminal app from Settings in the worktree and starts a new session ([AI](ai.md)) | `claude` or `copilot` |
 | Copy Path, Copy Branch Name (menu) | — | — |
 | Run `<bootstrap script>` (menu) | When `git.worktrees.bootstrap` is set | see "Bootstrap" |
 | Config actions (menu) | Actions with the `worktrees.row` placement. They get `DEVHUB_WORKTREE_PATH`, `DEVHUB_BRANCH` and `DEVHUB_ROW_ID` (the path). Inputs open under the row | see [Placements](../extensions.md#33-placements) |

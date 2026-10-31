@@ -144,6 +144,8 @@ struct CommandPalette: View {
             appActions.showPullRequest(iid: iid)
         case let .resumeSession(command, folder, title):
             appActions.runInTerminal(command, at: folder, title: title)
+        case let .startSession(provider, folder):
+            appActions.startAISession(provider, at: folder)
         case .openSettings:
             appActions.openSettings()
         case .toggleKeepAwake:
