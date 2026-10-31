@@ -9,7 +9,8 @@ enum GlabGraphQLQueries {
     divergedFromTargetBranch squashOnMerge shouldRemoveSourceBranch diffHeadSha autoMergeEnabled \
     userPermissions { canMerge canApprove } \
     headPipeline { status updatedAt duration finishedAt failedJobsCount detailedStatus { detailsPath } } \
-    approvedBy { nodes { username } } labels { nodes { title } } assignees { nodes { username } } reviewers { nodes { username } } }
+    approvedBy { nodes { username } } labels { nodes { title } } assignees { nodes { username } } \
+    reviewers { nodes { username mergeRequestInteraction { reviewState } } } }
     """
 
     private static let connection = "(state: $state, sort: UPDATED_DESC, first: 100, after: $after) { \(fields) }"
@@ -27,8 +28,8 @@ enum GlabGraphQLQueries {
 
     static let details = """
     query($path: ID!, $iid: String!) { project(fullPath: $path) { mergeRequest(iid: $iid) { description \
-    headPipeline { duration jobs { nodes { id name status webPath stage { name } } } } \
-    discussions(first: 100) { nodes { id resolvable resolved notes(first: 100) { nodes { id body system author { username } \
+    headPipeline { duration jobs { nodes { id name status webPath duration allowFailure failureMessage stage { name } } } } \
+    discussions(first: 100) { nodes { id resolvable resolved notes(first: 100) { nodes { id body system createdAt author { username } \
     position { filePath newLine oldLine } } } } } } } }
     """
 

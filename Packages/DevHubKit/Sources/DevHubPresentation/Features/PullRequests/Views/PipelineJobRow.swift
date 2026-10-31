@@ -25,6 +25,17 @@ struct PipelineJobRow: View {
                 Text(model.statusText)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+                if let durationText = model.durationText {
+                    Text(durationText)
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                        .fixedSize()
+                        .hint("How long the \(words.job) ran")
+                }
+                if let allowedToFailText = model.allowedToFailText {
+                    Tag(allowedToFailText, tint: .orange, systemImage: "exclamationmark.triangle")
+                        .hint("A failure of this \(words.job) does not fail the \(words.checks)")
+                }
                 Spacer(minLength: 4)
                 if model.isBusy {
                     ProgressView()
@@ -46,6 +57,14 @@ struct PipelineJobRow: View {
                         appActions.open(model.url)
                     }
                 }
+            }
+            if let failureText = model.failureText {
+                Text(failureText)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.leading, 24)
             }
             if model.isLogOpen, let log = model.log {
                 logView(log)

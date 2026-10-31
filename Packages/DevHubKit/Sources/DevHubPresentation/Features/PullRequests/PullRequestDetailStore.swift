@@ -14,6 +14,7 @@ final class PullRequestDetailStore {
     private(set) var busyThreads: Set<ReviewThread.ID> = []
     private(set) var showsThreadsInDiff = true
     private(set) var openDiffThreads: Set<ReviewThread.ID> = []
+    private(set) var shownHiddenFiles: Set<PullRequestSummary.ID> = []
     private(set) var commentDrafts: [PullRequestSummary.ID: String] = [:]
     private(set) var busyComments: Set<PullRequestSummary.ID> = []
     private(set) var lineComment: LineCommentDraft?
@@ -52,6 +53,7 @@ final class PullRequestDetailStore {
             expandedFiles = [:]
             viewedFiles = [:]
             openDiffThreads = []
+            shownHiddenFiles = []
             commentDrafts = [:]
             lineComment = nil
             jobLogs = [:]
@@ -76,6 +78,7 @@ final class PullRequestDetailStore {
             busyThreads: busyThreads,
             showsThreadsInDiff: showsThreadsInDiff,
             openDiffThreads: openDiffThreads,
+            showsHiddenFiles: shownHiddenFiles.contains(id),
             commentDraft: commentDrafts[id] ?? "",
             isCommentBusy: busyComments.contains(id),
             lineComment: lineComment?.requestID == id ? lineComment : nil,
@@ -99,15 +102,21 @@ final class PullRequestDetailStore {
         clearFocus(of: id)
     }
 
-    func expandAllFiles(of id: PullRequestSummary.ID) {
+    func expandAllFiles(_ fileIDs: Set<PullRequestFileDiff.ID>, of id: PullRequestSummary.ID) {
         let viewed = viewedFiles[id] ?? []
-        expandedFiles[id] = Set((diffs[id] ?? []).map(\.id)).subtracting(viewed)
+        expandedFiles[id] = expandedFiles(of: id).union(fileIDs).subtracting(viewed)
         clearFocus(of: id)
     }
 
     func collapseAllFiles(of id: PullRequestSummary.ID) {
         expandedFiles[id] = []
         clearFocus(of: id)
+    }
+
+    func toggleHiddenFiles(of id: PullRequestSummary.ID) {
+        if shownHiddenFiles.remove(id) == nil {
+            shownHiddenFiles.insert(id)
+        }
     }
 
     func toggleViewed(_ fileID: PullRequestFileDiff.ID, of id: PullRequestSummary.ID) {

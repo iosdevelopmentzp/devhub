@@ -20,13 +20,17 @@ struct PullRequestDetailsModel: Equatable {
         var canCancelPipeline: Bool
         var failedJobs: [JobLink]
         var jobsTitle: String
-        var jobs: [PipelineJobRowModel]
+        var jobGroups: [PipelineJobGroupModel]
+        var reviewLines: [PullRequestReviewLineModel]
         var description: AttributedString?
         var threadsTitle: String
         var canFixThreads: Bool
         var threads: [ReviewThreadRowModel]
         var commentBox: PullRequestCommentBoxModel
         var filesTitle: String
+        var hiddenFilesTitle: String?
+        var hiddenFilesHint: String?
+        var showsHiddenFiles: Bool
         var canExpandAllFiles: Bool
         var canCollapseAllFiles: Bool
         var hasThreadsInDiff: Bool
@@ -45,13 +49,20 @@ struct PullRequestDetailsModel: Equatable {
                 canCancelPipeline: true,
                 failedJobs: [],
                 jobsTitle: "Pipeline 1 · 1 failed",
-                jobs: [.preview],
+                jobGroups: [.preview],
+                reviewLines: [
+                    .preview,
+                    PullRequestReviewLineModel(id: "waiting", title: "Waiting for", tags: [TagModel("sam", tint: .orange, systemImage: "hourglass", hint: "Review requested from sam, no answer yet")]),
+                ],
                 description: AttributedString("Adds paid calls.\n\nTicket: ABC-2324"),
                 threadsTitle: "Open threads 1",
                 canFixThreads: true,
                 threads: [.preview],
                 commentBox: .preview,
                 filesTitle: "Files 1 · +2 −1",
+                hiddenFilesTitle: "Show 2 hidden",
+                hiddenFilesHint: "2 files match git.pullRequests.hiddenFiles. Click to show them.",
+                showsHiddenFiles: false,
                 canExpandAllFiles: false,
                 canCollapseAllFiles: true,
                 hasThreadsInDiff: true,

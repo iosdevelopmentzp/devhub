@@ -31,15 +31,24 @@ import DevHubTestSupport
             isTooLarge: true
         ),
     ]
+    private let testFile = PullRequestFileDiff(
+        oldPath: "AppTests/LoginTests.swift",
+        path: "AppTests/LoginTests.swift",
+        kind: .added,
+        additions: 10,
+        deletions: 0,
+        diff: GitDiff(lines: ["@@ -0,0 +1 @@", "+x"], droppedLines: 0, isBinary: false),
+        isTooLarge: false
+    )
 
     @Test func loadingAndFailure() {
-        #expect(PullRequestDetailsMapper.model(summary: summary, details: nil, diffs: nil, error: nil, review: review(expanded: [], focus: nil, busy: []), words: .gitLab).content == .loading)
-        #expect(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: nil, error: nil, review: review(expanded: [], focus: nil, busy: []), words: .gitLab).content == .loading)
-        #expect(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: "boom", review: review(expanded: [], focus: nil, busy: []), words: .gitLab).content == .failure("boom"))
+        #expect(PullRequestDetailsMapper.model(summary: summary, details: nil, diffs: nil, error: nil, review: review(expanded: [], focus: nil, busy: []), context: context()).content == .loading)
+        #expect(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: nil, error: nil, review: review(expanded: [], focus: nil, busy: []), context: context()).content == .loading)
+        #expect(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: "boom", review: review(expanded: [], focus: nil, busy: []), context: context()).content == .failure("boom"))
     }
 
     @Test func loadedDetails() throws {
-        let loaded = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: ["a.swift"], focus: nil, busy: []), words: .gitLab))
+        let loaded = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: ["a.swift"], focus: nil, busy: []), context: context()))
 
         #expect(loaded.description.map { String($0.characters) } == "Adds login.")
         #expect(loaded.threadsTitle == "Open threads 1")
@@ -47,11 +56,12 @@ import DevHubTestSupport
         #expect(loaded.threads.map(\.id) == ["1"])
         #expect(loaded.threads.map(\.canShowInDiff) == [false])
         #expect(loaded.threads.map(\.isBusy) == [false])
-        #expect(try self.loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: [], focus: nil, busy: ["1"]), words: .gitLab)).threads[0].isBusy)
+        #expect(try self.loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: [], focus: nil, busy: ["1"]), context: context())).threads[0].isBusy)
         #expect(loaded.threads[0].noteURL == URL(string: "https://gitlab.example.com/team/app/-/merge_requests/7#note_9"))
         #expect(loaded.pipelineTag?.text == "pipeline running")
         #expect(loaded.pipelineURL == URL(string: "https://gitlab.example.com/p/1"))
         #expect(loaded.filesTitle == "Files 2 · +5 −1")
+        #expect(loaded.hiddenFilesTitle == nil)
         #expect(loaded.canExpandAllFiles)
         #expect(loaded.canCollapseAllFiles)
         #expect(loaded.hasThreadsInDiff == false)
@@ -64,7 +74,7 @@ import DevHubTestSupport
     @Test func emptyDescriptionAndNoThreads() throws {
         let empty = PullRequestDetails(description: "  \n", threads: [])
 
-        let loaded = try loaded(PullRequestDetailsMapper.model(summary: summary, details: empty, diffs: [], error: nil, review: review(expanded: [], focus: nil, busy: []), words: .gitLab))
+        let loaded = try loaded(PullRequestDetailsMapper.model(summary: summary, details: empty, diffs: [], error: nil, review: review(expanded: [], focus: nil, busy: []), context: context()))
 
         #expect(loaded.description == nil)
         #expect(loaded.threadsTitle == "No open threads")
@@ -73,9 +83,9 @@ import DevHubTestSupport
     }
 
     @Test func viewedFilesCountInTheTitleAndInExpandAll() throws {
-        let allOpen = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: ["a.swift", "b.png"]), words: .gitLab))
-        let viewed = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: ["a.swift"], viewed: ["b.png"]), words: .gitLab))
-        let closed = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: []), words: .gitLab))
+        let allOpen = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: ["a.swift", "b.png"]), context: context()))
+        let viewed = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: ["a.swift"], viewed: ["b.png"]), context: context()))
+        let closed = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: []), context: context()))
 
         #expect(allOpen.canExpandAllFiles == false)
         #expect(viewed.filesTitle == "Files 2 · +5 −1 · 1 viewed")
@@ -83,6 +93,56 @@ import DevHubTestSupport
         #expect(viewed.files.map(\.isViewed) == [false, true])
         #expect(closed.canCollapseAllFiles == false)
         #expect(closed.canExpandAllFiles)
+    }
+
+    @Test func filesThatMatchTheHiddenPatternsStayOutOfTheListUntilShown() throws {
+        let patterns = ["*Tests/*", "*.png"]
+        let hidden = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files + [testFile], error: nil, review: review(expanded: ["AppTests/LoginTests.swift"]), context: context(hiddenFiles: patterns)))
+        var shownState = review(expanded: ["AppTests/LoginTests.swift"])
+        shownState.showsHiddenFiles = true
+        let shown = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files + [testFile], error: nil, review: shownState, context: context(hiddenFiles: patterns)))
+
+        #expect(hidden.files.map(\.id) == ["a.swift"])
+        #expect(hidden.filesTitle == "Files 1 · +2 −1")
+        #expect(hidden.hiddenFilesTitle == "Show 2 hidden")
+        #expect(hidden.hiddenFilesHint?.contains("2 files") == true)
+        #expect(hidden.showsHiddenFiles == false)
+        #expect(hidden.canExpandAllFiles)
+        #expect(hidden.canCollapseAllFiles == false)
+        #expect(shown.files.map(\.id) == ["a.swift", "b.png", "AppTests/LoginTests.swift"])
+        #expect(shown.filesTitle == "Files 3 · +15 −1")
+        #expect(shown.hiddenFilesTitle == "Hide 2")
+        #expect(shown.showsHiddenFiles)
+        #expect(shown.canCollapseAllFiles)
+    }
+
+    @Test func aThreadOnAHiddenFileCannotBeShownInTheDiff() throws {
+        let thread = ReviewThread(id: "t", noteID: nil, author: "sam", body: "Test this", filePath: "AppTests/LoginTests.swift", line: 1, isOnOldLine: false, replies: [])
+        let withThread = PullRequestDetails(description: "", threads: [thread])
+
+        let hidden = try loaded(PullRequestDetailsMapper.model(summary: summary, details: withThread, diffs: [testFile], error: nil, review: review(expanded: []), context: context(hiddenFiles: ["*Tests/*"])))
+        let visible = try loaded(PullRequestDetailsMapper.model(summary: summary, details: withThread, diffs: [testFile], error: nil, review: review(expanded: []), context: context(hiddenFiles: [])))
+
+        #expect(hidden.threads.map(\.canShowInDiff) == [false])
+        #expect(hidden.hasThreadsInDiff == false)
+        #expect(visible.threads.map(\.canShowInDiff) == [true])
+        #expect(visible.hasThreadsInDiff)
+    }
+
+    @Test func reviewLinesAndJobGroupsComeFromTheSummaryAndTheJobs() throws {
+        let reviewed = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, approvedBy: ["kim"], reviewers: ["kim", "lee"])
+        let withJobs = PullRequestDetails(description: "", threads: [], jobs: [PipelineJob(name: "unit", stage: "test", webURL: nil, id: "2", status: .success)])
+
+        let loaded = try loaded(PullRequestDetailsMapper.model(summary: reviewed, details: withJobs, diffs: [], error: nil, review: review(expanded: []), context: context()))
+
+        #expect(loaded.reviewLines.map(\.title) == ["Approved by", "Waiting for"])
+        #expect(loaded.reviewLines[1].tags.map(\.text) == ["lee"])
+        #expect(loaded.jobGroups.map(\.title) == ["test"])
+        #expect(loaded.jobsTitle == "Pipeline 1")
+    }
+
+    private func context(hiddenFiles: [String] = []) -> PullRequestRowContext {
+        PullRequestRowContext(username: "me", scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: true, ticket: .standard, words: .gitLab, staleDays: 14, hiddenFiles: hiddenFiles)
     }
 
     private func review(
@@ -113,7 +173,7 @@ import DevHubTestSupport
             pipelineDuration: 540
         )
 
-        let loaded = try loaded(PullRequestDetailsMapper.model(summary: running, details: withJobs, diffs: [], error: nil, review: review(expanded: [], focus: nil, busy: []), words: .gitLab))
+        let loaded = try loaded(PullRequestDetailsMapper.model(summary: running, details: withJobs, diffs: [], error: nil, review: review(expanded: [], focus: nil, busy: []), context: context()))
 
         #expect(loaded.failedJobs == [
             PullRequestDetailsModel.JobLink(title: "build-ios (test)", url: URL(string: "https://gitlab.example.com/j/1")),
@@ -126,9 +186,9 @@ import DevHubTestSupport
     @Test func aPipelineWithoutIDOrFinishedCannotBeCancelled() throws {
         let finished = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, pipeline: PipelineInfo(status: .success, webURL: nil, updatedAt: nil, id: 90))
 
-        #expect(try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: [], focus: nil, busy: []), words: .gitLab)).canCancelPipeline == false)
-        #expect(try loaded(PullRequestDetailsMapper.model(summary: finished, details: details, diffs: files, error: nil, review: review(expanded: [], focus: nil, busy: []), words: .gitLab)).canCancelPipeline == false)
-        #expect(try loaded(PullRequestDetailsMapper.model(summary: finished, details: details, diffs: files, error: nil, review: review(expanded: [], focus: nil, busy: []), words: .gitLab)).pipelineDurationText == nil)
+        #expect(try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: [], focus: nil, busy: []), context: context())).canCancelPipeline == false)
+        #expect(try loaded(PullRequestDetailsMapper.model(summary: finished, details: details, diffs: files, error: nil, review: review(expanded: [], focus: nil, busy: []), context: context())).canCancelPipeline == false)
+        #expect(try loaded(PullRequestDetailsMapper.model(summary: finished, details: details, diffs: files, error: nil, review: review(expanded: [], focus: nil, busy: []), context: context())).pipelineDurationText == nil)
     }
 
     @Test func theCommentBoxNeedsTextAndOffersRequestChangesOnlyWhenAllowed() {

@@ -84,11 +84,30 @@ import DevHubTestSupport
         await store.load(7)
         store.toggleViewed("b.swift", of: 7)
 
-        store.expandAllFiles(of: 7)
+        store.expandAllFiles(["a.swift", "b.swift"], of: 7)
         #expect(store.expandedFiles(of: 7) == ["a.swift"])
 
         store.collapseAllFiles(of: 7)
         #expect(store.expandedFiles(of: 7).isEmpty)
+    }
+
+    @Test func expandAllOpensOnlyTheListedFilesAndKeepsTheOpenOnes() {
+        store.toggleFile("c.swift", of: 7)
+
+        store.expandAllFiles(["a.swift"], of: 7)
+
+        #expect(store.expandedFiles(of: 7) == ["a.swift", "c.swift"])
+    }
+
+    @Test func hiddenFilesShowPerRequestUntilToggledBack() {
+        #expect(store.review(of: 7).showsHiddenFiles == false)
+
+        store.toggleHiddenFiles(of: 7)
+        #expect(store.review(of: 7).showsHiddenFiles)
+        #expect(store.review(of: 8).showsHiddenFiles == false)
+
+        store.toggleHiddenFiles(of: 7)
+        #expect(store.review(of: 7).showsHiddenFiles == false)
     }
 
     @Test func markingAFileViewedFoldsItAndUnmarkingKeepsItFolded() {

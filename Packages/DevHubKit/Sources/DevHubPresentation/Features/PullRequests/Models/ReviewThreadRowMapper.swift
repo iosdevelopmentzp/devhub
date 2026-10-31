@@ -1,5 +1,6 @@
 import Foundation
 import DevHubDomain
+import DevHubUI
 
 enum ReviewThreadRowMapper {
 
@@ -12,11 +13,12 @@ enum ReviewThreadRowMapper {
         return ReviewThreadRowModel(
             id: thread.id,
             author: thread.author,
+            timeText: thread.createdAt?.relativeDescription,
             location: shortLocation,
             locationHint: fullLocation,
-            body: thread.body,
+            body: CommentText.attributed(thread.body),
             repliesText: repliesText(thread.replyCount),
-            replies: thread.replies.enumerated().map { PullRequestNoteModel(id: $0.offset, author: $0.element.author, body: $0.element.body) },
+            replies: thread.replies.enumerated().map { PullRequestNoteModel(id: $0.offset, author: $0.element.author, timeText: $0.element.createdAt?.relativeDescription, body: CommentText.attributed($0.element.body)) },
             filePath: thread.filePath,
             line: thread.line,
             isOnOldLine: thread.isOnOldLine,

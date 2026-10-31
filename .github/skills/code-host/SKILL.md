@@ -71,6 +71,18 @@ The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsS
 | `jobLog`, `retryJob` | `GhClient.log` (`--allow-escape-sequences`) on `actions/jobs/<id>/logs`; REST `POST actions/jobs/<id>/rerun`. The job ID is the `databaseId` of an Actions `CheckRun` | REST `jobs/<id>/trace`; REST `POST jobs/<id>/retry`. The ID is the number at the end of the GraphQL job ID |
 | `addLineComment` | REST `POST pulls/<n>/comments` with `commit_id`, `path`, `line`, `side` (`lineCommentFields`) | REST `GET merge_requests/<n>` for `diff_refs` (`GlabDiffRefsParser`), then `POST …/discussions` with `position[…]` (`lineCommentFields`) |
 
+Review and job facts in the values:
+
+| Value | GitHub | GitLab |
+|---|---|---|
+| `PullRequestSummary.approvedBy`, `changesRequestedBy` | `latestReviews` with state `APPROVED` or `CHANGES_REQUESTED` | `approvedBy`; `reviewers[].mergeRequestInteraction.reviewState == REQUESTED_CHANGES` |
+| `PullRequestSummary.reviewers`, `assignees` | `reviewRequests`, `assignees` | `reviewers`, `assignees` |
+| `ReviewThread.createdAt`, `PullRequestNote.createdAt` | `createdAt` of the review comment | `createdAt` of the note |
+| `PipelineJob.stage` | the workflow name (`checkSuite.workflowRun.workflow.name`) | the stage name |
+| `PipelineJob.duration`, `allowsFailure`, `failureMessage` | `completedAt - startedAt`; never; the check run `title` when it failed and differs from the name | `duration`, `allowFailure`, `failureMessage` |
+
+`PullRequestReviewMapper` turns the review facts into the "Approved by", "Changes requested", "Waiting for" and "Assigned to" lines of the details. `HiddenFilePolicy` (Domain) and `git.pullRequests.hiddenFiles` decide which files the details hide until "Show N hidden".
+
 ### Clients and errors
 
 - `GhClient` and `GlabClient` run the tool through `ShellRunner`, so every call appears in the command log and the Output panel. Never start `gh` or `glab` in another way.
@@ -144,6 +156,7 @@ Other repository facts: `squashOnMerge` (GitHub `viewerDefaultMergeMethod` is `S
 | `git.host.kind` | `github` or `gitlab`; set it for GitHub Enterprise on a host without `github` in the name |
 | `git.host.name` | the value for `--hostname` |
 | `git.pullRequests.targets`, `template`, `staleDays`, `defaults.*` | the new request form and the `stale` tag (`PullRequestSettings`) |
+| `git.pullRequests.hiddenFiles` | glob patterns of the files hidden from the details file list (`PullRequestSettings.hiddenFiles`, `HiddenFilePolicy`); the default hides tests, Xcode project files and lock files |
 | `ai.reviewCommand` | "Fix threads with AI" |
 | `when.host` | shows a config action only for one kind (`ActionCondition.host`, `ActionConditionFacts.hostKind`) |
 | the `pullRequests.row` placement | config actions in the row menu, with `DEVHUB_PR_NUMBER` and `DEVHUB_PR_URL` |

@@ -13,4 +13,9 @@ import Testing
     func searchBuildsTheQualifiers(scope: PullRequestScope, state: PullRequestStateFilter, expected: String) {
         #expect(GhGraphQLQueries.search(PullRequestQuery(scope: scope, state: state), repository: "example/app") == expected)
     }
+
+    @Test func theChecksCarryTheirTitleAndWorkflow() {
+        #expect(GhGraphQLQueries.list.contains("... on CheckRun { databaseId name title conclusion status detailsUrl startedAt completedAt checkSuite { workflowRun { databaseId workflow { name } } } }"))
+        #expect(GhGraphQLQueries.details.contains("comments(first: 100) { nodes { databaseId body author { login } createdAt } }"))
+    }
 }

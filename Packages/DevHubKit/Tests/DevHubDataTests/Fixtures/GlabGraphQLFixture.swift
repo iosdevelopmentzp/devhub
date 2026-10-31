@@ -15,7 +15,9 @@ enum GlabGraphQLFixture {
        "userPermissions":{"canMerge":true,"canApprove":false},
        "headPipeline":{"status":"FAILED","updatedAt":"2026-01-02T03:00:00Z","duration":540,
          "finishedAt":"2026-01-02T03:09:00Z","failedJobsCount":2,"detailedStatus":{"detailsPath":"/team/app/-/pipelines/9"}},
-       "approved":true,"approvedBy":{"nodes":[{"username":"kim"}]},"reviewers":{"nodes":[{"username":"me"}]},"assignees":{"nodes":[{"username":"sam"}]},
+       "approved":true,"approvedBy":{"nodes":[{"username":"kim"}]},
+       "reviewers":{"nodes":[{"username":"me","mergeRequestInteraction":{"reviewState":"REQUESTED_CHANGES"}},{"username":"kim","mergeRequestInteraction":{"reviewState":"APPROVED"}},{"username":"lee"}]},
+       "assignees":{"nodes":[{"username":"sam"}]},
        "labels":{"nodes":[{"title":"feature"}]}},
       {"iid":"20","title":"Old","state":"merged","sourceBranch":"old","targetBranch":"main","headPipeline":null,
        "mergedAt":"2026-01-01T09:00:00Z","mergeUser":{"username":"kim"}}
@@ -47,15 +49,15 @@ enum GlabGraphQLFixture {
     static let details = Data("""
     {"data":{"project":{"mergeRequest":{"description":"Adds **login**.",
       "headPipeline":{"duration":540,"jobs":{"nodes":[
-        {"id":"gid://gitlab/Ci::Build/71","name":"build-ios","status":"FAILED","webPath":"/team/app/-/jobs/71","stage":{"name":"test"}},
-        {"id":"gid://gitlab/Ci::Build/70","name":"unit","status":"SUCCESS","webPath":"/team/app/-/jobs/70","stage":{"name":"test"}},
-        {"name":"lint","webPath":null,"stage":null},
+        {"id":"gid://gitlab/Ci::Build/71","name":"build-ios","status":"FAILED","webPath":"/team/app/-/jobs/71","duration":130,"allowFailure":false,"failureMessage":"script failure","stage":{"name":"test"}},
+        {"id":"gid://gitlab/Ci::Build/70","name":"unit","status":"SUCCESS","webPath":"/team/app/-/jobs/70","duration":310,"allowFailure":false,"failureMessage":null,"stage":{"name":"test"}},
+        {"name":"lint","webPath":null,"allowFailure":true,"failureMessage":"","stage":null},
         {"name":null,"webPath":"/team/app/-/jobs/73","stage":{"name":"test"}}
       ]}},
       "discussions":{"nodes":[
       {"id":"d1","resolvable":true,"resolved":false,"notes":{"nodes":[
-        {"id":"gid://gitlab/DiffNote/11","body":"Move this","system":false,"author":{"username":"sam"},"position":{"filePath":"App/Login.swift","newLine":null,"oldLine":12}},
-        {"body":"Done?","system":false,"author":{"username":"me"},"position":null},
+        {"id":"gid://gitlab/DiffNote/11","body":"Move this","system":false,"createdAt":"2026-01-02T03:00:00Z","author":{"username":"sam"},"position":{"filePath":"App/Login.swift","newLine":null,"oldLine":12}},
+        {"body":"Done?","system":false,"createdAt":"2026-01-02T04:00:00Z","author":{"username":"me"},"position":null},
         {"body":"changed the line","system":true,"author":{"username":"me"},"position":null}
       ]}},
       {"id":"d2","resolvable":true,"resolved":true,"notes":{"nodes":[{"body":"ok","system":false,"author":{"username":"kim"},"position":null}]}},

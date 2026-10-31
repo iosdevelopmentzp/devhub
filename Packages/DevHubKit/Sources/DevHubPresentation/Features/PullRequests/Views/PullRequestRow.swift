@@ -93,40 +93,9 @@ struct PullRequestRow: View {
                         .lineLimit(1)
                         .hintWhenTruncated(model.title)
                 }
-                if isNarrow {
-                    narrowFacts
-                } else {
-                    facts
-                }
+                PullRequestFactsLine(model: model, isNarrow: isNarrow)
                 if model.hasTags {
-                    FlowLayout(spacing: 6) {
-                        if let ticket = model.ticket {
-                            TicketChip(model: ticket)
-                        }
-                        if let pipeline = model.pipelineTag {
-                            Button {
-                                appActions.open(model.pipelineURL)
-                            } label: {
-                                ModelTag(model: pipeline)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        ForEach(model.tags, id: \.self) { tag in
-                            ModelTag(model: tag, isPlain: model.usesPlainTags)
-                        }
-                        ForEach(model.labelTags, id: \.self) { tag in
-                            if let onLabel {
-                                Button {
-                                    onLabel(tag.text)
-                                } label: {
-                                    ModelTag(model: tag, isPlain: model.usesPlainTags)
-                                }
-                                .buttonStyle(.plain)
-                            } else {
-                                ModelTag(model: tag, isPlain: model.usesPlainTags)
-                            }
-                        }
-                    }
+                    PullRequestTagsFlow(model: model, onLabel: onLabel)
                 }
             }
             Spacer(minLength: 4)
@@ -137,73 +106,6 @@ struct PullRequestRow: View {
                     .controlSize(.small)
             }
         }
-    }
-
-    private var facts: some View {
-        HStack(spacing: 6) {
-            author
-            if let dateText = model.dateText {
-                Text(dateText)
-                    .font(.caption2.weight(.medium))
-                    .fixedSize()
-                    .hint(model.dateHint)
-            }
-            branches
-            if let statsText = model.statsText {
-                Text(statsText)
-                    .font(.caption2.monospacedDigit())
-                    .lineLimit(1)
-                    .fixedSize()
-            }
-        }
-        .foregroundStyle(.secondary)
-    }
-
-    private var narrowFacts: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 6) {
-                author
-                if let dateText = model.dateText {
-                    Text(dateText)
-                        .font(.caption2.weight(.medium))
-                        .lineLimit(1)
-                        .hint(model.dateHint)
-                }
-            }
-            HStack(spacing: 6) {
-                branches
-            }
-        }
-        .foregroundStyle(.secondary)
-    }
-
-    @ViewBuilder
-    private var author: some View {
-        if model.author.isEmpty == false {
-            Label(model.author, systemImage: "person.crop.circle.fill")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(model.authorTint?.color ?? .primary)
-                .lineLimit(1)
-                .fixedSize()
-                .hint(model.authorHint)
-        }
-    }
-
-    @ViewBuilder
-    private var branches: some View {
-        Text(model.sourceBranch)
-            .font(.caption2.monospaced())
-            .lineLimit(1)
-            .truncationMode(.middle)
-            .copyOnClick(model.sourceBranch, label: model.sourceBranch)
-        Image(systemName: "arrow.right")
-            .font(.system(size: 8, weight: .semibold))
-        Text(model.targetBranch)
-            .font(.caption2.monospaced())
-            .lineLimit(1)
-            .truncationMode(.middle)
-            .layoutPriority(1)
-            .copyOnClick(model.targetBranch, label: model.targetBranch)
     }
 
     @ViewBuilder

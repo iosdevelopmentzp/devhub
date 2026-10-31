@@ -48,13 +48,14 @@ The header search filters the loaded rows by title, number, author, branches and
 ### Details
 
 1. The checks or pipeline tag (click opens it in the browser), the duration, "Cancel" while it runs, and "Open in Window".
-2. The checks or jobs of the last commit, failed first, then running, waiting and passed. Each row shows the status, the name (and the GitLab stage) and buttons: the log icon shows the last 200 lines of the log inside DevHub (timestamps, colours and tokens removed, with Copy Log); Retry runs a failed or cancelled job again; the globe opens it in the browser. Log and Retry need a GitHub Actions job or a GitLab job; an external status check has only the link. Without the job list (an old answer), the failed jobs show as links.
-3. The description.
-4. The review threads: author, text, file and line, replies. Each thread has Reply, Resolve, "Show in diff", "Open file at this line" and "Open in browser".
-5. A comment box: "Comment" (⌘Return) posts a comment on the request. "Request Changes" sends the text as a review that asks for changes; it shows only on GitHub, on an open request by someone else. The text stays in the box until the post works.
-6. The changed files. A click on a file shows its diff. Hover a diff line and click the bubble with a plus, or right-click the line and choose "Comment on This Line…": a box opens under the line, and "Comment" (⌘Return) starts a new review thread there. Esc closes the box. The text stays when the post fails. Threads can show under their line in the diff. A "Viewed" box folds the file and greys its name.
+2. The checks or jobs of the last commit, grouped by stage (GitLab) or by workflow (GitHub). A group header shows the state of the group; inside, failed jobs come first, then running, waiting and passed. Each row shows the status, the name, how long the job ran, an "allowed to fail" mark, and the failure message (GitLab) or the check title (GitHub) when it failed. Buttons: the log icon shows the last 200 lines of the log inside DevHub (timestamps, colours and tokens removed, with Copy Log); Retry runs a failed or cancelled job again; the globe opens it in the browser. Log and Retry need a GitHub Actions job or a GitLab job; an external status check has only the link. Without the job list (an old answer), the failed jobs show as links.
+3. The review block: "Approved by", "Changes requested", "Waiting for" (a requested reviewer without an answer) and "Assigned to", one tag per person; "you" stands for your own account. An open request without reviewers says "none requested". GitHub takes the latest review of each person and the review requests; GitLab takes the review state of each reviewer.
+4. The description.
+5. The review threads: author, time, file and line, the full text with inline markdown (selectable), and the replies behind "N replies". Each thread has Reply, Resolve, "Show in diff", "Open file at this line" and "Open in browser".
+6. A comment box: "Comment" (⌘Return) posts a comment on the request. "Request Changes" sends the text as a review that asks for changes; it shows only on GitHub, on an open request by someone else. The text stays in the box until the post works.
+7. The changed files. Files that match `git.pullRequests.hiddenFiles` (tests, Xcode project files and lock files by default) are not listed; "Show N hidden" in the header lists them, "Hide N" hides them again, per request until DevHub quits. The counts in the header follow the listed files. A click on a file shows its diff. Hover a diff line and click the bubble with a plus, or right-click the line and choose "Comment on This Line…": a box opens under the line, and "Comment" (⌘Return) starts a new review thread there. Esc closes the box. The text stays when the post fails. Threads can show under their line in the diff; a thread opened there shows its replies at once. "Expand All" opens the listed files that are not viewed. A "Viewed" box folds the file and greys its name.
 
-"Open in Window" opens the request in its own window. The window stays open after the panel closes.
+"Open in Window" opens the request in its own window. The window stays open after the panel closes. In the side-by-side layout the details header repeats the author, the dates, the branches, the counts and the tags of the request.
 
 ### Other places that use the same data
 
@@ -173,6 +174,7 @@ When the tool is not logged in, the list shows the command `gh auth login --host
 | `git.pullRequests.targets` | The order of the target picker | [`project.json`](../extensions.md#2-projectjson) |
 | `git.pullRequests.template` | The template of a new description | [`project.json`](../extensions.md#2-projectjson) |
 | `git.pullRequests.staleDays` | Days without an update before the `stale` tag (default 14) | [`project.json`](../extensions.md#2-projectjson) |
+| `git.pullRequests.hiddenFiles` | Patterns of the files that the details hide until "Show N hidden" (default: tests, Xcode project files, lock files) | [`project.json`](../extensions.md#2-projectjson) |
 | `git.pullRequests.defaults.draft`, `.deleteSourceBranch`, `.squash` | The boxes of the new request form. The last two apply only on GitLab | [`project.json`](../extensions.md#2-projectjson) |
 | `git.commitPrefix.pattern`, `git.ticketURL` | The ticket chip and the ticket key in a new title | [`project.json`](../extensions.md#2-projectjson) |
 | `ai.reviewCommand` | The command of "Fix threads with AI" | [`project.json`](../extensions.md#2-projectjson) |

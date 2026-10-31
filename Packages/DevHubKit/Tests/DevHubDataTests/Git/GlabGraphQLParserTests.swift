@@ -37,7 +37,8 @@ import Testing
             approvedBy: ["kim"],
             labels: ["feature"],
             assignees: ["sam"],
-            reviewers: ["me"],
+            reviewers: ["me", "kim", "lee"],
+            changesRequestedBy: ["me"],
             createdAt: ISO8601.date(from: "2025-12-20T10:00:00Z"),
             mergedAt: nil,
             closedAt: nil,
@@ -114,7 +115,17 @@ import Testing
 
         #expect(details.description == "Adds **login**.")
         #expect(details.threads == [
-            ReviewThread(id: "d1", noteID: 11, author: "sam", body: "Move this", filePath: "App/Login.swift", line: 12, isOnOldLine: true, replies: [PullRequestNote(author: "me", body: "Done?")]),
+            ReviewThread(
+                id: "d1",
+                noteID: 11,
+                author: "sam",
+                body: "Move this",
+                createdAt: ISO8601.date(from: "2026-01-02T03:00:00Z"),
+                filePath: "App/Login.swift",
+                line: 12,
+                isOnOldLine: true,
+                replies: [PullRequestNote(author: "me", body: "Done?", createdAt: ISO8601.date(from: "2026-01-02T04:00:00Z"))]
+            ),
             ReviewThread(id: "d4", noteID: 44, author: "kim", body: "Need a test", filePath: nil, line: nil, isOnOldLine: false, replies: []),
         ])
     }
@@ -124,11 +135,11 @@ import Testing
 
         #expect(details.pipelineDuration == 540)
         #expect(details.failedJobs == [
-            PipelineJob(name: "build-ios", stage: "test", webURL: URL(string: "https://gitlab.example.com/team/app/-/jobs/71"), id: "71", status: .failed),
-            PipelineJob(name: "lint", stage: nil, webURL: nil),
+            PipelineJob(name: "build-ios", stage: "test", webURL: URL(string: "https://gitlab.example.com/team/app/-/jobs/71"), id: "71", status: .failed, duration: 130, failureMessage: "script failure"),
+            PipelineJob(name: "lint", stage: nil, webURL: nil, allowsFailure: true),
         ])
         #expect(details.jobs.map(\.name) == ["build-ios", "unit", "lint"])
-        #expect(details.jobs[1] == PipelineJob(name: "unit", stage: "test", webURL: URL(string: "https://gitlab.example.com/team/app/-/jobs/70"), id: "70", status: .success))
+        #expect(details.jobs[1] == PipelineJob(name: "unit", stage: "test", webURL: URL(string: "https://gitlab.example.com/team/app/-/jobs/70"), id: "70", status: .success, duration: 310))
     }
 
     @Test func detailsWithoutAPipelineHaveNoJobs() throws {

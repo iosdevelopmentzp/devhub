@@ -22,7 +22,7 @@ struct PullRequestWindowView: View {
                 PullRequestRow(
                     model: PullRequestRowMapper.model(
                         for: summary,
-                        context: PullRequestRowContext(username: pullRequests.username, scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: git.isMainCheckoutClean, ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate), words: words, staleDays: git.gitSettings.pullRequests.staleDays),
+                        context: context,
                         local: PullRequestLocalStateMapper.state(for: summary.sourceBranch, checkout: git, worktrees: worktrees),
                         isBusy: pullRequests.isBusy(summary.id),
                         isExpanded: true,
@@ -57,6 +57,20 @@ struct PullRequestWindowView: View {
         }
     }
 
+    private var context: PullRequestRowContext {
+        PullRequestRowContext(
+            username: pullRequests.username,
+            scope: .all,
+            seenAt: nil,
+            now: .now,
+            isMainCheckoutClean: git.isMainCheckoutClean,
+            ticket: git.gitSettings.ticket(fallbackURL: settings.values.ticketURLTemplate),
+            words: words,
+            staleDays: git.gitSettings.pullRequests.staleDays,
+            hiddenFiles: git.gitSettings.pullRequests.hiddenFiles
+        )
+    }
+
     private var details: PullRequestDetailsModel {
         PullRequestDetailsMapper.model(
             summary: summary,
@@ -64,7 +78,7 @@ struct PullRequestWindowView: View {
             diffs: detailStore.diffs[summary.id],
             error: detailStore.errors[summary.id],
             review: detailStore.review(of: summary.id),
-            words: words
+            context: context
         )
     }
 }

@@ -54,7 +54,7 @@ enum PullRequestFileRowMapper {
                 DiffThreadModel(
                     id: thread.id,
                     author: thread.author,
-                    summary: summary(thread.body),
+                    summary: CommentText.firstLine(String(thread.body.characters)),
                     repliesText: thread.repliesText,
                     isOpen: open.contains(thread.id),
                     thread: row
@@ -62,11 +62,6 @@ enum PullRequestFileRowMapper {
             )
         }
         return result
-    }
-
-    private static func summary(_ body: String) -> String {
-        let firstLine = body.split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
-        return firstLine.trimmingCharacters(in: .whitespaces)
     }
 
     private static func highlightedLineID(_ file: PullRequestFileDiff, focus: DiffFocus?) -> Int? {

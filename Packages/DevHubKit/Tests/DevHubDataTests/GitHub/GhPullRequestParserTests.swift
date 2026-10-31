@@ -90,10 +90,27 @@ import Testing
 
         #expect(details.description == "Adds the login notes.")
         #expect(details.threads == [
-            ReviewThread(id: "PRRT_thread1", noteID: 4301, author: "alex", body: "Please rename this line.", filePath: "notes.txt", line: 2, isOnOldLine: false, replies: []),
+            ReviewThread(
+                id: "PRRT_thread1",
+                noteID: 4301,
+                author: "alex",
+                body: "Please rename this line.",
+                createdAt: ISO8601.date(from: "2026-10-17T22:41:40Z"),
+                filePath: "notes.txt",
+                line: 2,
+                isOnOldLine: false,
+                replies: [PullRequestNote(author: "sam", body: "Done.", createdAt: ISO8601.date(from: "2026-10-17T22:41:47Z"))]
+            ),
         ])
         #expect(details.failedJobs.isEmpty)
         #expect(details.pipelineDuration == 5)
+    }
+
+    @Test func aReviewThatAsksForChangesNamesItsAuthor() throws {
+        let list = try GhPullRequestParser.list(from: GhFixture.list)
+
+        #expect(list.requests[0].changesRequestedBy == ["kim"])
+        #expect(list.requests[1].changesRequestedBy.isEmpty)
     }
 
     @Test func detailsListTheFailedJobs() throws {
@@ -101,7 +118,17 @@ import Testing
 
         #expect(details.failedJobs == [PipelineJob(name: "notes", stage: nil, webURL: URL(string: "https://github.com/example/app/actions/runs/903/job/9031"))])
         #expect(details.pipelineDuration == 7)
-        #expect(details.jobs == [PipelineJob(name: "notes", stage: nil, webURL: URL(string: "https://github.com/example/app/actions/runs/903/job/9031"), id: "9031", status: .failed)])
+        #expect(details.jobs == [
+            PipelineJob(
+                name: "notes",
+                stage: "Check",
+                webURL: URL(string: "https://github.com/example/app/actions/runs/903/job/9031"),
+                id: "9031",
+                status: .failed,
+                duration: 7,
+                failureMessage: "Process completed with exit code 1."
+            ),
+        ])
     }
 
     @Test func myApprovalIsTheReviewOfTheViewer() throws {

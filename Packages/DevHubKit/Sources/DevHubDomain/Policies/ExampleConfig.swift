@@ -35,6 +35,7 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
     "pullRequests": {
       "targets": ["main", "release"],
       "staleDays": 10,
+      "hiddenFiles": ["*Tests/*", "*.xcodeproj/*", "*.lock"],
       "defaults": { "draft": true, "deleteSourceBranch": true, "squash": false }
     }
   },

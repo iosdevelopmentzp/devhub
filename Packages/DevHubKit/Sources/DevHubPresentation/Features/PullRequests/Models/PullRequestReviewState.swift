@@ -8,6 +8,7 @@ struct PullRequestReviewState: Equatable {
     var busyThreads: Set<ReviewThread.ID>
     var showsThreadsInDiff: Bool
     var openDiffThreads: Set<ReviewThread.ID>
+    var showsHiddenFiles = false
     var commentDraft = ""
     var isCommentBusy = false
     var lineComment: LineCommentDraft?

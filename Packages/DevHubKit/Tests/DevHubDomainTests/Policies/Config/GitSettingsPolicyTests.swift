@@ -66,7 +66,22 @@ import Testing
     @Test func pullRequestSettingsHaveDefaults() {
         let settings = GitSettingsPolicy.settings(for: ProjectConfig()).pullRequests
 
-        #expect(settings == PullRequestSettings(targets: nil, template: nil, staleDays: 14, isDraft: false, deleteSourceBranch: true, squash: false, reviewCommand: #"claude "$(cat {prompt})""#))
+        #expect(settings == PullRequestSettings(
+            targets: nil,
+            template: nil,
+            staleDays: 14,
+            hiddenFiles: ["*Tests/*", "*Tests.swift", "*.xcodeproj/*", "*.resolved", "*.lock"],
+            isDraft: false,
+            deleteSourceBranch: true,
+            squash: false,
+            reviewCommand: #"claude "$(cat {prompt})""#
+        ))
+    }
+
+    @Test func anEmptyHiddenFilesListHidesNothing() {
+        let config = ProjectConfig(git: GitConfig(pullRequests: PullRequestsConfig(hiddenFiles: [])))
+
+        #expect(GitSettingsPolicy.settings(for: config).pullRequests.hiddenFiles.isEmpty)
     }
 
     @Test func pullRequestSettingsComeFromConfig() {
@@ -75,6 +90,7 @@ import Testing
                 targets: ["main", " "],
                 template: "docs/pr.md",
                 staleDays: 3,
+                hiddenFiles: ["Generated/*", " "],
                 defaults: PullRequestDefaultsConfig(draft: true, deleteSourceBranch: false, squash: true)
             )),
             ai: AIConfig(reviewCommand: "codex {prompt}")
@@ -82,7 +98,16 @@ import Testing
 
         let settings = GitSettingsPolicy.settings(for: config).pullRequests
 
-        #expect(settings == PullRequestSettings(targets: ["main"], template: "docs/pr.md", staleDays: 3, isDraft: true, deleteSourceBranch: false, squash: true, reviewCommand: "codex {prompt}"))
+        #expect(settings == PullRequestSettings(
+            targets: ["main"],
+            template: "docs/pr.md",
+            staleDays: 3,
+            hiddenFiles: ["Generated/*"],
+            isDraft: true,
+            deleteSourceBranch: false,
+            squash: true,
+            reviewCommand: "codex {prompt}"
+        ))
     }
 
     @Test func theTemplateDependsOnTheHost() {

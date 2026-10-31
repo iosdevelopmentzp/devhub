@@ -15,11 +15,15 @@ import Testing
         #expect(model == ReviewThreadRowModel(
             id: "1",
             author: "sam",
+            timeText: nil,
             location: "Login.swift:12",
             locationHint: "App/Login.swift:12",
-            body: "Move",
+            body: CommentText.attributed("Move"),
             repliesText: "2 replies",
-            replies: [PullRequestNoteModel(id: 0, author: "me", body: "Done"), PullRequestNoteModel(id: 1, author: "sam", body: "Thanks")],
+            replies: [
+                PullRequestNoteModel(id: 0, author: "me", timeText: nil, body: CommentText.attributed("Done")),
+                PullRequestNoteModel(id: 1, author: "sam", timeText: nil, body: CommentText.attributed("Thanks")),
+            ],
             filePath: "App/Login.swift",
             line: 12,
             isOnOldLine: false,
@@ -27,6 +31,31 @@ import Testing
             noteURL: URL(string: "https://gitlab.example.com/team/app/-/merge_requests/7#note_11"),
             isBusy: false
         ))
+    }
+
+    @Test func theBodyKeepsItsLinesAndInlineMarkdown() {
+        let model = ReviewThreadRowMapper.model(
+            for: ReviewThread(id: "1", noteID: nil, author: "sam", body: "  Rename `x`.\n\nIt is **unclear**.  ", filePath: nil, line: nil, isOnOldLine: false, replies: []),
+            diffs: [],
+            webURL: nil,
+            isBusy: false
+        )
+
+        #expect(String(model.body.characters) == "Rename x.\n\nIt is unclear.")
+        #expect(model.body.runs.contains { $0.inlinePresentationIntent?.contains(.code) == true })
+        #expect(model.body.runs.contains { $0.inlinePresentationIntent?.contains(.stronglyEmphasized) == true })
+    }
+
+    @Test func datesBecomeRelativeTexts() {
+        let model = ReviewThreadRowMapper.model(
+            for: ReviewThread(id: "1", noteID: nil, author: "sam", body: "Move", createdAt: Date(timeIntervalSinceNow: -3_600), filePath: nil, line: nil, isOnOldLine: false, replies: [PullRequestNote(author: "me", body: "Done", createdAt: .now)]),
+            diffs: [],
+            webURL: nil,
+            isBusy: false
+        )
+
+        #expect(model.timeText?.isEmpty == false)
+        #expect(model.replies[0].timeText?.isEmpty == false)
     }
 
     @Test func generalThreadWithOneReply() {

@@ -10,17 +10,20 @@ enum PullRequestDetailsMapper {
         diffs: [PullRequestFileDiff]?,
         error: String?,
         review: PullRequestReviewState,
-        words: CodeHostWords
+        context: PullRequestRowContext
     ) -> PullRequestDetailsModel {
         if let error {
             return PullRequestDetailsModel(content: .failure(error))
         }
         guard let details, let diffs else { return PullRequestDetailsModel(content: .loading) }
-        let additions = diffs.reduce(0) { $0 + $1.additions }
-        let deletions = diffs.reduce(0) { $0 + $1.deletions }
-        let viewedCount = diffs.filter { review.viewedFiles.contains($0.id) }.count
-        let expandedCount = diffs.filter { review.expandedFiles.contains($0.id) }.count
-        let threadRows = details.threads.map { ReviewThreadRowMapper.model(for: $0, diffs: diffs, webURL: summary.webURL, isBusy: review.busyThreads.contains($0.id)) }
+        let words = context.words
+        let hidden = HiddenFilePolicy.hiddenPaths(in: diffs.map(\.path), patterns: context.hiddenFiles)
+        let visible = review.showsHiddenFiles ? diffs : diffs.filter { hidden.contains($0.path) == false }
+        let additions = visible.reduce(0) { $0 + $1.additions }
+        let deletions = visible.reduce(0) { $0 + $1.deletions }
+        let viewedCount = visible.filter { review.viewedFiles.contains($0.id) }.count
+        let expandedCount = visible.filter { review.expandedFiles.contains($0.id) }.count
+        let threadRows = details.threads.map { ReviewThreadRowMapper.model(for: $0, diffs: visible, webURL: summary.webURL, isBusy: review.busyThreads.contains($0.id)) }
         return PullRequestDetailsModel(
             content: .loaded(
                 PullRequestDetailsModel.Loaded(
@@ -30,18 +33,22 @@ enum PullRequestDetailsMapper {
                     canCancelPipeline: summary.pipeline.map { $0.id != nil && PipelineStatePolicy.isActive($0.status) } ?? false,
                     failedJobs: details.jobs.isEmpty ? details.failedJobs.map { PullRequestDetailsModel.JobLink(title: jobTitle($0), url: $0.webURL) } : [],
                     jobsTitle: PipelineJobRowMapper.title(for: details.jobs, words: words),
-                    jobs: PipelineJobRowMapper.rows(for: details.jobs, review: review, words: words),
+                    jobGroups: PipelineJobRowMapper.groups(for: details.jobs, review: review, words: words),
+                    reviewLines: PullRequestReviewMapper.lines(for: summary, username: context.username, words: words),
                     description: description(details.description),
                     threadsTitle: details.threads.isEmpty ? "No open threads" : "Open threads \(details.threads.count)",
                     canFixThreads: details.threads.isEmpty == false && summary.state == .opened,
                     threads: threadRows,
                     commentBox: commentBox(summary: summary, review: review, words: words),
-                    filesTitle: "Files \(diffs.count) · +\(additions) −\(deletions)" + (viewedCount > 0 ? " · \(viewedCount) viewed" : ""),
-                    canExpandAllFiles: diffs.count - viewedCount > expandedCount,
+                    filesTitle: "Files \(visible.count) · +\(additions) −\(deletions)" + (viewedCount > 0 ? " · \(viewedCount) viewed" : ""),
+                    hiddenFilesTitle: hiddenFilesTitle(count: hidden.count, shown: review.showsHiddenFiles),
+                    hiddenFilesHint: hidden.isEmpty ? nil : hiddenFilesHint(count: hidden.count, shown: review.showsHiddenFiles),
+                    showsHiddenFiles: review.showsHiddenFiles,
+                    canExpandAllFiles: visible.count - viewedCount > expandedCount,
                     canCollapseAllFiles: expandedCount > 0,
                     hasThreadsInDiff: threadRows.contains { $0.canShowInDiff },
                     showsThreadsInDiff: review.showsThreadsInDiff,
-                    files: diffs.map { PullRequestFileRowMapper.model(for: $0, review: review, threads: threadRows, words: words) }
+                    files: visible.map { PullRequestFileRowMapper.model(for: $0, review: review, threads: threadRows, words: words) }
                 )
             )
         )
@@ -60,14 +67,24 @@ enum PullRequestDetailsMapper {
         )
     }
 
+    private static func hiddenFilesTitle(count: Int, shown: Bool) -> String? {
+        guard count > 0 else { return nil }
+        return shown ? "Hide \(count)" : "Show \(count) hidden"
+    }
+
+    private static func hiddenFilesHint(count: Int, shown: Bool) -> String {
+        let files = CountText.count(count, "file")
+        return shown
+            ? "\(files) match git.pullRequests.hiddenFiles (tests, project files, lock files by default). Click to hide them again."
+            : "\(files) match git.pullRequests.hiddenFiles (tests, project files, lock files by default) and stay hidden until you show them. Click to show them."
+    }
+
     private static func jobTitle(_ job: PipelineJob) -> String {
         job.stage.map { "\(job.name) (\($0))" } ?? job.name
     }
 
     private static func description(_ text: String) -> AttributedString? {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.isEmpty == false else { return nil }
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        return (try? AttributedString(markdown: trimmed, options: options)) ?? AttributedString(trimmed)
+        guard text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return nil }
+        return CommentText.attributed(text)
     }
 }

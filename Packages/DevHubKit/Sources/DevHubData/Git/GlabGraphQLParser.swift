@@ -47,6 +47,19 @@ enum GlabGraphQLParser {
         let canApprove: Bool
     }
 
+    private struct Reviewer: Decodable {
+        struct Interaction: Decodable {
+            let reviewState: String?
+        }
+
+        let username: String
+        let mergeRequestInteraction: Interaction?
+
+        var requestedChanges: Bool {
+            mergeRequestInteraction?.reviewState == "REQUESTED_CHANGES"
+        }
+    }
+
     private struct PullRequestNode: Decodable {
         let iid: String
         let title: String
@@ -64,7 +77,7 @@ enum GlabGraphQLParser {
         let approvedBy: Nodes<User>?
         let labels: Nodes<Label>?
         let assignees: Nodes<User>?
-        let reviewers: Nodes<User>?
+        let reviewers: Nodes<Reviewer>?
         let createdAt: Date?
         let mergedAt: Date?
         let closedAt: Date?
@@ -132,6 +145,9 @@ enum GlabGraphQLParser {
             let name: String?
             let status: String?
             let webPath: String?
+            let duration: Int?
+            let allowFailure: Bool?
+            let failureMessage: String?
             let stage: Stage?
         }
 
@@ -152,6 +168,7 @@ enum GlabGraphQLParser {
             let id: String?
             let body: String
             let system: Bool
+            let createdAt: Date?
             let author: User?
             let position: Position?
         }
@@ -210,10 +227,11 @@ enum GlabGraphQLParser {
                     noteID: first.id.flatMap(noteID),
                     author: first.author?.username ?? "",
                     body: first.body,
+                    createdAt: first.createdAt,
                     filePath: first.position?.filePath,
                     line: first.position?.newLine ?? first.position?.oldLine,
                     isOnOldLine: first.position?.newLine == nil && first.position?.oldLine != nil,
-                    replies: notes.dropFirst().map { PullRequestNote(author: $0.author?.username ?? "", body: $0.body) }
+                    replies: notes.dropFirst().map { PullRequestNote(author: $0.author?.username ?? "", body: $0.body, createdAt: $0.createdAt) }
                 )
             }
         let jobs = request.headPipeline?.jobs?.nodes ?? []
@@ -233,7 +251,10 @@ enum GlabGraphQLParser {
             stage: job.stage?.name,
             webURL: job.webPath.flatMap { URL(string: "https://\(host)\($0)") },
             id: job.id.flatMap { $0.split(separator: "/").last.map(String.init) },
-            status: job.status.map { GlabPullRequestParser.pipelineStatus($0.lowercased()) } ?? .failed
+            status: job.status.map { GlabPullRequestParser.pipelineStatus($0.lowercased()) } ?? .failed,
+            duration: job.duration,
+            allowsFailure: job.allowFailure ?? false,
+            failureMessage: job.failureMessage.flatMap { $0.isEmpty ? nil : $0 }
         )
     }
 
@@ -269,6 +290,7 @@ enum GlabGraphQLParser {
             labels: node.labels?.nodes.map(\.title) ?? [],
             assignees: node.assignees?.nodes.map(\.username) ?? [],
             reviewers: node.reviewers?.nodes.map(\.username) ?? [],
+            changesRequestedBy: node.reviewers?.nodes.filter(\.requestedChanges).map(\.username) ?? [],
             createdAt: node.createdAt,
             mergedAt: node.mergedAt,
             closedAt: node.closedAt,

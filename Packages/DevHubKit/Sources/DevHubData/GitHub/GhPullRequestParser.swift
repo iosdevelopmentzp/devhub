@@ -184,6 +184,7 @@ enum GhPullRequestParser {
             let databaseId: Int?
             let body: String
             let author: Login?
+            let createdAt: Date?
         }
 
         let repository: Repo?
@@ -201,10 +202,11 @@ enum GhPullRequestParser {
                     noteID: first.databaseId,
                     author: first.author?.login ?? "",
                     body: first.body,
+                    createdAt: first.createdAt,
                     filePath: thread.path,
                     line: thread.line ?? thread.originalLine,
                     isOnOldLine: thread.diffSide == "LEFT",
-                    replies: thread.comments.nodes.dropFirst().map { PullRequestNote(author: $0.author?.login ?? "", body: $0.body) }
+                    replies: thread.comments.nodes.dropFirst().map { PullRequestNote(author: $0.author?.login ?? "", body: $0.body, createdAt: $0.createdAt) }
                 )
             }
         let rollup = request.lastCommit?.nodes.first?.commit.statusCheckRollup
@@ -307,6 +309,7 @@ enum GhPullRequestParser {
             labels: node.labels?.nodes.map(\.name) ?? [],
             assignees: node.assignees?.nodes.map(\.login) ?? [],
             reviewers: (node.reviewRequests?.nodes ?? []).compactMap { $0.requestedReviewer?.login },
+            changesRequestedBy: (node.latestReviews?.nodes ?? []).filter { $0.state == "CHANGES_REQUESTED" }.compactMap { $0.author?.login },
             createdAt: node.createdAt,
             mergedAt: node.mergedAt,
             closedAt: node.closedAt,

@@ -81,19 +81,11 @@ struct PullRequestDetailsView: View {
                     }
                 }
             }
-            if loaded.jobs.isEmpty == false {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(loaded.jobsTitle)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                    ForEach(loaded.jobs) { job in
-                        PipelineJobRow(
-                            model: job,
-                            onToggleLog: { job.jobID.map(actions.toggleJobLog) },
-                            onRetry: { job.jobID.map { actions.retryJob($0, job.title) } }
-                        )
-                    }
-                }
+            if loaded.jobGroups.isEmpty == false {
+                jobs(loaded)
+            }
+            if loaded.reviewLines.isEmpty == false {
+                review(loaded.reviewLines)
             }
             if let description = loaded.description {
                 ExpandableText(description, lineLimit: 12)
@@ -103,6 +95,7 @@ struct PullRequestDetailsView: View {
                 ForEach(loaded.threads) { thread in
                     ReviewThreadRow(
                         model: thread,
+                        expandsReplies: false,
                         onShowInDiff: { actions.showInDiff(thread.id) },
                         onOpenFile: { actions.openFile(thread.filePath ?? "", thread.line) },
                         onResolve: { actions.resolveThread(thread.id) },
@@ -123,12 +116,70 @@ struct PullRequestDetailsView: View {
         }
     }
 
+    private func jobs(_ loaded: PullRequestDetailsModel.Loaded) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(loaded.jobsTitle)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            ForEach(loaded.jobGroups) { group in
+                VStack(alignment: .leading, spacing: 4) {
+                    if let title = group.title {
+                        HStack(spacing: 6) {
+                            Image(systemName: group.icon)
+                                .font(.caption2)
+                                .foregroundStyle(group.tint.color)
+                                .frame(width: 16)
+                            Text(title)
+                                .font(.caption.weight(.semibold))
+                            Text(group.statusText)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.top, 4)
+                        .hint("Stage \(title): \(group.statusText)")
+                    }
+                    ForEach(group.jobs) { job in
+                        PipelineJobRow(
+                            model: job,
+                            onToggleLog: { job.jobID.map(actions.toggleJobLog) },
+                            onRetry: { job.jobID.map { actions.retryJob($0, job.title) } }
+                        )
+                        .padding(.leading, group.title == nil ? 0 : 12)
+                    }
+                }
+            }
+        }
+    }
+
+    private func review(_ lines: [PullRequestReviewLineModel]) -> some View {
+        Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10, verticalSpacing: 6) {
+            ForEach(lines) { line in
+                GridRow {
+                    Text(line.title)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .gridColumnAlignment(.leading)
+                    FlowLayout(spacing: 6) {
+                        ForEach(line.tags, id: \.self) { tag in
+                            ModelTag(model: tag)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+        }
+    }
+
     private func filesHeader(_ loaded: PullRequestDetailsModel.Loaded) -> some View {
         HStack(spacing: 10) {
             Text(loaded.filesTitle)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
             Spacer(minLength: 4)
+            if let hiddenFilesTitle = loaded.hiddenFilesTitle {
+                Button(hiddenFilesTitle, systemImage: loaded.showsHiddenFiles ? "eye.slash" : "eye", action: actions.toggleHiddenFiles)
+                    .hint(loaded.hiddenFilesHint)
+            }
             if loaded.hasThreadsInDiff {
                 Menu {
                     Toggle("Show Threads in the Diff", isOn: Binding(get: { loaded.showsThreadsInDiff }, set: { _ in actions.toggleThreadsInDiff() }))
@@ -142,9 +193,11 @@ struct PullRequestDetailsView: View {
                 .fixedSize()
                 .hint("Threads show under their line in the diff, folded to one line. Hide them all, or open or fold them all.")
             }
-            Button("Expand All", systemImage: "rectangle.expand.vertical", action: actions.expandAllFiles)
-                .disabled(loaded.canExpandAllFiles == false)
-                .hint("Open the diff of every file that is not marked as viewed")
+            Button("Expand All", systemImage: "rectangle.expand.vertical") {
+                actions.expandAllFiles(Set(loaded.files.map(\.id)))
+            }
+            .disabled(loaded.canExpandAllFiles == false)
+            .hint("Open the diff of every listed file that is not marked as viewed")
             Button("Collapse All", systemImage: "rectangle.compress.vertical", action: actions.collapseAllFiles)
                 .disabled(loaded.canCollapseAllFiles == false)
                 .hint("Fold every open diff")
@@ -154,7 +207,7 @@ struct PullRequestDetailsView: View {
     }
 
     private func section<Content: View>(_ title: String, fixThreads: Bool, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Text(title)
                     .font(.caption.weight(.semibold))

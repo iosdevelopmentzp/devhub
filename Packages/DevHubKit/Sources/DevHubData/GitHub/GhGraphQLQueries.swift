@@ -4,7 +4,7 @@ import DevHubDomain
 enum GhGraphQLQueries {
     private static let checks = """
     lastCommit: commits(last: 1) { nodes { commit { statusCheckRollup { state contexts(first: 50) { nodes { __typename \
-    ... on CheckRun { databaseId name conclusion status detailsUrl startedAt completedAt checkSuite { workflowRun { databaseId } } } \
+    ... on CheckRun { databaseId name title conclusion status detailsUrl startedAt completedAt checkSuite { workflowRun { databaseId workflow { name } } } } \
     ... on StatusContext { context state targetUrl } } } } } } }
     """
 
@@ -38,7 +38,7 @@ enum GhGraphQLQueries {
     static let details = """
     query($owner: String!, $name: String!, $number: Int!) { repository(owner: $owner, name: $name) { pullRequest(number: $number) { \
     body url reviewThreads(first: 100) { nodes { id isResolved path line originalLine diffSide \
-    comments(first: 100) { nodes { databaseId body author { login } } } } } \(checks) } } }
+    comments(first: 100) { nodes { databaseId body author { login } createdAt } } } } \(checks) } } }
     """
 
     static let myApproval = """

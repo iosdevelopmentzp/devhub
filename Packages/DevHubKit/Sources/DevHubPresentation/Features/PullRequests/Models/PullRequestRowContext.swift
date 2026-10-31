@@ -10,4 +10,5 @@ struct PullRequestRowContext {
     var ticket: TicketSettings
     var words: CodeHostWords
     var staleDays: Int
+    var hiddenFiles: [String]
 }

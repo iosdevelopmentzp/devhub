@@ -38,7 +38,7 @@ struct DiffThreadBubble: View {
             .onTapGesture(perform: onToggle)
             .hint(model.isOpen ? "Fold this thread" : "Open this thread to read it, reply or resolve")
             if model.isOpen {
-                ReviewThreadRow(model: model.thread, onShowInDiff: {}, onOpenFile: onOpenFile, onResolve: onResolve, onReply: onReply)
+                ReviewThreadRow(model: model.thread, expandsReplies: true, onShowInDiff: {}, onOpenFile: onOpenFile, onResolve: onResolve, onReply: onReply)
             }
         }
         .padding(.horizontal, 8)

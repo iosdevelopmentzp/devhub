@@ -5,7 +5,7 @@ package extension MockData {
     static let gitLabUsername = "alex"
 
     static let pullRequests: [PullRequestSummary] = [
-        pullRequest(1842, "ABC-2324: Paid call payment", author: "alex", source: "feature/ABC-2324-paid-call", detail: .notApproved, pipeline: .running, labels: ["feature"], assignees: ["alex"], reviewers: ["sam", "kim"], comments: 4, minutesAgo: 12, diff: (120, 30, 7, 3), threads: (3, 1), behind: true),
+        pullRequest(1842, "ABC-2324: Paid call payment", author: "alex", source: "feature/ABC-2324-paid-call", detail: .notApproved, pipeline: .running, approvedBy: ["robin"], labels: ["feature"], assignees: ["alex"], reviewers: ["sam", "kim", "robin"], changesRequestedBy: ["kim"], comments: 4, minutesAgo: 12, diff: (120, 30, 7, 3), threads: (3, 1), behind: true),
         pullRequest(1839, "ABC-2311: Leaderboard pagination", author: "sam", source: "feature/ABC-2311-leaderboard", detail: .mergeable, pipeline: .success, approvedBy: ["kim"], labels: ["feature"], reviewers: ["kim"], comments: 9, minutesAgo: 95, diff: (48, 12, 4, 2), threads: (2, 2)),
         pullRequest(1836, "Draft: ABC-2290: New onboarding", author: "kim", source: "feature/ABC-2290-onboarding", isDraft: true, detail: .draftStatus, pipeline: .failed, labels: ["tech"], comments: 0, minutesAgo: 300, diff: (900, 340, 31, 14)),
         pullRequest(1830, "ABC-2280: Fix chat crash on iOS 17", author: "robin", source: "fix/ABC-2280-chat-crash", conflicts: true, detail: .needRebase, pipeline: .success, labels: ["bug"], comments: 2, minutesAgo: 1_500, diff: (6, 2, 1, 1), behind: true),
@@ -20,13 +20,24 @@ package extension MockData {
                 id: "1",
                 noteID: 501,
                 author: "sam",
-                body: "Please move this check into the presenter.",
+                body: "Please move this check into the presenter.\n\nThe view should not know about `isPaid`; the presenter already has the account state.",
+                createdAt: Date(timeIntervalSinceNow: -3 * 3_600),
                 filePath: "ExampleUI/Calls/CallPresenter.swift",
                 line: 42,
                 isOnOldLine: false,
-                replies: [PullRequestNote(author: "alex", body: "Done in the next commit."), PullRequestNote(author: "sam", body: "Thanks!")]
+                replies: [
+                    PullRequestNote(author: "alex", body: "Done in the next commit.", createdAt: Date(timeIntervalSinceNow: -2 * 3_600)),
+                    PullRequestNote(author: "sam", body: "Thanks!", createdAt: Date(timeIntervalSinceNow: -3_600)),
+                ]
             ),
-            ReviewThread(id: "2", noteID: 502, author: "kim", body: "Do we need a test for the retry?", filePath: nil, line: nil, isOnOldLine: false, replies: []),
+            ReviewThread(id: "2", noteID: 502, author: "kim", body: "Do we need a test for the retry?", createdAt: Date(timeIntervalSinceNow: -40 * 60), filePath: nil, line: nil, isOnOldLine: false, replies: []),
+        ],
+        pipelineDuration: 540,
+        jobs: [
+            PipelineJob(name: "build", stage: "build", webURL: URL(string: "https://gitlab.com/example/app/-/jobs/70"), id: "70", status: .success, duration: 310),
+            PipelineJob(name: "unit-tests", stage: "test", webURL: URL(string: "https://gitlab.com/example/app/-/jobs/71"), id: "71", status: .failed, duration: 130, failureMessage: "The script exited with code 65"),
+            PipelineJob(name: "lint", stage: "test", webURL: URL(string: "https://gitlab.com/example/app/-/jobs/72"), id: "72", status: .failed, duration: 40, allowsFailure: true),
+            PipelineJob(name: "ui-tests", stage: "test", webURL: URL(string: "https://gitlab.com/example/app/-/jobs/73"), id: "73", status: .running),
         ]
     )
 
@@ -49,6 +60,24 @@ package extension MockData {
             diff: GitDiff(lines: ["@@ -0,0 +1,2 @@", "+import SwiftUI", "+struct PaymentSheet: View {}"], droppedLines: 0, isBinary: false),
             isTooLarge: false
         ),
+        PullRequestFileDiff(
+            oldPath: "ExampleUITests/Calls/CallPresenterTests.swift",
+            path: "ExampleUITests/Calls/CallPresenterTests.swift",
+            kind: .modified,
+            additions: 12,
+            deletions: 0,
+            diff: GitDiff(lines: ["@@ -10,0 +10,2 @@", "+    func testPaidCallAsksForPayment() {", "+    }"], droppedLines: 0, isBinary: false),
+            isTooLarge: false
+        ),
+        PullRequestFileDiff(
+            oldPath: "ExampleApp.xcodeproj/project.pbxproj",
+            path: "ExampleApp.xcodeproj/project.pbxproj",
+            kind: .modified,
+            additions: 8,
+            deletions: 0,
+            diff: GitDiff(lines: ["@@ -100,0 +100,1 @@", "+\t\t1A2B /* PaymentSheet.swift */ = {isa = PBXFileReference;};"], droppedLines: 0, isBinary: false),
+            isTooLarge: false
+        ),
     ]
 
     private static func pullRequest(
@@ -66,6 +95,7 @@ package extension MockData {
         labels: [String],
         assignees: [String] = [],
         reviewers: [String] = [],
+        changesRequestedBy: [String] = [],
         comments: Int,
         minutesAgo: Double,
         diff: (additions: Int, deletions: Int, files: Int, commits: Int),
@@ -100,6 +130,7 @@ package extension MockData {
             labels: labels,
             assignees: assignees,
             reviewers: reviewers,
+            changesRequestedBy: changesRequestedBy,
             createdAt: Date(timeIntervalSinceNow: -(minutesAgo + 7_200) * 60),
             mergedAt: state == .merged ? Date(timeIntervalSinceNow: -minutesAgo * 60) : nil,
             mergedBy: mergedBy,

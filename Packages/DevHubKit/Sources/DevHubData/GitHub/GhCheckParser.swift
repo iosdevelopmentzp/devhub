@@ -22,7 +22,12 @@ enum GhCheckParser {
     struct Context: Decodable {
         struct Suite: Decodable {
             struct Run: Decodable {
+                struct Workflow: Decodable {
+                    let name: String?
+                }
+
                 let databaseId: Int?
+                let workflow: Workflow?
             }
 
             let workflowRun: Run?
@@ -30,6 +35,7 @@ enum GhCheckParser {
 
         let databaseId: Int?
         let name: String?
+        let title: String?
         let conclusion: String?
         let status: String?
         let detailsUrl: String?
@@ -40,7 +46,7 @@ enum GhCheckParser {
         let state: String?
         let targetUrl: String?
 
-        var title: String {
+        var displayName: String {
             name ?? context ?? ""
         }
 
@@ -50,6 +56,20 @@ enum GhCheckParser {
 
         var runID: Int? {
             checkSuite?.workflowRun?.databaseId
+        }
+
+        var workflowName: String? {
+            checkSuite?.workflowRun?.workflow?.name
+        }
+
+        var duration: Int? {
+            guard let startedAt, let completedAt, completedAt >= startedAt else { return nil }
+            return Int(completedAt.timeIntervalSince(startedAt))
+        }
+
+        var failureMessage: String? {
+            guard isFailed, let title, title.isEmpty == false, title != displayName else { return nil }
+            return title
         }
 
         var isFailed: Bool {
@@ -83,19 +103,21 @@ enum GhCheckParser {
     static func failedJobs(_ rollup: Rollup) -> [PipelineJob] {
         rollup.contexts.nodes
             .filter(\.isFailed)
-            .map { PipelineJob(name: $0.title, stage: nil, webURL: $0.url.flatMap(URL.init(string:))) }
+            .map { PipelineJob(name: $0.displayName, stage: nil, webURL: $0.url.flatMap(URL.init(string:))) }
     }
 
     static func jobs(_ rollup: Rollup) -> [PipelineJob] {
         rollup.contexts.nodes
-            .filter { $0.title.isEmpty == false }
+            .filter { $0.displayName.isEmpty == false }
             .map { context in
                 PipelineJob(
-                    name: context.title,
-                    stage: nil,
+                    name: context.displayName,
+                    stage: context.workflowName,
                     webURL: context.url.flatMap(URL.init(string:)),
                     id: context.runID == nil ? nil : context.databaseId.map(String.init),
-                    status: jobStatus(context)
+                    status: jobStatus(context),
+                    duration: context.duration,
+                    failureMessage: context.failureMessage
                 )
             }
     }

@@ -301,7 +301,7 @@ import DevHubTestSupport
     ) -> PullRequestRowModel {
         PullRequestRowMapper.model(
             for: request,
-            context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}"), words: .gitLab, staleDays: 14),
+            context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}"), words: .gitLab, staleDays: 14, hiddenFiles: []),
             local: local,
             isBusy: isBusy,
             isExpanded: isExpanded,

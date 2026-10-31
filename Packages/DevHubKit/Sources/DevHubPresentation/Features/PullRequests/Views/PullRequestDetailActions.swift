@@ -4,8 +4,9 @@ import DevHubDomain
 struct PullRequestDetailActions {
     let toggleFile: (_ fileID: PullRequestFileDiff.ID) -> Void
     let toggleViewed: (_ fileID: PullRequestFileDiff.ID) -> Void
-    let expandAllFiles: () -> Void
+    let expandAllFiles: (_ fileIDs: Set<PullRequestFileDiff.ID>) -> Void
     let collapseAllFiles: () -> Void
+    let toggleHiddenFiles: () -> Void
     let showInDiff: (_ threadID: ReviewThread.ID) -> Void
     let toggleDiffThread: (_ threadID: ReviewThread.ID) -> Void
     let toggleThreadsInDiff: () -> Void
@@ -31,8 +32,9 @@ struct PullRequestDetailActions {
     static let preview = PullRequestDetailActions(
         toggleFile: { _ in },
         toggleViewed: { _ in },
-        expandAllFiles: {},
+        expandAllFiles: { _ in },
         collapseAllFiles: {},
+        toggleHiddenFiles: {},
         showInDiff: { _ in },
         toggleDiffThread: { _ in },
         toggleThreadsInDiff: {},
@@ -62,6 +64,7 @@ struct PullRequestDetailActions {
             toggleViewed: toggleViewed,
             expandAllFiles: expandAllFiles,
             collapseAllFiles: collapseAllFiles,
+            toggleHiddenFiles: toggleHiddenFiles,
             showInDiff: showInDiff,
             toggleDiffThread: toggleDiffThread,
             toggleThreadsInDiff: toggleThreadsInDiff,
@@ -101,8 +104,9 @@ extension PullRequestDetailActions {
         return PullRequestDetailActions(
             toggleFile: { detailStore.toggleFile($0, of: id) },
             toggleViewed: { detailStore.toggleViewed($0, of: id) },
-            expandAllFiles: { detailStore.expandAllFiles(of: id) },
+            expandAllFiles: { detailStore.expandAllFiles($0, of: id) },
             collapseAllFiles: { detailStore.collapseAllFiles(of: id) },
+            toggleHiddenFiles: { detailStore.toggleHiddenFiles(of: id) },
             showInDiff: { detailStore.showInDiff(threadID: $0, of: id) },
             toggleDiffThread: { detailStore.toggleDiffThread($0) },
             toggleThreadsInDiff: { detailStore.toggleThreadsInDiff() },

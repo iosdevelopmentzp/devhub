@@ -47,6 +47,10 @@ struct PullRequestDetailsPane: View {
                     IconButton(systemImage: "macwindow", help: "Open this \(words.request) in its own window", action: openWindow)
                 }
             }
+            PullRequestFactsLine(model: model, isNarrow: true)
+            if model.hasTags {
+                PullRequestTagsFlow(model: model, onLabel: nil)
+            }
             PullRequestActionBar(
                 model: model,
                 isPickingLaunch: isPickingLaunch,

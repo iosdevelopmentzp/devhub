@@ -31,7 +31,14 @@ import Testing
     }
 
     @Test func detailsReadEveryJobWithItsStatus() {
-        #expect(GlabGraphQLQueries.details.contains("headPipeline { duration jobs { nodes { id name status webPath stage { name } } } }"))
+        #expect(GlabGraphQLQueries.details.contains("headPipeline { duration jobs { nodes { id name status webPath duration allowFailure failureMessage stage { name } } } }"))
+        #expect(GlabGraphQLQueries.details.contains("notes(first: 100) { nodes { id body system createdAt author { username }"))
+    }
+
+    @Test func theListReadsTheReviewStateOfEveryReviewer() {
+        for scope in PullRequestScope.allCases {
+            #expect(GlabGraphQLQueries.list(scope).contains("reviewers { nodes { username mergeRequestInteraction { reviewState } } }"))
+        }
     }
 
     @Test func writesTakeValuesOnlyAsVariables() {

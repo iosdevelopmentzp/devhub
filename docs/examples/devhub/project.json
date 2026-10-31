@@ -20,6 +20,7 @@
     "pullRequests": {
       "targets": ["main", "release"],
       "staleDays": 10,
+      "hiddenFiles": ["*Tests/*", "*.xcodeproj/*", "*.lock"],
       "defaults": { "draft": true, "deleteSourceBranch": true, "squash": false }
     }
   },
