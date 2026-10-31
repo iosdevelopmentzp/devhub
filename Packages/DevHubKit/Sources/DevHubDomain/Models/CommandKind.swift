@@ -17,6 +17,7 @@ package enum CommandKind: Sendable {
     private static let simctlReads: Set<String> = ["list", "get_app_container", "listapps", "bootstatus"]
     private static let plainReads: Set<String> = ["du", "ps", "grep", "plutil", "pgrep"]
     private static let codeHostReads: Set<String> = ["view", "list", "checks", "diff", "status"]
+    private static let circleCIReads: Set<String> = ["run list", "run get", "workflow get", "workflow list", "job get", "job output", "testresult list", "setting list", "version", "auth me"]
 
     package static func classify(_ executable: String, _ arguments: [String]) -> CommandKind {
         switch executable {
@@ -35,6 +36,8 @@ package enum CommandKind: Sendable {
             return .action
         case "glab":
             return codeHostKind(arguments)
+        case "circleci":
+            return circleCIKind(arguments)
         case "xcodebuild":
             return arguments.contains("-showBuildSettings") ? .read : .action
         case "osascript":
@@ -42,6 +45,16 @@ package enum CommandKind: Sendable {
         default:
             return plainReads.contains(executable) ? .read : .action
         }
+    }
+
+    private static func circleCIKind(_ arguments: [String]) -> CommandKind {
+        let words = arguments.filter { $0.hasPrefix("-") == false }
+        if words.first == "api" {
+            let writes = arguments.contains { ["-X", "--method", "-f", "--field", "-d", "--data"].contains($0) }
+            return writes ? .action : .read
+        }
+        let pair = words.prefix(2).joined(separator: " ")
+        return circleCIReads.contains(pair) || circleCIReads.contains(words.first ?? "") ? .read : .action
     }
 
     private static func codeHostKind(_ arguments: [String]) -> CommandKind {

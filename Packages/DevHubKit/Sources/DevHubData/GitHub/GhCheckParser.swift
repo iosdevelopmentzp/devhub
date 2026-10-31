@@ -117,7 +117,8 @@ enum GhCheckParser {
                     id: context.runID == nil ? nil : context.databaseId.map(String.init),
                     status: jobStatus(context),
                     duration: context.duration,
-                    failureMessage: context.failureMessage
+                    failureMessage: context.failureMessage,
+                    ciWorkflowID: CIWorkflowLink.parse(context.url)?.workflowID
                 )
             }
     }

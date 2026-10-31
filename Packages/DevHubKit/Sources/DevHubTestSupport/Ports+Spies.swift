@@ -18,6 +18,7 @@ package extension Ports {
             mockSets: spies.mockSets,
             messaging: spies.messaging,
             codeHost: spies.codeHost,
+            ci: spies.ci,
             aiSessions: spies.aiSessions,
             derivedData: spies.derivedData,
             opener: spies.opener,

@@ -10,7 +10,12 @@ import Testing
     }
 
     @Test func everyToolHasAnInstallCommand() {
-        #expect(DoctorPolicy.tools.map(\.name) == ["git", "xcodebuild", "xcrun", "gh", "glab", "copilot", "claude", "python3"])
+        #expect(DoctorPolicy.tools.map(\.name) == ["git", "xcodebuild", "xcrun", "gh", "glab", "circleci", "copilot", "claude", "python3"])
         #expect(DoctorPolicy.tools.allSatisfy { $0.installCommand.isEmpty == false })
+    }
+
+    @Test func onlyCircleCIHasAMinimumVersion() {
+        #expect(DoctorPolicy.tools.first { $0.name == "circleci" }?.minimumMajorVersion == 1)
+        #expect(DoctorPolicy.tools.filter { $0.minimumMajorVersion != nil }.map(\.name) == ["circleci"])
     }
 }

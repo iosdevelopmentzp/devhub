@@ -31,6 +31,7 @@ extension Ports {
                 gitHub: GhPullRequestRepository(client: GhClient(shell: shell)),
                 gitLab: GlabPullRequestRepository(client: GlabClient(shell: shell))
             ),
+            ci: CircleCIRepository(client: CircleCIClient(shell: shell)),
             aiSessions: CompositeAISessionRepository(repositories: [
                 ClaudeTranscriptSessionRepository(root: home.appendingPathComponent(".claude/projects", isDirectory: true)),
                 CopilotSessionRepository(root: home.appendingPathComponent(".copilot/session-state", isDirectory: true))

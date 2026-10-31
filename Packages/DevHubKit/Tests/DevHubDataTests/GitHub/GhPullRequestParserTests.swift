@@ -165,4 +165,12 @@ import Testing
         #expect(summary.labels == ["feature"])
         #expect(summary.headSHA == "ddd444")
     }
+
+    @Test func aCircleCICheckCarriesItsWorkflowID() throws {
+        let details = try GhPullRequestParser.details(from: GhFixture.circleCIDetails)
+
+        #expect(details.jobs.map(\.name) == ["ci/circleci: unit-tests", "build-and-test - 1a2b3c4d", "notes"])
+        #expect(details.jobs.map(\.ciWorkflowID) == ["11111111-2222-3333-4444-555555555555", "11111111-2222-3333-4444-555555555555", nil])
+        #expect(details.jobs.map(\.status) == [.failed, .failed, .success])
+    }
 }
