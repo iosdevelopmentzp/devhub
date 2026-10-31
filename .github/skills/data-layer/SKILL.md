@@ -127,8 +127,9 @@ package actor ShellRunner {
   when every thread waits for a stderr reader that is queued behind it, all later commands hang until a restart.
   `run` uses `ProcessOutput` (`Shell/ProcessOutput.swift`): `readabilityHandler` on both pipes and a
   `terminationHandler`, so no thread waits. `manyParallelRunsAllFinish` in `ShellRunnerIntegrationTests` guards it.
-- **Streaming.** One pipe for stdout and stderr; `for try await line in pipe.fileHandleForReading.bytes.lines`;
-  `withTaskCancellationHandler` whose `onCancel` terminates the process. After a stream the caller runs
+- **Streaming.** One pipe for stdout and stderr; `ProcessLines.lines(of:)` (`Shell/ProcessLines.swift`) turns the pipe into an
+  `AsyncStream<String>` through `readabilityHandler`, so no cooperative thread waits on the pipe (`FileHandle.bytes.lines` did, and
+  starved the store tests on a 3-core CI runner); `withTaskCancellationHandler` whose `onCancel` terminates the process. After a stream the caller runs
   `try Task.checkCancellation()`: a cancelled stream ends without throwing.
 - No token in arguments. A token goes into a request header in memory and is dropped after the request.
 

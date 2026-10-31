@@ -82,15 +82,27 @@ final class LocalMockServer: @unchecked Sendable {
         }
     }
 
-    func stop() {
+    func stop() async {
         let open = lock.withLock {
             let open = Array(connections.values)
             connections = [:]
             boundPort = nil
             return open
         }
-        listener.cancel()
         open.forEach { $0.cancel() }
+        guard listener.state != .cancelled else { return }
+        _ = try? await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
+            let once = ResumeOnce(continuation)
+            listener.stateUpdateHandler = { state in
+                switch state {
+                case .cancelled, .failed:
+                    once.resume(with: .success(()))
+                default:
+                    break
+                }
+            }
+            listener.cancel()
+        }
     }
 
     private func accept(_ connection: NWConnection) {

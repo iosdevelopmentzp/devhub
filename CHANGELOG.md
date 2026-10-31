@@ -112,6 +112,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- A streamed command (a build, a test run, a script, a log stream) no longer holds a thread of the Swift concurrency pool while it waits for output. With few cores (the CI runner) the integration tests starved the store tests, which then timed out.
+- The mock server returns from Stop only when the port is closed.
 - A streamed command (a build, a script, a worktree bootstrap, a log stream) could hang DevHub after the process had already exited: the wait for the exit ran a run loop that never woke up. DevHub now waits for the termination callback of the process. The full test run hung in the same place two times out of three.
 - Build & Run: "Show all" in the build issue list opens a scrolling list of at most 220 points instead of a list that grows past the window. Before, a long list of warnings pushed the run bar and the simulator list out of view and "Show fewer" with them.
 - DevHub no longer stops reading git, pull requests and simulators after many tab switches. When about 64 commands ran at the same time, every later command waited forever until DevHub was restarted. Commands now read their output without holding a thread.

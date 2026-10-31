@@ -71,7 +71,7 @@ package actor ShellRunner {
         let handle = ProcessHandle(process)
         do {
             let status = try await withTaskCancellationHandler {
-                for try await line in pipe.fileHandleForReading.bytes.lines {
+                for await line in ProcessLines.lines(of: pipe.fileHandleForReading) {
                     if kind.hidesOutput == false {
                         batcher.add(line)
                     }

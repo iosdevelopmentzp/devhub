@@ -16,7 +16,7 @@ actor NWMockServerRepository: MockServerRepository {
             return port
         }
         let server = try await startServer(handler: handler, onExchange: onExchange, preferredPort: MockServerPortPolicy.port(for: udid))
-        servers.removeValue(forKey: udid)?.stop()
+        await servers.removeValue(forKey: udid)?.stop()
         servers[udid] = server
         return server.port ?? 0
     }
@@ -46,7 +46,7 @@ actor NWMockServerRepository: MockServerRepository {
     }
 
     func stop(udid: String) async {
-        servers.removeValue(forKey: udid)?.stop()
+        await servers.removeValue(forKey: udid)?.stop()
     }
 
     func port(udid: String) async -> Int? {
