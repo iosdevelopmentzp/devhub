@@ -53,6 +53,7 @@ final class PullRequestsStore {
     @ObservationIgnored private let remote: any CodeHostLookup
     @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private let activity: ActivityLog
+    @ObservationIgnored private let operations: OperationLog
     @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private let refreshTask = RefreshTask()
     @ObservationIgnored private var subscription: SubscriptionToken?
@@ -66,11 +67,12 @@ final class PullRequestsStore {
         remote.words
     }
 
-    init(repository: CodeHostRepository, remote: any CodeHostLookup, activity: ActivityLog, events: AppEvents, store: any KeyValueStore) {
+    init(repository: CodeHostRepository, remote: any CodeHostLookup, activity: ActivityLog, operations: OperationLog, events: AppEvents, store: any KeyValueStore) {
         self.repository = repository
         self.remote = remote
         self.store = store
         self.activity = activity
+        self.operations = operations
         self.events = events
         scope = store.string(forKey: PullRequestsPreferenceKeys.scope).flatMap(PullRequestScope.init(rawValue:)) ?? .mine
         stateFilter = store.string(forKey: PullRequestsPreferenceKeys.state).flatMap(PullRequestStateFilter.init(rawValue:)) ?? .opened
@@ -157,11 +159,17 @@ final class PullRequestsStore {
         let texts = PullRequestActionTexts.texts(for: kind, number: id, words: remote.words)
         busyIDs.insert(id)
         let detail = request(id: id)?.title ?? ""
+        let retry: () -> Void = { [weak self] in
+            guard let self else { return }
+            run(id, kind, work)
+        }
         Task { [weak self] in
             guard let self else { return }
             do {
-                let url = try await remote.codeHost()
-                try await work(url)
+                try await operations.perform(texts.title, at: .pullRequest(id), retry: retry) {
+                    let url = try await remote.codeHost()
+                    try await work(url)
+                }
                 activity.log(texts.done, detail: detail, outcome: .success)
                 events.post(.pullRequestsChanged)
             } catch {

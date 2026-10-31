@@ -67,6 +67,8 @@ The header search filters the loaded rows by title, number, author, branches and
 
 ## Actions
 
+An action below shows an operation card at its place: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry (when the action can run again), Copy Error and Full Output. See [Operations](output.md#operations).
+
 ### Request actions
 
 The row shows the main actions on hover. The overflow menu and the context menu show the rest. An action is shown only when the request is open and the host allows it for you.

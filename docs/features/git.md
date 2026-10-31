@@ -42,6 +42,8 @@ The header search filters the rows of the current section: branch name and subje
 
 ## Actions
 
+An action below shows an operation card under the header (or under the commit box for the commit and the file actions): the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry, Copy Error and Full Output. See [Operations](output.md#operations).
+
 ### Header action bar
 
 | Action | What it does | Command |

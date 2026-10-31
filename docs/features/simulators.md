@@ -43,6 +43,8 @@ The target is the simulator that Build & Run uses.
 
 ## Actions
 
+An action below shows an operation card at its place: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry (when the action can run again), Copy Error and Full Output. See [Operations](output.md#operations).
+
 ### Simulator rows
 
 Row buttons appear on hover. The overflow menu (`…`) holds the rest.

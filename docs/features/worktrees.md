@@ -37,6 +37,8 @@ The row of the build source has a highlighted background. The header search filt
 
 ## Actions
 
+An action below shows an operation card at its place: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry (when the action can run again), Copy Error and Full Output. See [Operations](output.md#operations).
+
 ### Toolbar
 
 | Action | What it does | Command |

@@ -7,8 +7,18 @@ struct OperationOrigin: Hashable {
     static let changes = OperationOrigin(key: "changes")
     static let simulators = OperationOrigin(key: "simulators")
     static let messaging = OperationOrigin(key: "messaging")
+    static let worktrees = OperationOrigin(key: "worktrees")
+    static let pullRequests = OperationOrigin(key: "pullRequests")
 
     static func action(_ id: String) -> OperationOrigin {
         OperationOrigin(key: "action:" + id)
+    }
+
+    static func worktree(_ path: String) -> OperationOrigin {
+        OperationOrigin(key: "worktree:" + path)
+    }
+
+    static func pullRequest(_ iid: Int) -> OperationOrigin {
+        OperationOrigin(key: "pullRequest:\(iid)")
     }
 }

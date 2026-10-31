@@ -91,6 +91,7 @@ package final class PresentationAssembly {
             session: session,
             config: config,
             activity: activity,
+            operations: operations,
             events: events
         )
         git = GitStore(
@@ -125,7 +126,7 @@ package final class PresentationAssembly {
         ciProjects = CIProjectResolver(config: config, worktrees: worktrees, remote: codeHostRemote, tools: ports.tools, events: events)
         ciHistory = CIWorkflowHistory(session: session, events: events, store: store)
         pullRequestHiddenFiles = PullRequestHiddenFiles(session: session, events: events, store: store)
-        pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
+        pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events, store: store)
         openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
         inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
         ciAutoRerun = CIAutoRerunStore(
@@ -150,6 +151,7 @@ package final class PresentationAssembly {
             autoRerun: ciAutoRerun,
             hiddenFiles: pullRequestHiddenFiles,
             activity: activity,
+            operations: operations,
             events: events
         )
         newPullRequest = NewPullRequestStore(

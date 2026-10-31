@@ -49,6 +49,7 @@ final class PullRequestDetailStore {
     @ObservationIgnored private let autoRerun: any CIAutoRerunLookup
     @ObservationIgnored private let hiddenFiles: PullRequestHiddenFiles
     @ObservationIgnored private let activity: ActivityLog
+    @ObservationIgnored private let operations: OperationLog
     @ObservationIgnored private var loading: Set<PullRequestSummary.ID> = []
     @ObservationIgnored private var ciLoading: Set<String> = []
     @ObservationIgnored private var ciFlakyLoaded = false
@@ -70,6 +71,7 @@ final class PullRequestDetailStore {
         autoRerun: any CIAutoRerunLookup,
         hiddenFiles: PullRequestHiddenFiles,
         activity: ActivityLog,
+        operations: OperationLog,
         events: AppEvents
     ) {
         self.repository = repository
@@ -81,6 +83,7 @@ final class PullRequestDetailStore {
         self.autoRerun = autoRerun
         self.hiddenFiles = hiddenFiles
         self.activity = activity
+        self.operations = operations
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             switch event {
@@ -315,7 +318,7 @@ final class PullRequestDetailStore {
     }
 
     func resolveThread(_ threadID: ReviewThread.ID, of id: PullRequestSummary.ID) {
-        run(threadID, of: id, "Resolved a thread of \(remote.words.reference(id))") { [repository] in
+        run(threadID, of: id, action: "Resolve a thread of \(remote.words.reference(id))", "Resolved a thread of \(remote.words.reference(id))") { [repository] in
             try await repository.resolveThread(id: threadID, repository: $0)
         }
     }
@@ -323,7 +326,7 @@ final class PullRequestDetailStore {
     func reply(_ body: String, to threadID: ReviewThread.ID, of id: PullRequestSummary.ID) {
         let text = body.trimmingCharacters(in: .whitespacesAndNewlines)
         guard text.isEmpty == false else { return }
-        run(threadID, of: id, "Replied in a thread of \(remote.words.reference(id))") { [repository] in
+        run(threadID, of: id, action: "Reply in a thread of \(remote.words.reference(id))", "Replied in a thread of \(remote.words.reference(id))") { [repository] in
             try await repository.reply(threadID: threadID, body: text, iid: id, repository: $0)
         }
     }
@@ -338,13 +341,16 @@ final class PullRequestDetailStore {
         busyComments.insert(id)
         let reference = remote.words.reference(id)
         let title = kind == .comment ? "Commented on \(reference)" : "Requested changes on \(reference)"
+        let action = kind == .comment ? "Comment on \(reference)" : "Request changes on \(reference)"
         Task { [weak self] in
             guard let self else { return }
             do {
-                let url = try await remote.codeHost()
-                switch kind {
-                case .comment: try await repository.comment(iid: id, body: text, repository: url)
-                case .requestChanges: try await repository.requestChanges(iid: id, body: text, repository: url)
+                try await operations.perform(action, at: .pullRequest(id), retry: nil) {
+                    let url = try await remote.codeHost()
+                    switch kind {
+                    case .comment: try await repository.comment(iid: id, body: text, repository: url)
+                    case .requestChanges: try await repository.requestChanges(iid: id, body: text, repository: url)
+                    }
                 }
                 activity.log(title, detail: text, outcome: .success)
                 commentDrafts[id] = nil
@@ -377,12 +383,15 @@ final class PullRequestDetailStore {
         guard text.isEmpty == false else { return }
         isSendingLineComment = true
         let comment = PullRequestLineComment(path: draft.path, oldPath: draft.oldPath, newLine: draft.newLine, oldLine: draft.oldLine, body: text, headSHA: headSHA)
-        let title = "Commented on \(draft.path):\(draft.newLine ?? draft.oldLine ?? 0) in \(remote.words.reference(draft.requestID))"
+        let place = "\(draft.path):\(draft.newLine ?? draft.oldLine ?? 0) in \(remote.words.reference(draft.requestID))"
+        let title = "Commented on \(place)"
         Task { [weak self] in
             guard let self else { return }
             do {
-                let url = try await remote.codeHost()
-                try await repository.addLineComment(iid: draft.requestID, comment: comment, repository: url)
+                try await operations.perform("Comment on \(place)", at: .pullRequest(draft.requestID), retry: nil) {
+                    let url = try await remote.codeHost()
+                    try await repository.addLineComment(iid: draft.requestID, comment: comment, repository: url)
+                }
                 activity.log(title, detail: text, outcome: .success)
                 lineComment = nil
                 isSendingLineComment = false
@@ -441,11 +450,17 @@ final class PullRequestDetailStore {
         guard busyJobs.contains(jobID) == false else { return }
         busyJobs.insert(jobID)
         let title = "Retried \(name) of \(remote.words.reference(id))"
+        let retry: () -> Void = { [weak self] in
+            guard let self else { return }
+            retryJob(jobID, named: name, of: id)
+        }
         Task { [weak self] in
             guard let self else { return }
             do {
-                let url = try await remote.codeHost()
-                try await repository.retryJob(jobID: jobID, repository: url)
+                try await operations.perform("Retry \(name) of \(remote.words.reference(id))", at: .pullRequest(id), retry: retry) {
+                    let url = try await remote.codeHost()
+                    try await repository.retryJob(jobID: jobID, repository: url)
+                }
                 activity.log(title, detail: "", outcome: .success)
                 busyJobs.remove(jobID)
                 jobLogs[jobID] = nil
@@ -458,14 +473,16 @@ final class PullRequestDetailStore {
         }
     }
 
-    private func run(_ threadID: ReviewThread.ID, of id: PullRequestSummary.ID, _ title: String, _ work: @escaping @Sendable (CodeHost) async throws -> Void) {
+    private func run(_ threadID: ReviewThread.ID, of id: PullRequestSummary.ID, action: String, _ title: String, _ work: @escaping @Sendable (CodeHost) async throws -> Void) {
         guard busyThreads.contains(threadID) == false else { return }
         busyThreads.insert(threadID)
         Task { [weak self] in
             guard let self else { return }
             do {
-                let url = try await remote.codeHost()
-                try await work(url)
+                try await operations.perform(action, at: .pullRequest(id), retry: nil) {
+                    let url = try await remote.codeHost()
+                    try await work(url)
+                }
                 activity.log(title, detail: "", outcome: .success)
                 busyThreads.remove(threadID)
                 await reload(id)
@@ -514,33 +531,36 @@ final class PullRequestDetailStore {
     func rerunWorkflow(_ workflowID: String, fromFailed: Bool, of id: PullRequestSummary.ID) {
         let name = ciWorkflows[workflowID]?.name ?? "the workflow"
         let title = fromFailed ? "Re-ran the failed jobs of \(name)" : "Re-ran \(name)"
-        runCI(workflowID: workflowID, of: id, title) { [ci] in
+        let action = fromFailed ? "Re-run the failed jobs of \(name)" : "Re-run \(name)"
+        runCI(workflowID: workflowID, of: id, action: action, title) { [ci] in
             try await ci.rerun(workflowID: workflowID, fromFailed: fromFailed, project: $0)
         }
     }
 
     func cancelWorkflow(_ workflowID: String, of id: PullRequestSummary.ID) {
         let name = ciWorkflows[workflowID]?.name ?? "the workflow"
-        runCI(workflowID: workflowID, of: id, "Cancelled \(name)") { [ci] in
+        runCI(workflowID: workflowID, of: id, action: "Cancel \(name)", "Cancelled \(name)") { [ci] in
             try await ci.cancel(workflowID: workflowID, project: $0)
         }
     }
 
     func approveJob(_ jobID: String, named name: String, of id: PullRequestSummary.ID) {
         guard let workflow = ciWorkflow(containing: jobID), let runID = workflow.runID else { return }
-        runCI(workflowID: workflow.id, of: id, "Approved \(name) of \(workflow.name)") { [ci] in
+        runCI(workflowID: workflow.id, of: id, action: "Approve \(name) of \(workflow.name)", "Approved \(name) of \(workflow.name)") { [ci] in
             try await ci.approve(runID: runID, job: name, project: $0)
         }
     }
 
-    private func runCI(workflowID: String, of id: PullRequestSummary.ID, _ title: String, _ work: @escaping @Sendable (CIProject) async throws -> Void) {
+    private func runCI(workflowID: String, of id: PullRequestSummary.ID, action: String, _ title: String, _ work: @escaping @Sendable (CIProject) async throws -> Void) {
         guard ciBusyWorkflows.contains(workflowID) == false else { return }
         ciBusyWorkflows.insert(workflowID)
         let project = projects.project(for: details[id]?.jobs ?? [])
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await work(project)
+                try await operations.perform(action, at: .pullRequest(id), retry: nil) {
+                    try await work(project)
+                }
                 activity.log(title, detail: "", outcome: .success)
                 ciBusyWorkflows.remove(workflowID)
                 await reload(id)

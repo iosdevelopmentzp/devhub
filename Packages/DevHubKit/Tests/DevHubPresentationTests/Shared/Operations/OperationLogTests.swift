@@ -35,6 +35,42 @@ import DevHubDomain
         #expect(log.running.isEmpty)
     }
 
+    @Test func performRunsTheWorkInsideTheOperationAndReturnsItsValue() async throws {
+        var seen: UUID?
+
+        let value = try await log.perform("Create worktree", at: .worktrees, retry: nil) {
+            seen = OperationScope.current
+            return 42
+        }
+
+        let record = try #require(log.latest(at: .worktrees))
+        #expect(value == 42)
+        #expect(seen == record.id)
+        #expect(record.status == .succeeded)
+        #expect(record.canRetry == false)
+    }
+
+    @Test func performEndsTheOperationWithTheErrorAndRethrows() async {
+        await #expect(throws: PerformFailure.self) {
+            try await log.perform("Fetch", at: .worktrees, retry: {}) {
+                throw PerformFailure()
+            }
+        }
+
+        #expect(log.latest(at: .worktrees)?.failureMessage == "offline")
+        #expect(log.latest(at: .worktrees)?.canRetry == true)
+    }
+
+    @Test func performMarksACancellationAsStopped() async {
+        await #expect(throws: CancellationError.self) {
+            try await log.perform("Bootstrap", at: .worktree("/repo/wt"), retry: nil) {
+                throw CancellationError()
+            }
+        }
+
+        #expect(log.latest(at: .worktree("/repo/wt"))?.status == .cancelled)
+    }
+
     @Test func progressIsKeptOnTheOperation() {
         let id = log.start("Regenerate", at: .action("gen"), retry: nil, stop: nil)
 
@@ -146,4 +182,8 @@ import DevHubDomain
         #expect(log.record(finished.last ?? UUID()) != nil)
         #expect(log.newestFirst.first?.id == finished.last)
     }
+}
+
+private struct PerformFailure: LocalizedError {
+    var errorDescription: String? { "offline" }
 }

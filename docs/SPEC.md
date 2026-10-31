@@ -114,7 +114,7 @@ Settings offers a fixed list: ⌥⌘D (default), ⌃⌥Space, ⌃⌥D or Off. Th
 
 An operation is one action that you started: a push, a commit, a config action or script, a simulator action. Every command that runs for it belongs to it.
 
-- A card at the place of the action (under the Git header, under the commit box, under the tile grid or the script row, under the Simulators toolbar, in the push panel) shows the operation while it runs: the steps with a spinner, a check mark or a cross, the time, the last output line and the progress of a script. A script with Stop shows a stop button.
+- A card at the place of the action (under the Git header, under the commit box, under the tile grid or the script row, under the Simulators toolbar, in the push panel, under the Worktrees toolbar or a worktree row, under a pull request row, at the top of the details pane and in a request window) shows the operation while it runs: the steps with a spinner, a check mark or a cross, the time, the last output line and the progress of a script. A script with Stop shows a stop button.
 - A failed operation keeps its card: "<title> failed", the message, the steps, the lines of the failed step that explain the failure (lines with `error`, `fatal`, `rejected`, `hint` and similar words, else the last lines), Retry, Copy Error, Full Output (the whole output of the failed step inside the card) and a close button.
 - A finished operation whose step failed (a commit whose push failed) is orange: "<title> · a step failed".
 - A successful operation shows a green line with the time for 4 seconds.

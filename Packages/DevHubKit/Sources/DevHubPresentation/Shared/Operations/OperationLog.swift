@@ -56,6 +56,28 @@ final class OperationLog {
         return id
     }
 
+    func perform<Value>(
+        _ title: String,
+        at origin: OperationOrigin,
+        retry: (() -> Void)?,
+        work: () async throws -> Value
+    ) async throws -> Value {
+        let id = start(title, at: origin, retry: retry, stop: nil)
+        do {
+            let value = try await OperationScope.$current.withValue(id) {
+                try await work()
+            }
+            succeed(id)
+            return value
+        } catch is CancellationError {
+            cancel(id)
+            throw CancellationError()
+        } catch {
+            fail(id, message: error.localizedDescription)
+            throw error
+        }
+    }
+
     func setProgress(of id: OperationRecord.ID, text: String, fraction: Double?) {
         update(id) {
             $0.progressText = text

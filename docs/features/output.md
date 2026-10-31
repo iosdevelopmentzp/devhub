@@ -90,6 +90,9 @@ Code: `DevHubPresentation/Shared/Operations/`, `Features/Operations/`, `Shared/A
 | Under a tile grid, a script row, the Git pills, a toolbar bar, a custom tab action | `.action(<id>)` | config actions and scripts; the `progress` line moves the bar of the card and the footer |
 | Simulators, under the toolbar | `.simulators` | Boot, Shut Down, Erase, Remove Apps and the other actions of `SimulatorsStore` |
 | The push panel of a simulator | `.messaging` | Send Push |
+| Worktrees, under the toolbar | `.worktrees` | Fetch, Prune, Clean Finished, New (create) |
+| Worktrees, under a row | `.worktree(<path>)` | Delete, Bootstrap (with Retry) |
+| Pull Requests, under a row, at the top of the details pane and in a request window | `.pullRequest(<number>)` | Approve, Revoke, Ready, Draft, Update, Merge, Auto-merge, Retry and Cancel the checks (with Retry); Comment, Request Changes, a line comment, Resolve, Reply, Retry a job, the CircleCI Re-run, Cancel and Approve |
 
 A card shows:
 

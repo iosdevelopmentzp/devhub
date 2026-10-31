@@ -26,6 +26,8 @@ When no project is added yet, the panel shows "No project yet" and an Add Projec
 
 ## Actions
 
+An action below shows an operation card at its place: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry (when the action can run again), Copy Error and Full Output. See [Operations](output.md#operations).
+
 ### Project card
 
 | Button | What it does | Command |

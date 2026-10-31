@@ -60,7 +60,7 @@ Settings → Disk. Only Xcode and tool folders that every Mac has: DerivedData f
 ## Plan
 
 - [x] 1. D1 core: `OperationScope`, the operation ID in command events, `OperationLog`, `FailureDigestPolicy`, the card, the footer list, the Output panel switch. Wired into `ActionRunner` (Git, commit box, simulators, messaging) and config actions in every placement.
-- [ ] 2. D1 in the other places: worktrees (create, delete, bootstrap, clean), pull request actions (list and details), settings.
+- [x] 2. D1 in the other places: worktrees (fetch, prune, clean, create, delete, bootstrap) and pull request actions (row, details pane, request window). Settings has no long command: its Doctor check is a read.
 - [ ] 3. D8 Xcode per project.
 - [ ] 4. D2 crash reports.
 - [ ] 5. D3 app data.
@@ -73,3 +73,4 @@ Settings → Disk. Only Xcode and tool folders that every Mac has: DerivedData f
 
 | Commit | Step |
 |---|---|
+| `54057c8` | Step 1: `OperationScope`, the operation ID in command events, `OperationLog`, `FailureDigestPolicy`, the card, the footer list, the Output panel switch; `ActionRunner` and config actions. |

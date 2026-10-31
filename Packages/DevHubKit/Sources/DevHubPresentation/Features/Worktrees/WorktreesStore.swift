@@ -23,6 +23,7 @@ final class WorktreesStore: WorktreeLookup {
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let activity: ActivityLog
+    @ObservationIgnored private let operations: OperationLog
     @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private let refreshTask = RefreshTask()
     @ObservationIgnored private var subscription: SubscriptionToken?
@@ -37,6 +38,7 @@ final class WorktreesStore: WorktreeLookup {
         session: ProjectSession,
         config: ConfigStore,
         activity: ActivityLog,
+        operations: OperationLog,
         events: AppEvents
     ) {
         self.repository = repository
@@ -47,6 +49,7 @@ final class WorktreesStore: WorktreeLookup {
         self.session = session
         self.config = config
         self.activity = activity
+        self.operations = operations
         self.events = events
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
@@ -161,7 +164,12 @@ final class WorktreesStore: WorktreeLookup {
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await repository.fetch(projectPath: path, remote: remote)
+                try await operations.perform("Fetch \(remote)", at: .worktrees, retry: { [weak self] in
+                    guard let self else { return }
+                    fetchAndRefresh()
+                }) {
+                    try await repository.fetch(projectPath: path, remote: remote)
+                }
             } catch {
                 activity.log("git fetch failed", detail: error.localizedDescription, outcome: .failure)
             }
@@ -177,15 +185,19 @@ final class WorktreesStore: WorktreeLookup {
         busyIDs.insert(id)
         let projectPath = session.selectedProject.path
         let size = derivedDataSizes[id] ?? 0
+        let operationID = operations.start("Delete \(worktree.displayName)", at: .worktree(id), retry: nil, stop: nil)
         Task { [weak self] in
             guard let self else { return }
-            let summary = await removeWorktree.execute(
-                worktree,
-                projectPath: projectPath,
-                deleteDerivedData: deleteDerivedData,
-                deleteBranch: deleteBranch,
-                derivedDataSize: size
-            )
+            let summary = await OperationScope.$current.withValue(operationID) {
+                await removeWorktree.execute(
+                    worktree,
+                    projectPath: projectPath,
+                    deleteDerivedData: deleteDerivedData,
+                    deleteBranch: deleteBranch,
+                    derivedDataSize: size
+                )
+            }
+            finish(operationID, outcome: summary.outcome, message: summary.detail)
             busyIDs.remove(id)
             activity.log(summary.title, detail: summary.detail, outcome: summary.outcome)
             await refresh()
@@ -197,17 +209,21 @@ final class WorktreesStore: WorktreeLookup {
         busyIDs.formUnion(targets.map(\.id))
         let projectPath = session.selectedProject.path
         let sizes = derivedDataSizes
+        let operationID = operations.start("Clean \(CountText.count(targets.count, "finished worktree", "finished worktrees"))", at: .worktrees, retry: nil, stop: nil)
         Task { [weak self] in
             guard let self else { return }
-            let report = await cleanFinishedWorktrees.execute(
-                targets,
-                projectPath: projectPath,
-                derivedDataSizes: sizes
-            ) { [weak self] id in
-                await self?.finishRemoval(id)
+            let report = await OperationScope.$current.withValue(operationID) {
+                await cleanFinishedWorktrees.execute(
+                    targets,
+                    projectPath: projectPath,
+                    derivedDataSizes: sizes
+                ) { [weak self] id in
+                    await self?.finishRemoval(id)
+                }
             }
             let failures = report.failedNames
             let detail = "\(report.removedCount) removed, \(ByteFormat.text(report.derivedDataBytes)) DerivedData" + (failures.isEmpty ? "" : " · failed: \(failures.joined(separator: ", "))")
+            finish(operationID, outcome: failures.isEmpty ? .success : .failure, message: detail)
             activity.log("Cleaned finished worktrees", detail: detail, outcome: failures.isEmpty ? .success : .failure)
             await refresh()
         }
@@ -219,7 +235,9 @@ final class WorktreesStore: WorktreeLookup {
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await repository.prune(projectPath: path)
+                try await operations.perform("Prune missing worktrees", at: .worktrees, retry: nil) {
+                    try await repository.prune(projectPath: path)
+                }
                 activity.log("Pruned \(stale.count) worktree(s)", detail: stale.map(\.displayName).joined(separator: ", "), outcome: .success)
             } catch {
                 activity.log("Prune failed", detail: error.localizedDescription, outcome: .failure)
@@ -229,13 +247,13 @@ final class WorktreesStore: WorktreeLookup {
     }
 
     func create(branch: String) async -> Worktree? {
+        let base = baseBranch
+        let projectPath = session.selectedProject.path
+        let settings = gitSettings
         do {
-            guard let created = try await createWorktree.execute(
-                branch: branch,
-                base: baseBranch,
-                projectPath: session.selectedProject.path,
-                settings: gitSettings
-            ) else { return nil }
+            guard let created = try await operations.perform("Create worktree for \(branch)", at: .worktrees, retry: nil, work: {
+                try await createWorktree.execute(branch: branch, base: base, projectPath: projectPath, settings: settings)
+            }) else { return nil }
             activity.log("Created worktree", detail: "\(created.branch) · \(created.path.abbreviatingHome)", outcome: .success)
             await refresh()
             return worktree(atPath: created.path)
@@ -265,13 +283,27 @@ final class WorktreesStore: WorktreeLookup {
     private func runBootstrap(_ worktree: Worktree, script: String) async throws {
         bootstrappingIDs.insert(worktree.id)
         defer { bootstrappingIDs.remove(worktree.id) }
+        let retry: () -> Void = { [weak self] in
+            guard let self else { return }
+            bootstrap(id: worktree.id)
+        }
         do {
-            try await repository.bootstrap(worktreePath: worktree.path, script: script) { _ in }
+            try await operations.perform("Bootstrap \(worktree.displayName)", at: .worktree(worktree.id), retry: retry) {
+                try await repository.bootstrap(worktreePath: worktree.path, script: script) { _ in }
+            }
             activity.log("Bootstrapped \(worktree.displayName)", detail: "\(script) finished", outcome: .success)
         } catch {
-            activity.log("Bootstrap failed: \(worktree.displayName)", detail: "\(error.localizedDescription) Full output in the Output panel.", outcome: .failure)
+            activity.log("Bootstrap failed: \(worktree.displayName)", detail: error.localizedDescription, outcome: .failure)
             throw error
         }
+    }
+
+    private func finish(_ operationID: OperationRecord.ID, outcome: ActivityEvent.Outcome, message: String) {
+        guard outcome == .failure else {
+            operations.succeed(operationID)
+            return
+        }
+        operations.fail(operationID, message: message)
     }
 
     // MARK: Private

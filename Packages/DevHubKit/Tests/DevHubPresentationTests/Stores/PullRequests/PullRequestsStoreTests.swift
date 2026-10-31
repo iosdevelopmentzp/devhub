@@ -176,6 +176,8 @@ import DevHubTestSupport
         #expect(harness.spies.codeHost.calls.filter { if case .list = $0 { true } else { false } }.count == 2)
         #expect(harness.lastActivity?.title == "Approved !21")
         #expect(harness.lastActivity?.detail == "ABC-5: Login")
+        #expect(harness.operations.latest(at: .pullRequest(21))?.title == "Approve !21")
+        #expect(harness.operations.latest(at: .pullRequest(21))?.status == .succeeded)
     }
 
     @Test func retryPipelineNeedsThePipelineIDAndMergePassesTheOptions() async throws {
@@ -204,6 +206,13 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.title == "Cannot mark !21 as draft")
         #expect(harness.lastActivity?.outcome == .failure)
         #expect(harness.lastActivity?.detail == "403 Forbidden")
+        let failed = try #require(harness.operations.latest(at: .pullRequest(21)))
+        #expect(failed.failureMessage == "403 Forbidden")
+        #expect(failed.canRetry)
+        harness.spies.codeHost.actionError = nil
+        harness.operations.retry(failed.id)
+        try await waitUntil { harness.operations.latest(at: .pullRequest(21))?.status == .succeeded }
+        #expect(harness.spies.codeHost.calls.filter { $0 == .setDraft(iid: 21, isDraft: true, repository: remote) }.count == 2)
     }
 
     @Test func mergeFromTheMenuUsesTheDefaultsOfTheRequest() async throws {

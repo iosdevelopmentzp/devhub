@@ -71,10 +71,13 @@ struct PullRequestDetailsPane: View {
         let id = model.id
         return ScrollViewReader { proxy in
             ScrollView {
-                PullRequestDetailsView(
-                    model: details,
-                    actions: detailActions.withoutWindow
-                )
+                VStack(alignment: .leading, spacing: 10) {
+                    OperationSlot(origin: .pullRequest(id))
+                    PullRequestDetailsView(
+                        model: details,
+                        actions: detailActions.withoutWindow
+                    )
+                }
                 .padding(14)
             }
             .environment(\.diffScrollProxy, proxy)

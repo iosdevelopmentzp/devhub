@@ -283,6 +283,7 @@ import DevHubTestSupport
         #expect(harness.spies.codeHost.calls.contains(.comment(iid: 7, body: "Looks good", repository: remote)))
         #expect(store.review(of: 7).commentDraft == "")
         #expect(harness.lastActivity?.title == "Commented on !7")
+        #expect(harness.operations.latest(at: .pullRequest(7))?.title == "Comment on !7")
     }
 
     @Test func requestChangesKeepsTheDraftWhenItFails() async throws {
@@ -296,6 +297,7 @@ import DevHubTestSupport
 
         #expect(harness.spies.codeHost.calls.last == .requestChanges(iid: 7, body: "Fix the test", repository: remote))
         #expect(store.review(of: 7).commentDraft == "Fix the test")
+        #expect(harness.operations.latest(at: .pullRequest(7))?.failureMessage == "boom")
     }
 
     @Test func anEmptyDraftSendsNothing() {

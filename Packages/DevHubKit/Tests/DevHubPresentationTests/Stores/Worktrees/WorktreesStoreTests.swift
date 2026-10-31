@@ -71,6 +71,8 @@ import DevHubTestSupport
         _ = await store.createAndBootstrap(branch: "feature/login")
 
         try await waitUntil { harness.spies.worktrees.scripts == ["scripts/bootstrap.sh"] }
+        #expect(harness.operations.latest(at: .worktrees)?.title == "Create worktree for feature/login")
+        try await waitUntil { harness.operations.latest(at: .worktree(WorktreeSample.feature.id))?.status == .succeeded }
     }
 
     @Test func refreshLoadsTheListAndTheBaseBranch() async {
@@ -220,6 +222,7 @@ import DevHubTestSupport
         ])
         #expect(harness.lastActivity?.title == "Removed worktree")
         #expect(harness.lastActivity?.outcome == .info)
+        #expect(harness.operations.latest(at: .worktree(WorktreeSample.feature.id))?.status == .succeeded)
     }
 
     @Test func aFailedDeleteLogsAFailure() async throws {
@@ -231,6 +234,7 @@ import DevHubTestSupport
         try await waitUntil { listCalls == 1 }
         #expect(harness.lastActivity?.title == "Could not remove worktree")
         #expect(harness.lastActivity?.outcome == .failure)
+        #expect(harness.operations.latest(at: .worktree(WorktreeSample.feature.id))?.failureMessage?.isEmpty == false)
     }
 
     @Test func deleteIgnoresTheMainWorktree() {

@@ -93,6 +93,7 @@ final class StoreHarness {
         session: session,
         config: config,
         activity: activity,
+        operations: operations,
         events: events
     )
 
@@ -152,7 +153,7 @@ final class StoreHarness {
         store: store
     )
 
-    lazy var pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, events: events, store: store)
+    lazy var pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events, store: store)
 
     lazy var openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
 
@@ -168,6 +169,7 @@ final class StoreHarness {
         autoRerun: ciAutoRerun,
         hiddenFiles: pullRequestHiddenFiles,
         activity: activity,
+        operations: operations,
         events: events
     )
 
