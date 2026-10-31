@@ -60,6 +60,8 @@ final class AppActions {
             buildAndRun()
         case .runAttach:
             runAndAttach()
+        case .build:
+            buildOnly()
         case .openEditor:
             openInXcode(path: path)
         case .openFolder:
@@ -84,6 +86,11 @@ final class AppActions {
     func buildAndRun() {
         navigator.show(.simulators)
         build.run()
+    }
+
+    func buildOnly() {
+        navigator.show(.simulators)
+        build.buildOnly()
     }
 
     func buildAndRun(worktreeID: Worktree.ID) {
@@ -276,6 +283,10 @@ final class AppActions {
 
     func runInTerminal(_ command: String, at path: String, title: String) {
         workspace.runInTerminal(command, at: path, title: title)
+    }
+
+    func startAISession(_ provider: AIProvider, at path: String) {
+        workspace.runInTerminal(provider.executable, at: path, title: "Started a \(AISessionRowMapper.title(for: provider)) session")
     }
 
     func open(_ url: URL?) {

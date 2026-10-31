@@ -18,7 +18,7 @@ enum RunBarMapper {
             target: target.map { targetModel(for: $0, runtime: runtime, identity: identity, mockState: mockState, cleanInstallIsOn: state.cleanInstall) },
             noTargetText: "No simulator selected",
             progress: progress(state.phase),
-            outcome: outcome(state.phase, targetName: target?.name),
+            outcome: outcome(state.phase, targetName: target?.name, scheme: state.scheme),
             isRunning: state.isRunning,
             canRun: target != nil,
             canShowLog: hasLog,
@@ -50,10 +50,13 @@ enum RunBarMapper {
         return RunBarModel.Progress(step: step, value: value)
     }
 
-    private static func outcome(_ phase: BuildState.Phase, targetName: String?) -> RunBarModel.Outcome? {
+    private static func outcome(_ phase: BuildState.Phase, targetName: String?, scheme: String) -> RunBarModel.Outcome? {
         switch phase {
-        case .succeeded(let date):
-            RunBarModel.Outcome(tint: .green, text: "Launched on \(targetName ?? "simulator") · \(date.relativeDescription)")
+        case .succeeded(let date, let launched):
+            RunBarModel.Outcome(
+                tint: .green,
+                text: launched ? "Launched on \(targetName ?? "simulator") · \(date.relativeDescription)" : "Built \(scheme), not launched · \(date.relativeDescription)"
+            )
         case .failed(let message):
             RunBarModel.Outcome(tint: .red, text: message)
         case .idle, .running:

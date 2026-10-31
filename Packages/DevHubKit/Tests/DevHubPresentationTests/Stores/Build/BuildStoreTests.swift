@@ -27,7 +27,7 @@ import DevHubTestSupport
         harness.postedLabels.contains { $0.hasPrefix("buildFinished") }
     }
 
-    private func request(path: String, attachDebugger: Bool) -> BuildRequest {
+    private func request(path: String, attachDebugger: Bool, launchesApp: Bool = true) -> BuildRequest {
         BuildRequest(
             projectPath: path,
             container: nil,
@@ -38,7 +38,8 @@ import DevHubTestSupport
             simulatorName: simulator.name,
             cleanInstall: false,
             launch: .none,
-            attachDebugger: attachDebugger
+            attachDebugger: attachDebugger,
+            launchesApp: launchesApp
         )
     }
 
@@ -303,6 +304,31 @@ import DevHubTestSupport
         #expect(store.isRunning == false)
         #expect(harness.spies.attacher.calls == [.requestTrust])
         #expect(harness.lastActivity?.title == "Allow DevHub in Accessibility")
+    }
+
+    @Test func buildOnlyBuildsWithoutAnInstallOrALaunch() async throws {
+        store.buildOnly()
+
+        #expect(store.isRunning)
+        try await waitUntil { hasFinished }
+        guard case .succeeded(_, let launched) = store.state.phase else {
+            Issue.record("Expected a succeeded phase, got \(store.state.phase)")
+            return
+        }
+        #expect(launched == false)
+        #expect(store.log == ["App: \(product.appPath)"])
+        #expect(harness.spies.build.calls == [
+            .build(request(path: ProjectSample.path, attachDebugger: false, launchesApp: false)),
+            .locateProduct(request(path: ProjectSample.path, attachDebugger: false, launchesApp: false), hints: []),
+        ])
+        #expect(harness.spies.simulators.calls.first == .boot(udid: simulator.id))
+        #expect(harness.spies.simulators.calls.contains(.install(udid: simulator.id, appPath: product.appPath)) == false)
+        #expect(harness.spies.simulators.calls.contains { if case .launch = $0 { true } else { false } } == false)
+        #expect(harness.postedLabels.contains("buildFinished(sim-off, none)"))
+        #expect(harness.lastActivity?.title == "Built App")
+        #expect(harness.lastActivity?.outcome == .success)
+        try await waitUntil { harness.spies.notifications.posted.count == 1 }
+        #expect(harness.spies.notifications.posted.first == .post(title: "Built App", body: "Debug · \(ProjectSample.path.abbreviatingHome)"))
     }
 
     @Test func runBranchCreatesAWorktreeFirst() async throws {

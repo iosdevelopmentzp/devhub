@@ -11,6 +11,7 @@ package struct BuildRequest: Sendable {
     package var cleanInstall: Bool
     package var launch: LaunchPlan
     package var attachDebugger: Bool
+    package var launchesApp = true
 
     package init(
         projectPath: String,
@@ -22,7 +23,8 @@ package struct BuildRequest: Sendable {
         simulatorName: String,
         cleanInstall: Bool,
         launch: LaunchPlan,
-        attachDebugger: Bool
+        attachDebugger: Bool,
+        launchesApp: Bool = true
     ) {
         self.projectPath = projectPath
         self.container = container
@@ -34,5 +36,6 @@ package struct BuildRequest: Sendable {
         self.cleanInstall = cleanInstall
         self.launch = launch
         self.attachDebugger = attachDebugger
+        self.launchesApp = launchesApp
     }
 }

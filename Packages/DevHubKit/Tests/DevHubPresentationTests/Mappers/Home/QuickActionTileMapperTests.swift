@@ -16,6 +16,19 @@ import DevHubUI
         #expect(busy.isEnabled == false)
     }
 
+    @Test func buildFollowsTheBuildAndStaysOffTheDefaultGrid() {
+        let idle = QuickActionTileMapper.model(for: .builtin(.build), scheme: "ExampleApp", branch: nil, words: .gitLab, isBuildRunning: false, isRunning: false)
+        let busy = QuickActionTileMapper.model(for: .builtin(.build), scheme: nil, branch: nil, words: .gitLab, isBuildRunning: true, isRunning: false)
+
+        #expect(idle.title == "Build")
+        #expect(idle.subtitle == "Scheme ExampleApp, no launch")
+        #expect(idle.isEnabled)
+        #expect(busy.subtitle == "Compile only, no launch")
+        #expect(busy.isRunning)
+        #expect(busy.isEnabled == false)
+        #expect(BuiltinAction.homeDefaults.contains(.build) == false)
+    }
+
     @Test func copyBranchNeedsABranch() {
         #expect(QuickActionTileMapper.model(for: .builtin(.copyBranch), scheme: nil, branch: nil, words: .gitLab, isBuildRunning: false, isRunning: false).isEnabled == false)
         #expect(QuickActionTileMapper.model(for: .builtin(.copyBranch), scheme: nil, branch: "main", words: .gitLab, isBuildRunning: false, isRunning: false).subtitle == "main")

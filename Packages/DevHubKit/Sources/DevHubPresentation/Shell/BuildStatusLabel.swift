@@ -15,7 +15,7 @@ struct BuildStatusLabel: View {
                 ProgressView()
                     .controlSize(.mini)
                 Text(step)
-            case .succeeded(let date):
+            case .succeeded(let date, _):
                 StatusDot(color: .green)
                 Text("Build succeeded · \(date.relativeDescription)")
             case .failed(let message):

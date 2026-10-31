@@ -125,6 +125,10 @@ Run & Attach (⇧⌘R) works only for an Xcode project.
 
 Xcode's console stays empty for an attached process.
 
+### Build only
+
+Build (⌘B) runs the steps of Build & Run up to "Locate the app" and stops: no clean install, no install, no launch. The result line says "Built <scheme>, not launched", the app path is the last line of the build log (Show log), and the Recent list and a notification (panel closed) say "Built <scheme>". For a `kind: command` project it runs `build.command` only; an `app` line goes to the log and nothing is installed. `builtin.build` in `home.quickActions` puts the same action on Home, and the ⌘K palette lists it as "Build".
+
 ### Other run bar actions
 
 | Action | What it does |

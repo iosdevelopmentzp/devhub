@@ -34,6 +34,26 @@ import Testing
         #expect(spies.attacher.calls.isEmpty)
     }
 
+    @Test func buildOnlyStopsAfterLocatingTheApp() async {
+        let (ports, spies) = scriptedPorts()
+        var request = BuildRequestFixture.incremental
+        request.launchesApp = false
+
+        let result = await collect(useCase(ports).run(request))
+
+        #expect(result.error == nil)
+        #expect(result.events == [
+            "step: Booting iPhone 17",
+            "step: Building App",
+            "output: Compiling Login.swift",
+            "step: Locating app",
+            "output: App: /derived/App.app",
+        ])
+        #expect(spies.simulators.calls == [.boot(udid: udid)])
+        #expect(spies.build.calls == [.build(request), .locateProduct(request, hints: ["/hint/App.app"])])
+        #expect(spies.attacher.calls.isEmpty)
+    }
+
     @Test func bootsTheSimulatorBeforeAnythingElseWhateverItsState() async {
         let (ports, spies) = scriptedPorts()
 

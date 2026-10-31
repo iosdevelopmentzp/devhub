@@ -49,8 +49,9 @@ When no project is added yet, the panel shows "No project yet" and an Add Projec
 | Repository | Opens the web page of the repository | `git remote get-url <remote>` |
 | New Pull Request | Opens the web page that creates a request from the branch of the main checkout into the base branch. It does not open the form inside DevHub | GitHub: `<web>/compare/<base>...<branch>?expand=1`; GitLab: `<web>/-/merge_requests/new?merge_request[source_branch]=<branch>&merge_request[target_branch]=<base>` |
 | Pull Requests | Shows the Pull Requests tab. Only when it is listed in `home.quickActions` | — |
+| Build | Shows the Simulators tab and builds with the run bar options, without an install or a launch. Only when it is listed in `home.quickActions` | see the Simulators tab |
 
-Build & Run and Run & Attach are disabled while a build runs.
+Build & Run, Run & Attach and Build are disabled while a build runs.
 
 ### Config actions (tiles and script rows)
 

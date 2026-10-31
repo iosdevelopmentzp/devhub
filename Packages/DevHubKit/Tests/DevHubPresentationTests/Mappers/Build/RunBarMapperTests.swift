@@ -40,7 +40,7 @@ import Testing
 
     @Test func succeededNamesTheTarget() throws {
         var state = BuildState()
-        state.phase = .succeeded(.now)
+        state.phase = .succeeded(.now, launched: true)
 
         let withTarget = try #require(map(state: state, target: SimulatorFixture.iPhone, identity: nil).outcome)
         let withoutTarget = try #require(map(state: state, target: nil, identity: nil).outcome)
@@ -49,6 +49,17 @@ import Testing
         #expect(withTarget.text.hasPrefix("Launched on iPhone 16 Pro · "))
         #expect(withoutTarget.text.hasPrefix("Launched on simulator · "))
         #expect(map(state: state, target: nil, identity: nil).progress == nil)
+    }
+
+    @Test func builtWithoutALaunchNamesTheScheme() throws {
+        var state = BuildState()
+        state.scheme = "App"
+        state.phase = .succeeded(.now, launched: false)
+
+        let outcome = try #require(map(state: state, target: SimulatorFixture.iPhone, identity: nil).outcome)
+
+        #expect(outcome.tint == .green)
+        #expect(outcome.text.hasPrefix("Built App, not launched · "))
     }
 
     @Test func failedShowsTheMessageInRed() {

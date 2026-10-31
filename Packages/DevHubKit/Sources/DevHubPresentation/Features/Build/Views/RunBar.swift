@@ -189,6 +189,14 @@ struct RunBar: View {
                 }
             } else {
                 Button {
+                    appActions.buildOnly()
+                } label: {
+                    Label("Build", systemImage: "hammer.fill")
+                }
+                .keyboardShortcut("b")
+                .hint(build.isCommandProject ? "Run build.command only, without run.command and without a launch (⌘B)" : "Build only: compile without an install or a launch (⌘B). The app path is in the build log")
+                .disabled(model.canRun == false)
+                Button {
                     appActions.runAndAttach()
                 } label: {
                     Label("Run & Attach", systemImage: "ladybug.fill")

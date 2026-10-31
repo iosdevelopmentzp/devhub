@@ -44,6 +44,7 @@ package struct BuildAndRunUseCase: Sendable {
         let product = try await build.locateProduct(request, hints: appPathHints)
         continuation.yield(.output("App: \(product.appPath)"))
 
+        guard request.launchesApp else { return }
         try await install.run(product, request: request, continuation: continuation)
     }
 }

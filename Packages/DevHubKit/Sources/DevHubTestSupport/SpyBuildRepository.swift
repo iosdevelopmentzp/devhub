@@ -39,6 +39,7 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
                 && left.launch == right.launch
                 && left.cleanInstall == right.cleanInstall
                 && left.attachDebugger == right.attachDebugger
+                && left.launchesApp == right.launchesApp
         }
     }
 

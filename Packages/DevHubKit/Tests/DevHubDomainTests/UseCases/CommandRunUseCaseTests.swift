@@ -56,8 +56,41 @@ import Testing
         #expect(result.error?.localizedDescription == "Signing failed")
     }
 
-    private func request(build: String?, run: String?) -> CommandRunRequest {
-        CommandRunRequest(buildCommand: build, runCommand: run, folder: "/repo", environment: ["DEVHUB_SIMULATOR_UDID": udid], target: BuildRequestFixture.incremental)
+    @Test func buildOnlyRunsTheBuildCommandAndStops() async {
+        let (ports, spies) = Ports.spies()
+        spies.scripts.events = [.output(#"@devhub {"app": "build/App.app"}"#), .exited(0)]
+
+        let result = await collect(useCase(ports).run(request(build: "build.sh", run: "run.sh", launchesApp: false)))
+
+        #expect(result.error == nil)
+        #expect(spies.scripts.calls.map(\.executable) == ["/repo/build.sh"])
+        #expect(result.events.last == "output: App: /repo/build/App.app")
+        #expect(spies.simulators.calls == [.boot(udid: udid)])
+        #expect(spies.build.calls.isEmpty)
+    }
+
+    @Test func buildOnlyWithoutAnAppDirectiveReportsTheEnd() async {
+        let (ports, spies) = Ports.spies()
+
+        let result = await collect(useCase(ports).run(request(build: "build.sh", run: "run.sh", launchesApp: false)))
+
+        #expect(spies.scripts.calls.map(\.executable) == ["/repo/build.sh"])
+        #expect(result.events.last == "output: build.command finished.")
+    }
+
+    @Test func buildOnlyWithoutABuildCommandRunsNothing() async {
+        let (ports, spies) = Ports.spies()
+
+        let result = await collect(useCase(ports).run(request(build: nil, run: "run.sh", launchesApp: false)))
+
+        #expect(spies.scripts.calls.isEmpty)
+        #expect(result.events.last == "output: No build.command: nothing to build.")
+    }
+
+    private func request(build: String?, run: String?, launchesApp: Bool = true) -> CommandRunRequest {
+        var target = BuildRequestFixture.incremental
+        target.launchesApp = launchesApp
+        return CommandRunRequest(buildCommand: build, runCommand: run, folder: "/repo", environment: ["DEVHUB_SIMULATOR_UDID": udid], target: target)
     }
 
     private func useCase(_ ports: Ports) -> CommandRunUseCase {

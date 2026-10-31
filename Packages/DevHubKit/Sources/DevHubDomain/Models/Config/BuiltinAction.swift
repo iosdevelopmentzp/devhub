@@ -3,6 +3,7 @@ import Foundation
 package enum BuiltinAction: String, CaseIterable, Hashable, Sendable {
     case buildRun
     case runAttach
+    case build
     case openEditor
     case openFolder
     case terminal
@@ -11,7 +12,7 @@ package enum BuiltinAction: String, CaseIterable, Hashable, Sendable {
     case newPullRequest
     case pullRequests
 
-    package static let homeDefaults = allCases.filter { $0 != .pullRequests }
+    package static let homeDefaults = allCases.filter { $0 != .pullRequests && $0 != .build }
 
     package var id: String {
         "builtin.\(rawValue)"

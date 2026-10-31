@@ -215,8 +215,21 @@ final class BuildStore: BuildLookup {
         state.scheme = scheme
     }
 
+    enum Goal {
+        case build
+        case run
+        case runAndAttach
+
+        var launchesApp: Bool { self != .build }
+        var attachesDebugger: Bool { self == .runAndAttach }
+    }
+
     func run() {
-        run(attachDebugger: false)
+        run(goal: .run)
+    }
+
+    func buildOnly() {
+        run(goal: .build)
     }
 
     func runAndAttach() {
@@ -225,7 +238,7 @@ final class BuildStore: BuildLookup {
             return
         }
         guard ensureAccessibility() else { return }
-        run(attachDebugger: true)
+        run(goal: .runAndAttach)
     }
 
     func cancel() {
@@ -234,7 +247,7 @@ final class BuildStore: BuildLookup {
 
     // MARK: Private
 
-    private func run(attachDebugger: Bool) {
+    private func run(goal: Goal) {
         guard let simulator = target, isRunning == false else { return }
         if state.targetSimulatorID != simulator.id {
             state.targetSimulatorID = simulator.id
@@ -270,7 +283,8 @@ final class BuildStore: BuildLookup {
                     simulatorName: simulator.name,
                     cleanInstall: cleanInstall,
                     launch: launch,
-                    attachDebugger: attachDebugger
+                    attachDebugger: goal.attachesDebugger,
+                    launchesApp: goal.launchesApp
                 )
                 for try await event in events(for: request, prepared: prepared, simulator: simulator) {
                     if case .launched(let record) = event {
@@ -279,10 +293,16 @@ final class BuildStore: BuildLookup {
                     handle(event)
                 }
                 try Task.checkCancellation()
-                state.phase = .succeeded(.now)
+                state.phase = .succeeded(.now, launched: goal.launchesApp)
                 let sourceName = prepared.worktreeName ?? prepared.path.abbreviatingHome
-                activity.log(attachDebugger ? "Launched \(scheme), Xcode attached" : "Launched \(scheme)", detail: "\(simulator.name) · \(configuration) · \(sourceName)\(profileTitle)", outcome: .success)
-                notifier.buildFinished(title: "Launched \(scheme)", detail: "\(simulator.name) · \(sourceName)", failed: false)
+                switch goal {
+                case .build:
+                    activity.log("Built \(scheme)", detail: "\(configuration) · \(sourceName)", outcome: .success)
+                    notifier.buildFinished(title: "Built \(scheme)", detail: "\(configuration) · \(sourceName)", failed: false)
+                case .run, .runAndAttach:
+                    activity.log(goal.attachesDebugger ? "Launched \(scheme), Xcode attached" : "Launched \(scheme)", detail: "\(simulator.name) · \(configuration) · \(sourceName)\(profileTitle)", outcome: .success)
+                    notifier.buildFinished(title: "Launched \(scheme)", detail: "\(simulator.name) · \(sourceName)", failed: false)
+                }
             } catch is CancellationError {
                 state.phase = .idle
                 activity.log("Build cancelled", detail: scheme, outcome: .info)

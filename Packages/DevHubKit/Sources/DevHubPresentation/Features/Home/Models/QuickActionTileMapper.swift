@@ -7,7 +7,7 @@ enum QuickActionTileMapper {
         switch action {
         case let .builtin(builtin):
             let text = text(for: builtin, scheme: scheme, branch: branch, words: words)
-            let isBuild = builtin == .buildRun || builtin == .runAttach
+            let isBuild = builtin == .buildRun || builtin == .runAttach || builtin == .build
             return QuickActionTileModel(
                 id: action.id,
                 title: text.title,
@@ -34,6 +34,7 @@ enum QuickActionTileMapper {
         switch builtin {
         case .buildRun: "play.fill"
         case .runAttach: "ladybug.fill"
+        case .build: "hammer.circle.fill"
         case .openEditor: "hammer.fill"
         case .openFolder: "folder.fill"
         case .terminal: "terminal.fill"
@@ -48,6 +49,7 @@ enum QuickActionTileMapper {
         switch builtin {
         case .buildRun: .green
         case .runAttach: .orange
+        case .build: .teal
         case .openEditor: .indigo
         case .openFolder: .blue
         case .terminal: .gray
@@ -62,6 +64,7 @@ enum QuickActionTileMapper {
         switch builtin {
         case .buildRun: ("Build & Run", scheme.map { "Scheme \($0)" } ?? "Target simulator, run bar options")
         case .runAttach: ("Run & Attach", "Build, launch, attach Xcode")
+        case .build: ("Build", scheme.map { "Scheme \($0), no launch" } ?? "Compile only, no launch")
         case .openEditor: ("Open in Xcode", "Main checkout")
         case .openFolder: ("Open folder", "Reveal in Finder")
         case .terminal: ("Terminal here", "Main checkout")

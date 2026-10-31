@@ -6,7 +6,7 @@ struct BuildState: Hashable {
     enum Phase: Hashable {
         case idle
         case running(step: String, progress: Double?)
-        case succeeded(Date)
+        case succeeded(Date, launched: Bool)
         case failed(String)
     }
 

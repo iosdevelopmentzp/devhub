@@ -34,13 +34,17 @@ package struct CommandRunUseCase: Sendable {
         try Task.checkCancellation()
 
         var appPath: String?
-        for (key, command) in [("build.command", request.buildCommand), ("run.command", request.runCommand)] {
+        for (key, command) in commands(of: request) {
             guard let command else { continue }
             continuation.yield(.step("Running \(key)", progress: nil))
             appPath = try await runCommand(command, key: key, request: request, continuation: continuation) ?? appPath
             try Task.checkCancellation()
         }
 
+        guard target.launchesApp else {
+            continuation.yield(.output(appPath.map { "App: \($0)" } ?? (request.buildCommand == nil ? "No build.command: nothing to build." : "build.command finished.")))
+            return
+        }
         guard let appPath else {
             continuation.yield(.output("No app directive: the commands launch the app themselves."))
             return
@@ -48,6 +52,12 @@ package struct CommandRunUseCase: Sendable {
         let product = try build.product(atAppPath: appPath)
         continuation.yield(.output("App: \(product.appPath)"))
         try await install.run(product, request: target, continuation: continuation)
+    }
+
+    private func commands(of request: CommandRunRequest) -> [(String, String?)] {
+        let build = ("build.command", request.buildCommand)
+        guard request.target.launchesApp else { return [build] }
+        return [build, ("run.command", request.runCommand)]
     }
 
     private func runCommand(_ command: String, key: String, request: CommandRunRequest, continuation: AsyncThrowingStream<BuildEvent, Error>.Continuation) async throws -> String? {
