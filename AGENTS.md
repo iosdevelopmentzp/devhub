@@ -24,7 +24,7 @@ Read first, in this order: this file, `docs/STATUS.md` (where the project stands
 | `Scripts/install.sh` | Release build into `/Applications/DevHub Generic.app`, so it runs next to the main DevHub in `/Applications/DevHub.app` |
 | `Scripts/install-hooks.sh` | Once per clone: git hooks that run `Scripts/auto-install.sh` after a commit or merge on `main`. It installs a new build in the background (log in `.git/devhub-install.log`) |
 | `Scripts/check-anonymous.sh` | Fails on a name of the owner's projects (from `~/.devhub/anonymity-denylist.txt`, outside the repository), a bundle ID, plist suite or host that is not a sample value, in any file or in the last commit message |
-| `.github/workflows/ci.yml` | GitHub Actions on a `macos-26` runner for each push of `main` and each pull request: layer check, anonymity check (built-in patterns only), Debug build, smoke check, every test |
+| `.github/workflows/ci.yml` | GitHub Actions on a `macos-26` runner for each push of `main` and each pull request: layer check, anonymity check (built-in patterns only), Debug build, smoke check, every test in a serial run (`--no-parallel`) |
 
 Every change: `Scripts/build.sh` prints `layers: ok`, `anonymous: ok` and the app path; anything else is a failure. `Scripts/test.sh` prints one `Test run with … passed` line. A missing test for new logic counts as a failure. Before a commit that changes a view, look at the screen: `Scripts/run.sh`, or a headless snapshot (`DEVHUB_OPEN_PANEL=1 DEVHUB_TAB=git DEVHUB_SNAPSHOT=<path>.png`, see the `build-and-run` skill).
 

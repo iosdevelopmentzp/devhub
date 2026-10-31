@@ -56,7 +56,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 11. The scripts stop only the build of this repository, by its executable path. Why: another app with the same name (`DevHub`) can run on the same machine.
 12. The app keeps the bundle ID `devteams.DevHub` of the first generic app, so it reads and writes the same preferences domain.
 13. "Copy for Slack" is "Copy Link with Title" (`RequestLinkText`): the reference, the title and the link.
-14. `waitUntil` waits 10 s by default, not 2 s. Why: right after a build, about 25 store tests timed out on the busy main actor while the same tests passed alone.
+14. `waitUntil` waits 10 s by default, not 2 s. Why: right after a build, about 25 store tests timed out on the busy main actor while the same tests passed alone. The wait is the main-actor queue of a parallel run, not CPU load (decision 47).
 15. The `.devhub/` config models are `Codable` Domain types (`Models/Config/`), the one exception to "no `Decodable` Domain model" (`docs/ARCHITECTURE.md` section 5). `ExampleConfig.files` is generated from `docs/examples/devhub/` by `Scripts/generate-example-config.sh`; run it after every change there.
 16. After a change to an enum in a lower module (for example a new `Tint` case), remove `Packages/DevHubKit/.build` before `Scripts/test.sh`. Why: the incremental test build once kept old object files, and the tests read wrong enum values.
 17. A config action in a row placement shows its inputs and confirmation under that row. The screen draws the prompt (`ConfigActionsStore.pending(in:)` with the slot `<placement>:<row id>`), the row gets only `configActions` in its model and an `onConfigAction` closure. Why: a row reads no store but `Toaster` and `AppActions`.
@@ -90,7 +90,8 @@ Numbered. What, then why. A later session must not undo these without a new numb
 
 45. Notification kinds are stored as the muted set (`AppSettings.mutedNotifications`), so a new kind is on by default and an old settings file keeps every kind on. The events of the app (`ActivityLog`) carry a kind and a place (`ActivityTarget`) and are saved for 30 days (`ActivityRetentionPolicy`, 500 at most) under `app.recentEvents`; the same event feeds the macOS notification, the Notifications screen and Recent on Home. Why: one list to look at, one place to mute a kind, and a click that leads somewhere.
 
-46. CI runs on a GitHub-hosted `macos-26` runner (`.github/workflows/ci.yml`): layer check, anonymity check with the built-in patterns only, Debug build, smoke check, every test. Why: two process hangs in `ShellRunner` and a test race were found by hand in parallel sessions; a run on a clean machine catches them before a push lands on `main`. The denylist is private, so CI cannot check the owner words.
+46. CI runs on a GitHub-hosted `macos-26` runner (`.github/workflows/ci.yml`): layer check, anonymity check with the built-in patterns only, Debug build, smoke check, every test in a serial run. Why: two process hangs in `ShellRunner` and a test race were found by hand in parallel sessions; a run on a clean machine catches them before a push lands on `main`. The denylist is private, so CI cannot check the owner words.
+47. CI runs the tests serially (`Scripts/test.sh --no-parallel`). Why: `swift test` queues every test at once, and in a parallel run every hop to the main actor waits for the queued main-actor tests: about 3 s on 14 cores, about 10 s on the 3-core runner, which is the `waitUntil` timeout, so the store tests timed out in every second CI run. A serial run has no queue. A local run stays parallel: 3 s is far from the timeout and the run takes 4 s instead of 17 s.
 
 ## Next steps
 

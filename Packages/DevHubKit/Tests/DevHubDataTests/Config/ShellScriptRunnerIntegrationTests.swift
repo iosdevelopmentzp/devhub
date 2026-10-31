@@ -23,7 +23,7 @@ import Testing
         let runner = ShellScriptRunner(shell: ShellRunner(recorder: recorder))
 
         await #expect(throws: ScriptError.timedOut(.milliseconds(200))) {
-            for try await _ in runner.run(ScriptRunRequest(executable: "/bin/sleep", arguments: ["5"], cwd: nil, environment: [:], timeout: .milliseconds(200))) {}
+            for try await _ in runner.run(ScriptRunRequest(executable: "/bin/sleep", arguments: ["30"], cwd: nil, environment: [:], timeout: .milliseconds(200))) {}
         }
     }
 }

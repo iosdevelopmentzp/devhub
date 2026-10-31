@@ -33,6 +33,13 @@ swift test --package-path Packages/DevHubKit --filter X   # the full output, whe
 
 `test.sh` keeps only failure lines (`✘`, `recorded an issue`, `error:`) and the final `Test run with …` line.
 
+`swift test` runs the suites in parallel by default and queues every test at once. A main-actor test hops to the
+main actor from its task, so the main queue holds every main-actor test of the run from the first millisecond, and
+each later hop to the main actor (a `waitUntil` check, a store `Task`, the wake-up of a `Task.sleep`) waits behind
+that queue: about 3 s on 14 cores, about 10 s on the 3-core CI runner, which is the `waitUntil` timeout. CI runs
+`Scripts/test.sh --no-parallel`: one test after another, no queue, about 17 s instead of 4 s on a laptop. Use
+`--no-parallel` locally when a store test times out in a full run but passes alone.
+
 ## Conventions
 
 - `import Testing`, `@Suite struct <Type>Tests`, `@Test func <sentence>()`, `#expect`, `#require`.
@@ -154,7 +161,7 @@ that something did **not** happen.
 
 `try await waitUntil { condition }` checks the condition on the main actor, yields between checks and throws
 `TestError.timedOut` after the timeout (10 s by default). It replaces every `Task.sleep` in a test. The default was
-2 s; under load (a test run right after a build) many store tests waited longer than that on the busy main actor.
+2 s; in a parallel run many store tests waited longer than that for the main-actor queue (see Running).
 
 ## What not to test, and why
 

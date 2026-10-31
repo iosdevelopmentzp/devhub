@@ -27,6 +27,8 @@ How `Scripts/test.sh` works:
 3. Every other argument goes to `swift test` as it is.
 4. It prints only the failure lines (`✘`, `recorded an issue`, `error:`) and the last `Test run with … passed` line. The exit code of `swift test` is kept.
 
+`swift test` runs the suites in parallel by default and queues every test at once. A main-actor test hops to the main actor from its task, so the main queue holds every main-actor test of the run from the start, and each later hop to the main actor (a `waitUntil` check, a store `Task`, the wake-up of a `Task.sleep`) waits behind that queue: about 3 s on 14 cores, about 10 s on the 3-core CI runner, which is the `waitUntil` timeout. CI runs `Scripts/test.sh --no-parallel`: one test after another, no queue, about 17 s instead of 4 s on a laptop. Use `--no-parallel` locally when a store test times out in a full run but passes alone.
+
 A good run prints one line: `Test run with <N> tests in <M> suites passed`. On 2026-10-18 the package had 1,807 tests in 328 suites.
 
 ### When the results look wrong
@@ -173,7 +175,7 @@ Never write into the real home folder, into a hand-made `/tmp` path or into `Use
 
 ## 8. `waitUntil`
 
-`try await waitUntil { condition }` checks the condition on the main actor every 5 ms. It throws `TestError.timedOut` after 10 seconds. Use it for work that a store starts in a `Task`. Never use `Task.sleep` in a test.
+`try await waitUntil { condition }` checks the condition on the main actor every 5 ms. It throws `TestError.timedOut` after 10 seconds. In a parallel run the first check after a start waits for the main-actor queue (section 1). Use it for work that a store starts in a `Task`. Never use `Task.sleep` in a test.
 
 The default was 2 seconds. Right after a build, about 25 store tests waited longer on the busy main actor and failed. The tests passed when they ran alone (STATUS decision 14).
 

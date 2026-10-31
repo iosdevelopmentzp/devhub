@@ -145,6 +145,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- CI runs the tests one after another (`Scripts/test.sh --no-parallel`). In a parallel run, every hop to the main actor waits for the queued main-actor tests of the run: about 10 s on the 3-core runner, so the store tests timed out in every second run. The script-timeout integration test sleeps 30 s instead of 5 s, so a late timer still stops a running script.
 - GitHub Actions: `.github/workflows/ci.yml` runs the layer check, the anonymity check (built-in patterns only: the denylist stays outside the repository), the Debug build, the smoke check and every test on a `macos-26` runner for each push of `main` and each pull request.
 - The rules allow a push of `main` to the public remote `origin` after green checks. Before, the code was never pushed.
 - `Scripts/install.sh` installs to `/Applications/DevHub Generic.app`, so this app runs next to the main DevHub. It copies the new build first and only then replaces the old one, and it can sign the app with a local identity (`DEVHUB_SIGN_IDENTITY` or `~/.config/devhub/sign-identity`).
