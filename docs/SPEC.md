@@ -100,9 +100,11 @@ Settings offers a fixed list: ⌥⌘D (default), ⌃⌥Space, ⌃⌥D or Off. Th
 
 ### 2.6 Output panel
 
-- One entry per command: a status dot, the command line, the working folder, the duration, the exit code and a copy button. Output lines appear while the command runs.
+- One entry per command: a status dot, the command line, the start time, the working folder, the duration, the exit code and a copy button. Output lines appear while the command runs. A right-click copies the command or the output, or opens the folder in the terminal or Finder.
 - The log keeps 300 entries and 4,000 lines per entry.
-- "Show reads" also shows read-only commands such as `git status` and `simctl list`. They are hidden by default.
+- The panel is 260 points high by default. A drag on its top edge changes the height, a double-click restores it; the height is saved.
+- The filter menu has "Show reads" (read-only commands such as `git status` and `simctl list`, hidden by default) and "Failed only".
+- Follow (on by default) keeps the list at the newest command. Off, the list stays where you scrolled.
 - A `secret` command (`security`, `gh auth token`) records no output: "Output hidden: it contains credentials."
 - An app log stream records no lines: "App log lines are shown in the Logs tab only."
 - Search over commands and output, Copy All, Clear.
@@ -122,12 +124,13 @@ Sources:
 | Branches | switch to a local branch, Build & Run it, create a worktree for it. With local changes, "Switch to" does not switch: it shows the Git tab and asks you to use Switch or Stash & Switch in the branch row |
 | Worktrees | open the folder, Build & Run the worktree |
 | Pull requests | show an open request |
-| AI sessions | resume a session in the terminal |
+| AI sessions | resume a session in the terminal, start a new Claude Code or Copilot CLI session in the project folder |
 
 ### 2.8 Notifications
 
 - DevHub posts macOS notifications only while the panel and the pinned window are closed. Settings has the switch "Notify when the panel is closed" (on by default) and an "Allow Notifications" button. DevHub asks for the permission only from that button.
 - Events: a build finished or failed, and the number of requests that wait for your review went up.
+- Changes of your own open requests, with the switch "Notify about my pull requests": an approval, failed checks or pipeline, new comments, a merge or a close. DevHub compares two reads of the open requests (every 5 minutes); a request that left the list gets one status read to tell a merge from a close. The Recent list on Home shows these events even while the panel is open.
 - The `notify` directive of a script always posts a notification when the permission is given. It does not check the panel or the switch.
 
 ---
@@ -153,7 +156,7 @@ Every tab filters its lists with the header search. Every tab shows an empty sta
 ### 3.1 Home
 
 - **Project card.** Name, path (a click copies it), branch, clean or changed state, and buttons for Finder, the editor, the terminal and the repository web page.
-- **Quick actions.** A grid of tiles. The built-ins are Build & Run, Run & Attach, Open in Editor, Open Folder, Terminal, Copy Branch, Repository and New Pull Request. Config actions with the placement `home.quickActions` join the grid. `home.quickActions` in `project.json` sets the order and hides the others.
+- **Quick actions.** A grid of tiles. The built-ins are Build & Run, Run & Attach, Open in Editor, Open Folder, Terminal, Copy Branch, Repository and New Pull Request; Build (compile only) and Pull Requests appear only when `home.quickActions` lists them. Config actions with the placement `home.quickActions` join the grid. `home.quickActions` in `project.json` sets the order and hides the others.
 - **Config problems.** A file that does not decode shows its name and the reason. The other files still load.
 - **Scripts.** One row per script from `.devhub/scripts` of every config layer. A row has inputs when the header declares them, a Run button, an inline confirmation, a result area and the last run time.
 - **Recent.** The last activity events with an outcome dot.
@@ -192,7 +195,7 @@ Why: the actions a developer repeats every day are one click away, and a team ca
 
 ### 3.5 Simulators and Build & Run
 
-- **Run bar.** Scheme, configuration, build source (the main checkout, a worktree or any branch), Fast (no clean), Clean install, the launch profile and the target simulator. Buttons: Build & Run (⌘R), Run & Attach (⇧⌘R), Launch (the installed app, no build), Cancel. Config actions with the placement `simulators.runBar` appear under the target. The options are saved per simulator.
+- **Run bar.** Scheme, configuration, build source (the main checkout, a worktree or any branch), Fast (no clean), Clean install, the launch profile and the target simulator. Buttons: Build (⌘B, compile only: no install, no launch), Build & Run (⌘R), Run & Attach (⇧⌘R), Launch (the installed app, no build), Cancel. Config actions with the placement `simulators.runBar` appear under the target. The options are saved per simulator.
 - **List.** Favourites first, then one section per iOS runtime, newest first. A row shows the state, the runtime, the target tag, the number of installed apps and the line of the status script (`simulators.statusScript`).
 - **Row.** A click on a row makes that simulator the target.
 - **Row buttons.** Build & Run on this simulator, deep link and push (the schemes come from `CFBundleURLTypes` of the installed app), the identity panel (section 3.6), Remove All Installed Apps, and the power button (boot or shut down).
@@ -238,6 +241,7 @@ The Network tab shows only the requests that pass through the DevHub mock server
 - Copilot CLI sessions and Claude Code sessions in one list, grouped by day, newest first.
 - Filters: the provider (Copilot, Claude, both) and the scope (This project, All).
 - A row shows the title, date, folder, branch and the last prompt. Resume opens the configured terminal in the session folder and runs `copilot --resume <id>` or `claude --resume <id>`. The menu has "Copy resume command" and "Copy session ID".
+- "New" in the toolbar starts a new Claude Code or Copilot CLI session in the project folder, in the configured terminal. A worktree row offers the same under "Start AI Session Here", and the ⌘K palette lists both tools.
 - The usage strip at the top of the panel shows the Claude limits and the Copilot premium requests (section 5.12).
 
 ### 3.10 Custom tabs

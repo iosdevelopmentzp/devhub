@@ -5,12 +5,16 @@ import DevHubUI
 struct NotificationsSection: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(Notifier.self) private var notifier
+    @Environment(\.codeHostWords) private var words
 
     var body: some View {
         @Bindable var settings = settings
         Section {
             Toggle("Notify when the panel is closed", isOn: $settings.values.notifyWhenPanelClosed)
                 .hint("A finished or failed build and new requests for your review show a macOS notification while the DevHub panel is closed")
+            Toggle("Notify about my \(words.requests)", isOn: $settings.values.notifyAboutMyRequests)
+                .hint("An approval, failed \(words.checks), new comments or a merge of one of your open \(words.requests) shows a notification while the panel is closed. The Recent list on Home shows these events in any case")
+                .disabled(settings.values.notifyWhenPanelClosed == false)
             LabeledContent("Permission") {
                 HStack(spacing: 8) {
                     Text(permissionText)

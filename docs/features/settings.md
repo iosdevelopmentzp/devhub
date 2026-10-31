@@ -39,14 +39,16 @@ Each section is explained under "Actions".
 | Control | What it does |
 |---|---|
 | Notify when the panel is closed | On by default. While the panel is closed, DevHub posts a macOS notification for a finished or failed build, and for new requests that wait for your review |
+| Notify about my pull requests (or merge requests) | On by default, off when the first switch is off. While the panel is closed, DevHub posts a notification when one of your open requests gets an approval ("#12 approved by alex"), its checks or pipeline fail, it gets new comments, or it is merged or closed. The Recent list on Home shows these events in any case |
 | Permission | Shows "Not asked yet", "Allowed" or "Denied". **Allow Notifications** asks macOS for permission. When denied, allow DevHub in System Settings → Notifications |
 
 Rules of the notifications:
 
 1. A notification needs the macOS permission.
-2. Build and review notifications appear only while the panel is closed and the switch is on.
+2. Build, review and own request notifications appear only while the panel is closed and the switch is on.
 3. A script line `@devhub {"notify": "Title", "body": "…"}` posts a notification even when the panel is open or the switch is off.
 4. The menu bar icon shows a circle while a build runs. After a failed build while the panel is closed, it shows a red dot until you open the panel.
+5. Changes of your own requests come from the read of the open requests every 5 minutes ([Pull Requests](pull-requests.md#other-places-that-use-the-same-data)). A refresh after an action of yours in DevHub (a comment, an approval) updates the baseline without a report.
 
 ### AI usage
 

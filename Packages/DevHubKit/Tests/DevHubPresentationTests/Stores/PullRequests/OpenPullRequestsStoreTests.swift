@@ -115,4 +115,100 @@ import DevHubTestSupport
 
         try await waitUntil { harness.spies.codeHost.calls.count == 2 }
     }
+
+    // MARK: Changes of my requests
+
+    private func mine(approvedBy: [String] = [], pipeline: PipelineInfo? = nil, comments: Int = 0) -> PullRequestSummary {
+        PullRequestSummaryFixture.request(iid: 7, source: "feature/mine", state: .opened, author: "me", comments: comments, pipeline: pipeline, approvedBy: approvedBy, title: "ABC-7: Mine")
+    }
+
+    @Test func anApprovalOfMyRequestIsReportedAndNotified() async throws {
+        script([mine()])
+        await store.refresh()
+        script([mine(approvedBy: ["alex"])])
+
+        await store.refresh()
+
+        #expect(harness.lastActivity?.title == "!7 approved by alex")
+        #expect(harness.lastActivity?.detail == "ABC-7: Mine")
+        #expect(harness.lastActivity?.outcome == .success)
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "!7 approved by alex", body: "ABC-7: Mine")] }
+    }
+
+    @Test func theFirstLoadReportsNothing() async {
+        script([mine(approvedBy: ["alex"], pipeline: PipelineInfo(status: .failed, webURL: nil, updatedAt: nil), comments: 4)])
+
+        await store.refresh()
+        await harness.settle()
+
+        #expect(harness.activityTitles.isEmpty)
+        #expect(harness.spies.notifications.posted.isEmpty)
+    }
+
+    @Test func failedChecksAndNewCommentsAreReported() async {
+        script([mine(comments: 1)])
+        await store.refresh()
+        script([mine(pipeline: PipelineInfo(status: .failed, webURL: nil, updatedAt: nil), comments: 3)])
+
+        await store.refresh()
+
+        #expect(harness.activityTitles == ["2 new comments on !7", "Pipeline failed on !7"])
+        #expect(harness.activity.events.last?.outcome == .failure)
+    }
+
+    @Test func aRefreshAfterMyOwnActionUpdatesTheBaselineWithoutAReport() async throws {
+        script([mine(comments: 1)])
+        await store.refresh()
+        script([mine(comments: 2)])
+
+        harness.events.post(.pullRequestsChanged)
+        try await waitUntil { store.request(forBranch: "feature/mine")?.commentCount == 2 }
+        await store.refresh()
+
+        #expect(harness.spies.codeHost.calls.count == 3)
+        #expect(harness.activityTitles.isEmpty)
+    }
+
+    @Test func aMergedRequestIsReportedAfterAStatusRead() async throws {
+        script([mine()])
+        await store.refresh()
+        script([])
+        harness.spies.codeHost.statusResult = .success(PullRequestStatus(pullRequest: info(state: .merged), pipeline: nil))
+
+        await store.refresh()
+
+        try await waitUntil { harness.activityTitles == ["!7 merged"] }
+        #expect(harness.spies.codeHost.calls.last == .status(branch: "feature/mine", repository: remote))
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "!7 merged", body: "ABC-7: Mine")] }
+    }
+
+    @Test func aRequestThatIsStillOpenAfterLeavingTheListIsSilent() async throws {
+        script([mine()])
+        await store.refresh()
+        script([])
+        harness.spies.codeHost.statusResult = .success(PullRequestStatus(pullRequest: info(state: .opened), pipeline: nil))
+
+        await store.refresh()
+
+        try await waitUntil { harness.spies.codeHost.calls.count == 3 }
+        await harness.settle()
+        #expect(harness.activityTitles.isEmpty)
+    }
+
+    @Test func theSettingStopsTheNotificationButNotTheRecentRow() async throws {
+        harness.settings.values.notifyAboutMyRequests = false
+        script([mine()])
+        await store.refresh()
+        script([mine(approvedBy: ["alex"])])
+
+        await store.refresh()
+        await harness.settle()
+
+        #expect(harness.activityTitles == ["!7 approved by alex"])
+        #expect(harness.spies.notifications.posted.isEmpty)
+    }
+
+    private func info(state: PullRequestState) -> PullRequestInfo {
+        PullRequestInfo(iid: 7, title: "ABC-7: Mine", state: state, isDraft: false, webURL: nil, author: "me", hasConflicts: false, detailedStatus: nil, targetBranch: "dev")
+    }
 }

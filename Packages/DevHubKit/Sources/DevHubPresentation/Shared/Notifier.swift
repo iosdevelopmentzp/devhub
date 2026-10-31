@@ -50,6 +50,11 @@ final class Notifier {
         postWhenClosed(title: title, body: detail)
     }
 
+    func postRequestChange(title: String, body: String?) {
+        guard settings.values.notifyAboutMyRequests else { return }
+        postWhenClosed(title: title, body: body)
+    }
+
     func postWhenClosed(title: String, body: String?) {
         guard isPanelShown == false, settings.values.notifyWhenPanelClosed else { return }
         post(title: title, body: body)

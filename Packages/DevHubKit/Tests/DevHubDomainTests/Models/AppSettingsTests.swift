@@ -19,6 +19,7 @@ import Testing
         #expect(settings.autoFetchMinutes == 0)
         #expect(settings.windowMode == .panel)
         #expect(settings.usageProviders == .all)
+        #expect(settings.notifyAboutMyRequests)
     }
 
     @Test func theTicketTemplateIsKept() throws {

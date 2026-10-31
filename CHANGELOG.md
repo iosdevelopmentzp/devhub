@@ -7,6 +7,10 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Pull Requests: DevHub reports changes of your own open requests. An approval ("#12 approved by alex"), failed checks or pipeline, new comments, a merge or a close show in the Recent list on Home and, while the panel is closed, as a macOS notification. Settings → Notifications → "Notify about my pull requests" turns the notification off. The changes come from the read of the open requests every 5 minutes.
+- AI: "New" in the toolbar starts a new Claude Code or Copilot CLI session in the project folder, in the terminal from Settings. A worktree row has "Start AI Session Here" with both tools, and the ⌘K palette lists "Start Claude Code in <project>" and "Start Copilot CLI in <project>".
+- Build & Run: a "Build" button (⌘B) compiles without an install or a launch. The result line says "Built <scheme>, not launched" and the app path is in the build log. A `kind: command` project runs `build.command` only. `builtin.build` in `home.quickActions` adds the tile to Home, and the ⌘K palette lists "Build".
+- Output panel: drag its top edge to change the height (a double-click restores it; the height is saved). "Follow" keeps the list at the newest command, or lets you stay where you scrolled. The filter menu has "Show reads" and "Failed only". Every entry shows its start time, and a right-click copies the command or the output, or opens its folder in the terminal or Finder.
 - Worktrees: a checkmark button in a row (and "Run Tests" in its menu) runs the tests of that worktree with the scheme and target simulator of the run bar. A panel under the row shows the step, live counts, then the result: passed, failed and skipped counts, the time, every failed test with its message and file (a click opens the file at that line), compiler errors when the build broke, "Run Again" and "Open Results in Xcode" for the `.xcresult` bundle. Stop with the stop button. A notification arrives when the panel is closed.
 - Pull request details have a review block: who approved, who asked for changes, who is still expected to review (a requested reviewer without an answer) and the assignees. GitHub reads the latest review of each person and the review requests; GitLab reads the review state of each reviewer.
 - Pull request comments are readable in full: no three-line cut, inline markdown (code, bold), selectable text and the time of each comment and reply. A thread opened under its diff line shows its replies at once.
@@ -97,6 +101,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The Scripts setting (a fixed scripts folder) is gone: scripts live in `.devhub/scripts`.
 
 ### Fixed
+- A streamed command (a build, a script, a worktree bootstrap, a log stream) could hang DevHub after the process had already exited: the wait for the exit ran a run loop that never woke up. DevHub now waits for the termination callback of the process. The full test run hung in the same place two times out of three.
 - Build & Run: "Show all" in the build issue list opens a scrolling list of at most 220 points instead of a list that grows past the window. Before, a long list of warnings pushed the run bar and the simulator list out of view and "Show fewer" with them.
 - DevHub no longer stops reading git, pull requests and simulators after many tab switches. When about 64 commands ran at the same time, every later command waited forever until DevHub was restarted. Commands now read their output without holding a thread.
 - The Claude usage strip reads the per-model weekly limits (for example "Week · Fable") from the new `limits` list of the usage API, so it shows the same values as Claude Desktop.

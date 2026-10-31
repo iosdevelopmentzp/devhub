@@ -41,7 +41,9 @@ final class OpenPullRequestsStore {
                 loadedAt = nil
                 hasReportedCap = false
                 Task { await self.refresh() }
-            case .pullRequestsChanged, .refreshRequested(.pullRequests):
+            case .pullRequestsChanged:
+                Task { await self.refresh(reportingChanges: false) }
+            case .refreshRequested(.pullRequests):
                 Task { await self.refresh() }
             default:
                 break
@@ -74,19 +76,54 @@ final class OpenPullRequestsStore {
     }
 
     func refresh() async {
+        await refresh(reportingChanges: true)
+    }
+
+    private func refresh(reportingChanges: Bool) async {
         await refreshTask.run { [weak self] in
             guard let self else { return }
             do {
                 let url = try await remote.codeHost()
                 let loaded = try await repository.openRequests(repository: url)
                 try Task.checkCancellation()
+                let changes = loadedAt == nil || reportingChanges == false
+                    ? []
+                    : OwnRequestChangePolicy.changes(from: Array(requestsByBranch.values), to: loaded.requests, username: loaded.username)
                 apply(loaded)
+                report(changes, repository: url)
             } catch is CancellationError {
             } catch PullRequestError.noCodeHost {
             } catch {
                 report(error)
             }
         }
+    }
+
+    private func report(_ changes: [OwnRequestChange], repository url: CodeHost) {
+        for change in changes {
+            if case .gone(let request) = change {
+                Task { await self.reportGone(request, repository: url) }
+                continue
+            }
+            guard let report = OwnRequestChangeMapper.report(for: change, words: words) else { continue }
+            deliver(report)
+        }
+    }
+
+    private func reportGone(_ request: PullRequestSummary, repository url: CodeHost) async {
+        do {
+            let status = try await repository.status(branch: request.sourceBranch, repository: url)
+            guard let info = status.pullRequest, info.iid == request.iid else { return }
+            guard let report = OwnRequestChangeMapper.report(forGone: request, state: info.state, words: words) else { return }
+            deliver(report)
+        } catch {
+            activity.log("Cannot read \(words.reference(request.iid))", detail: error.localizedDescription, outcome: .failure)
+        }
+    }
+
+    private func deliver(_ report: OwnRequestChangeMapper.Report) {
+        activity.log(report.title, detail: report.body, outcome: report.outcome)
+        notifier.postRequestChange(title: report.title, body: report.body)
     }
 
     private func apply(_ loaded: PullRequestList) {

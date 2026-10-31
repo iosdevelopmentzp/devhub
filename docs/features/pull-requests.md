@@ -63,6 +63,7 @@ The header search filters the loaded rows by title, number, author, branches and
 - Local and remote branch rows show the open request of the branch.
 - The tab bar shows a badge with the number of requests that wait for your review.
 - When that number grows while the panel is closed, DevHub posts a macOS notification.
+- Changes of your own open requests between two reads go to the Recent list on Home and, while the panel is closed, to a macOS notification (Settings → Notifications → "Notify about my requests"): "#12 approved by alex" (new approvers, not you), "Checks failed on #12" (the checks or pipeline turned to failed), "2 new comments on #12" (the comment count grew), "#12 merged" and "#12 closed without a merge". A request that left the open list gets one status read of its branch (the request line read) to learn its final state; a request that is still open (for example beyond the first page) is silent. A new request of yours and the first read after a start or a project switch report nothing. A refresh after your own action in DevHub updates the baseline without a report.
 
 ## Actions
 

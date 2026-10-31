@@ -27,6 +27,23 @@ import Testing
         #expect(harness.spies.notifications.posted.isEmpty)
     }
 
+    @Test func aRequestChangeFollowsItsOwnSettingAndThePanelRule() async throws {
+        harness.settings.values.notifyAboutMyRequests = false
+        notifier.postRequestChange(title: "A", body: nil)
+        await harness.settle()
+        #expect(harness.spies.notifications.posted.isEmpty)
+
+        harness.settings.values.notifyAboutMyRequests = true
+        notifier.panelShown(true)
+        notifier.postRequestChange(title: "B", body: nil)
+        await harness.settle()
+        #expect(harness.spies.notifications.posted.isEmpty)
+
+        notifier.panelShown(false)
+        notifier.postRequestChange(title: "C", body: "body")
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "C", body: "body")] }
+    }
+
     @Test func withoutPermissionNothingIsPosted() async {
         harness.spies.notifications.permissionResult = .denied
 
