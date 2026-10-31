@@ -134,6 +134,21 @@ import Testing
         #expect(events.last?.finishedError == nil)
     }
 
+    @Test(.timeLimit(.minutes(1)))
+    func manyParallelStreamsAllFinish() async throws {
+        let statuses = try await withThrowingTaskGroup(of: Int32.self) { [runner] group in
+            for index in 0..<100 {
+                group.addTask {
+                    try await runner.stream("sh", ["-c", "echo line\(index); exit \(index % 4)"], cwd: nil) { _ in }
+                }
+            }
+            return try await group.reduce(into: []) { $0.append($1) }
+        }
+
+        #expect(statuses.count == 100)
+        #expect(statuses.sorted() == (0..<100).map { Int32($0 % 4) }.sorted())
+    }
+
     @Test func streamRecordsReadCommandsAsActions() async throws {
         _ = try await runner.stream("git", ["rev-parse", "--is-inside-work-tree"], cwd: "/") { _ in }
 

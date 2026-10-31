@@ -55,6 +55,8 @@ package actor ShellRunner {
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe
+        let exit = ProcessExit()
+        process.terminationHandler = { exit.finish($0.terminationStatus) }
         let id = UUID()
         let batcher = LineBatcher(id: id, recorder: recorder)
         let kind = CommandKind.classify(executable, arguments)
@@ -62,6 +64,7 @@ package actor ShellRunner {
         do {
             try process.run()
         } catch {
+            process.terminationHandler = nil
             recorder.record(CommandEvent(id: id, payload: .finished(exitCode: nil, error: error.localizedDescription)))
             throw error
         }
@@ -74,8 +77,7 @@ package actor ShellRunner {
                     }
                     onLine(line)
                 }
-                process.waitUntilExit()
-                return process.terminationStatus
+                return await exit.status()
             } onCancel: {
                 handle.terminate()
             }
@@ -115,5 +117,34 @@ private nonisolated final class ProcessHandle: @unchecked Sendable {
     func terminate() {
         guard process.isRunning else { return }
         process.terminate()
+    }
+}
+
+private nonisolated final class ProcessExit: @unchecked Sendable {
+    private let lock = NSLock()
+    private var code: Int32?
+    private var continuation: CheckedContinuation<Int32, Never>?
+
+    func finish(_ code: Int32) {
+        let waiting = lock.withLock {
+            self.code = code
+            let current = continuation
+            continuation = nil
+            return current
+        }
+        waiting?.resume(returning: code)
+    }
+
+    func status() async -> Int32 {
+        await withCheckedContinuation { continuation in
+            let finished: Int32? = lock.withLock {
+                if let code { return code }
+                self.continuation = continuation
+                return nil
+            }
+            if let finished {
+                continuation.resume(returning: finished)
+            }
+        }
     }
 }
