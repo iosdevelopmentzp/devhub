@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-11-01 (ADR 007: operations with steps; daily tools in progress)
+Last updated: 2026-11-01 (ADR 008: simulator media, build insights, snapshots and real devices planned)
 
 ## Stage
 
@@ -104,9 +104,9 @@ Numbered. What, then why. A later session must not undo these without a new numb
 
 ## Next steps
 
-ADR 007 (operations and daily tools) is complete.
+ADR 007 (operations and daily tools) is complete. ADR 008 (simulator media, build insights, snapshots, real devices, Xcode 27, network monitor) is next: `docs/adr/008-simulator-media-insights-and-devices.md`, first open step of its plan. Step 9 waits for Xcode 27 on this Mac, step 10 for the choice of the network monitor approach.
 
-The rewrite plan (ADR 001, M0 to M8) and ADR 005 are complete. Ideas for later: video recording in the simulator QA panel (needs a SIGINT stop in `ShellRunner`), a build issue list for `kind: command` projects, a warning for a saved project whose folder no longer exists.
+The rewrite plan (ADR 001, M0 to M8) and ADR 005 are complete. Ideas for later: a build issue list for `kind: command` projects, a warning for a saved project whose folder no longer exists.
 
 ## Known gaps
 

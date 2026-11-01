@@ -167,6 +167,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- ADR 008: the plan for simulator recording, GIF and compressed video, device frames, build insights, app and device snapshots, real devices, Xcode 27 and a network monitor.
 - ADR 007: operations with steps and the plan of the daily tools. The data-layer skill explains `OperationScope`.
 - Debug builds: `DEVHUB_PORTS=mock` also shows a failed push card in the Git tab and a running script in the footer.
 - Debug builds: `DEVHUB_PORTS=mock` starts the app on the preview assembly (mock ports, an in-memory store, sample projects), so a headless snapshot can show screens that need data the live repositories do not have, such as the CircleCI part of the pull request details.
