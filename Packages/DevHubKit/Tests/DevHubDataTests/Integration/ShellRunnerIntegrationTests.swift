@@ -185,6 +185,21 @@ import Testing
         #expect(status == SIGTERM)
         #expect(recorder.events.last?.finishedError == "Cancelled")
     }
+
+    @MainActor
+    @Test func cancellingAnInterruptStreamLetsTheProcessFinish() async throws {
+        let collector = LineCollector()
+        let task = Task { [runner] in
+            try await runner.stream("sh", ["-c", "trap 'exit 0' INT; echo ready; while :; do sleep 0.1; done"], cwd: nil, environment: [:], stop: .interrupt) { collector.add($0) }
+        }
+        try await waitUntil { collector.lines.contains("ready") }
+
+        task.cancel()
+        let status = try await task.value
+
+        #expect(status == 0)
+        #expect(recorder.events.last?.finishedError == nil)
+    }
 }
 
 private final class LineCollector: @unchecked Sendable {

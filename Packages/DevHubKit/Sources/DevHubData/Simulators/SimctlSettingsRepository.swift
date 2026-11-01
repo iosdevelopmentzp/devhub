@@ -18,6 +18,28 @@ struct SimctlSettingsRepository: SimulatorSettingsRepository {
         try await simctl.run(["io", udid, "screenshot", path], failure: SimulatorError.command)
     }
 
+    func record(udid: String, to path: String, onStarted: @escaping @Sendable () -> Void) async throws {
+        let output = RecordingOutput()
+        let status = try await simctl.shell.stream("xcrun", Self.recordArguments(udid: udid, path: path), cwd: nil, environment: [:], stop: .interrupt) { line in
+            output.add(line)
+            if line.contains(Self.startedLine) {
+                onStarted()
+            }
+        }
+        guard status == 0 else {
+            throw SimulatorError.command(output.message ?? "simctl recordVideo exited with code \(status).")
+        }
+        guard FileManager.default.fileExists(atPath: path) else {
+            throw SimulatorError.command("simctl did not save the recording to \(path).")
+        }
+    }
+
+    static let startedLine = "Recording started"
+
+    static func recordArguments(udid: String, path: String) -> [String] {
+        ["simctl", "io", udid, "recordVideo", "--codec=h264", "--force", path]
+    }
+
     static func commands(for setting: SimulatorSetting, udid: String) -> [[String]] {
         switch setting {
         case .appearance(let appearance):
@@ -50,5 +72,19 @@ struct SimctlSettingsRepository: SimulatorSettingsRepository {
         case let .privacy(change, service, bundleID):
             [["privacy", udid, change.rawValue, service.rawValue] + (bundleID.isEmpty ? [] : [bundleID])]
         }
+    }
+}
+
+private final class RecordingOutput: @unchecked Sendable {
+    private let lock = NSLock()
+    private var lines: [String] = []
+
+    var message: String? {
+        let text = lock.withLock { lines.suffix(5).joined(separator: "\n") }.trimmed
+        return text.isEmpty ? nil : text
+    }
+
+    func add(_ line: String) {
+        lock.withLock { lines.append(line) }
     }
 }

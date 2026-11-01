@@ -52,6 +52,17 @@ package actor ShellRunner {
         environment: [String: String],
         onLine: @escaping @Sendable (String) -> Void
     ) async throws -> Int32 {
+        try await stream(executable, arguments, cwd: cwd, environment: environment, stop: .terminate, onLine: onLine)
+    }
+
+    func stream(
+        _ executable: String,
+        _ arguments: [String],
+        cwd: String?,
+        environment: [String: String],
+        stop: ProcessStop,
+        onLine: @escaping @Sendable (String) -> Void
+    ) async throws -> Int32 {
         let process = Self.makeProcess(executable, arguments, cwd: cwd, environment: environment, developerDir: developerDir.value)
         let pipe = Pipe()
         process.standardOutput = pipe
@@ -80,10 +91,10 @@ package actor ShellRunner {
                 }
                 return await exit.status()
             } onCancel: {
-                handle.terminate()
+                handle.stop(stop)
             }
             batcher.flush()
-            recorder.record(CommandEvent(id: id, payload: .finished(exitCode: status, error: Task.isCancelled ? "Cancelled" : nil)))
+            recorder.record(CommandEvent(id: id, payload: .finished(exitCode: status, error: Task.isCancelled && stop == .terminate ? "Cancelled" : nil)))
             return status
         } catch {
             batcher.flush()
@@ -122,9 +133,14 @@ private nonisolated final class ProcessHandle: @unchecked Sendable {
         self.process = process
     }
 
-    func terminate() {
+    func stop(_ stop: ProcessStop) {
         guard process.isRunning else { return }
-        process.terminate()
+        switch stop {
+        case .terminate:
+            process.terminate()
+        case .interrupt:
+            process.interrupt()
+        }
     }
 }
 

@@ -135,8 +135,10 @@ package actor ShellRunner {
   `terminationHandler`, so no thread waits. `manyParallelRunsAllFinish` in `ShellRunnerIntegrationTests` guards it.
 - **Streaming.** One pipe for stdout and stderr; `ProcessLines.lines(of:)` (`Shell/ProcessLines.swift`) turns the pipe into an
   `AsyncStream<String>` through `readabilityHandler`, so no cooperative thread waits on the pipe (`FileHandle.bytes.lines` did, and
-  starved the store tests on a 3-core CI runner); `withTaskCancellationHandler` whose `onCancel` terminates the process. After a stream the caller runs
-  `try Task.checkCancellation()`: a cancelled stream ends without throwing.
+  starved the store tests on a 3-core CI runner); `withTaskCancellationHandler` whose `onCancel` terminates the process (SIGTERM). With `stop: .interrupt` it sends SIGINT
+  instead, for a tool that writes its result on SIGINT (`simctl io recordVideo`); such a stop is not logged as "Cancelled", and the
+  caller treats it as the normal end. After a stream the caller runs `try Task.checkCancellation()`: a cancelled stream ends without
+  throwing.
 - No token in arguments. A token goes into a request header in memory and is dropped after the request.
 
 ## Command log and the Output panel

@@ -48,4 +48,70 @@ import Testing
         #expect(harness.lastActivity?.outcome == .failure)
         #expect(store.screenshots.isEmpty)
     }
+
+    @Test func aRecordingRunsUntilStopThenIsRemembered() async throws {
+        let id = SimulatorFixture.iPhone.id
+        store.startRecording(SimulatorFixture.iPhone)
+        try await waitUntil { store.recordingStarts[id] != nil }
+
+        let path = "/tmp/DevHubTests/Shots/iPhone 16 Pro 2027-01-15 080000.mov"
+        #expect(harness.spies.simulatorSettings.calls == [.record(udid: id, path: path)])
+        #expect(store.isRecording(id))
+        #expect(harness.operations.latest(at: .simulator(id))?.status == .running)
+
+        store.stopRecording(id)
+        try await waitUntil { store.isRecording(id) == false }
+
+        #expect(store.recordings[id] == path)
+        #expect(store.recordingStarts.isEmpty)
+        #expect(harness.operations.latest(at: .simulator(id))?.status == .succeeded)
+        #expect(harness.lastActivity?.title == "Recorded iPhone 16 Pro")
+    }
+
+    @Test func aRecordingThatEndsByItselfIsKept() async throws {
+        let id = SimulatorFixture.iPhone.id
+        store.startRecording(SimulatorFixture.iPhone)
+        try await waitUntil { store.recordingStarts[id] != nil }
+
+        harness.spies.simulatorSettings.finishRecordings()
+        try await waitUntil { store.isRecording(id) == false }
+
+        #expect(store.recordings[id] != nil)
+    }
+
+    @Test func aSecondStartWhileRecordingDoesNothing() async throws {
+        let id = SimulatorFixture.iPhone.id
+        store.startRecording(SimulatorFixture.iPhone)
+        try await waitUntil { store.recordingStarts[id] != nil }
+
+        store.startRecording(SimulatorFixture.iPhone)
+        store.stopRecording(id)
+        try await waitUntil { store.isRecording(id) == false }
+
+        #expect(harness.spies.simulatorSettings.calls.count == 1)
+    }
+
+    @Test func aFailedRecordingFailsTheOperation() async throws {
+        let id = SimulatorFixture.iPhone.id
+        harness.spies.simulatorSettings.error = SimulatorError.command("not booted")
+
+        store.startRecording(SimulatorFixture.iPhone)
+        try await waitUntil { store.isRecording(id) == false }
+
+        #expect(store.recordings.isEmpty)
+        #expect(harness.operations.latest(at: .simulator(id))?.status == .failed("not booted"))
+        #expect(harness.lastActivity?.title == "Recording of iPhone 16 Pro failed")
+        #expect(harness.lastActivity?.outcome == .failure)
+    }
+
+    @Test func quittingStopsEveryRecording() async throws {
+        store.startRecording(SimulatorFixture.iPhone)
+        store.startRecording(SimulatorFixture.iPad)
+        try await waitUntil { store.recordingStarts.count == 2 }
+
+        store.stopAllRecordings()
+        try await waitUntil { store.recordingIDs.isEmpty }
+
+        #expect(store.recordings.count == 2)
+    }
 }

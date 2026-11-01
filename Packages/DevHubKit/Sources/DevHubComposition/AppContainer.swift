@@ -57,4 +57,8 @@ public final class AppContainer: NSObject, NSApplicationDelegate {
         windows?.show()
         return false
     }
+
+    public func applicationWillTerminate(_ notification: Notification) {
+        assembly.prepareForQuit()
+    }
 }

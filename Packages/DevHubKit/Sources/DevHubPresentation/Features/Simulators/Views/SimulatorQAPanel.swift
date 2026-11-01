@@ -18,6 +18,7 @@ struct SimulatorQAPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            OperationSlot(origin: .simulator(simulator.id))
             line("Appearance") {
                 Button("Light", systemImage: "sun.max") { apply(.appearance(.light)) }
                 Button("Dark", systemImage: "moon") { apply(.appearance(.dark)) }
@@ -73,6 +74,29 @@ struct SimulatorQAPanel: View {
             line("Screenshot") {
                 Button("Save to Desktop", systemImage: "camera") { qa.screenshot(simulator) }
                 if let path = qa.screenshots[simulator.id] {
+                    Button((path as NSString).lastPathComponent) { appActions.openInFinder(path: path) }
+                        .buttonStyle(LinkButtonStyle(.accent))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .hint("Show in Finder")
+                }
+            }
+            line("Video") {
+                if qa.isRecording(simulator.id) {
+                    Button("Stop", systemImage: "stop.circle") { qa.stopRecording(simulator.id) }
+                    if let start = qa.recordingStarts[simulator.id] {
+                        Text(start, style: .timer)
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.red)
+                    } else {
+                        Text("Starting…")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Button("Record", systemImage: "record.circle") { qa.startRecording(simulator) }
+                }
+                if let path = qa.recordings[simulator.id] {
                     Button((path as NSString).lastPathComponent) { appActions.openInFinder(path: path) }
                         .buttonStyle(LinkButtonStyle(.accent))
                         .lineLimit(1)

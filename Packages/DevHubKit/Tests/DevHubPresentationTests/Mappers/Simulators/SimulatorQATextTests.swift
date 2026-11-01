@@ -10,6 +10,12 @@ import Testing
         #expect(name == "iPhone 17-Pro 2027-01-15 080000.png")
     }
 
+    @Test func theRecordingNameUsesTheSameStampAsAScreenshot() {
+        let name = SimulatorQAText.recordingName(simulator: "iPhone 17/Pro", date: Date(timeIntervalSince1970: 1_800_000_000))
+
+        #expect(name == "iPhone 17-Pro 2027-01-15 080000.mov")
+    }
+
     @Test func everyChoiceHasATitle() {
         #expect(Set(SimulatorTextSize.allCases.map(SimulatorQAText.title)).count == SimulatorTextSize.allCases.count)
         #expect(Set(PrivacyService.allCases.map(SimulatorQAText.title)).count == PrivacyService.allCases.count)

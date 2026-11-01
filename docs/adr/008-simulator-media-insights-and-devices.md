@@ -67,7 +67,7 @@ Facts checked on this Mac (Xcode 26.6, 2026-11-01):
 3. A keychain export for one app needs code inside the app (`SecItem`), so it waits for D7.
 4. The snapshot list shows the name, the date, the size and Delete. The sizes come from `du`, because clones share space.
 
-### D7. Network monitor (decision open)
+### D7. Network monitor
 
 Today the Network tab sees only the requests that the app sends to the DevHub server (forward, patch and delay rules for the base URL). Other hosts, SDK traffic and builds that do not point at DevHub are not seen.
 
@@ -77,7 +77,7 @@ Options:
 2. **Injected library.** The same code built as a dylib for the simulator and loaded with `SIMCTL_CHILD_DYLD_INSERT_LIBRARIES` when DevHub launches the app. No change to the app, simulator only, and a new iOS version may break it.
 3. **HTTPS proxy.** A proxy in DevHub, the root certificate added with `simctl keychain <udid> add-root-cert`, and the proxy set for the Mac. It sees every app, but it changes the network settings of the Mac, and certificate pinning blocks it.
 
-Proposal: options 1 and 2 from one source, option 2 first.
+Decision (owner, 2026-11-01): options 1 and 2 from one source, option 2 (the injected library) first.
 
 ### D8. Real devices
 
@@ -89,7 +89,7 @@ Proposal: options 1 and 2 from one source, option 2 first.
 
 ## Plan
 
-- [ ] 1. D2 video recording.
+- [x] 1. D2 video recording.
 - [ ] 2. D3 GIF and compressed video.
 - [ ] 3. D4 device frames on screenshots, then on GIF and video.
 - [ ] 4. D5 build insights.
@@ -98,7 +98,7 @@ Proposal: options 1 and 2 from one source, option 2 first.
 - [ ] 7. D8 devices: list, install, launch, console.
 - [ ] 8. D8 devices: build with signing, app data copy.
 - [ ] 9. D1 Xcode 27, after the owner installs Xcode 27.
-- [ ] 10. D7 network monitor, after the decision.
+- [ ] 10. D7 network monitor: the injected library first, then the companion package.
 
 ## Step log
 

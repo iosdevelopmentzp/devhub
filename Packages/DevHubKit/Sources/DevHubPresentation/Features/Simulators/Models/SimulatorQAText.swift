@@ -82,8 +82,16 @@ enum SimulatorQAText {
     }
 
     static func screenshotName(simulator: String, date: Date) -> String {
+        fileStem(simulator: simulator, date: date) + ".png"
+    }
+
+    static func recordingName(simulator: String, date: Date) -> String {
+        fileStem(simulator: simulator, date: date) + ".mov"
+    }
+
+    private static func fileStem(simulator: String, date: Date) -> String {
         let stamp = date.formatted(.iso8601.year().month().day().dateSeparator(.dash).time(includingFractionalSeconds: false).timeSeparator(.omitted))
         let name = simulator.replacingOccurrences(of: "/", with: "-")
-        return "\(name) \(stamp.replacingOccurrences(of: "T", with: " ").replacingOccurrences(of: "Z", with: "")).png"
+        return "\(name) \(stamp.replacingOccurrences(of: "T", with: " ").replacingOccurrences(of: "Z", with: ""))"
     }
 }

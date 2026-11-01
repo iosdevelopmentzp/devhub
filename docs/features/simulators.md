@@ -192,8 +192,7 @@ The sliders button in a row opens a panel under the row. Every control works onl
 | Language: Set… | Writes the language and the region of the simulator. Shut it down and boot it to see the change; the panel says so until the simulator shuts down | `xcrun simctl spawn <udid> defaults write -g AppleLanguages -array <code>`, `… AppleLocale -string <locale>` |
 | Permission | Grant, Revoke or Reset one privacy service for the app of the row (the bundle ID of the last launch, else the project). `simctl` has no camera service | `xcrun simctl privacy <udid> grant\|revoke\|reset <service> <bundle ID>` |
 | Screenshot: Save to Desktop | Saves `~/Desktop/<simulator> <date time>.png` (UTC). The file name then shows as a link that reveals it in Finder | `xcrun simctl io <udid> screenshot <path>` |
-
-Video recording is not there yet: `simctl io recordVideo` needs SIGINT to finish the file, and `ShellRunner` stops a process with SIGTERM.
+| Video: Record, Stop | Records the screen of the simulator into `~/Desktop/<simulator> <date time>.mov` (UTC) until Stop. The line shows "Starting…", then the time since `simctl` printed "Recording started". The recording is an operation: the card above the panel and the footer show it with a stop button, and a failure keeps the reason. The file name then shows as a link that reveals it in Finder. Quitting DevHub stops every recording, so the files are written | `xcrun simctl io <udid> recordVideo --codec=h264 --force <file>`, stopped with SIGINT |
 
 ### App data
 

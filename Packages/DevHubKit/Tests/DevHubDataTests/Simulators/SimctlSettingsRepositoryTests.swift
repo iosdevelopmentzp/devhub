@@ -32,4 +32,9 @@ import Testing
         #expect(commands(.privacy(.grant, service: .photos, bundleID: "com.example.app")) == [["privacy", "U1", "grant", "photos", "com.example.app"]])
         #expect(commands(.privacy(.reset, service: .all, bundleID: "")) == [["privacy", "U1", "reset", "all"]])
     }
+
+    @Test func aRecordingIsAnH264VideoThatReplacesAnOldFile() {
+        #expect(SimctlSettingsRepository.recordArguments(udid: "U1", path: "/tmp/a.mov") == ["simctl", "io", "U1", "recordVideo", "--codec=h264", "--force", "/tmp/a.mov"])
+        #expect(SimctlSettingsRepository.startedLine == "Recording started")
+    }
 }
