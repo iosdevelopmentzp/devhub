@@ -5,6 +5,7 @@ import DevHubUI
 struct NewPullRequestForm: View {
     @Environment(NewPullRequestStore.self) private var store
     @Environment(AppActions.self) private var appActions
+    @Environment(AITextStore.self) private var aiText
     @Environment(\.codeHostWords) private var words
 
     var body: some View {
@@ -25,12 +26,34 @@ struct NewPullRequestForm: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Spacer()
+                AIWriteButton(
+                    model: AIWriteButtonMapper.model(
+                        title: "Write with AI",
+                        purpose: "writes the title and the description from the diff, the commits and the template",
+                        defaultProvider: aiText.defaultProvider,
+                        isRunning: aiText.isRunning(.newRequest(branch: draft.sourceBranch)),
+                        isEnabled: draft.isLoading == false
+                    ),
+                    onPick: { provider in
+                        aiText.writePullRequest(draft, provider: provider) { title, body in
+                            guard store.draft?.sourceBranch == draft.sourceBranch else { return }
+                            if title.isEmpty == false {
+                                store.draft?.title = title
+                            }
+                            if body.isEmpty == false {
+                                store.draft?.description = body
+                            }
+                        }
+                    },
+                    onStop: { aiText.stop(.newRequest(branch: draft.sourceBranch)) }
+                )
                 Picker("Into", selection: binding(\.targetBranch)) {
                     ForEach(draft.targets, id: \.self) { Text($0).tag($0) }
                 }
                 .fixedSize()
                 .hint("Target branch")
             }
+            OperationSlot(origin: .newPullRequest)
             TextField("Title", text: binding(\.title))
                 .textFieldStyle(.roundedBorder)
             PlainTextEditor(text: binding(\.description))

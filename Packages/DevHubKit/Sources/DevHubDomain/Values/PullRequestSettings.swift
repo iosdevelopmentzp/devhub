@@ -9,8 +9,9 @@ package struct PullRequestSettings: Hashable, Sendable {
     package var deleteSourceBranch: Bool
     package var squash: Bool
     package var aiCommands: [AIProvider: String]
+    package var aiTextCommands: [AIProvider: String] = [:]
 
-    package init(targets: [String]?, template: String?, staleDays: Int, hiddenFiles: [String], isDraft: Bool, deleteSourceBranch: Bool, squash: Bool, aiCommands: [AIProvider: String]) {
+    package init(targets: [String]?, template: String?, staleDays: Int, hiddenFiles: [String], isDraft: Bool, deleteSourceBranch: Bool, squash: Bool, aiCommands: [AIProvider: String], aiTextCommands: [AIProvider: String] = [:]) {
         self.targets = targets
         self.template = template
         self.staleDays = staleDays
@@ -19,5 +20,6 @@ package struct PullRequestSettings: Hashable, Sendable {
         self.deleteSourceBranch = deleteSourceBranch
         self.squash = squash
         self.aiCommands = aiCommands
+        self.aiTextCommands = aiTextCommands
     }
 }

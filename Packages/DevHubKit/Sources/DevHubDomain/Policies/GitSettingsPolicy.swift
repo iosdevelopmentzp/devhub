@@ -53,7 +53,8 @@ package enum GitSettingsPolicy {
             isDraft: config?.defaults?.draft ?? false,
             deleteSourceBranch: config?.defaults?.deleteSourceBranch ?? true,
             squash: config?.defaults?.squash ?? false,
-            aiCommands: aiCommands(ai)
+            aiCommands: aiCommands(ai),
+            aiTextCommands: AITextCommandPolicy.commands(ai)
         )
     }
 

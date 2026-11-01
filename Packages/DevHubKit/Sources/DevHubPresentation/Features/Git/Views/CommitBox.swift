@@ -5,6 +5,7 @@ import DevHubUI
 struct CommitBox: View {
     @Environment(GitChangesStore.self) private var changes
     @Environment(GitStore.self) private var git
+    @Environment(AITextStore.self) private var aiText
 
     var body: some View {
         @Bindable var changes = changes
@@ -18,6 +19,21 @@ struct CommitBox: View {
                 Toggle("Amend", isOn: $changes.amend)
                     .toggleStyle(.checkbox)
                     .hint("Add the staged changes to the last commit and replace its message. git commit --amend. After a push this needs a force push.")
+                AIWriteButton(
+                    model: AIWriteButtonMapper.model(
+                        title: "Write with AI",
+                        purpose: "writes a commit message from the staged diff and the recent commit subjects",
+                        defaultProvider: aiText.defaultProvider,
+                        isRunning: aiText.isRunning(.commitMessage(path: git.checkoutPath)),
+                        isEnabled: changes.staged.isEmpty == false
+                    ),
+                    onPick: { provider in
+                        aiText.writeCommitMessage(provider: provider) { message in
+                            changes.message = message
+                        }
+                    },
+                    onStop: { aiText.stop(.commitMessage(path: git.checkoutPath)) }
+                )
                 Text(model.summary)
                     .font(.caption)
                     .foregroundStyle(.secondary)

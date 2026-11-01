@@ -68,6 +68,7 @@ Rules of the notifications:
 | Show usage for | "Claude and Copilot" (the default), "Claude only" or "Copilot only". The usage strip and the menu bar show only the chosen providers, and DevHub reads only their usage |
 | Show usage strip at the top | Shows the usage strip above the panel header ([AI](ai.md#usage-strip)) |
 | Show session usage in the menu bar | Shows the used percent of the first limit of the first chosen provider next to the menu bar icon |
+| Write with AI and Explain use | Claude Code (the default) or Copilot CLI: the tool of "Write with AI" in the commit box and the new request form, and of "Explain" in the request details. The arrow next to each button picks the other tool for one run. `ai.textCommands` in `project.json` changes the command ([Pull Requests](pull-requests.md#write-with-ai-and-explain)) |
 
 ### Pull Requests
 
@@ -188,7 +189,7 @@ All keys live in the standard `UserDefaults` of the app.
 
 | Key | Value |
 |---|---|
-| `app.settings` | One JSON object (`AppSettings`): `showDockIcon` (false), `showUsageStrip` (true), `showUsageInMenuBar` (true), `usageProviders` (`all`, or `claude` or `copilot`), `showReviewCountInMenuBar` (true), `globalShortcut` (`optionCommandD`), `editor` (`Xcode`), `terminal` (`Terminal`), `ticketURLTemplate` (empty), `autoFetchMinutes` (0), `notifyWhenPanelClosed` (true), `scriptsFolder` (`~/.devhub/scripts`, not shown in Settings) |
+| `app.settings` | One JSON object (`AppSettings`): `showDockIcon` (false), `showUsageStrip` (true), `showUsageInMenuBar` (true), `usageProviders` (`all`, or `claude` or `copilot`), `showReviewCountInMenuBar` (true), `globalShortcut` (`optionCommandD`), `editor` (`Xcode`), `terminal` (`Terminal`), `ticketURLTemplate` (empty), `autoFetchMinutes` (0), `notifyWhenPanelClosed` (true), `remembersReviews` (true), `aiTextProvider` (`claude`), `scriptsFolder` (`~/.devhub/scripts`, not shown in Settings) |
 | `app.projects` | The project list: id, name, path, scheme, bundle ID |
 | `app.selectedProject` | The id of the selected project |
 

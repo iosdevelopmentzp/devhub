@@ -14,4 +14,7 @@ struct PullRequestRowContext {
     var watchedIDs: Set<Int>
     var people: [String] = []
     var busyPeopleIDs: Set<Int> = []
+    var explanations: [Int: String] = [:]
+    var explainingIDs: Set<Int> = []
+    var aiProvider = AIProvider.claude
 }

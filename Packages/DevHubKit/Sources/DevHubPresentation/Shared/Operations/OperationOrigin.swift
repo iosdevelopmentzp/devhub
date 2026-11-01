@@ -9,6 +9,7 @@ struct OperationOrigin: Hashable {
     static let messaging = OperationOrigin(key: "messaging")
     static let worktrees = OperationOrigin(key: "worktrees")
     static let pullRequests = OperationOrigin(key: "pullRequests")
+    static let newPullRequest = OperationOrigin(key: "newPullRequest")
 
     static func action(_ id: String) -> OperationOrigin {
         OperationOrigin(key: "action:" + id)

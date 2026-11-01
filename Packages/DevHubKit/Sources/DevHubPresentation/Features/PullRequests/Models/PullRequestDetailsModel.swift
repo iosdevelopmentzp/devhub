@@ -71,6 +71,7 @@ struct PullRequestDetailsModel: Equatable {
         var hideSuggestion: HideSuggestion?
         var reviewNotice: ReviewNotice?
         var people: PullRequestPeopleModel?
+        var explain: PullRequestExplainModel
         var showsHiddenFiles: Bool
         var canExpandAllFiles: Bool
         var canCollapseAllFiles: Bool
@@ -111,6 +112,7 @@ struct PullRequestDetailsModel: Equatable {
                 hideSuggestion: HideSuggestion(text: "2 files look like tests, project files or lock files", actionTitle: "Hide Them", hint: "Hide LoginTests.swift and project.pbxproj in the requests of this project", paths: ["AppTests/LoginTests.swift", "App.xcodeproj/project.pbxproj"]),
                 reviewNotice: ReviewNotice(text: "1 file changed since your review 2 hr. ago", icon: "arrow.triangle.2.circlepath", tint: .orange, hint: "DevHub saved the diff of each file at your last review.", toggleTitle: "Show Only These"),
                 people: .preview,
+                explain: .preview,
                 showsHiddenFiles: false,
                 canExpandAllFiles: false,
                 canCollapseAllFiles: true,

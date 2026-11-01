@@ -35,7 +35,8 @@ package extension Ports {
             xcodes: spies.xcodes,
             toolEnvironment: spies.toolEnvironment,
             crashes: spies.crashes,
-            appData: spies.appData
+            appData: spies.appData,
+            aiText: spies.aiText
         )
         return (ports, spies)
     }

@@ -1,6 +1,6 @@
 import Foundation
 
-package enum AIProvider: String, CaseIterable, Hashable, Sendable {
+package enum AIProvider: String, CaseIterable, Hashable, Sendable, Codable {
     case copilot
     case claude
 

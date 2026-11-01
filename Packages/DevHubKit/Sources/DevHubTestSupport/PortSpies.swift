@@ -33,6 +33,7 @@ package struct PortSpies: Sendable {
     package let toolEnvironment = SpyToolEnvironmentRepository()
     package let crashes = SpyCrashReportRepository()
     package let appData = SpyAppDataRepository()
+    package let aiText = SpyAITextRepository()
 
     package init() {}
 }

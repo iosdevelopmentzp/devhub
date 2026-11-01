@@ -9,6 +9,7 @@ package final class SpyGitChangesRepository: GitChangesRepository, @unchecked Se
         case commitFiles(hash: String, path: String)
         case commitDiff(hash: String, file: GitCommitFile, path: String)
         case reflog(path: String)
+        case patch(GitPatchScope, path: String)
     }
 
     private let lock = NSLock()
@@ -19,8 +20,18 @@ package final class SpyGitChangesRepository: GitChangesRepository, @unchecked Se
     private var _commitFilesResult: Result<[GitCommitFile], any Error> = .success([])
     private var _reflogResult: Result<[GitReflogEntry], any Error> = .success([])
     private var _commitDiffResult: Result<GitDiff, any Error> = .success(GitDiff(lines: [], droppedLines: 0, isBinary: false))
+    private var _patchResult: Result<String, any Error> = .success("")
 
     package init() {}
+
+    package var patchResult: Result<String, any Error> {
+        get { lock.withLock { _patchResult } }
+        set { lock.withLock { _patchResult = newValue } }
+    }
+
+    package func patch(_ scope: GitPatchScope, in path: String) async throws -> String {
+        try record(.patch(scope, path: path)) { try _patchResult.get() }
+    }
 
     package var calls: [Call] {
         lock.withLock { _calls }

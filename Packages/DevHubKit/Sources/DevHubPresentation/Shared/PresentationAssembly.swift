@@ -41,6 +41,7 @@ package final class PresentationAssembly {
     let newPullRequest: NewPullRequestStore
     let pullRequestDetails: PullRequestDetailStore
     let pullRequestPeople: PullRequestPeopleStore
+    let aiText: AITextStore
     let simulators: SimulatorsStore
     let identity: IdentityStore
     let build: BuildStore
@@ -135,6 +136,17 @@ package final class PresentationAssembly {
         pullRequestReviews = PullRequestReviewMemory(session: session, settings: settings, events: events, store: store, now: { .now })
         pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events, store: store)
         pullRequestPeople = PullRequestPeopleStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events)
+        aiText = AITextStore(
+            repository: ports.aiText,
+            changes: ports.changes,
+            git: ports.git,
+            checkout: git,
+            remote: codeHostRemote,
+            settings: settings,
+            operations: operations,
+            activity: activity,
+            events: events
+        )
         openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
         inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
         ciAutoRerun = CIAutoRerunStore(

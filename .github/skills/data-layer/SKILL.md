@@ -37,7 +37,8 @@ DevHubData/
                     ClaudeTranscriptSessionRepository(root:), ClaudeTranscriptParser, FileReviewPromptRepository(root:)
     Copilot/        CopilotSessionRepository(root:), CopilotSessionParser, CopilotEventScanner, WorkspaceYAMLParser,
                     GitHubCopilotUsageRepository, CopilotUsageParser, CopilotTokenReader, CopilotTokenParser
-    AI/             CompositeAISessionRepository (Claude and Copilot sessions in one list)
+    AI/             CompositeAISessionRepository (Claude and Copilot sessions in one list),
+                    ShellAITextRepository(shell:folder:home:) (one-shot `claude -p` or `copilot -p`, prompt in a temporary file)
     Config/         FileConfigRepository(home:pollInterval:), ConfigFolderReader, ConfigWatcher, ExampleConfigWriter,
                     ShellScriptRunner
     Network/        NetworkRequestRedactor

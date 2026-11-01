@@ -98,6 +98,7 @@ struct PullRequestDetailsView: View {
             if let people = loaded.people {
                 peopleMenus(people)
             }
+            explainBlock(loaded.explain)
             if let description = loaded.description {
                 ExpandableText(description, lineLimit: 12)
                     .font(.callout)
@@ -309,6 +310,28 @@ struct PullRequestDetailsView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
+            }
+        }
+    }
+
+    private func explainBlock(_ explain: PullRequestExplainModel) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+                AIWriteButton(model: explain.button, onPick: actions.explain, onStop: actions.stopExplain)
+                if explain.text != nil {
+                    Button("Hide", action: actions.hideExplanation)
+                        .buttonStyle(LinkButtonStyle(.secondary))
+                        .fixedSize()
+                        .hint("Hide the explanation")
+                }
+            }
+            if let text = explain.text {
+                ExpandableText(text, lineLimit: 14)
+                    .font(.callout)
+                    .textSelection(.enabled)
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.accentColor.opacity(0.06), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
             }
         }
     }

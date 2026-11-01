@@ -51,7 +51,8 @@ extension Ports {
             xcodes: SpotlightXcodeInstallationRepository(shell: shell),
             toolEnvironment: ShellToolEnvironmentRepository(state: shell.developerDir),
             crashes: FileCrashReportRepository(root: home.appendingPathComponent("Library/Logs/DiagnosticReports", isDirectory: true)),
-            appData: SimctlAppDataRepository(shell: shell)
+            appData: SimctlAppDataRepository(shell: shell),
+            aiText: ShellAITextRepository(shell: shell, folder: FileManager.default.temporaryDirectory.appendingPathComponent("DevHub/AI", isDirectory: true), home: home)
         )
     }
 }

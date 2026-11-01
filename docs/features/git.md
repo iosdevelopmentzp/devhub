@@ -127,8 +127,9 @@ When a stash pop after a switch fails, the changes stay in the stash and a red R
 | Reveal in Finder, Copy Path, Copy File Name (menu) | — | — |
 | Commit (⌘↩) | Commits the staged files. "Amend" replaces the last commit | `git commit -m <message> [--amend]` |
 | Commit & Push | Commits, then pushes like the Push button | `git commit -m <message>`, then `git push` or `git push -u <remote> <branch>` |
+| Write with AI | Writes the commit message from the staged diff, the branch name and the last 15 commit subjects, and puts it into the box. The button uses the tool from Settings → AI usage; its arrow picks the other one. It runs as an operation card under the commit box, with Stop | `git diff --cached --no-color --no-ext-diff`, `git log --format=%s -n 50 HEAD~15..HEAD`, then the command of the tool from `ai.textCommands` |
 
-The commit box starts with the ticket prefix of the branch (for example `ABC-123: `). Commit is disabled while there are conflicts, while the message is empty, or when nothing is staged and Amend is off.
+The commit box starts with the ticket prefix of the branch (for example `ABC-123: `). Commit is disabled while there are conflicts, while the message is empty, or when nothing is staged and Amend is off. "Write with AI" fails with "There are no changes to describe." when nothing is staged.
 
 ### Stash rows
 
@@ -164,6 +165,7 @@ When the panel opens on the Git tab, DevHub reads the repository. When "Auto fet
 | `git.ticketURL` | The link of the ticket chip. Without a link the chip copies the key | [`project.json`](../extensions.md#2-projectjson) |
 | `git.host.kind`, `git.host.name` | Which tool (`gh` or `glab`) reads the request line. `git.host.kind` also chooses the GitHub or GitLab path of the branch, commit and new request links | [`project.json`](../extensions.md#2-projectjson) |
 | `git.pullRequests.*` | The new request form (see the Pull Requests page) | [`project.json`](../extensions.md#2-projectjson) |
+| `ai.textCommands` | The command of each AI tool for "Write with AI" | [`project.json`](../extensions.md#2-projectjson) |
 | Actions with `git.pills` | Buttons in the header action bar | [Placements](../extensions.md#33-placements) |
 | Actions with `git.branchRow` | Items in the context menu of a local branch row | [Placements](../extensions.md#33-placements) |
 

@@ -162,6 +162,7 @@ Other repository facts: `squashOnMerge` (GitHub `viewerDefaultMergeMethod` is `S
 | `git.pullRequests.targets`, `template`, `staleDays`, `defaults.*` | the new request form and the `stale` tag (`PullRequestSettings`) |
 | `git.pullRequests.hiddenFiles` | glob patterns of the files hidden from the details file list (`PullRequestSettings.hiddenFiles`, `HiddenFilePolicy`); the default is `[]`: nothing is hidden until the user or this list says so |
 | `ai.reviewCommand` | "Fix threads with AI" |
+| `ai.textCommands` | "Write with AI" in the new request form and "Explain" in the details (`AITextCommandPolicy`, `AITextStore`) |
 | `when.host` | shows a config action only for one kind (`ActionCondition.host`, `ActionConditionFacts.hostKind`) |
 | the `pullRequests.row` placement | config actions in the row menu, with `DEVHUB_PR_NUMBER` and `DEVHUB_PR_URL` |
 

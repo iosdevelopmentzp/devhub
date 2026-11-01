@@ -8,6 +8,7 @@ struct PullRequestsView: View {
     @Environment(OpenPullRequestsStore.self) private var openPullRequests
     @Environment(PullRequestDetailStore.self) private var detailStore
     @Environment(PullRequestPeopleStore.self) private var people
+    @Environment(AITextStore.self) private var aiText
     @Environment(CIAutoRerunStore.self) private var autoRerun
     @Environment(Toaster.self) private var toaster
     @Environment(\.panelOpenCount) private var openCount
@@ -90,7 +91,10 @@ struct PullRequestsView: View {
             hiddenFiles: git.gitSettings.pullRequests.hiddenFiles,
             watchedIDs: openPullRequests.watchedIDs,
             people: people.people,
-            busyPeopleIDs: people.busyIDs
+            busyPeopleIDs: people.busyIDs,
+            explanations: aiText.explanations,
+            explainingIDs: aiText.explainingIDs,
+            aiProvider: aiText.defaultProvider
         )
     }
 
@@ -261,7 +265,7 @@ struct PullRequestsView: View {
     }
 
     private func detailActions(for summary: PullRequestSummary) -> PullRequestDetailActions {
-        PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, autoRerun: autoRerun, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: openPullRequestWindow)
+        PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, aiText: aiText, autoRerun: autoRerun, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: openPullRequestWindow)
     }
 
     private func details(for summary: PullRequestSummary) -> PullRequestDetailsModel {

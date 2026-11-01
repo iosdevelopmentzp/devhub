@@ -54,6 +54,7 @@ enum PullRequestDetailsMapper {
                     hideSuggestion: hideSuggestion(HiddenFilePolicy.suggestedPaths(in: paths, hidden: hidden)),
                     reviewNotice: reviewNotice(review: review, words: words),
                     people: PullRequestPeopleMapper.model(summary: summary, context: context),
+                    explain: PullRequestExplainMapper.model(summary: summary, review: review, context: context),
                     showsHiddenFiles: review.showsHiddenFiles,
                     canExpandAllFiles: visible.count - viewedCount > expandedCount,
                     canCollapseAllFiles: expandedCount > 0,

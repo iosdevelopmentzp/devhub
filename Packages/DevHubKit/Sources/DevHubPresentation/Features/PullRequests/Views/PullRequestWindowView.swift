@@ -7,6 +7,7 @@ struct PullRequestWindowView: View {
     @Environment(OpenPullRequestsStore.self) private var openPullRequests
     @Environment(PullRequestDetailStore.self) private var detailStore
     @Environment(PullRequestPeopleStore.self) private var people
+    @Environment(AITextStore.self) private var aiText
     @Environment(CIAutoRerunStore.self) private var autoRerun
     @Environment(AppActions.self) private var appActions
     @Environment(GitStore.self) private var git
@@ -35,7 +36,7 @@ struct PullRequestWindowView: View {
                     isSelected: false,
                     isNarrow: false,
                     isPickingLaunch: isPickingLaunch,
-                    detailActions: PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, autoRerun: autoRerun, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: nil),
+                    detailActions: PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, aiText: aiText, autoRerun: autoRerun, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: nil),
                     onToggle: {},
                     onRequestLaunch: { isPickingLaunch = true },
                     onCancelLaunch: { isPickingLaunch = false },
@@ -77,7 +78,10 @@ struct PullRequestWindowView: View {
             hiddenFiles: git.gitSettings.pullRequests.hiddenFiles,
             watchedIDs: openPullRequests.watchedIDs,
             people: people.people,
-            busyPeopleIDs: people.busyIDs
+            busyPeopleIDs: people.busyIDs,
+            explanations: aiText.explanations,
+            explainingIDs: aiText.explainingIDs,
+            aiProvider: aiText.defaultProvider
         )
     }
 

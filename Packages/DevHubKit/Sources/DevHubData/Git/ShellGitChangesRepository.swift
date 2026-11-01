@@ -45,6 +45,19 @@ struct ShellGitChangesRepository: GitChangesRepository {
         return GitReflogParser.parse(output)
     }
 
+    func patch(_ scope: GitPatchScope, in path: String) async throws -> String {
+        try await git.run(Self.patchArguments(scope), in: path)
+    }
+
+    static func patchArguments(_ scope: GitPatchScope) -> [String] {
+        switch scope {
+        case .staged:
+            ["diff", "--cached", "--no-color", "--no-ext-diff"]
+        case let .range(base, head):
+            ["diff", "--no-color", "--no-ext-diff", "\(base)...\(head)"]
+        }
+    }
+
     private func cap(_ output: String) -> GitDiff {
         GitDiffOutputParser.parse(output, maxLines: Self.maxLines)
     }

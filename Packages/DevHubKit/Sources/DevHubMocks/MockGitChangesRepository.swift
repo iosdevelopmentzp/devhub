@@ -45,6 +45,10 @@ struct MockGitChangesRepository: GitChangesRepository {
         try await diff(for: GitFileChange(path: file.path, originalPath: nil, area: .staged, kind: file.kind), in: path)
     }
 
+    func patch(_ scope: GitPatchScope, in path: String) async throws -> String {
+        "diff --git a/ExampleApp/Features/Call/GiftValue.swift b/ExampleApp/Features/Call/GiftValue.swift\n+struct GiftValue {\n+    let coins: Int\n+}"
+    }
+
     func reflog(in path: String) async throws -> [GitReflogEntry] {
         let now = Date()
         return [

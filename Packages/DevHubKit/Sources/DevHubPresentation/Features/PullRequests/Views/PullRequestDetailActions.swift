@@ -10,6 +10,9 @@ struct PullRequestDetailActions {
     let toggleOnlyChangedSinceReview: () -> Void
     let forgetReview: () -> Void
     let togglePerson: (_ login: String, _ role: PullRequestPersonRole) -> Void
+    let explain: (AIProvider) -> Void
+    let stopExplain: () -> Void
+    let hideExplanation: () -> Void
     let hideFiles: (_ paths: [String]) -> Void
     let unhideFile: (_ path: String) -> Void
     let showInDiff: (_ threadID: ReviewThread.ID) -> Void
@@ -56,6 +59,9 @@ struct PullRequestDetailActions {
         toggleOnlyChangedSinceReview: {},
         forgetReview: {},
         togglePerson: { _, _ in },
+        explain: { _ in },
+        stopExplain: {},
+        hideExplanation: {},
         hideFiles: { _ in },
         unhideFile: { _ in },
         showInDiff: { _ in },
@@ -104,6 +110,9 @@ struct PullRequestDetailActions {
             toggleOnlyChangedSinceReview: toggleOnlyChangedSinceReview,
             forgetReview: forgetReview,
             togglePerson: togglePerson,
+            explain: explain,
+            stopExplain: stopExplain,
+            hideExplanation: hideExplanation,
             hideFiles: hideFiles,
             unhideFile: unhideFile,
             showInDiff: showInDiff,
@@ -150,6 +159,7 @@ extension PullRequestDetailActions {
         for summary: PullRequestSummary,
         detailStore: PullRequestDetailStore,
         people: PullRequestPeopleStore,
+        aiText: AITextStore,
         autoRerun: CIAutoRerunStore,
         pullRequests: PullRequestsStore,
         appActions: AppActions,
@@ -166,6 +176,11 @@ extension PullRequestDetailActions {
             toggleOnlyChangedSinceReview: { detailStore.toggleOnlyChangedSinceReview(of: id) },
             forgetReview: { detailStore.forgetReview(of: id) },
             togglePerson: { people.toggle($0, role: $1, on: summary) },
+            explain: { provider in
+                aiText.explain(summary, description: detailStore.details[id]?.description ?? "", files: detailStore.diffs[id] ?? [], changedSinceReview: detailStore.review(of: id).changedSinceReview, provider: provider)
+            },
+            stopExplain: { aiText.stop(.explain(iid: id)) },
+            hideExplanation: { aiText.clearExplanation(of: id) },
             hideFiles: { detailStore.hideFiles($0) },
             unhideFile: { detailStore.unhideFile($0) },
             showInDiff: { detailStore.showInDiff(threadID: $0, of: id) },

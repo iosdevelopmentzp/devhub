@@ -49,7 +49,7 @@ The header search filters the loaded rows by title, number, author, branches and
 
 1. The checks or pipeline tag (click opens it in the browser), the duration, "Cancel" while it runs, and "Open in Window".
 2. The checks or jobs of the last commit, grouped by stage (GitLab) or by workflow (GitHub). A group header shows the state of the group; inside, failed jobs come first, then running, waiting and passed. Each row shows the status, the name, how long the job ran, an "allowed to fail" mark, and, when it failed, a folded "reason" that opens the failure message (GitLab) or the check title (GitHub). Buttons: the log icon shows the last 200 lines of the log inside DevHub (timestamps, colours and tokens removed, with Copy Log); Retry runs a failed or cancelled job again; the globe opens it in the browser. Log and Retry need a GitHub Actions job or a GitLab job; an external status check has only the link. Without the job list (an old answer), the failed jobs show as links. With CircleCI (see the CircleCI section), a check that points at a CircleCI workflow is replaced by the jobs of that workflow.
-3. The review block: "Approved by", "Changes requested", "Waiting for" (a requested reviewer without an answer) and "Assigned to", one tag per person; "you" stands for your own account. An open request without reviewers says "none requested". GitHub takes the latest review of each person and the review requests; GitLab takes the review state of each reviewer. Under it, "Reviewers" and "Assignees" menus list the people of the project with a check mark on the current ones; a click adds or removes that person. The menus show on an open request that you wrote or that you can merge. Each change shows as an operation card and refreshes the list.
+3. The review block: "Approved by", "Changes requested", "Waiting for" (a requested reviewer without an answer) and "Assigned to", one tag per person; "you" stands for your own account. An open request without reviewers says "none requested". GitHub takes the latest review of each person and the review requests; GitLab takes the review state of each reviewer. Under it, "Reviewers" and "Assignees" menus list the people of the project with a check mark on the current ones; a click adds or removes that person. The menus show on an open request that you wrote or that you can merge. Each change shows as an operation card and refreshes the list. Under the menus, "Explain" asks Claude Code or Copilot CLI to explain the request (see "Write with AI and Explain").
 4. The description.
 5. The review threads: author, time, file and line, the full text with inline markdown (selectable), and the replies behind "N replies". Each thread has Reply, Resolve, "Show in diff", "Open file at this line" and "Open in browser".
 6. A comment box: "Comment" (⌘Return) posts a comment on the request. "Request Changes" sends the text as a review that asks for changes; it shows only on GitHub, on an open request by someone else. The text stays in the box until the post works.
@@ -122,6 +122,26 @@ After each action DevHub logs the result in Recent and reads the list again.
 2. It finds the worktree of the source branch. When there is none, it creates one.
 3. It opens the terminal app from Settings in that worktree and runs the command of the chosen tool from `ai.commands` (`claude` or `copilot`). The defaults are `claude "$(cat {prompt})"` and `copilot -i "$(cat {prompt})"`, where `{prompt}` is the quoted path of the prompt file.
 
+### Write with AI and Explain
+
+DevHub runs Claude Code or Copilot CLI once, without a terminal, and puts the answer into DevHub. Each button uses the tool from Settings → AI usage ("Write with AI and Explain use"); the arrow next to it picks the other tool for one run. Each run is an operation card with "<tool> is writing…" and Stop. A failure keeps the card red with the reason from the tool, for example a missing install or a policy of the account.
+
+| Button | Where | What the tool gets | What DevHub does with the answer |
+|---|---|---|---|
+| Write with AI | New request form | The diff of `<remote>/<target>...<branch>`, the commit subjects of the branch, the current title, the description (used as the template), the branch names, the host word ("pull request" or "merge request") | The first line becomes the title, the rest the description |
+| Explain | Details, under the review block | The title, the description and the diff of every changed file of the request. After a review with changed files, the names of those files | Shows the answer under the button with the sections "What it changes", "Risky places", "Changed since my review" (only after a review) and "What to check". "Explain Again" runs it again, "Hide" removes it |
+| Write with AI | Commit box of the Git tab | See the [Git page](git.md#changes) | The commit message |
+
+How it runs:
+
+1. DevHub writes the prompt to a file in the temporary folder of the app (`DevHub/AI/prompt-<id>.md`) and removes it after the run.
+2. It runs the command of the tool from `ai.textCommands` with `/bin/sh -c` in the main checkout. The PATH gets `~/.local/bin`, `~/.claude/local`, `~/.npm-global/bin`, `/opt/homebrew/bin` and `/usr/local/bin` first.
+3. The defaults are `claude -p "$(cat {prompt})" --output-format text` and `copilot -p "$(cat {prompt})" -s --no-ask-user --no-color --stream off`. `{prompt}` becomes the quoted path of the prompt file.
+4. DevHub removes code fences and terminal colour codes from the answer. Exit code 127 means "not installed". Another failure shows the last 6 lines of the output.
+5. A diff longer than 60,000 characters is cut, with a note to the tool about the rest. A file whose diff the host did not send is described by its counts only.
+
+The command lands in the Output panel like every other command. The prompt holds the diff, so it goes to the AI service of the chosen tool.
+
 ### Details actions
 
 | Action | GitHub | GitLab |
@@ -166,6 +186,8 @@ Create runs these steps:
 4. DevHub shows the new request in the Pull Requests tab.
 
 The Create button says "Push & Create" when step 1 is needed.
+
+"Write with AI" in the form header fills the title and the description from the diff of the branch (see "Write with AI and Explain"). Its operation card shows under the form.
 
 "Open in GitHub Instead" (or "Open in GitLab Instead") closes the form and opens the web page that creates the request.
 
@@ -252,6 +274,7 @@ The reads are `.read` in the Output panel; re-run, cancel and approve are action
 | `git.pullRequests.defaults.draft`, `.deleteSourceBranch`, `.squash` | The boxes of the new request form. The last two apply only on GitLab | [`project.json`](../extensions.md#2-projectjson) |
 | `git.commitPrefix.pattern`, `git.ticketURL` | The ticket chip and the ticket key in a new title | [`project.json`](../extensions.md#2-projectjson) |
 | `ai.commands` | The command of each AI tool for "Fix Threads with AI" | [`project.json`](../extensions.md#2-projectjson) |
+| `ai.textCommands` | The command of each AI tool for "Write with AI" and "Explain" | [`project.json`](../extensions.md#2-projectjson) |
 | `ci.kind`, `ci.project` | CircleCI on or off, and the project slug for `--project` of `run list` and `run approve` and for the flaky test list | [`project.json`](../extensions.md#2-projectjson) |
 | Actions with `pullRequests.row` | Items in the row menus | [Placements](../extensions.md#33-placements) |
 | `when.host` | Shows an action only for GitHub or only for GitLab | [Actions](../extensions.md#3-actions) |

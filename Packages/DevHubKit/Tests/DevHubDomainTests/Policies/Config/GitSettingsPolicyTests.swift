@@ -74,7 +74,8 @@ import Testing
             isDraft: false,
             deleteSourceBranch: true,
             squash: false,
-            aiCommands: [.claude: #"claude "$(cat {prompt})""#, .copilot: #"copilot -i "$(cat {prompt})""#]
+            aiCommands: [.claude: #"claude "$(cat {prompt})""#, .copilot: #"copilot -i "$(cat {prompt})""#],
+            aiTextCommands: AITextCommandPolicy.commands(nil)
         ))
     }
 
@@ -106,7 +107,8 @@ import Testing
             isDraft: true,
             deleteSourceBranch: false,
             squash: true,
-            aiCommands: [.claude: "codex {prompt}", .copilot: #"copilot -i "$(cat {prompt})""#]
+            aiCommands: [.claude: "codex {prompt}", .copilot: #"copilot -i "$(cat {prompt})""#],
+            aiTextCommands: AITextCommandPolicy.commands(nil)
         ))
     }
 

@@ -66,7 +66,7 @@ Settings → Disk. Only Xcode and tool folders that every Mac has: DerivedData f
 - [x] 5. D3 app data.
 - [x] 6. D4 changed since your review.
 - [x] 7. D6 reviewers and assignees.
-- [ ] 8. D5 AI text and Explain.
+- [x] 8. D5 AI text and Explain.
 - [ ] 9. D7 disk cleanup.
 
 ## Step log
@@ -79,3 +79,4 @@ Settings → Disk. Only Xcode and tool folders that every Mac has: DerivedData f
 | `a41771e` | Step 4: crash reports: `CrashReport`, `CrashReportRepository`, `CrashReportPolicy`, `IPSCrashReportParser`, `FileCrashReportRepository` (one `DispatchSource` on `~/Library/Logs/DiagnosticReports`), `CrashReportsStore` and the crash block in the run bar. |
 | `923fdb1` | Step 5: app data: `AppDataRepository`, `SimctlAppDataRepository` (`get_app_container`, `spawn defaults export\|write\|delete`), `DefaultsExportParser`, `AppGroupListParser`, `AppDataScanner`, `AppDefaultsPolicy`, `AppDataStore` and the "App Data…" panel under a simulator row. |
 | `7b23dd9` | Step 6: changed since your review: `ReviewSnapshot`, `ReviewChangePolicy` (FNV-1a fingerprints of the changed lines), `PullRequestReviewMemory` (`gitlab.reviews.<project>`), `AppEvent.pullRequestReviewed`, the notice, the tag and "Show Only These" in the details, `AppSettings.remembersReviews`. |
+| `a5a702f` | Step 7: reviewers and assignees: `PullRequestPersonRole`, `CodeHostRepository.people` and `updatePeople` (`gh pr edit`, `glab mr update`), `GhUserListParser`, `GlabMemberListParser`, `PullRequestPeopleStore` and the "Reviewers" and "Assignees" menus in the details. |

@@ -36,6 +36,7 @@ extension View {
             .environment(assembly.openPullRequests)
             .environment(assembly.inbox)
             .environment(assembly.newPullRequest)
+            .environment(assembly.aiText)
             .environment(assembly.pullRequestDetails)
             .environment(assembly.pullRequestPeople)
             .environment(assembly.ciAutoRerun)

@@ -50,6 +50,12 @@ struct SettingsView: View {
                 Toggle("Show usage strip at the top", isOn: $settings.values.showUsageStrip)
                 Toggle("Show session usage in the menu bar", isOn: $settings.values.showUsageInMenuBar)
                     .hint("The used percent of the first limit of the first chosen provider, next to the menu bar icon")
+                Picker("Write with AI and Explain use", selection: $settings.values.aiTextProvider) {
+                    ForEach(AIProvider.allCases, id: \.self) { provider in
+                        Text(AISessionRowMapper.toolTitle(for: provider)).tag(provider)
+                    }
+                }
+                .hint("The tool for commit messages, new requests and Explain. DevHub runs it once with -p and reads its answer. The arrow next to each button picks the other tool for one run. ai.textCommands in .devhub/project.json changes the command.")
             }
 
             Section(words.requestsTitle) {
