@@ -1,0 +1,17 @@
+import Foundation
+import DevHubDomain
+
+struct MockMediaRepository: MediaRepository {
+    func makeGIF(from source: String, options: GIFOptions, onProgress: @escaping @Sendable (Double) -> Void) async throws -> String {
+        for step in 1...10 {
+            try await Task.sleep(for: .milliseconds(120))
+            onProgress(Double(step) / 10)
+        }
+        return MediaOutputPolicy.gifPath(for: source) { _ in false }
+    }
+
+    func compress(_ source: String, as compression: VideoCompression) async throws -> String {
+        try await Task.sleep(for: .milliseconds(900))
+        return MediaOutputPolicy.compressedPath(for: source, compression: compression) { _ in false }
+    }
+}

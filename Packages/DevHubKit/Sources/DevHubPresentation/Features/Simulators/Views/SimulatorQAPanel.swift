@@ -4,6 +4,7 @@ import DevHubUI
 
 struct SimulatorQAPanel: View {
     @Environment(SimulatorQAStore.self) private var qa
+    @Environment(MediaStore.self) private var media
     @Environment(AppActions.self) private var appActions
 
     let simulator: Simulator
@@ -103,6 +104,29 @@ struct SimulatorQAPanel: View {
                         .truncationMode(.middle)
                         .hint("Show in Finder")
                 }
+                Menu("Convert", systemImage: "film.stack") {
+                    if let path = qa.recordings[simulator.id] {
+                        Section("Last recording") {
+                            ForEach(MediaChoice.allCases) { choice in
+                                Button(choice.title) { media.convert(path, to: choice, at: .simulator(simulator.id)) }
+                            }
+                        }
+                    }
+                    Section("Choose a video file") {
+                        ForEach(MediaChoice.allCases) { choice in
+                            Button(choice.title + "…") { convertFile(to: choice) }
+                        }
+                    }
+                }
+                .fixedSize()
+                .hint("Make a GIF or a smaller MP4")
+                if let output = media.outputs[.simulator(simulator.id)] {
+                    Button((output as NSString).lastPathComponent) { appActions.openInFinder(path: output) }
+                        .buttonStyle(LinkButtonStyle(.accent))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .hint("Show in Finder")
+                }
             }
             HStack {
                 Text(isBooted ? "For \(bundleID.isEmpty ? "the simulator" : bundleID)" : "Boot the simulator first")
@@ -129,6 +153,13 @@ struct SimulatorQAPanel: View {
 
     private func apply(_ setting: SimulatorSetting) {
         qa.apply(setting, to: simulator)
+    }
+
+
+    private func convertFile(to choice: MediaChoice) {
+        let desktop = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop")
+        guard let url = FolderPicker.chooseFile(directory: desktop, prompt: "Convert", message: "Choose a .mov, .mp4 or .m4v video") else { return }
+        media.convert(url.path, to: choice, at: .simulator(simulator.id))
     }
 
     private func line<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {

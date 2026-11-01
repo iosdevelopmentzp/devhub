@@ -8,7 +8,7 @@ enforces the direction `Composition → Presentation → Domain ← Data`.
 | Module | Depends on | Default isolation | Holds |
 |---|---|---|---|
 | `DevHubDomain` | nothing | nonisolated | models, values, ports (`*Repository`), policies, use cases, errors, `Ports`, `UseCases` |
-| `DevHubData` | Domain | nonisolated | live repositories, runners, parsers, `Ports.live(shell:)`; AppKit only in `Workspace/` |
+| `DevHubData` | Domain | nonisolated | live repositories, runners, parsers, `Ports.live(shell:)`; AppKit only in `Workspace/`, AVFoundation and ImageIO only in `Media/` |
 | `DevHubMocks` | Domain | nonisolated | `Mock*Repository`, `MockData`, `InMemoryKeyValueStore`, `Ports.mock()` |
 | `DevHubUI` | nothing | MainActor | shared SwiftUI blocks, `Theme`, `Tint`, formatters, hints |
 | `DevHubPresentation` | Domain, UI, Mocks | MainActor | stores, row models, mappers, views, events, `PresentationAssembly`, `AppWindows` |

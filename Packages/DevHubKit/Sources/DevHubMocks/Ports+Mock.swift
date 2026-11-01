@@ -38,7 +38,8 @@ extension Ports {
             crashes: MockCrashReportRepository(),
             appData: MockAppDataRepository(),
             aiText: MockAITextRepository(),
-            diskCleanup: MockDiskCleanupRepository()
+            diskCleanup: MockDiskCleanupRepository(),
+            media: MockMediaRepository()
         )
     }
 }

@@ -53,7 +53,8 @@ extension Ports {
             crashes: FileCrashReportRepository(root: home.appendingPathComponent("Library/Logs/DiagnosticReports", isDirectory: true)),
             appData: SimctlAppDataRepository(shell: shell),
             aiText: ShellAITextRepository(shell: shell, folder: FileManager.default.temporaryDirectory.appendingPathComponent("DevHub/AI", isDirectory: true), home: home),
-            diskCleanup: XcodeDiskCleanupRepository(shell: shell, home: home, derivedDataRoot: derivedData.root)
+            diskCleanup: XcodeDiskCleanupRepository(shell: shell, home: home, derivedDataRoot: derivedData.root),
+            media: AVMediaRepository()
         )
     }
 }

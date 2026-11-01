@@ -19,6 +19,7 @@ extension View {
             .environment(assembly.xcodes)
             .environment(assembly.keepAwake)
             .environment(assembly.simulatorQA)
+            .environment(assembly.media)
             .environment(assembly.appData)
             .environment(assembly.diskCleanup)
             .environment(assembly.pullRequestReviews)

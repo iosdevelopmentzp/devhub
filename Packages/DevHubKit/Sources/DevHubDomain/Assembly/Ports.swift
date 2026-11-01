@@ -35,6 +35,7 @@ package struct Ports: Sendable {
     package let appData: any AppDataRepository
     package let aiText: any AITextRepository
     package let diskCleanup: any DiskCleanupRepository
+    package let media: any MediaRepository
 
     package init(
         usage: any ClaudeUsageRepository,
@@ -70,7 +71,8 @@ package struct Ports: Sendable {
         crashes: any CrashReportRepository,
         appData: any AppDataRepository,
         aiText: any AITextRepository,
-        diskCleanup: any DiskCleanupRepository
+        diskCleanup: any DiskCleanupRepository,
+        media: any MediaRepository
     ) {
         self.usage = usage
         self.copilotUsage = copilotUsage
@@ -106,5 +108,6 @@ package struct Ports: Sendable {
         self.appData = appData
         self.aiText = aiText
         self.diskCleanup = diskCleanup
+        self.media = media
     }
 }

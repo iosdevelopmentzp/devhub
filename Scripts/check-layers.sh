@@ -42,6 +42,11 @@ for module in DevHubDomain DevHubMocks DevHubUI DevHubPresentation DevHubComposi
     forbid "$module" '\bNW(Listener|Connection)\b|^import Network$' "$module uses Network.framework (only DevHubData/Network/MockServer may)"
 done
 
+forbid DevHubData '^import (AVFoundation|ImageIO)$' 'AVFoundation or ImageIO used outside DevHubData/Media' '/DevHubData/Media/'
+for module in DevHubDomain DevHubMocks DevHubUI DevHubPresentation DevHubComposition; do
+    forbid "$module" '^import (AVFoundation|ImageIO)$' "$module imports AVFoundation or ImageIO (only DevHubData/Media may)"
+done
+
 forbid DevHubMocks '^import (SwiftUI|AppKit|Observation)' 'DevHubMocks imports a UI framework'
 
 forbid DevHubUI '^import DevHub' 'DevHubUI imports a DevHub module'

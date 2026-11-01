@@ -37,7 +37,8 @@ package extension Ports {
             crashes: spies.crashes,
             appData: spies.appData,
             aiText: spies.aiText,
-            diskCleanup: spies.diskCleanup
+            diskCleanup: spies.diskCleanup,
+            media: spies.media
         )
         return (ports, spies)
     }

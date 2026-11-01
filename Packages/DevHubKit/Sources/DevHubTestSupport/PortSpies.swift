@@ -35,6 +35,7 @@ package struct PortSpies: Sendable {
     package let appData = SpyAppDataRepository()
     package let aiText = SpyAITextRepository()
     package let diskCleanup = SpyDiskCleanupRepository()
+    package let media = SpyMediaRepository()
 
     package init() {}
 }

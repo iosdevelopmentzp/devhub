@@ -9,7 +9,8 @@ paths:
 ## DevHubData
 
 - Implements Domain ports. Depends on DevHubDomain only; every file starts with `import Foundation` and
-  `import DevHubDomain`. AppKit only under `DevHubData/Workspace/`. Never SwiftUI or Observation.
+  `import DevHubDomain`. AppKit only under `DevHubData/Workspace/`, AVFoundation and ImageIO only under
+  `DevHubData/Media/`. Never SwiftUI or Observation.
 - Nonisolated is the module default: never write `nonisolated` on a type. A member of an actor may be `nonisolated`
   (`ShellRunner.run`).
 - Access: the live repositories, runners and parsers stay internal. `package` only on what Composition or the tests

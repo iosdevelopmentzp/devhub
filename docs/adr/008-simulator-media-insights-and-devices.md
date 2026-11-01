@@ -90,7 +90,7 @@ Decision (owner, 2026-11-01): options 1 and 2 from one source, option 2 (the inj
 ## Plan
 
 - [x] 1. D2 video recording.
-- [ ] 2. D3 GIF and compressed video.
+- [x] 2. D3 GIF and compressed video.
 - [ ] 3. D4 device frames on screenshots, then on GIF and video.
 - [ ] 4. D5 build insights.
 - [ ] 5. D6 app snapshots.
@@ -104,3 +104,4 @@ Decision (owner, 2026-11-01): options 1 and 2 from one source, option 2 (the inj
 
 | Commit | What it did |
 |---|---|
+| `7791ebd` | Step 1: video recording: `SimulatorSettingsRepository.record` (`simctl io recordVideo --codec=h264 --force`), `ShellRunner.stream(…, stop: .interrupt)` and `ProcessStop`, recording state and operation in `SimulatorQAStore`, Record and Stop in the QA panel, `PresentationAssembly.prepareForQuit()` from `applicationWillTerminate`. |

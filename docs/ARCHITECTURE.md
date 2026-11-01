@@ -128,7 +128,7 @@ Packages/DevHubKit/
   defines it. About 35 DTOs that mirror them one to one would add nothing. The decoding and the layer merge are pure
   policies (`ConfigDecoding`, `ConfigMergePolicy`). A parser that needs the clock takes it (`ClaudeUsageParser
   .parse(_:plan:now:)`).
-- `UserDefaults` only in `UserDefaultsKeyValueStore.swift`. AppKit only in `DevHubData/Workspace/`.
+- `UserDefaults` only in `UserDefaultsKeyValueStore.swift`. AppKit only in `DevHubData/Workspace/`. AVFoundation and ImageIO only in `DevHubData/Media/`.
 - Mocks live in `DevHubMocks`: `Mock<Thing>Repository` (internal, one per file) return `MockData`; `Ports.mock()`
   builds them all. Previews and `PresentationAssembly.preview()` depend on them.
 

@@ -55,6 +55,7 @@ package final class PresentationAssembly {
     let network: NetworkStore
     let messaging: MessagingStore
     let simulatorQA: SimulatorQAStore
+    let media: MediaStore
     let appData: AppDataStore
     let diskCleanup: DiskCleanupStore
     let aiSessions: AISessionsStore
@@ -266,6 +267,7 @@ package final class PresentationAssembly {
         network = NetworkStore(session: session, simulators: simulators, mockTraffic: mockServer, events: events, store: store)
         messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, operations: operations, events: events, store: store)
         simulatorQA = SimulatorQAStore(repository: ports.simulatorSettings, activity: activity, operations: operations, screenshotFolder: "~/Desktop", now: { .now })
+        media = MediaStore(repository: ports.media, operations: operations, activity: activity)
         appData = AppDataStore(repository: ports.appData, operations: operations, activity: activity, events: events)
         diskCleanup = DiskCleanupStore(repository: ports.diskCleanup, operations: operations, activity: activity)
         aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, worktrees: worktrees, store: store)

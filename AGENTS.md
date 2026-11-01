@@ -38,7 +38,7 @@ Modules, one direction: `Composition → Presentation → Domain ← Data`; Pres
 |---|---|
 | `DevHub/` | `DevHubApp.swift` (`@main`, `@NSApplicationDelegateAdaptor(AppContainer.self)`), `Assets.xcassets` |
 | `Packages/DevHubKit/Sources/DevHubDomain` | models, values, ports, policies, use cases, errors, `Ports`, `UseCases` |
-| `Packages/DevHubKit/Sources/DevHubData` | live repositories, `ShellRunner`, parsers, `Ports.live(shell:)`; AppKit only in `Workspace/`, Network.framework only in `Network/MockServer/` |
+| `Packages/DevHubKit/Sources/DevHubData` | live repositories, `ShellRunner`, parsers, `Ports.live(shell:)`; AppKit only in `Workspace/`, Network.framework only in `Network/MockServer/`, AVFoundation and ImageIO only in `Media/` |
 | `Packages/DevHubKit/Sources/DevHubMocks` | `Mock*Repository`, `MockData`, `InMemoryKeyValueStore`, `Ports.mock()` |
 | `Packages/DevHubKit/Sources/DevHubUI` | shared SwiftUI blocks, `Theme`, `Tint`, formatters, hints |
 | `Packages/DevHubKit/Sources/DevHubPresentation` | stores, row models and mappers, views, events, `PresentationAssembly`, `AppWindows` |
