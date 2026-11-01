@@ -49,6 +49,7 @@ enum SimulatorRowMapper {
             canLaunchAndAttach: buildIsRunning == false && isInstalled,
             uninstallTitle: "Uninstall \(bundleID)",
             canUninstallFromMenu: isTransitioning == false && isUninstalling == false,
+            canShowAppData: simulator.state == .booted && bundleID.isEmpty == false,
             canErase: isTransitioning == false,
             copyUDIDLabel: "UDID \(simulator.id)",
             eraseConfirmation: "Erase all content and settings on \(simulator.name)? The simulator shuts down first.",

@@ -50,7 +50,8 @@ extension Ports {
             simulatorSettings: SimctlSettingsRepository(shell: shell),
             xcodes: SpotlightXcodeInstallationRepository(shell: shell),
             toolEnvironment: ShellToolEnvironmentRepository(state: shell.developerDir),
-            crashes: FileCrashReportRepository(root: home.appendingPathComponent("Library/Logs/DiagnosticReports", isDirectory: true))
+            crashes: FileCrashReportRepository(root: home.appendingPathComponent("Library/Logs/DiagnosticReports", isDirectory: true)),
+            appData: SimctlAppDataRepository(shell: shell)
         )
     }
 }

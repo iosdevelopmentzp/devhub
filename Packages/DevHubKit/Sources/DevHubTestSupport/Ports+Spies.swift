@@ -34,7 +34,8 @@ package extension Ports {
             simulatorSettings: spies.simulatorSettings,
             xcodes: spies.xcodes,
             toolEnvironment: spies.toolEnvironment,
-            crashes: spies.crashes
+            crashes: spies.crashes,
+            appData: spies.appData
         )
         return (ports, spies)
     }

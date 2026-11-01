@@ -17,6 +17,7 @@ struct SimulatorsView: View {
     @State private var editingIdentityID: Simulator.ID?
     @State private var messagingID: Simulator.ID?
     @State private var qaID: Simulator.ID?
+    @State private var appDataID: Simulator.ID?
     @State private var dropTargetID: Simulator.ID?
 
     var body: some View {
@@ -63,6 +64,7 @@ struct SimulatorsView: View {
                     .animation(.snappy(duration: 0.18), value: editingIdentityID)
                     .animation(.snappy(duration: 0.18), value: messagingID)
                     .animation(.snappy(duration: 0.18), value: qaID)
+                    .animation(.snappy(duration: 0.18), value: appDataID)
                 }
             }
         }
@@ -153,6 +155,7 @@ struct SimulatorsView: View {
             onToggleIdentity: { editingIdentityID = editingIdentityID == id ? nil : id },
             onToggleMessaging: { messagingID = messagingID == id ? nil : id },
             onToggleQA: { qaID = qaID == id ? nil : id },
+            onToggleAppData: { appDataID = appDataID == id ? nil : id },
             onRemoveApps: { simulators.uninstallUserApps(id: id) },
             onTogglePower: { simulators.togglePower(id: id) },
             onOpenInSimulator: { simulators.openInSimulatorApp(id: id) },
@@ -181,6 +184,9 @@ struct SimulatorsView: View {
         }
         if qaID == model.id, let simulator = simulators.simulator(id: model.id) {
             SimulatorQAPanel(simulator: simulator, bundleID: identityStore.bundleID(for: model.id), onClose: { qaID = nil })
+        }
+        if appDataID == model.id, let simulator = simulators.simulator(id: model.id) {
+            AppDataPanel(simulator: simulator, bundleID: identityStore.bundleID(for: model.id), onClose: { appDataID = nil })
         }
         if model.isEditingIdentity, let context = identityStore.context(for: model.id) {
             identityPanel(id: model.id, context: context)

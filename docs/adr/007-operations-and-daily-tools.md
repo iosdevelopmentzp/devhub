@@ -63,7 +63,7 @@ Settings → Disk. Only Xcode and tool folders that every Mac has: DerivedData f
 - [x] 2. D1 in the other places: worktrees (fetch, prune, clean, create, delete, bootstrap) and pull request actions (row, details pane, request window). Settings has no long command: its Doctor check is a read.
 - [x] 3. D8 Xcode per project.
 - [x] 4. D2 crash reports.
-- [ ] 5. D3 app data.
+- [x] 5. D3 app data.
 - [ ] 6. D4 changed since your review.
 - [ ] 7. D6 reviewers and assignees.
 - [ ] 8. D5 AI text and Explain.
@@ -76,3 +76,4 @@ Settings → Disk. Only Xcode and tool folders that every Mac has: DerivedData f
 | `54057c8` | Step 1: `OperationScope`, the operation ID in command events, `OperationLog`, `FailureDigestPolicy`, the card, the footer list, the Output panel switch; `ActionRunner` and config actions. |
 | `4b5c45f` | Step 2: worktree actions (`.worktrees`, `.worktree(path)`) and pull request actions (`.pullRequest(number)`) as operations; `OperationLog.perform`; a card title in `PullRequestActionTexts`. |
 | `221f163` | Step 3: Xcode per project: `Project.developerDir`, `xcode.developerDir`, `DeveloperDirPolicy`, `DeveloperDirState` in `ShellRunner`, `XcodeInstallationRepository`, `ToolEnvironmentRepository`, `XcodeSelectionStore` and the picker in Settings → Projects. |
+| `a41771e` | Step 4: crash reports: `CrashReport`, `CrashReportRepository`, `CrashReportPolicy`, `IPSCrashReportParser`, `FileCrashReportRepository` (one `DispatchSource` on `~/Library/Logs/DiagnosticReports`), `CrashReportsStore` and the crash block in the run bar. |

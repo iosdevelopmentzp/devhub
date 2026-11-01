@@ -10,6 +10,7 @@ struct SimulatorRow<Panels: View>: View {
     let onToggleIdentity: () -> Void
     let onToggleMessaging: () -> Void
     let onToggleQA: () -> Void
+    let onToggleAppData: () -> Void
     let onRemoveApps: () -> Void
     let onTogglePower: () -> Void
     let onOpenInSimulator: () -> Void
@@ -135,6 +136,10 @@ struct SimulatorRow<Panels: View>: View {
                 appActions.streamLogs(simulatorID: model.id)
             }
             .disabled(model.canStreamLogs == false)
+            Button("App Data…", systemImage: "externaldrive") {
+                onToggleAppData()
+            }
+            .disabled(model.canShowAppData == false)
             Button(model.favoriteMenuTitle, systemImage: "star") {
                 onToggleFavorite()
             }
@@ -171,6 +176,7 @@ struct SimulatorRow<Panels: View>: View {
         onToggleIdentity: {},
         onToggleMessaging: {},
         onToggleQA: {},
+        onToggleAppData: {},
         onRemoveApps: {},
         onTogglePower: {},
         onOpenInSimulator: {},

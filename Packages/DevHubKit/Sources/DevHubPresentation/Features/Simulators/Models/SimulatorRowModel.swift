@@ -29,6 +29,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
     var canLaunchAndAttach: Bool
     var uninstallTitle: String
     var canUninstallFromMenu: Bool
+    var canShowAppData: Bool
     var canErase: Bool
     var copyUDIDLabel: String
     var eraseConfirmation: String
@@ -69,6 +70,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
         canLaunchAndAttach: true,
         uninstallTitle: "Uninstall com.example.app",
         canUninstallFromMenu: true,
+        canShowAppData: true,
         canErase: true,
         copyUDIDLabel: "UDID 8C2F6A1E-5B3D-4E7A-9F10-2D4C6B8A0E13",
         eraseConfirmation: "Erase all content and settings on iPhone 16 Pro? The simulator shuts down first.",

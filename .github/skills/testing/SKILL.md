@@ -59,7 +59,7 @@ One `Spy<Port>` per port: `SpyGitRepository`, `SpyGitChangesRepository`, `SpyWor
 `SpyAppLaunchRepository`, `SpyDerivedDataRepository`, `SpyAppLogRepository`, `SpyMockServerRepository` (`emit(_:udid:)` calls the saved `onExchange`), `SpyMockSetRepository` (`savedSets`), `SpyAISessionRepository`, `SpyCopilotUsageRepository`,
 `SpyClaudeUsageRepository`, `SpyWorkspaceOpener`, `SpyXcodeAttacher`, `SpyProjectDetector`,
 `SpyReviewPromptRepository`, `SpyConfigRepository`, `SpyScriptRunner`, `SpyToolLocator`,
-`SpyUserNotificationRepository`, plus `SpyCommandRecorder` (`events`) and `CallbackRecorder<Value>` (a thread-safe list for `@Sendable` callbacks).
+`SpyUserNotificationRepository`, `SpyCrashReportRepository` (`emitChange()`), `SpyAppDataRepository` (`readResult`, `actionError`), plus `SpyCommandRecorder` (`events`) and `CallbackRecorder<Value>` (a thread-safe list for `@Sendable` callbacks).
 
 - `calls: [Call]` records every call in order. `Call` is a `Hashable` enum with one case per port method.
 - Scripted answers: `<method>Result` (`Result<Value, any Error>` or a plain value) and `<method>Error`

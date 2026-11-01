@@ -49,6 +49,7 @@ import Testing
             #expect(model.detailText == text)
             #expect(model.powerHint == powerHint)
             #expect(model.canStreamLogs == (state == .booted))
+            #expect(model.canShowAppData == (state == .booted))
             #expect(model.canTogglePower == isStable)
             #expect(model.canErase == isStable)
             #expect(model.canRemoveApps == isStable)

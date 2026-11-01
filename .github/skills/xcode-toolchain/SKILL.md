@@ -13,7 +13,7 @@ relative to `Packages/DevHubKit/Sources/`.
 | Build | `DevHubData/Build/`: `XcodeBuildRepository`, `BuildOutputParser`, `BuildStepThrottle`, `ProductLocator`, `XcodeContainer` |
 | Tests | `DevHubData/Build/`: `XcodeTestRepository` (`xcodebuild … -resultBundlePath <bundle> test`), `TestOutputParser` (XCTest and Swift Testing lines), `SourceFileLocator`; `RunTestsUseCase` (Domain) boots the simulator first; `TestRunsStore` (Presentation) keeps one `TestRun` per worktree |
 | DerivedData | `DevHubData/Workspace/XcodeDerivedDataRepository` |
-| Simulators | `DevHubData/Simulators/`: `SimctlSimulatorRepository`, `SimctlAppLaunchRepository`, `SimctlMessagingRepository`, `SimctlRunner`, `SimctlListParser`, `ContainerLocator`, `ProfileDefaultsPlan`, `AppURLSchemeParser`, `Dictionary+ChildEnvironment` |
+| Simulators | `DevHubData/Simulators/`: `SimctlSimulatorRepository`, `SimctlAppLaunchRepository`, `SimctlMessagingRepository`, `SimctlAppDataRepository`, `DefaultsExportParser`, `AppGroupListParser`, `AppDataScanner`, `SimctlRunner`, `SimctlListParser`, `ContainerLocator`, `ProfileDefaultsPlan`, `AppURLSchemeParser`, `Dictionary+ChildEnvironment` |
 | Logs | `DevHubData/Logs/`: `SimctlAppLogRepository`, `AppLogParser`, `LogRedactor`, `LogCounter`; `AppLogPredicatePolicy` (Domain) |
 | Attach | `DevHubData/Workspace/AccessibilityXcodeAttacher` |
 | Pipelines | `DevHubDomain/UseCases/`: `BuildAndRunUseCase`, `CommandRunUseCase`, `AppInstallStep`, `LaunchInstalledAppUseCase`, `MockLaunchPreparation` |
@@ -116,6 +116,7 @@ also under the sibling `.xcodeproj` folders. Sorted with `localizedStandardCompa
 | Profile defaults | `ProfileDefaultsPlan`: a `group.` suite writes into that group container, any other suite into the `data` container. `simctl spawn <udid> defaults write <container>/Library/Preferences/<suite>.plist <key> -string\|-bool\|-integer\|-float <value>` |
 | Installed app facts | `SimctlAppLaunchRepository.inspect`: version from `Info.plist`, identity marker with `grep -q -a -F` in the executable and `*.debug.dylib`, stored profile from the preferences plist |
 | Clean install without a build | `SimctlAppLaunchRepository.cleanInstall`: copy the installed app with `ditto` to `~/Library/Caches/DevHub/Apps/<udid>-<bundleID>.app` (else the last built product), `simctl terminate`, `uninstall`, `keychain reset`, `install` |
+| App data | `SimctlAppDataRepository`: `get_app_container <udid> <bundleID> data` and `groups`, `spawn <udid> defaults export <plist> -` per suite (parsed by `DefaultsExportParser`), `defaults write\|delete <plist> <key>`; reset: `simctl terminate`, `defaults delete <plist>` (exit 1 = missing domain), then `AppDataScanner` removes the files. Never edit a plist file directly: `cfprefsd` in the simulator caches it |
 | Deep link | `simctl openurl <udid> <url>` (`SimctlMessagingRepository.openURL`) |
 | URL schemes | `CFBundleURLTypes` in the installed app `Info.plist` (`AppURLSchemeParser`) |
 | Push | `simctl push <udid> <bundleID> <file.apns>`, a temporary file with the JSON payload |

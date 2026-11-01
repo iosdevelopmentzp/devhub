@@ -59,6 +59,7 @@ Row buttons appear on hover. The overflow menu (`…`) holds the rest.
 | Remove all installed apps | `xmark.app` button, and the menu | Removes every user app. Settings stay. A shut-down simulator boots first and shuts down after | `xcrun simctl listapps <udid>`, then `xcrun simctl uninstall <udid> <bundle ID>` per app with `ApplicationType` `User` |
 | Open in Simulator.app | menu | Shows this simulator in Simulator.app | `open -a Simulator --args -CurrentDeviceUDID <udid>` |
 | Stream App Logs | menu, booted only | Opens the Logs tab and starts a stream for this simulator | see [Logs](logs.md) |
+| App Data… | menu, booted only | Opens the app data panel under the row | see "App data" below |
 | Add to Favorites, Remove from Favorites | menu | Moves the row to or from the Favorites section | none |
 | Launch & Attach Xcode | menu, only with `launch.identity` and an installed app | Launches the installed app without a build and attaches Xcode | see [Device identity](device-identity.md) |
 | Uninstall `<bundle ID>` | menu | Removes the app of the project. A shut-down simulator boots first and shuts down after | `xcrun simctl uninstall <udid> <bundle ID>` |
@@ -194,6 +195,29 @@ The sliders button in a row opens a panel under the row. Every control works onl
 
 Video recording is not there yet: `simctl io recordVideo` needs SIGINT to finish the file, and `ShellRunner` stops a process with SIGTERM.
 
+### App data
+
+"App Data…" in the row menu opens a panel under the row. It needs a booted simulator: DevHub reads the defaults through the running simulator. The app is the one of the row (the bundle ID of the last launch, else the project). The panel shows:
+
+1. The data container path (click to copy) and a button that shows it in Finder.
+2. **Folders**: Documents, Library/Application Support, Library/Caches, Library/Preferences and tmp with their size, then every app group container of the app. Each row opens in Finder.
+3. **Databases**: the `.sqlite`, `.sqlite3`, `.db`, `.store` and `.realm` files of the data container and the group containers, with their size (40 at most).
+4. **User defaults**, one section for the app and one for each app group. Each key shows its type and value. A filter field narrows the keys by key or value; a section shows 60 keys at most. A string, number or boolean can be edited (pencil), a boolean can be switched in one click, and every key can be deleted (inline confirmation). "Add Key" adds a key of type string, int, float or bool. A date, data, array or dictionary value is read only.
+5. **Reset App Data…** with an inline confirmation: it stops the app, deletes its defaults and the contents of Documents, Library and tmp. A switch also clears the app group containers. Keychain items stay.
+
+Every change runs as an operation: the card under the panel header shows the commands, and a failure keeps the reason. After a change the panel reads the data again. A running app reads a changed key after a relaunch.
+
+| Step | Command |
+|---|---|
+| Data container | `xcrun simctl get_app_container <udid> <bundle ID> data` |
+| App group containers | `xcrun simctl get_app_container <udid> <bundle ID> groups` |
+| Read a suite | `xcrun simctl spawn <udid> defaults export <container>/Library/Preferences/<suite>.plist -` |
+| Write a key | `xcrun simctl spawn <udid> defaults write <plist> <key> -string\|-integer\|-float\|-bool <value>` |
+| Delete a key | `xcrun simctl spawn <udid> defaults delete <plist> <key>` |
+| Reset | `xcrun simctl terminate <udid> <bundle ID>`, `xcrun simctl spawn <udid> defaults delete <plist>` per suite (exit code 1, "not found", counts as success), then DevHub removes the files |
+
+DevHub writes the defaults through `defaults` inside the simulator, so the simulator's `cfprefsd` keeps the same values as the file. Folder sizes and the database list are read from the disk without a process.
+
 ### Status script line
 
 When `simulators.statusScript` is set, DevHub runs the script for each simulator that is booted, a favorite or the target.
@@ -251,3 +275,4 @@ The run options belong to the simulator. A click on another row loads the scheme
 7. The status script runs only for booted, favorite and target simulators.
 8. The build log keeps the last 20,000 lines of one run.
 9. The profile picker of the run bar does not mark a `production` profile in red. Only the profile tag of the identity panel is red, and the mock server refuses such a profile.
+10. The app data panel needs a booted simulator, and a running app reads a changed key only after a relaunch.

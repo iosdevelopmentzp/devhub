@@ -32,6 +32,7 @@ package struct Ports: Sendable {
     package let xcodes: any XcodeInstallationRepository
     package let toolEnvironment: any ToolEnvironmentRepository
     package let crashes: any CrashReportRepository
+    package let appData: any AppDataRepository
 
     package init(
         usage: any ClaudeUsageRepository,
@@ -64,7 +65,8 @@ package struct Ports: Sendable {
         simulatorSettings: any SimulatorSettingsRepository,
         xcodes: any XcodeInstallationRepository,
         toolEnvironment: any ToolEnvironmentRepository,
-        crashes: any CrashReportRepository
+        crashes: any CrashReportRepository,
+        appData: any AppDataRepository
     ) {
         self.usage = usage
         self.copilotUsage = copilotUsage
@@ -97,5 +99,6 @@ package struct Ports: Sendable {
         self.xcodes = xcodes
         self.toolEnvironment = toolEnvironment
         self.crashes = crashes
+        self.appData = appData
     }
 }

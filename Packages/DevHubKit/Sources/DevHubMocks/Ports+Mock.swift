@@ -35,7 +35,8 @@ extension Ports {
             simulatorSettings: MockSimulatorSettingsRepository(),
             xcodes: MockXcodeInstallationRepository(),
             toolEnvironment: MockToolEnvironmentRepository(),
-            crashes: MockCrashReportRepository()
+            crashes: MockCrashReportRepository(),
+            appData: MockAppDataRepository()
         )
     }
 }

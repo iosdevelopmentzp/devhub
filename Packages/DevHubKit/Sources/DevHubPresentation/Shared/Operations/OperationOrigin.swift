@@ -18,6 +18,10 @@ struct OperationOrigin: Hashable {
         OperationOrigin(key: "worktree:" + path)
     }
 
+    static func simulator(_ udid: String) -> OperationOrigin {
+        OperationOrigin(key: "simulator:" + udid)
+    }
+
     static func pullRequest(_ iid: Int) -> OperationOrigin {
         OperationOrigin(key: "pullRequest:\(iid)")
     }
