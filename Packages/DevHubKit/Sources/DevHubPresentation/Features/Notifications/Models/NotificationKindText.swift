@@ -14,6 +14,7 @@ enum NotificationKindText {
         case .requestClosed: "My \(words.requests) merged or closed"
         case .watched: "Watched \(words.requests)"
         case .inbox: "Inbox: mentions and requests on \(words.name)"
+        case .crashes: "App crashes on a simulator"
         case .scripts: "Script notifications"
         }
     }
@@ -29,6 +30,7 @@ enum NotificationKindText {
         case .requestClosed: "Your \(words.request) was merged, or closed without a merge. A click opens the \(words.request)."
         case .watched: "A \(words.request) you watch got an approval, a request for changes, failed \(words.checks), a new comment, or was merged or closed. A click opens the \(words.request)."
         case .inbox: "Someone mentioned you, asked for your review or approval, assigned you, or commented where you take part, on \(words.name). A click opens the \(words.request) or the Inbox."
+        case .crashes: "The app you launched from DevHub crashed on a simulator. DevHub reads the new crash report of macOS. A click opens the run bar with the report."
         case .scripts: "A script printed a notify line. It shows even while the panel is open and when the main switch is off."
         }
     }
@@ -41,6 +43,7 @@ enum NotificationKindText {
         case .requestReviews, .requestChecks, .requestComments, .requestClosed: "My \(words.shortRequest)"
         case .watched: "Watch"
         case .inbox: "Inbox"
+        case .crashes: "Crash"
         case .scripts: "Script"
         }
     }

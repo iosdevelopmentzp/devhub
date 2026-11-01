@@ -25,6 +25,7 @@ extension PresentationAssembly {
         assembly.usage.copilot = MockData.copilotUsage
         assembly.ciHistory.remember(MockData.ciPreviousWorkflow, failedTests: MockData.ciPreviousFailedTests, for: 1842)
         seedOperations(of: assembly)
+        assembly.crashes.watch(bundleID: MockData.crashReport.bundleID ?? "", simulatorID: MockData.crashReport.simulatorID ?? "", launchedAt: MockData.crashReport.date)
         return assembly
     }
 

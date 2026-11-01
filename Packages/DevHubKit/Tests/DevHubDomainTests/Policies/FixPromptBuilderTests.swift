@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import DevHubDomain
 
@@ -39,5 +40,33 @@ import Testing
         #expect(FixPromptBuilder.fileName(forTestsOf: "feature/ABC-123 login") == "fix-tests-feature-abc-123-login")
         #expect(FixPromptBuilder.fileName(forBuildOf: "Example App") == "fix-build-example-app")
         #expect(FixPromptBuilder.fileName(forTestsOf: "///") == "fix-tests-checkout")
+    }
+
+    @Test func aCrashPromptNamesTheExceptionTheMessagesAndTheStack() {
+        let report = CrashReport(
+            path: "/reports/ExampleApp.ips",
+            processName: "ExampleApp",
+            bundleID: "com.example.app",
+            appVersion: "1.5.2",
+            date: Date(timeIntervalSince1970: 1_000),
+            simulatorID: "SIM",
+            exceptionType: "EXC_BAD_ACCESS",
+            signal: "SIGSEGV",
+            subtype: "KERN_INVALID_ADDRESS at 0x10",
+            messages: ["Fatal error: Index out of range"],
+            frames: [
+                CrashReport.Frame(image: "libswiftCore.dylib", symbol: "_assertionFailure", file: nil, line: nil, isApp: false),
+                CrashReport.Frame(image: "ExampleApp", symbol: "ProfileViewModel.load()", file: "ProfileViewModel.swift", line: 42, isApp: true),
+            ]
+        )
+
+        let prompt = FixPromptBuilder.crash(report, checkoutName: "~/Projects/example-app")
+
+        #expect(prompt.hasPrefix("# Crash of ExampleApp in ~/Projects/example-app\n\nThe app com.example.app 1.5.2 crashed on a simulator.\n"))
+        #expect(prompt.contains("- Exception: EXC_BAD_ACCESS (SIGSEGV), KERN_INVALID_ADDRESS at 0x10\n- Report: /reports/ExampleApp.ips\n"))
+        #expect(prompt.contains("## Messages\n\n    Fatal error: Index out of range\n"))
+        #expect(prompt.contains("0. libswiftCore.dylib _assertionFailure\n1. ExampleApp ProfileViewModel.load() at ProfileViewModel.swift:42 (app)\n"))
+        #expect(prompt.contains("1. Find the cause of the crash in this checkout."))
+        #expect(FixPromptBuilder.fileName(forCrashOf: "ExampleApp") == "fix-crash-exampleapp")
     }
 }

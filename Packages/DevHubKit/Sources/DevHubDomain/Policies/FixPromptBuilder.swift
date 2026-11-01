@@ -45,6 +45,39 @@ package enum FixPromptBuilder {
         return lines.joined(separator: "\n") + "\n"
     }
 
+    package static func crash(_ report: CrashReport, checkoutName: String) -> String {
+        var lines = [
+            "# Crash of \(report.processName) in \(checkoutName)",
+            "",
+            "The app \(report.bundleID ?? report.processName)\(report.appVersion.map { " \($0)" } ?? "") crashed on a simulator.",
+            "",
+            "- Exception: \(CrashReportPolicy.exception(of: report) ?? "unknown")\(report.subtype.map { ", \($0)" } ?? "")",
+            "- Report: \(report.path)",
+        ]
+        if report.messages.isEmpty == false {
+            lines += ["", "## Messages", ""]
+            lines += report.messages.map { "    " + $0 }
+        }
+        lines += ["", "## Crashed thread", ""]
+        lines += report.frames.prefix(20).enumerated().map { index, frame in
+            let place = CrashReportPolicy.place(of: frame).map { " at \($0)" } ?? ""
+            return "\(index). \(frame.image) \(frame.symbol ?? "?")\(place)\(frame.isApp ? " (app)" : "")"
+        }
+        lines += [
+            "",
+            "## What to do",
+            "",
+            "1. Find the cause of the crash in this checkout. Start at the first frame marked (app).",
+            "2. Fix it with a small change in the style of the code around it, and add a test when the code allows it.",
+            "3. At the end, say what caused the crash and what you changed.",
+        ]
+        return lines.joined(separator: "\n") + "\n"
+    }
+
+    package static func fileName(forCrashOf processName: String) -> String {
+        "fix-crash-\(slug(processName))"
+    }
+
     package static func fileName(forTestsOf checkoutName: String) -> String {
         "fix-tests-\(slug(checkoutName))"
     }

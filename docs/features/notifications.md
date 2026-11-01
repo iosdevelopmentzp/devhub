@@ -26,6 +26,7 @@ Every event that DevHub can also send as a macOS notification carries a kind. Ev
 | My pull requests merged or closed | your request was merged, or closed without a merge | the request |
 | Watched pull requests | a request by someone else that you watch got an approval, a request for changes, failed checks, a new comment, or was merged or closed | the request |
 | Inbox: mentions and requests on GitHub | someone mentioned you, asked for your review or approval, assigned you, or commented where you take part, on the host, in this repository | the request, or the Inbox |
+| App crashes on a simulator | the app you launched from DevHub crashed on a simulator; DevHub reads the new macOS crash report | the run bar with the crash |
 | Script notifications | a script printed a `notify` line | nothing |
 
 The words follow the host: "merge request" and "Pipeline" on GitLab.

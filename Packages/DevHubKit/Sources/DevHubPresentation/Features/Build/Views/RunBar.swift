@@ -8,6 +8,7 @@ struct RunBar: View {
     @Environment(SimulatorStatusStore.self) private var statuses
     @Environment(IdentityStore.self) private var identityStore
     @Environment(MockServerStore.self) private var mockServerStore
+    @Environment(CrashReportsStore.self) private var crashes
     @Environment(AppActions.self) private var appActions
 
     @State private var editsSchemes = false
@@ -74,6 +75,15 @@ struct RunBar: View {
                             appActions.openFile(path: path, line: row.line)
                         },
                         onFix: build.issues.contains { $0.severity == .error } ? { appActions.fixBuild(with: $0) } : nil
+                    )
+                }
+                if let crash = crashes.latest {
+                    CrashBanner(
+                        model: CrashBannerMapper.model(for: crash, isOpen: crashes.openIDs.contains(crash.id)),
+                        onToggle: { crashes.toggleReport(crash.id) },
+                        onOpenReport: { appActions.openCrashReport(crash.id) },
+                        onFix: { appActions.fixCrash(with: $0, id: crash.id) },
+                        onDismiss: { crashes.dismiss(crash.id) }
                     )
                 }
             }

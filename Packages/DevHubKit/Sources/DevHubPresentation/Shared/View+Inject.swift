@@ -15,6 +15,7 @@ extension View {
             .environment(assembly.toaster)
             .environment(assembly.notifier)
             .environment(assembly.doctor)
+            .environment(assembly.crashes)
             .environment(assembly.xcodes)
             .environment(assembly.keepAwake)
             .environment(assembly.simulatorQA)

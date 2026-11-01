@@ -46,6 +46,7 @@ package final class PresentationAssembly {
     let simulatorStatuses: SimulatorStatusStore
     let configActions: ConfigActionsStore
     let logs: LogsStore
+    let crashes: CrashReportsStore
     let mockSets: MockSetsStore
     let mockServer: MockServerStore
     let network: NetworkStore
@@ -227,6 +228,7 @@ package final class PresentationAssembly {
             home: FileManager.default.homeDirectoryForCurrentUser.path
         )
         logs = LogsStore(repository: ports.logs, session: session, config: config, simulators: simulators, identity: identity, activity: activity, store: store)
+        crashes = CrashReportsStore(repository: ports.crashes, prompts: ports.reviewPrompts, activity: activity, notifier: notifier, events: events)
         mockSets = MockSetsStore(repository: ports.mockSets, session: session, config: config, activity: activity, events: events)
         mockServer = MockServerStore(
             relaunch: useCases.relaunchWithMocks,
@@ -258,6 +260,7 @@ package final class PresentationAssembly {
             worktrees: worktrees,
             identity: identity,
             logs: logs,
+            crashes: crashes,
             session: session,
             config: config,
             workspace: workspace,

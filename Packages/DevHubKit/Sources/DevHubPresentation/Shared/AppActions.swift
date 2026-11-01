@@ -18,6 +18,7 @@ final class AppActions {
     @ObservationIgnored private let worktrees: WorktreesStore
     @ObservationIgnored private let identity: IdentityStore
     @ObservationIgnored private let logs: LogsStore
+    @ObservationIgnored private let crashes: CrashReportsStore
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let workspace: WorkspaceActions
@@ -36,6 +37,7 @@ final class AppActions {
         worktrees: WorktreesStore,
         identity: IdentityStore,
         logs: LogsStore,
+        crashes: CrashReportsStore,
         session: ProjectSession,
         config: ConfigStore,
         workspace: WorkspaceActions,
@@ -53,6 +55,7 @@ final class AppActions {
         self.worktrees = worktrees
         self.identity = identity
         self.logs = logs
+        self.crashes = crashes
         self.session = session
         self.config = config
         self.workspace = workspace
@@ -290,6 +293,20 @@ final class AppActions {
             guard let promptPath = await build.writeFixPrompt(), let path = build.lastSourcePath else { return }
             runAICommand(provider, promptPath: promptPath, at: path, title: "Started \(AISessionRowMapper.toolTitle(for: provider)) on the build errors")
         }
+    }
+
+    func fixCrash(with provider: AIProvider, id: CrashReport.ID) {
+        let path = build.lastSourcePath ?? ProjectPath(session.selectedProject.path).expanded
+        Task { [weak self] in
+            guard let self else { return }
+            guard let promptPath = await crashes.writeFixPrompt(id: id, checkoutName: path.abbreviatingHome), let report = crashes.crash(id) else { return }
+            runAICommand(provider, promptPath: promptPath, at: path, title: "Started \(AISessionRowMapper.toolTitle(for: provider)) on the crash of \(report.processName)")
+        }
+    }
+
+    func openCrashReport(_ id: CrashReport.ID) {
+        guard let report = crashes.crash(id) else { return }
+        _ = workspace.openTarget(report.path, relativeTo: "/")
     }
 
     private func runAICommand(_ provider: AIProvider, promptPath: String, at path: String, title: String) {

@@ -118,6 +118,22 @@ These steps are shared by both project kinds (`AppInstallStep`).
 6. **Simulator.app:** `open -a Simulator --args -CurrentDeviceUDID <udid>`.
 7. **Launch:** `xcrun simctl launch --terminate-running-process <udid> <bundle ID> <arguments>`. The environment of the profile and of `launch.identity` goes to the app as `SIMCTL_CHILD_<NAME>` variables. The arguments are `launch.identity.args`, then the `args` of the profile.
 
+### Crash reports
+
+After DevHub launches the app on a simulator (Build & Run, Run & Attach, Launch), it watches the folder of the macOS crash reports, `~/Library/Logs/DiagnosticReports`. It starts no process and no timer: one file system event source (one open folder) wakes DevHub when a file is added, and DevHub reads only the `.ips` files newer than the launch. A report counts when it is a crash (`bug_type` 309), comes from a simulator (`CoreSimulator/Devices/<UDID>` in the process path), has the bundle ID of the launched app, and is not older than 5 seconds before the launch. The watch stays on until DevHub quits.
+
+A crash shows a red block in the run bar:
+
+- "<app> crashed" and the time;
+- the exception and signal, and the first frame of the app code with its file and line (`EXC_BREAKPOINT (SIGTRAP) · ProfileViewModel.load() at ProfileViewModel.swift:42`);
+- the messages of the report (for example the Swift `Fatal error` line or the reason of an uncaught exception);
+- Show Stack: the first 15 frames of the crashed thread, frames of the app in bold;
+- Open Report: opens the `.ips` file in its app (Console);
+- Fix with AI: writes the crash into `~/.devhub/prompts/fix-crash-<app>.md` and starts Claude Code or Copilot CLI in the terminal, inside the build source;
+- a close button hides the block.
+
+Each crash is also a red line in Recent with a click to the run bar, and a macOS notification of the kind "App crashes on a simulator" (its own switch in Settings).
+
 ### Run & Attach
 
 Run & Attach (⇧⌘R) works only for an Xcode project.

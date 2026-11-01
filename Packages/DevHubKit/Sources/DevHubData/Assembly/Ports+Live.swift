@@ -49,7 +49,8 @@ extension Ports {
             sleep: IOKitSleepPreventer(),
             simulatorSettings: SimctlSettingsRepository(shell: shell),
             xcodes: SpotlightXcodeInstallationRepository(shell: shell),
-            toolEnvironment: ShellToolEnvironmentRepository(state: shell.developerDir)
+            toolEnvironment: ShellToolEnvironmentRepository(state: shell.developerDir),
+            crashes: FileCrashReportRepository(root: home.appendingPathComponent("Library/Logs/DiagnosticReports", isDirectory: true))
         )
     }
 }

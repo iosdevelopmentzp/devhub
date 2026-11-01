@@ -34,7 +34,8 @@ extension Ports {
             sleep: MockSleepPreventer(),
             simulatorSettings: MockSimulatorSettingsRepository(),
             xcodes: MockXcodeInstallationRepository(),
-            toolEnvironment: MockToolEnvironmentRepository()
+            toolEnvironment: MockToolEnvironmentRepository(),
+            crashes: MockCrashReportRepository()
         )
     }
 }

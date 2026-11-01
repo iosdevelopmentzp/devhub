@@ -11,6 +11,7 @@ import Testing
         #expect(OperationCardModel.preview.tint == .red)
         #expect(OperationsIndicatorModel.preview.isRunning)
         #expect(XcodeOptionModel.preview.title.hasPrefix("Xcode"))
+        #expect(CrashBannerModel.preview.isOpen)
     }
 
     @Test func claudePreviewsBuild() {
