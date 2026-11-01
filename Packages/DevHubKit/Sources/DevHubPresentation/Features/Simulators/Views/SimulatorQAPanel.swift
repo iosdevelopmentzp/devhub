@@ -17,6 +17,10 @@ struct SimulatorQAPanel: View {
         simulator.state == .booted
     }
 
+    private var framedFor: Simulator.ID? {
+        qa.addsDeviceFrame ? simulator.id : nil
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             OperationSlot(origin: .simulator(simulator.id))
@@ -72,12 +76,14 @@ struct SimulatorQAPanel: View {
                 }
                 .disabled(bundleID.isEmpty)
             }
-            line("Screenshot") {
-                Button("Save to Desktop", systemImage: "camera") { qa.screenshot(simulator) }
-                Toggle("With frame", isOn: Binding(get: { qa.framesScreenshots }, set: { qa.framesScreenshots = $0 }))
+            line("Frame") {
+                Toggle("Add the device frame", isOn: Binding(get: { qa.addsDeviceFrame }, set: { qa.addsDeviceFrame = $0 }))
                     .toggleStyle(.checkbox)
                     .fixedSize()
-                    .hint("Draws the device frame of Xcode around the screenshot")
+                    .hint("Draws the device frame of Xcode around screenshots, GIFs and converted videos")
+            }
+            line("Screenshot") {
+                Button("Save to Desktop", systemImage: "camera") { qa.screenshot(simulator) }
                 if let path = qa.screenshots[simulator.id] {
                     Button((path as NSString).lastPathComponent) { appActions.openInFinder(path: path) }
                         .buttonStyle(LinkButtonStyle(.accent))
@@ -112,7 +118,7 @@ struct SimulatorQAPanel: View {
                     if let path = qa.recordings[simulator.id] {
                         Section("Last recording") {
                             ForEach(MediaChoice.allCases) { choice in
-                                Button(choice.title) { media.convert(path, to: choice, at: .simulator(simulator.id)) }
+                                Button(choice.title) { media.convert(path, to: choice, framedFor: framedFor, at: .simulator(simulator.id)) }
                             }
                         }
                     }
@@ -159,11 +165,10 @@ struct SimulatorQAPanel: View {
         qa.apply(setting, to: simulator)
     }
 
-
     private func convertFile(to choice: MediaChoice) {
         let desktop = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop")
         guard let url = FolderPicker.chooseFile(directory: desktop, prompt: "Convert", message: "Choose a .mov, .mp4 or .m4v video") else { return }
-        media.convert(url.path, to: choice, at: .simulator(simulator.id))
+        media.convert(url.path, to: choice, framedFor: framedFor, at: .simulator(simulator.id))
     }
 
     private func line<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {

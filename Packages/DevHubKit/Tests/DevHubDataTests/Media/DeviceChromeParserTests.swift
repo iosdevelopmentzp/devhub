@@ -15,6 +15,7 @@ import Testing
             DeviceChrome.Button(image: "Mute BTN", anchor: "left", align: "leading", onTop: false, x: 8, y: 160),
             DeviceChrome.Button(image: "X_Power BTN", anchor: "right", align: "leading", onTop: false, x: -8, y: 262),
         ])
+        #expect(chrome.outline == DeviceChrome.Outline(insets: DeviceChrome.Insets(top: 0, left: 2, bottom: 0, right: 2), cornerWidth: 80, cornerHeight: 80))
     }
 
     @Test func aTabletWithoutACompositeUsesItsPieces() throws {
@@ -24,6 +25,7 @@ import Testing
         #expect(chrome.padding == DeviceChrome.Insets(top: 10, left: 0, bottom: 0, right: 10))
         #expect(chrome.buttons.first?.anchor == "top")
         #expect(chrome.buttons.first?.align == "trailing")
+        #expect(chrome.outline == nil)
     }
 
     @Test func aChromeWithoutPaddingHasNone() throws {
@@ -31,6 +33,7 @@ import Testing
 
         #expect(chrome.padding == .zero)
         #expect(chrome.buttons.isEmpty)
+        #expect(chrome.outline == DeviceChrome.Outline(insets: .zero, cornerWidth: 40, cornerHeight: 40))
     }
 
     @Test func aBrokenFileFails() {

@@ -22,6 +22,12 @@ struct DeviceChrome: Equatable, Sendable {
         var left: String
     }
 
+    struct Outline: Equatable, Sendable {
+        var insets: Insets
+        var cornerWidth: Double
+        var cornerHeight: Double
+    }
+
     struct Button: Equatable, Sendable {
         var image: String
         var anchor: String
@@ -36,4 +42,5 @@ struct DeviceChrome: Equatable, Sendable {
     var sizing: Insets
     var padding: Insets
     var buttons: [Button]
+    var outline: Outline?
 }

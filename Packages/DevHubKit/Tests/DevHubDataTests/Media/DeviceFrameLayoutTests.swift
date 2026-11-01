@@ -23,6 +23,20 @@ import Testing
         #expect(layout.screen == CGRect(x: 59, y: 59, width: 820, height: 1180))
     }
 
+    @Test func theOutlineIsTheBodyWithoutItsInsets() {
+        let layout = DeviceFrameLayout.make(chrome: phone, screen: CGSize(width: 402, height: 874), compositeSize: CGSize(width: 436, height: 908))
+
+        #expect(layout.outline(insets: DeviceChrome.Insets(top: 0, left: 2, bottom: 0, right: 2)) == CGRect(x: 11, y: 0, width: 432, height: 908))
+    }
+
+    @Test func theScreenCornerFollowsTheOutlineInsideTheBezel() {
+        let layout = DeviceFrameLayout.make(chrome: phone, screen: CGSize(width: 402, height: 874), compositeSize: CGSize(width: 436, height: 908))
+        let outline = DeviceChrome.Outline(insets: DeviceChrome.Insets(top: 0, left: 2, bottom: 0, right: 2), cornerWidth: 80, cornerHeight: 80)
+
+        #expect(layout.screenCorner(outline: outline) == CGSize(width: 65, height: 63))
+        #expect(layout.screenCorner(outline: DeviceChrome.Outline(insets: .zero, cornerWidth: 4, cornerHeight: 4)) == .zero)
+    }
+
     @Test func sideButtonsStickOutOfTheirEdge() {
         let layout = DeviceFrameLayout.make(chrome: phone, screen: CGSize(width: 402, height: 874), compositeSize: CGSize(width: 436, height: 908))
 

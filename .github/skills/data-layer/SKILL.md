@@ -55,7 +55,9 @@ DevHubData/
                     SimctlUnavailableDeviceParser
     Media/          AVMediaRepository(chromes:) (GIF through AVAssetImageGenerator and CGImageDestination, MP4 through
                     AVAssetExportSession, device frames through DeviceChromeLocator, DeviceChromeParser,
-                    DeviceFrameLayout and DeviceFrameRenderer; no process) (AVFoundation and ImageIO allowed here only)
+                    DeviceFrameLayout and DeviceFrameRenderer, framed GIF frames through DeviceFrameOverlay, framed
+                    MP4 through FramedVideoComposition; GIF frames come from the sample times of AVAssetReader;
+                    no process) (AVFoundation and ImageIO allowed here only)
     Assembly/       Ports+Live.swift
 DevHubMocks/        Mock<Thing>Repository one per file, MockData and MockData+<Domain>.swift,
                     Persistence/InMemoryKeyValueStore, Ports+Mock.swift

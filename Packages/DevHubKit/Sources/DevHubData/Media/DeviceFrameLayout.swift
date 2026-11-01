@@ -23,6 +23,23 @@ struct DeviceFrameLayout: Equatable {
         )
     }
 
+    func outline(insets: DeviceChrome.Insets) -> CGRect {
+        CGRect(
+            x: body.minX + insets.left,
+            y: body.minY + insets.bottom,
+            width: max(body.width - insets.left - insets.right, 0),
+            height: max(body.height - insets.top - insets.bottom, 0)
+        )
+    }
+
+    func screenCorner(outline: DeviceChrome.Outline) -> CGSize {
+        let border = self.outline(insets: outline.insets)
+        return CGSize(
+            width: min(max(outline.cornerWidth - (screen.minX - border.minX), 0), screen.width / 2),
+            height: min(max(outline.cornerHeight - (screen.minY - border.minY), 0), screen.height / 2)
+        )
+    }
+
     func rect(of button: DeviceChrome.Button, size: CGSize) -> CGRect {
         let x: Double
         let fromTop: Double

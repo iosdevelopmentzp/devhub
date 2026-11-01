@@ -50,7 +50,7 @@ Facts checked on this Mac (Xcode 26.6, 2026-11-01):
 
 1. DevHub reads the frame of the simulator's device type from the Xcode on the Mac (`chromeIdentifier`, `chrome.json`, the PDF parts) and draws the screenshot into it with CoreGraphics. Nothing from Apple goes into the repository.
 2. The screenshot uses `simctl io <udid> screenshot --mask=alpha`, so the round screen corners are cut.
-3. "With frame" is a switch next to Screenshot. Frames on GIF and video come in a later sub-step (each frame drawn the same way).
+3. "Add the device frame" is one saved switch for screenshots, GIFs and converted videos. A GIF frame is drawn under the frame with a hole for the screen; an MP4 gets the frame through a video composition. Recordings use `--mask=black`, so the screen corners match the bezel.
 4. `chrome.json` is not documented. A fixture test pins the format. When a frame is missing or cannot be read, DevHub saves the plain screenshot and says why.
 
 ### D5. Build insights
@@ -92,7 +92,7 @@ Decision (owner, 2026-11-01): options 1 and 2 from one source, option 2 (the inj
 - [x] 1. D2 video recording.
 - [x] 2. D3 GIF and compressed video.
 - [x] 3. D4 device frames on screenshots.
-- [ ] 3b. D4 device frames on GIF and video.
+- [x] 3b. D4 device frames on GIF and video.
 - [ ] 4. D5 build insights.
 - [ ] 5. D6 app snapshots.
 - [ ] 6. D6 device snapshots with the keychain.
@@ -107,3 +107,4 @@ Decision (owner, 2026-11-01): options 1 and 2 from one source, option 2 (the inj
 |---|---|
 | `7791ebd` | Step 1: video recording: `SimulatorSettingsRepository.record` (`simctl io recordVideo --codec=h264 --force`), `ShellRunner.stream(…, stop: .interrupt)` and `ProcessStop`, recording state and operation in `SimulatorQAStore`, Record and Stop in the QA panel, `PresentationAssembly.prepareForQuit()` from `applicationWillTerminate`. |
 | `b6dc8e2` | Step 2: GIF and compressed video: `MediaRepository`, `AVMediaRepository` in `DevHubData/Media/` (`AVAssetImageGenerator` and `CGImageDestination`, `AVAssetExportSession`), `MediaOutputPolicy`, `MediaStore` and `MediaChoice`, Convert in the QA panel, the AVFoundation and ImageIO rule in `check-layers.sh`. |
+| `2ca80b0` | Step 3: device frames on screenshots: `DeviceChromeLocator`, `DeviceChromeParser`, `DeviceFrameLayout`, `DeviceFrameRenderer` in `DevHubData/Media/`, `MediaRepository.addFrame`, `--mask=alpha` screenshots, the saved switch in `SimulatorQAStore`, fixture and integration tests. |

@@ -51,7 +51,7 @@ import Testing
     }
 
     @Test func aFramedScreenshotCutsTheCornersThenAddsTheFrame() async throws {
-        store.framesScreenshots = true
+        store.addsDeviceFrame = true
 
         store.screenshot(SimulatorFixture.iPhone)
         try await waitUntil { store.busyIDs.isEmpty }
@@ -64,7 +64,7 @@ import Testing
     }
 
     @Test func aMissingFrameKeepsThePlainScreenshot() async throws {
-        store.framesScreenshots = true
+        store.addsDeviceFrame = true
         harness.spies.media.frameError = MediaError.noFrame("Xcode has no frame phone11.")
 
         store.screenshot(SimulatorFixture.iPhone)
@@ -76,9 +76,9 @@ import Testing
     }
 
     @Test func theFrameChoiceIsSaved() {
-        store.framesScreenshots = true
+        store.addsDeviceFrame = true
 
-        #expect(harness.store.bool(forKey: "simulatorQA.framesScreenshots"))
+        #expect(harness.store.bool(forKey: "simulatorQA.addsDeviceFrame"))
     }
 
     @Test func aRecordingRunsUntilStopThenIsRemembered() async throws {

@@ -19,7 +19,16 @@ enum DeviceChromeParser {
             composite: images.composite,
             sizing: DeviceChrome.Insets(top: images.sizing.topHeight, left: images.sizing.leftWidth, bottom: images.sizing.bottomHeight, right: images.sizing.rightWidth),
             padding: images.devicePadding.map { DeviceChrome.Insets(top: $0.top, left: $0.left, bottom: $0.bottom, right: $0.right) } ?? .zero,
-            buttons: (file.inputs ?? []).compactMap(button)
+            buttons: (file.inputs ?? []).compactMap(button),
+            outline: file.paths?.simpleOutsideBorder.map(outline)
+        )
+    }
+
+    private static func outline(_ border: File.Border) -> DeviceChrome.Outline {
+        DeviceChrome.Outline(
+            insets: border.insets.map { DeviceChrome.Insets(top: $0.top, left: $0.left, bottom: $0.bottom, right: $0.right) } ?? .zero,
+            cornerWidth: border.cornerRadiusX,
+            cornerHeight: border.cornerRadiusY
         )
     }
 
@@ -64,6 +73,16 @@ enum DeviceChromeParser {
             let devicePadding: Padding?
         }
 
+        struct Border: Decodable {
+            let insets: Padding?
+            let cornerRadiusX: Double
+            let cornerRadiusY: Double
+        }
+
+        struct Paths: Decodable {
+            let simpleOutsideBorder: Border?
+        }
+
         struct Offset: Decodable {
             let x: Double
             let y: Double
@@ -83,5 +102,6 @@ enum DeviceChromeParser {
 
         let images: Images
         let inputs: [Input]?
+        let paths: Paths?
     }
 }

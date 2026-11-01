@@ -34,7 +34,7 @@ import Testing
     }
 
     @Test func aRecordingIsAnH264VideoThatReplacesAnOldFile() {
-        #expect(SimctlSettingsRepository.recordArguments(udid: "U1", path: "/tmp/a.mov") == ["simctl", "io", "U1", "recordVideo", "--codec=h264", "--force", "/tmp/a.mov"])
+        #expect(SimctlSettingsRepository.recordArguments(udid: "U1", path: "/tmp/a.mov") == ["simctl", "io", "U1", "recordVideo", "--codec=h264", "--mask=black", "--force", "/tmp/a.mov"])
         #expect(SimctlSettingsRepository.startedLine == "Recording started")
     }
 }

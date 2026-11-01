@@ -11,8 +11,8 @@ final class SimulatorQAStore {
     private(set) var recordingIDs: Set<Simulator.ID> = []
     private(set) var recordingStarts: [Simulator.ID: Date] = [:]
     private(set) var recordings: [Simulator.ID: String] = [:]
-    var framesScreenshots: Bool {
-        didSet { store.set(framesScreenshots, forKey: Keys.framesScreenshots) }
+    var addsDeviceFrame: Bool {
+        didSet { store.set(addsDeviceFrame, forKey: Keys.addsDeviceFrame) }
     }
 
     @ObservationIgnored private let repository: any SimulatorSettingsRepository
@@ -32,7 +32,7 @@ final class SimulatorQAStore {
         self.operations = operations
         self.screenshotFolder = screenshotFolder
         self.now = now
-        framesScreenshots = store.bool(forKey: Keys.framesScreenshots)
+        addsDeviceFrame = store.bool(forKey: Keys.addsDeviceFrame)
     }
 
     func isBusy(_ id: Simulator.ID) -> Bool {
@@ -57,7 +57,7 @@ final class SimulatorQAStore {
         guard busyIDs.contains(simulator.id) == false else { return }
         busyIDs.insert(simulator.id)
         let path = ProjectPath(screenshotFolder).expanded + "/" + SimulatorQAText.screenshotName(simulator: simulator.name, date: now())
-        let framed = framesScreenshots
+        let framed = addsDeviceFrame
         let repository = repository
         let media = media
         Task { [weak self] in
@@ -164,6 +164,6 @@ final class SimulatorQAStore {
     }
 
     private enum Keys {
-        static let framesScreenshots = "simulatorQA.framesScreenshots"
+        static let addsDeviceFrame = "simulatorQA.addsDeviceFrame"
     }
 }

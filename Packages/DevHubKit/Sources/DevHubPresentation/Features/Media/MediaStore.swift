@@ -23,7 +23,7 @@ final class MediaStore {
         busySources.contains(source)
     }
 
-    func convert(_ source: String, to choice: MediaChoice, at origin: OperationOrigin) {
+    func convert(_ source: String, to choice: MediaChoice, framedFor udid: String?, at origin: OperationOrigin) {
         guard MediaOutputPolicy.isVideo(source) else {
             activity.log("Cannot convert \(Self.fileName(source))", detail: "Choose a .mov, .mp4 or .m4v file.", outcome: .failure)
             return
@@ -31,11 +31,11 @@ final class MediaStore {
         let repository = repository
         if let options = choice.gifOptions {
             run(source, title: "GIF from \(Self.fileName(source))", at: origin) { progress in
-                try await repository.makeGIF(from: source, options: options, onProgress: progress)
+                try await repository.makeGIF(from: source, options: options, framedFor: udid, onProgress: progress)
             }
         } else if let compression = choice.compression {
             run(source, title: "Compress \(Self.fileName(source))", at: origin) { _ in
-                try await repository.compress(source, as: compression)
+                try await repository.compress(source, as: compression, framedFor: udid)
             }
         }
     }

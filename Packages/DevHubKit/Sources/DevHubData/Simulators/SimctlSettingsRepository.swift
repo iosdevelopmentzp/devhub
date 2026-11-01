@@ -41,7 +41,7 @@ struct SimctlSettingsRepository: SimulatorSettingsRepository {
     static let startedLine = "Recording started"
 
     static func recordArguments(udid: String, path: String) -> [String] {
-        ["simctl", "io", udid, "recordVideo", "--codec=h264", "--force", path]
+        ["simctl", "io", udid, "recordVideo", "--codec=h264", "--mask=black", "--force", path]
     }
 
     static func commands(for setting: SimulatorSetting, udid: String) -> [[String]] {

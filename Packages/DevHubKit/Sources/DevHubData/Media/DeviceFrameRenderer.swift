@@ -5,14 +5,21 @@ import DevHubDomain
 struct DeviceFrameRenderer {
     let source: DeviceFrameSource
 
+    var layout: DeviceFrameLayout {
+        DeviceFrameLayout.make(chrome: source.chrome, screen: source.screen, compositeSize: source.chrome.composite.flatMap(page).map(size(of:)))
+    }
+
     func render(_ screenshot: CGImage) throws -> CGImage {
-        let chrome = source.chrome
-        let composite = chrome.composite.flatMap(page)
-        let layout = DeviceFrameLayout.make(chrome: chrome, screen: source.screen, compositeSize: composite.map { $0.getBoxRect(.mediaBox).size })
+        try render(screenshot, scale: source.scale, background: nil)
+    }
+
+    func render(_ screenshot: CGImage?, scale: Double, background: CGColor?) throws -> CGImage {
+        let composite = source.chrome.composite.flatMap(page)
+        let layout = layout
         guard let context = CGContext(
             data: nil,
-            width: Int((layout.canvas.width * source.scale).rounded()),
-            height: Int((layout.canvas.height * source.scale).rounded()),
+            width: Int((layout.canvas.width * scale).rounded()),
+            height: Int((layout.canvas.height * scale).rounded()),
             bitsPerComponent: 8,
             bytesPerRow: 0,
             space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
@@ -20,7 +27,11 @@ struct DeviceFrameRenderer {
         ) else {
             throw MediaError.noFrame("DevHub cannot draw an image of this size.")
         }
-        context.scaleBy(x: source.scale, y: source.scale)
+        context.scaleBy(x: scale, y: scale)
+        if let background {
+            context.setFillColor(background)
+            context.fill(CGRect(origin: .zero, size: layout.canvas))
+        }
         drawButtons(onTop: false, layout: layout, context: context)
         if let composite {
             draw(composite, in: layout.body, context: context)
@@ -30,7 +41,11 @@ struct DeviceFrameRenderer {
             context.fill(layout.screen)
         }
         drawButtons(onTop: true, layout: layout, context: context)
-        context.draw(screenshot, in: layout.screen)
+        if let screenshot {
+            context.draw(screenshot, in: layout.screen)
+        } else {
+            clearScreen(layout: layout, context: context)
+        }
         guard let image = context.makeImage() else {
             throw MediaError.noFrame("DevHub cannot draw the frame.")
         }
@@ -60,6 +75,15 @@ struct DeviceFrameRenderer {
         draw(bottom, in: CGRect(x: body.minX + bottomLeftSize.width, y: body.minY, width: body.width - bottomLeftSize.width - bottomRightSize.width, height: size(of: bottom).height), context: context)
         draw(left, in: CGRect(x: body.minX, y: body.minY + bottomLeftSize.height, width: size(of: left).width, height: body.height - bottomLeftSize.height - topLeftSize.height), context: context)
         draw(right, in: CGRect(x: body.maxX - size(of: right).width, y: body.minY + bottomRightSize.height, width: size(of: right).width, height: body.height - bottomRightSize.height - topRightSize.height), context: context)
+    }
+
+    private func clearScreen(layout: DeviceFrameLayout, context: CGContext) {
+        let corner = source.chrome.outline.map(layout.screenCorner) ?? .zero
+        context.saveGState()
+        context.setBlendMode(.clear)
+        context.addPath(CGPath(roundedRect: layout.screen, cornerWidth: corner.width, cornerHeight: corner.height, transform: nil))
+        context.fillPath()
+        context.restoreGState()
     }
 
     private func drawButtons(onTop: Bool, layout: DeviceFrameLayout, context: CGContext) {
