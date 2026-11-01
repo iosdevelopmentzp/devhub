@@ -19,7 +19,8 @@ The tab is one form with these sections, from top to bottom:
 9. Tickets
 10. Git
 11. Doctor
-12. About
+12. Disk
+13. About
 
 Each section is explained under "Actions".
 
@@ -170,6 +171,23 @@ Two permission rows follow:
 
 A tool that a project does not use can stay missing.
 
+### Disk
+
+The first time the Settings tab opens, DevHub lists the Xcode, simulator and package manager folders that every Mac has, then measures each one with `du -sck` (four at a time). "Scan Again" reads everything again. The header shows the total. Each line shows its size and a "Delete…" button that asks first, inside the line: the title names the size, the warnings say what you lose. A delete runs as an operation card under the header, with Retry after a failure, and the line goes away when it worked. Nothing goes to the Trash.
+
+| Line | What it is | Delete runs |
+|---|---|---|
+| DerivedData of deleted projects | DerivedData folders whose `info.plist` names a `WorkspacePath` that no longer exists | `rm -rf -- <folders>` |
+| Unavailable simulators | Simulators whose runtime is not installed (`xcrun simctl list devices unavailable -j`); the size is the sum of their `dataPathSize` | `xcrun simctl delete unavailable` |
+| Archives | The folders in `~/Library/Developer/Xcode/Archives`. They keep the dSYM files of shipped builds | `rm -rf -- <folders>` |
+| Device support files | The version folders in `~/Library/Developer/Xcode/<platform> DeviceSupport`. Xcode copies them again when a device connects | `rm -rf -- <folders>` |
+| Swift Package Manager cache | `~/Library/Caches/org.swift.swiftpm` | `rm -rf -- <folder>` |
+| CocoaPods cache | `~/Library/Caches/CocoaPods` | `rm -rf -- <folder>` |
+| DerivedData by project (folded) | One line per DerivedData folder whose project exists, the largest first, with the workspace or project path | `rm -rf -- <folder>` |
+| Simulator runtimes (folded) | One line per runtime that `xcrun simctl runtime list -j` marks as deletable, newest first, with its build, size and last use | `xcrun simctl runtime delete <identifier>` |
+
+A line is shown only when its folder exists. The DerivedData folder is the one Xcode uses (`IDECustomDerivedDataLocation`, else `~/Library/Developer/Xcode/DerivedData`). Before `rm`, DevHub checks that every path is inside the DerivedData folder, `~/Library/Developer/Xcode` or `~/Library/Caches`, and refuses anything else.
+
 ### About
 
 Shows the app version (`CFBundleShortVersionString`) and the number of registered features.
@@ -202,3 +220,4 @@ The login item state lives in macOS (`SMAppService`), not in these keys. A missi
 3. The Doctor looks only in the folders listed above. A tool in another folder of your shell `PATH` shows as missing.
 4. Re-detect reads only the top level of the project folder. A workspace or project in a subfolder is not found; set `xcode.container` instead.
 5. The Editor and Terminal pickers offer a fixed list of apps.
+6. Disk: "Delete" of a simulator runtime and of unavailable simulators was checked by tests only, not on this Mac. The sizes come from `du`, so a folder that another process changes can differ a little.

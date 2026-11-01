@@ -51,6 +51,8 @@ DevHubData/
                     PathToolLocator, SystemUserNotificationRepository, GlobalHotKey, GlobalShortcut+Carbon,
                     Notification+GlobalHotKey, PlistReader, LaunchOutput, FileManager+ModificationDate
                     (AppKit allowed here only)
+    Disk/           XcodeDiskCleanupRepository(shell:home:derivedDataRoot:), DiskFolderScanner, SimctlRuntimeListParser,
+                    SimctlUnavailableDeviceParser
     Assembly/       Ports+Live.swift
 DevHubMocks/        Mock<Thing>Repository one per file, MockData and MockData+<Domain>.swift,
                     Persistence/InMemoryKeyValueStore, Ports+Mock.swift

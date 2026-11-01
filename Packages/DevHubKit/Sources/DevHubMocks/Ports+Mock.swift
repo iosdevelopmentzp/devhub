@@ -37,7 +37,8 @@ extension Ports {
             toolEnvironment: MockToolEnvironmentRepository(),
             crashes: MockCrashReportRepository(),
             appData: MockAppDataRepository(),
-            aiText: MockAITextRepository()
+            aiText: MockAITextRepository(),
+            diskCleanup: MockDiskCleanupRepository()
         )
     }
 }

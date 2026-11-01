@@ -1,6 +1,6 @@
 # ADR 007. Operations with steps, and daily tools
 
-Date: 2026-11-01. Status: in progress (see the plan and the step log).
+Date: 2026-11-01. Status: done, 2026-11-01 (see the plan and the step log).
 
 This page is the brief for the implementation. The next session reads it first, then the files it names, then goes on with the first open step of the plan.
 
@@ -67,7 +67,7 @@ Settings → Disk. Only Xcode and tool folders that every Mac has: DerivedData f
 - [x] 6. D4 changed since your review.
 - [x] 7. D6 reviewers and assignees.
 - [x] 8. D5 AI text and Explain.
-- [ ] 9. D7 disk cleanup.
+- [x] 9. D7 disk cleanup.
 
 ## Step log
 
@@ -80,3 +80,4 @@ Settings → Disk. Only Xcode and tool folders that every Mac has: DerivedData f
 | `923fdb1` | Step 5: app data: `AppDataRepository`, `SimctlAppDataRepository` (`get_app_container`, `spawn defaults export\|write\|delete`), `DefaultsExportParser`, `AppGroupListParser`, `AppDataScanner`, `AppDefaultsPolicy`, `AppDataStore` and the "App Data…" panel under a simulator row. |
 | `7b23dd9` | Step 6: changed since your review: `ReviewSnapshot`, `ReviewChangePolicy` (FNV-1a fingerprints of the changed lines), `PullRequestReviewMemory` (`gitlab.reviews.<project>`), `AppEvent.pullRequestReviewed`, the notice, the tag and "Show Only These" in the details, `AppSettings.remembersReviews`. |
 | `a5a702f` | Step 7: reviewers and assignees: `PullRequestPersonRole`, `CodeHostRepository.people` and `updatePeople` (`gh pr edit`, `glab mr update`), `GhUserListParser`, `GlabMemberListParser`, `PullRequestPeopleStore` and the "Reviewers" and "Assignees" menus in the details. |
+| `50fb863` | Step 8: AI text and Explain: `AITextRepository`, `ShellAITextRepository` (one-shot `claude -p` or `copilot -p`, prompt in a temporary file), `AITextCommandPolicy`, `AITextPromptBuilder`, `AITextAnswerParser`, `GitPatchScope`, `AITextStore`, "Write with AI" in the commit box and the new request form, "Explain" in the details, the tool picker in Settings. |

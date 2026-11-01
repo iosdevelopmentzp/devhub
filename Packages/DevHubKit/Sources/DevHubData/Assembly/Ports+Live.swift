@@ -52,7 +52,8 @@ extension Ports {
             toolEnvironment: ShellToolEnvironmentRepository(state: shell.developerDir),
             crashes: FileCrashReportRepository(root: home.appendingPathComponent("Library/Logs/DiagnosticReports", isDirectory: true)),
             appData: SimctlAppDataRepository(shell: shell),
-            aiText: ShellAITextRepository(shell: shell, folder: FileManager.default.temporaryDirectory.appendingPathComponent("DevHub/AI", isDirectory: true), home: home)
+            aiText: ShellAITextRepository(shell: shell, folder: FileManager.default.temporaryDirectory.appendingPathComponent("DevHub/AI", isDirectory: true), home: home),
+            diskCleanup: XcodeDiskCleanupRepository(shell: shell, home: home, derivedDataRoot: derivedData.root)
         )
     }
 }

@@ -120,6 +120,7 @@ also under the sibling `.xcodeproj` folders. Sorted with `localizedStandardCompa
 | Deep link | `simctl openurl <udid> <url>` (`SimctlMessagingRepository.openURL`) |
 | URL schemes | `CFBundleURLTypes` in the installed app `Info.plist` (`AppURLSchemeParser`) |
 | Push | `simctl push <udid> <bundleID> <file.apns>`, a temporary file with the JSON payload |
+| Disk cleanup | `XcodeDiskCleanupRepository`: `simctl list devices unavailable -j` (`SimctlUnavailableDeviceParser`, the size is the sum of `dataPathSize`) and `simctl runtime list -j` (`SimctlRuntimeListParser`, only `deletable` runtimes, `sizeBytes`, `lastUsedAt`); delete with `simctl delete unavailable` and `simctl runtime delete <identifier>`. The folders (DerivedData by `WorkspacePath`, Archives, `<platform> DeviceSupport`, SwiftPM and CocoaPods caches) come from `DiskFolderScanner`, are measured with `du -sck` and deleted with `rm -rf --` after `DiskCleanupPolicy.isRemovable` |
 
 ## Logs
 
