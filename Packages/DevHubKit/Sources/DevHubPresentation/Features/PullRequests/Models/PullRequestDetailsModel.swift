@@ -25,6 +25,14 @@ struct PullRequestDetailsModel: Equatable {
         var paths: [String]
     }
 
+    struct ReviewNotice: Equatable {
+        var text: String
+        var icon: String
+        var tint: Tint
+        var hint: String
+        var toggleTitle: String?
+    }
+
     struct AutoRerun: Equatable {
         struct Choice: Equatable, Hashable {
             var count: Int
@@ -61,6 +69,7 @@ struct PullRequestDetailsModel: Equatable {
         var hiddenFilesTitle: String?
         var hiddenFilesHint: String?
         var hideSuggestion: HideSuggestion?
+        var reviewNotice: ReviewNotice?
         var showsHiddenFiles: Bool
         var canExpandAllFiles: Bool
         var canCollapseAllFiles: Bool
@@ -99,6 +108,7 @@ struct PullRequestDetailsModel: Equatable {
                 hiddenFilesTitle: "Show 2 hidden",
                 hiddenFilesHint: "2 files match git.pullRequests.hiddenFiles. Click to show them.",
                 hideSuggestion: HideSuggestion(text: "2 files look like tests, project files or lock files", actionTitle: "Hide Them", hint: "Hide LoginTests.swift and project.pbxproj in the requests of this project", paths: ["AppTests/LoginTests.swift", "App.xcodeproj/project.pbxproj"]),
+                reviewNotice: ReviewNotice(text: "1 file changed since your review 2 hr. ago", icon: "arrow.triangle.2.circlepath", tint: .orange, hint: "DevHub saved the diff of each file at your last review.", toggleTitle: "Show Only These"),
                 showsHiddenFiles: false,
                 canExpandAllFiles: false,
                 canCollapseAllFiles: true,

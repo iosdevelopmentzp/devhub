@@ -84,7 +84,7 @@ Review and job facts in the values:
 | `PipelineJob.stage` | the workflow name (`checkSuite.workflowRun.workflow.name`) | the stage name |
 | `PipelineJob.duration`, `allowsFailure`, `failureMessage` | `completedAt - startedAt`; never; the check run `title` when it failed and differs from the name | `duration`, `allowFailure`, `failureMessage` |
 
-`PullRequestReviewMapper` turns the review facts into the "Approved by", "Changes requested", "Waiting for" and "Assigned to" lines of the details. `HiddenFilePolicy` (Domain), the paths the user hid (`PullRequestHiddenFiles`, per project) and `git.pullRequests.hiddenFiles` decide which files the details hide until "Show N hidden". Nothing is hidden by default; `HiddenFilePolicy.suggestedPatterns` only feeds the "Hide Them" suggestion line.
+`PullRequestReviewMapper` turns the review facts into the "Approved by", "Changes requested", "Waiting for" and "Assigned to" lines of the details. `HiddenFilePolicy` (Domain), the paths the user hid (`PullRequestHiddenFiles`, per project) and `git.pullRequests.hiddenFiles` decide which files the details hide until "Show N hidden". Nothing is hidden by default; `HiddenFilePolicy.suggestedPatterns` only feeds the "Hide Them" suggestion line. `PullRequestReviewMemory` (per project, `gitlab.reviews.<project>`) keeps the last review of each request as `ReviewSnapshot` fingerprints from `ReviewChangePolicy`; the details mark the files whose fingerprint changed and restore the Viewed marks whose fingerprint did not. An approve reaches it through `AppEvent.pullRequestReviewed`.
 
 ### Clients and errors
 

@@ -73,7 +73,7 @@ final class IdentityStore: IdentityLookup {
                 if reports[id] != report {
                     reports[id] = report
                 }
-            case .branchesChanged, .worktreesChanged, .commandFailed, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .pullRequestChecksChanged, .refreshRequested:
+            case .branchesChanged, .worktreesChanged, .commandFailed, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .pullRequestChecksChanged, .pullRequestReviewed, .refreshRequested:
                 break
             }
         }

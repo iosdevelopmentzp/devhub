@@ -57,6 +57,16 @@ The header search filters the loaded rows by title, number, author, branches and
 
 "Open in Window" opens the request in its own window. The window stays open after the panel closes. In the side-by-side layout the details header repeats the author, the dates, the branches, the counts and the tags of the request.
 
+### Changed since your review
+
+Settings → Pull Requests → "Remember what I reviewed" (on by default) lets DevHub compare a request with your last review. Everything stays on this Mac; DevHub asks the host for nothing extra.
+
+1. DevHub saves a fingerprint of the diff of each file when you approve, post a comment, ask for changes, or mark every file as viewed. It can do this only for a request whose details you opened, because the fingerprint comes from the diff you saw. The fingerprint counts only the added and removed lines, so a rebase that moves a file's changes without editing them does not count as a change.
+2. When the request has new commits, a line above the files says "N files changed since your review <time>". Each such file has an orange "changed since review" tag. "Show Only These" lists only them; "Show All Files" brings the rest back. With no change the line is green: "No file changed since your review <time>".
+3. "Viewed" marks are saved with the fingerprint of the file. They come back after a restart and drop off a file whose diff changed.
+4. "Forget" on the line removes what DevHub saved for that request. Turning the setting off removes it for every project.
+5. DevHub keeps the last 200 requests per project.
+
 ### Other places that use the same data
 
 - The Git tab header shows the request of the current branch (the request line).
@@ -130,7 +140,7 @@ After each action DevHub logs the result in Recent and reads the list again.
 | Open a file in the browser | Opens the file at the last commit of the request (`<repository>/blob/<sha>/<path>` on GitHub, `<repository>/-/blob/<sha>/<path>` on GitLab), with `#L<n>` from the menu of a diff line | — |
 | Inbox (Notifications screen) | `gh api --hostname <host> -X GET notifications?per_page=50`, then `gh api -X GET <latest_comment_url>` for up to 10 mention or comment threads | `glab api --hostname <host> todos?state=pending&per_page=50` |
 | Mark an Inbox item as done | `gh api --hostname <host> -X PATCH notifications/threads/<id>` | `glab api --hostname <host> -X POST todos/<id>/mark_as_done` |
-| Expand All, Collapse All, Viewed, threads in the diff | Local view state only | — |
+| Expand All, Collapse All, Viewed, threads in the diff | Local view state; Viewed is saved on this Mac (see "Changed since your review") | — |
 
 ### New request form
 
@@ -258,9 +268,10 @@ The reads are `.read` in the Output panel; re-run, cancel and approve are action
 | `gitlab.autoRerun.<project>` | The CircleCI auto re-run plans: request, most re-runs, re-runs done, workflows already run again | none |
 | `gitlab.ciHistory.<project>.<number>` | The earlier CircleCI workflows of a request with their failed tests | none |
 | `gitlab.hiddenFiles.<project>` | The file paths you hid in the details (eye-slash button or "Hide Them") | none |
+| `gitlab.reviews.<project>` | Your last review of each request: the time and a fingerprint of the diff of each file, and the Viewed marks with their fingerprints (200 requests at most) | none |
 | `app.settings` | `ticketURLTemplate`, `editor`, `terminal` | — |
 
-The keys start with `gitlab.` for both hosts. The "Viewed" marks, open files and open threads live in memory until DevHub quits.
+The keys start with `gitlab.` for both hosts. Open files and open threads live in memory until DevHub quits. The "Viewed" marks are saved in `gitlab.reviews.<project>` while "Remember what I reviewed" is on, else they live in memory too.
 
 ## Limits
 

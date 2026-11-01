@@ -20,6 +20,7 @@ extension View {
             .environment(assembly.keepAwake)
             .environment(assembly.simulatorQA)
             .environment(assembly.appData)
+            .environment(assembly.pullRequestReviews)
             .environment(assembly.output)
             .environment(assembly.layout)
             .environment(assembly.settings)

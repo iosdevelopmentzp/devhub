@@ -17,6 +17,7 @@ enum AppEvent {
     case mockSetChanged(id: MockSet.ID)
     case pullRequestsChanged
     case pullRequestChecksChanged(iid: Int)
+    case pullRequestReviewed(iid: Int)
     case configChanged
     case refreshRequested(RefreshTarget)
 }

@@ -92,7 +92,7 @@ final class BuildStore: BuildLookup {
                 dropMissingSource()
             case .configChanged:
                 Task { await self.refreshSchemes() }
-            case .branchesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .pullRequestChecksChanged, .appStateReported, .refreshRequested:
+            case .branchesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .pullRequestChecksChanged, .pullRequestReviewed, .appStateReported, .refreshRequested:
                 break
             }
         }

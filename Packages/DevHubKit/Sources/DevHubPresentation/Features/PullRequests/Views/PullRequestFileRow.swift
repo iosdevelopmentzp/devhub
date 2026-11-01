@@ -68,6 +68,9 @@ struct PullRequestFileRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .onTapGesture { actions.toggleFile(model.id) }
+            if let reviewTag = model.reviewTag {
+                ModelTag(model: reviewTag)
+            }
             if let hiddenTag = model.hiddenTag {
                 ModelTag(model: hiddenTag)
             }

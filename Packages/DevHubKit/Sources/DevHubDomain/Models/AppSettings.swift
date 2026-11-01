@@ -6,6 +6,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
     package var showUsageInMenuBar = true
     package var usageProviders = UsageProviders.all
     package var showReviewCountInMenuBar = true
+    package var remembersReviews = true
     package var globalShortcut = GlobalShortcut.optionCommandD
     package var scriptsFolder = "~/.devhub/scripts"
     package var editor = "Xcode"
@@ -22,6 +23,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         showUsageInMenuBar: Bool = true,
         usageProviders: UsageProviders = UsageProviders.all,
         showReviewCountInMenuBar: Bool = true,
+        remembersReviews: Bool = true,
         globalShortcut: GlobalShortcut = GlobalShortcut.optionCommandD,
         scriptsFolder: String = "~/.devhub/scripts",
         editor: String = "Xcode",
@@ -37,6 +39,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         self.showUsageInMenuBar = showUsageInMenuBar
         self.usageProviders = usageProviders
         self.showReviewCountInMenuBar = showReviewCountInMenuBar
+        self.remembersReviews = remembersReviews
         self.globalShortcut = globalShortcut
         self.scriptsFolder = scriptsFolder
         self.editor = editor
@@ -59,6 +62,7 @@ extension AppSettings {
             showUsageInMenuBar: try container.decodeIfPresent(Bool.self, forKey: .showUsageInMenuBar) ?? defaults.showUsageInMenuBar,
             usageProviders: (try? container.decodeIfPresent(UsageProviders.self, forKey: .usageProviders)) ?? defaults.usageProviders,
             showReviewCountInMenuBar: try container.decodeIfPresent(Bool.self, forKey: .showReviewCountInMenuBar) ?? defaults.showReviewCountInMenuBar,
+            remembersReviews: try container.decodeIfPresent(Bool.self, forKey: .remembersReviews) ?? defaults.remembersReviews,
             globalShortcut: try container.decodeIfPresent(GlobalShortcut.self, forKey: .globalShortcut) ?? defaults.globalShortcut,
             scriptsFolder: try container.decodeIfPresent(String.self, forKey: .scriptsFolder) ?? defaults.scriptsFolder,
             editor: try container.decodeIfPresent(String.self, forKey: .editor) ?? defaults.editor,

@@ -7,6 +7,8 @@ struct PullRequestDetailActions {
     let expandAllFiles: (_ fileIDs: Set<PullRequestFileDiff.ID>) -> Void
     let collapseAllFiles: () -> Void
     let toggleHiddenFiles: () -> Void
+    let toggleOnlyChangedSinceReview: () -> Void
+    let forgetReview: () -> Void
     let hideFiles: (_ paths: [String]) -> Void
     let unhideFile: (_ path: String) -> Void
     let showInDiff: (_ threadID: ReviewThread.ID) -> Void
@@ -50,6 +52,8 @@ struct PullRequestDetailActions {
         expandAllFiles: { _ in },
         collapseAllFiles: {},
         toggleHiddenFiles: {},
+        toggleOnlyChangedSinceReview: {},
+        forgetReview: {},
         hideFiles: { _ in },
         unhideFile: { _ in },
         showInDiff: { _ in },
@@ -95,6 +99,8 @@ struct PullRequestDetailActions {
             expandAllFiles: expandAllFiles,
             collapseAllFiles: collapseAllFiles,
             toggleHiddenFiles: toggleHiddenFiles,
+            toggleOnlyChangedSinceReview: toggleOnlyChangedSinceReview,
+            forgetReview: forgetReview,
             hideFiles: hideFiles,
             unhideFile: unhideFile,
             showInDiff: showInDiff,
@@ -153,6 +159,8 @@ extension PullRequestDetailActions {
             expandAllFiles: { detailStore.expandAllFiles($0, of: id) },
             collapseAllFiles: { detailStore.collapseAllFiles(of: id) },
             toggleHiddenFiles: { detailStore.toggleHiddenFiles(of: id) },
+            toggleOnlyChangedSinceReview: { detailStore.toggleOnlyChangedSinceReview(of: id) },
+            forgetReview: { detailStore.forgetReview(of: id) },
             hideFiles: { detailStore.hideFiles($0) },
             unhideFile: { detailStore.unhideFile($0) },
             showInDiff: { detailStore.showInDiff(threadID: $0, of: id) },

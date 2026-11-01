@@ -54,7 +54,7 @@ final class GitChangesStore {
                 changes = []
                 diffs = [:]
                 loadedPath = nil
-            case .worktreesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .pullRequestChecksChanged, .configChanged, .appStateReported, .refreshRequested:
+            case .worktreesChanged, .simulatorsChanged, .commandFailed, .buildStarted, .buildFinished, .appLaunched, .worktreeCheckoutPrepared, .worktreeBootstrapping, .mockSetChanged, .pullRequestsChanged, .pullRequestChecksChanged, .pullRequestReviewed, .configChanged, .appStateReported, .refreshRequested:
                 break
             }
         }

@@ -12,6 +12,7 @@ import Testing
         #expect(settings.showUsageStrip == false)
         #expect(settings.showUsageInMenuBar == false)
         #expect(settings.showReviewCountInMenuBar)
+        #expect(settings.remembersReviews)
         #expect(settings.scriptsFolder == "~/s")
         #expect(settings.editor == "Cursor")
         #expect(settings.terminal == "iTerm")

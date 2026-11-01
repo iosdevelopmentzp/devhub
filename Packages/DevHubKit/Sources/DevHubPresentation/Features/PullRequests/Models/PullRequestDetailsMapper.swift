@@ -24,6 +24,8 @@ enum PullRequestDetailsMapper {
         let deletions = visible.reduce(0) { $0 + $1.deletions }
         let viewedCount = visible.filter { review.viewedFiles.contains($0.id) }.count
         let expandedCount = visible.filter { review.expandedFiles.contains($0.id) }.count
+        let changed = Set(review.changedSinceReview)
+        let shown = review.showsOnlyChangedSinceReview && changed.isEmpty == false ? visible.filter { changed.contains($0.path) } : visible
         let threadRows = details.threads.map { ReviewThreadRowMapper.model(for: $0, diffs: visible, webURL: summary.webURL, isBusy: review.busyThreads.contains($0.id)) }
         return PullRequestDetailsModel(
             content: .loaded(
@@ -50,17 +52,20 @@ enum PullRequestDetailsMapper {
                     hiddenFilesTitle: hiddenFilesTitle(count: hidden.count, shown: review.showsHiddenFiles),
                     hiddenFilesHint: hidden.isEmpty ? nil : hiddenFilesHint(count: hidden.count, shown: review.showsHiddenFiles),
                     hideSuggestion: hideSuggestion(HiddenFilePolicy.suggestedPaths(in: paths, hidden: hidden)),
+                    reviewNotice: reviewNotice(review: review, words: words),
                     showsHiddenFiles: review.showsHiddenFiles,
                     canExpandAllFiles: visible.count - viewedCount > expandedCount,
                     canCollapseAllFiles: expandedCount > 0,
                     hasThreadsInDiff: threadRows.contains { $0.canShowInDiff },
                     showsThreadsInDiff: review.showsThreadsInDiff,
-                    files: visible.map { file in
-                        PullRequestFileRowMapper.hiding(
+                    files: shown.map { file in
+                        var row = PullRequestFileRowMapper.hiding(
                             PullRequestFileRowMapper.model(for: file, review: review, threads: threadRows, words: words),
                             isHidden: hidden.contains(file.path),
                             isChosen: review.chosenHiddenFiles.contains(file.path)
                         )
+                        row.reviewTag = changed.contains(file.path) ? changedSinceReviewTag : nil
+                        return row
                     }
                 )
             )
@@ -111,6 +116,24 @@ enum PullRequestDetailsMapper {
             text = "The circleci tool is not logged in, so the CircleCI jobs show as links only."
         }
         return PullRequestDetailsModel.CINotice(text: text, command: command)
+    }
+
+    static let changedSinceReviewTag = TagModel("changed since review", tint: .orange, hint: "The diff of this file is not the one you reviewed")
+
+    static func reviewNotice(review: PullRequestReviewState, words: CodeHostWords) -> PullRequestDetailsModel.ReviewNotice? {
+        guard let reviewedAt = review.reviewedAt else { return nil }
+        let since = "since your review \(reviewedAt.relativeDescription)"
+        let hint = "DevHub saved the diff of each file when you approved, commented, asked for changes or marked every file as viewed. It compares the \(words.request) with it, without asking \(words.hostTitle). Turn it off in Settings."
+        guard review.changedSinceReview.isEmpty == false else {
+            return PullRequestDetailsModel.ReviewNotice(text: "No file changed \(since)", icon: "checkmark.circle", tint: .green, hint: hint, toggleTitle: nil)
+        }
+        return PullRequestDetailsModel.ReviewNotice(
+            text: "\(CountText.count(review.changedSinceReview.count, "file")) changed \(since)",
+            icon: "arrow.triangle.2.circlepath",
+            tint: .orange,
+            hint: hint,
+            toggleTitle: review.showsOnlyChangedSinceReview ? "Show All Files" : "Show Only These"
+        )
     }
 
     static func hideSuggestion(_ paths: [String]) -> PullRequestDetailsModel.HideSuggestion? {

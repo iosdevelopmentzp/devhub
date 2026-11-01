@@ -681,4 +681,93 @@ import DevHubTestSupport
         #expect(store.review(of: 8).chosenHiddenFiles == ["Package.resolved"])
         #expect(harness.pullRequestHiddenFiles.paths == ["Package.resolved"])
     }
+
+    // MARK: Changed since your review
+
+    private func edited(_ line: String) -> [PullRequestFileDiff] {
+        [
+            PullRequestFileDiff(oldPath: "a.swift", path: "a.swift", kind: .modified, additions: 1, deletions: 0, diff: GitDiff(lines: [line], droppedLines: 0, isBinary: false), isTooLarge: false),
+            PullRequestFileDiff(oldPath: "b.swift", path: "b.swift", kind: .added, additions: 1, deletions: 0, diff: GitDiff(lines: ["+y"], droppedLines: 0, isBinary: false), isTooLarge: false),
+        ]
+    }
+
+    @Test func aCommentSavesTheReviewAndANewCommitShowsTheChangedFiles() async throws {
+        script()
+        harness.spies.codeHost.diffsResult = .success(edited("+x"))
+        await store.load(7)
+        store.setCommentDraft("Looks good", of: 7)
+
+        store.send(.comment, on: 7)
+        try await waitUntil { store.busyComments.isEmpty && store.isLoaded(7) }
+        let afterComment = store.review(of: 7)
+        harness.spies.codeHost.diffsResult = .success(edited("+x2"))
+        await store.reload(7)
+
+        #expect(afterComment.reviewedAt == Date(timeIntervalSince1970: 1_800_000_000))
+        #expect(afterComment.changedSinceReview.isEmpty)
+        #expect(store.review(of: 7).changedSinceReview == ["a.swift"])
+    }
+
+    @Test func approvingSavesTheReviewOfTheLoadedDiff() async {
+        script()
+        await store.load(7)
+
+        harness.events.post(.pullRequestReviewed(iid: 7))
+
+        #expect(harness.pullRequestReviews.snapshot(of: 7)?.files.keys.sorted() == ["a.swift"])
+    }
+
+    @Test func markingEveryFileViewedSavesTheReview() async {
+        script()
+        harness.spies.codeHost.diffsResult = .success(edited("+x"))
+        await store.load(7)
+
+        store.toggleViewed("a.swift", of: 7)
+        let afterOne = store.review(of: 7).reviewedAt
+        store.toggleViewed("b.swift", of: 7)
+
+        #expect(afterOne == nil)
+        #expect(store.review(of: 7).reviewedAt != nil)
+    }
+
+    @Test func viewedMarksComeBackUntilTheFileChanges() async {
+        script()
+        harness.spies.codeHost.diffsResult = .success(edited("+x"))
+        await store.load(7)
+        store.toggleViewed("a.swift", of: 7)
+        store.toggleViewed("b.swift", of: 7)
+        harness.spies.codeHost.diffsResult = .success(edited("+x2"))
+
+        await store.reload(7)
+
+        #expect(store.review(of: 7).viewedFiles == ["b.swift"])
+    }
+
+    @Test func showOnlyChangedAndForget() async {
+        script()
+        await store.load(7)
+        harness.events.post(.pullRequestReviewed(iid: 7))
+
+        store.toggleOnlyChangedSinceReview(of: 7)
+        let shown = store.review(of: 7).showsOnlyChangedSinceReview
+        store.forgetReview(of: 7)
+
+        #expect(shown)
+        #expect(store.review(of: 7).showsOnlyChangedSinceReview == false)
+        #expect(store.review(of: 7).reviewedAt == nil)
+    }
+
+    @Test func turnedOffNothingIsSavedAndViewedStaysForTheSession() async {
+        harness.settings.values.remembersReviews = false
+        script()
+        await store.load(7)
+
+        store.toggleViewed("a.swift", of: 7)
+        harness.events.post(.pullRequestReviewed(iid: 7))
+        await store.reload(7)
+
+        #expect(harness.pullRequestReviews.snapshots.isEmpty)
+        #expect(store.review(of: 7).viewedFiles == ["a.swift"])
+        #expect(store.review(of: 7).reviewedAt == nil)
+    }
 }

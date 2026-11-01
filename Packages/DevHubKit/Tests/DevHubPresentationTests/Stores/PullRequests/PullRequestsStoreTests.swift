@@ -178,6 +178,7 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.detail == "ABC-5: Login")
         #expect(harness.operations.latest(at: .pullRequest(21))?.title == "Approve !21")
         #expect(harness.operations.latest(at: .pullRequest(21))?.status == .succeeded)
+        #expect(harness.postedLabels.contains("pullRequestReviewed(21)"))
     }
 
     @Test func retryPipelineNeedsThePipelineIDAndMergePassesTheOptions() async throws {

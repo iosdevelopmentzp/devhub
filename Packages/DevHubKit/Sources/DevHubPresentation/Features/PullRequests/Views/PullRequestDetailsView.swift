@@ -114,6 +114,9 @@ struct PullRequestDetailsView: View {
             }
             VStack(alignment: .leading, spacing: 6) {
                 filesHeader(loaded)
+                if let notice = loaded.reviewNotice {
+                    reviewNoticeLine(notice)
+                }
                 if let suggestion = loaded.hideSuggestion {
                     hideSuggestionLine(suggestion)
                 }
@@ -304,6 +307,27 @@ struct PullRequestDetailsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
+        }
+    }
+
+    private func reviewNoticeLine(_ notice: PullRequestDetailsModel.ReviewNotice) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: notice.icon)
+                .font(.caption)
+                .foregroundStyle(notice.tint.color)
+            Text(notice.text)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(notice.tint.color)
+                .hint(notice.hint)
+            if let toggleTitle = notice.toggleTitle {
+                Button(toggleTitle, action: actions.toggleOnlyChangedSinceReview)
+                    .buttonStyle(LinkButtonStyle(.accent, weight: .medium))
+                    .fixedSize()
+            }
+            Button("Forget", action: actions.forgetReview)
+                .buttonStyle(LinkButtonStyle(.secondary))
+                .fixedSize()
+                .hint("Stop comparing this request with your last review")
         }
     }
 

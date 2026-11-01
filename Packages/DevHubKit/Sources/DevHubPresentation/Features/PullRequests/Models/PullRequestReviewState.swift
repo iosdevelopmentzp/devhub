@@ -32,6 +32,9 @@ struct PullRequestReviewState: Equatable {
     var openTestMessages: Set<String> = []
     var openCIHistoryRuns: Set<String> = []
     var chosenHiddenFiles: Set<String> = []
+    var reviewedAt: Date?
+    var changedSinceReview: [String] = []
+    var showsOnlyChangedSinceReview = false
 
     static let initial = PullRequestReviewState(expandedFiles: [], viewedFiles: [], focus: nil, busyThreads: [], showsThreadsInDiff: true, openDiffThreads: [])
 }

@@ -34,6 +34,7 @@ final class PullRequestDetailStore {
     private(set) var openJobDetails: Set<String> = []
     private(set) var openTestMessages: Set<String> = []
     private(set) var openCIHistoryRuns: Set<String> = []
+    private(set) var onlyChangedSinceReview: Set<PullRequestSummary.ID> = []
 
     enum CommentKind {
         case comment
@@ -48,9 +49,11 @@ final class PullRequestDetailStore {
     @ObservationIgnored private let history: CIWorkflowHistory
     @ObservationIgnored private let autoRerun: any CIAutoRerunLookup
     @ObservationIgnored private let hiddenFiles: PullRequestHiddenFiles
+    @ObservationIgnored private let reviews: PullRequestReviewMemory
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let operations: OperationLog
     @ObservationIgnored private var loading: Set<PullRequestSummary.ID> = []
+    @ObservationIgnored private var fingerprints: [PullRequestSummary.ID: [String: String]] = [:]
     @ObservationIgnored private var ciLoading: Set<String> = []
     @ObservationIgnored private var ciFlakyLoaded = false
     @ObservationIgnored private var subscription: SubscriptionToken?
@@ -70,6 +73,7 @@ final class PullRequestDetailStore {
         history: CIWorkflowHistory,
         autoRerun: any CIAutoRerunLookup,
         hiddenFiles: PullRequestHiddenFiles,
+        reviews: PullRequestReviewMemory,
         activity: ActivityLog,
         operations: OperationLog,
         events: AppEvents
@@ -82,6 +86,7 @@ final class PullRequestDetailStore {
         self.history = history
         self.autoRerun = autoRerun
         self.hiddenFiles = hiddenFiles
+        self.reviews = reviews
         self.activity = activity
         self.operations = operations
         subscription = events.subscribe { [weak self] event in
@@ -92,6 +97,8 @@ final class PullRequestDetailStore {
             case .pullRequestChecksChanged(let iid):
                 guard details[iid] != nil else { return }
                 Task { await self.reload(iid) }
+            case .pullRequestReviewed(let iid):
+                recordReview(of: iid)
             default:
                 break
             }
@@ -109,6 +116,8 @@ final class PullRequestDetailStore {
         errors = [:]
         expandedFiles = [:]
         viewedFiles = [:]
+        onlyChangedSinceReview = []
+        fingerprints = [:]
         openDiffThreads = []
         shownHiddenFiles = []
         commentDrafts = [:]
@@ -159,8 +168,27 @@ final class PullRequestDetailStore {
             openJobDetails: openJobDetails,
             openTestMessages: openTestMessages,
             openCIHistoryRuns: openCIHistoryRuns,
-            chosenHiddenFiles: hiddenFiles.paths
+            chosenHiddenFiles: hiddenFiles.paths,
+            reviewedAt: reviews.snapshot(of: id)?.reviewedAt,
+            changedSinceReview: ReviewChangePolicy.changedPaths(since: reviews.snapshot(of: id), paths: diffs[id]?.map(\.path) ?? [], fingerprints: fingerprints[id] ?? [:]),
+            showsOnlyChangedSinceReview: onlyChangedSinceReview.contains(id)
         )
+    }
+
+    func toggleOnlyChangedSinceReview(of id: PullRequestSummary.ID) {
+        if onlyChangedSinceReview.remove(id) == nil {
+            onlyChangedSinceReview.insert(id)
+        }
+    }
+
+    func forgetReview(of id: PullRequestSummary.ID) {
+        onlyChangedSinceReview.remove(id)
+        reviews.forget(id)
+    }
+
+    private func recordReview(of id: PullRequestSummary.ID) {
+        guard let fingerprints = fingerprints[id] else { return }
+        reviews.recordReview(of: id, fingerprints: fingerprints)
     }
 
     func focus(of id: PullRequestSummary.ID) -> DiffFocus? {
@@ -203,11 +231,16 @@ final class PullRequestDetailStore {
 
     func toggleViewed(_ fileID: PullRequestFileDiff.ID, of id: PullRequestSummary.ID) {
         var viewed = viewedFiles[id] ?? []
-        if viewed.remove(fileID) == nil {
+        let isViewed = viewed.remove(fileID) == nil
+        if isViewed {
             viewed.insert(fileID)
             expandedFiles[id]?.remove(fileID)
         }
         viewedFiles[id] = viewed
+        reviews.setViewed(isViewed, path: fileID, fingerprint: fingerprints[id]?[fileID], of: id)
+        if isViewed, ReviewChangePolicy.isEveryFileViewed(viewed, paths: diffs[id]?.map(\.path) ?? []) {
+            recordReview(of: id)
+        }
     }
 
     func toggleThreadsInDiff() {
@@ -291,12 +324,23 @@ final class PullRequestDetailStore {
             let (description, files) = try await (loadedDetails, loadedDiffs)
             details[id] = description
             diffs[id] = files
+            restoreViewed(of: id, files: files)
             history.load(id)
             loadCI(of: id)
         } catch is CancellationError {
         } catch {
             errors[id] = error.localizedDescription
         }
+    }
+
+    private func restoreViewed(of id: PullRequestSummary.ID, files: [PullRequestFileDiff]) {
+        let current = ReviewChangePolicy.fingerprints(of: files)
+        fingerprints[id] = current
+        guard reviews.isOn else {
+            viewedFiles[id] = viewedFiles[id]?.intersection(current.keys)
+            return
+        }
+        viewedFiles[id] = ReviewChangePolicy.viewedPaths(in: reviews.snapshot(of: id), fingerprints: current)
     }
 
     func writeReviewPrompt(for summary: PullRequestSummary) async -> String? {
@@ -355,6 +399,7 @@ final class PullRequestDetailStore {
                 activity.log(title, detail: text, outcome: .success)
                 commentDrafts[id] = nil
                 busyComments.remove(id)
+                recordReview(of: id)
                 await reload(id)
             } catch {
                 activity.log("\(title) failed", detail: error.localizedDescription, outcome: .failure)

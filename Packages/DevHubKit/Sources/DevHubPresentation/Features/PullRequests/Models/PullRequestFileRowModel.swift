@@ -23,6 +23,7 @@ struct PullRequestFileRowModel: Identifiable, Equatable {
     var isFull: Bool
     var fullHint: String?
     var hiddenTag: TagModel? = nil
+    var reviewTag: TagModel? = nil
     var canHide = true
     var canUnhide = false
 

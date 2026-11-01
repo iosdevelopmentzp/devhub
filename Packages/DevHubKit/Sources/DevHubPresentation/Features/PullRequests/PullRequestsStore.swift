@@ -172,6 +172,9 @@ final class PullRequestsStore {
                 }
                 activity.log(texts.done, detail: detail, outcome: .success)
                 events.post(.pullRequestsChanged)
+                if kind == .approve {
+                    events.post(.pullRequestReviewed(iid: id))
+                }
             } catch {
                 activity.log(texts.failed, detail: error.localizedDescription, outcome: .failure)
             }

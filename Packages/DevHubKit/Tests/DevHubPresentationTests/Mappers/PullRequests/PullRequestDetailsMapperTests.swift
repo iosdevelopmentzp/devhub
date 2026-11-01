@@ -317,4 +317,51 @@ import DevHubTestSupport
         #expect(empty.ciHistoryTitle == nil)
         #expect(empty.ciHistory.isEmpty)
     }
+
+    @Test func withoutAReviewThereIsNoNotice() throws {
+        let loaded = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: review(expanded: []), context: context()))
+
+        #expect(loaded.reviewNotice == nil)
+        #expect(loaded.files.allSatisfy { $0.reviewTag == nil })
+    }
+
+    @Test func changedFilesAreCountedAndTagged() throws {
+        var state = review(expanded: [])
+        state.reviewedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        state.changedSinceReview = ["b.png"]
+
+        let loaded = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: state, context: context()))
+
+        #expect(loaded.reviewNotice?.text.hasPrefix("1 file changed since your review") == true)
+        #expect(loaded.reviewNotice?.tint == .orange)
+        #expect(loaded.reviewNotice?.toggleTitle == "Show Only These")
+        #expect(loaded.reviewNotice?.hint.contains("GitLab") == true)
+        #expect(loaded.files.map(\.reviewTag) == [nil, PullRequestDetailsMapper.changedSinceReviewTag])
+    }
+
+    @Test func showOnlyChangedListsTheChangedFiles() throws {
+        var state = review(expanded: [])
+        state.reviewedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        state.changedSinceReview = ["b.png"]
+        state.showsOnlyChangedSinceReview = true
+
+        let loaded = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: state, context: context()))
+
+        #expect(loaded.files.map(\.id) == ["b.png"])
+        #expect(loaded.reviewNotice?.toggleTitle == "Show All Files")
+        #expect(loaded.filesTitle.hasPrefix("Files 2"))
+    }
+
+    @Test func noChangeSinceTheReviewIsGreen() throws {
+        var state = review(expanded: [])
+        state.reviewedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        state.showsOnlyChangedSinceReview = true
+
+        let loaded = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: state, context: context()))
+
+        #expect(loaded.reviewNotice?.text.hasPrefix("No file changed since your review") == true)
+        #expect(loaded.reviewNotice?.tint == .green)
+        #expect(loaded.reviewNotice?.toggleTitle == nil)
+        #expect(loaded.files.count == 2)
+    }
 }

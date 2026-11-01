@@ -7,6 +7,7 @@ struct SettingsView: View {
     @Environment(ProjectSession.self) private var session
     @Environment(ConfigStore.self) private var config
     @Environment(XcodeSelectionStore.self) private var xcodes
+    @Environment(PullRequestReviewMemory.self) private var reviews
     @Environment(Toaster.self) private var toaster
     @Environment(\.codeHostWords) private var words
 
@@ -54,6 +55,8 @@ struct SettingsView: View {
             Section(words.requestsTitle) {
                 Toggle("Show the number of \(words.requests) waiting for your review in the menu bar", isOn: $settings.values.showReviewCountInMenuBar)
                     .hint("Open \(words.requests) by other people, not drafts, that you have not approved. Checked every 5 minutes.")
+                Toggle("Remember what I reviewed", isOn: remembersReviews)
+                    .hint("When you approve, comment, ask for changes or mark every file as viewed, DevHub saves the diff of each file on this Mac. The details then show the files that changed since, and Viewed marks stay until a file changes. Off removes everything DevHub saved.")
             }
 
             Section {
@@ -147,6 +150,17 @@ struct SettingsView: View {
         Binding(
             get: { settings.launchesAtLogin },
             set: { settings.setLaunchAtLogin($0) }
+        )
+    }
+
+    private var remembersReviews: Binding<Bool> {
+        Binding(
+            get: { settings.values.remembersReviews },
+            set: { isOn in
+                settings.values.remembersReviews = isOn
+                guard isOn == false else { return }
+                reviews.forgetAll()
+            }
         )
     }
 

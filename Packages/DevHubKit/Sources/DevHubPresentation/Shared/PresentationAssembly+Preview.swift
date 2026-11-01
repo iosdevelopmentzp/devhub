@@ -24,9 +24,18 @@ extension PresentationAssembly {
         assembly.usage.usage = MockData.usage
         assembly.usage.copilot = MockData.copilotUsage
         assembly.ciHistory.remember(MockData.ciPreviousWorkflow, failedTests: MockData.ciPreviousFailedTests, for: 1842)
+        seedReview(of: assembly)
         seedOperations(of: assembly)
         assembly.crashes.watch(bundleID: MockData.crashReport.bundleID ?? "", simulatorID: MockData.crashReport.simulatorID ?? "", launchedAt: MockData.crashReport.date)
         return assembly
+    }
+
+    private static func seedReview(of assembly: PresentationAssembly) {
+        var fingerprints = ReviewChangePolicy.fingerprints(of: MockData.pullRequestDiffs)
+        if let first = MockData.pullRequestDiffs.first {
+            fingerprints[first.path] = "reviewed-earlier"
+        }
+        assembly.pullRequestReviews.recordReview(of: 1842, fingerprints: fingerprints)
     }
 
     private static func seedOperations(of assembly: PresentationAssembly) {

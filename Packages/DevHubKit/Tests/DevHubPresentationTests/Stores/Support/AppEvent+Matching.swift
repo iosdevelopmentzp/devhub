@@ -32,6 +32,8 @@ extension AppEvent {
             "pullRequestsChanged"
         case .pullRequestChecksChanged(let iid):
             "pullRequestChecksChanged(\(iid))"
+        case .pullRequestReviewed(let iid):
+            "pullRequestReviewed(\(iid))"
         case .configChanged:
             "configChanged"
         case .refreshRequested(let target):
