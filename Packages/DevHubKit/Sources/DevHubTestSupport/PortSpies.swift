@@ -29,6 +29,8 @@ package struct PortSpies: Sendable {
     package let sleep = SpySleepPreventer()
     package let simulatorSettings = SpySimulatorSettingsRepository()
     package let notifications = SpyUserNotificationRepository()
+    package let xcodes = SpyXcodeInstallationRepository()
+    package let toolEnvironment = SpyToolEnvironmentRepository()
 
     package init() {}
 }

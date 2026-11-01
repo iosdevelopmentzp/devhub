@@ -32,7 +32,9 @@ extension Ports {
             tools: MockToolLocator(),
             notifications: MockUserNotificationRepository(),
             sleep: MockSleepPreventer(),
-            simulatorSettings: MockSimulatorSettingsRepository()
+            simulatorSettings: MockSimulatorSettingsRepository(),
+            xcodes: MockXcodeInstallationRepository(),
+            toolEnvironment: MockToolEnvironmentRepository()
         )
     }
 }

@@ -88,7 +88,7 @@ struct ShellWorkspaceOpener: WorkspaceOpening {
             target = (path as NSString).expandingTildeInPath
         }
         do {
-            let result = try await shell.run("open", ["-a", "Xcode", target], cwd: nil)
+            let result = try await shell.run("open", ["-a", shell.developerDir.xcodeAppName(), target], cwd: nil)
             return result.exitCode == 0 ? nil : result.failureMessage
         } catch {
             return error.localizedDescription

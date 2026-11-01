@@ -3,6 +3,7 @@ import DevHubDomain
 
 package actor ShellRunner {
     nonisolated let recorder: any CommandRecording
+    nonisolated let developerDir = DeveloperDirState()
 
     private static let extraPath = ["/opt/homebrew/bin", "/usr/local/bin"]
 
@@ -19,7 +20,7 @@ package actor ShellRunner {
         let kind = CommandKind.classify(executable, arguments)
         recorder.record(CommandEvent(id: id, payload: .started(command: CommandFormatter.displayCommand(executable, arguments), cwd: cwd, kind: kind, operationID: OperationScope.current)))
         do {
-            let result = try await ProcessOutput.run(Self.makeProcess(executable, arguments, cwd: cwd, environment: environment))
+            let result = try await ProcessOutput.run(Self.makeProcess(executable, arguments, cwd: cwd, environment: environment, developerDir: developerDir.value))
             if kind.hidesOutput == false {
                 let text = [result.stdout, result.stderr].filter { $0.trimmed.isEmpty == false }.joined(separator: "\n")
                 let lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
@@ -51,7 +52,7 @@ package actor ShellRunner {
         environment: [String: String],
         onLine: @escaping @Sendable (String) -> Void
     ) async throws -> Int32 {
-        let process = Self.makeProcess(executable, arguments, cwd: cwd, environment: environment)
+        let process = Self.makeProcess(executable, arguments, cwd: cwd, environment: environment, developerDir: developerDir.value)
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe
@@ -91,19 +92,26 @@ package actor ShellRunner {
         }
     }
 
-    private nonisolated static func makeProcess(_ executable: String, _ arguments: [String], cwd: String?, environment extra: [String: String]) -> Process {
+    private nonisolated static func makeProcess(_ executable: String, _ arguments: [String], cwd: String?, environment extra: [String: String], developerDir: String?) -> Process {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
         process.arguments = [executable] + arguments
-        var environment = ProcessInfo.processInfo.environment
-        let path = environment["PATH"] ?? "/usr/bin:/bin:/usr/sbin:/sbin"
-        environment["PATH"] = (extraPath + [path]).joined(separator: ":")
-        environment.merge(extra) { _, new in new }
-        process.environment = environment
+        process.environment = environment(for: executable, base: ProcessInfo.processInfo.environment, extra: extra, developerDir: developerDir)
         if let cwd {
             process.currentDirectoryURL = URL(fileURLWithPath: (cwd as NSString).expandingTildeInPath)
         }
         return process
+    }
+
+    nonisolated static func environment(for executable: String, base: [String: String], extra: [String: String], developerDir: String?) -> [String: String] {
+        var environment = base
+        let path = environment["PATH"] ?? "/usr/bin:/bin:/usr/sbin:/sbin"
+        environment["PATH"] = (extraPath + [path]).joined(separator: ":")
+        if let developerDir, DeveloperDirPolicy.applies(to: executable) {
+            environment["DEVELOPER_DIR"] = developerDir
+        }
+        environment.merge(extra) { _, new in new }
+        return environment
     }
 }
 

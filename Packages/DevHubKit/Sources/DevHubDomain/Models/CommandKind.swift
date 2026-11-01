@@ -15,7 +15,7 @@ package enum CommandKind: Sendable {
         "rev-list", "show-ref", "config", "diff", "cherry", "merge-base", "ls-remote", "remote", "show"
     ]
     private static let simctlReads: Set<String> = ["list", "get_app_container", "listapps", "bootstatus"]
-    private static let plainReads: Set<String> = ["du", "ps", "grep", "plutil", "pgrep"]
+    private static let plainReads: Set<String> = ["du", "ps", "grep", "plutil", "pgrep", "mdfind", "xcode-select"]
     private static let codeHostReads: Set<String> = ["view", "list", "checks", "diff", "status"]
     private static let circleCIReads: Set<String> = ["run list", "run get", "workflow get", "workflow list", "job get", "job output", "testresult list", "setting list", "version", "auth me"]
 

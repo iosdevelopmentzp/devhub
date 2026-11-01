@@ -47,7 +47,9 @@ extension Ports {
             tools: tools,
             notifications: SystemUserNotificationRepository(),
             sleep: IOKitSleepPreventer(),
-            simulatorSettings: SimctlSettingsRepository(shell: shell)
+            simulatorSettings: SimctlSettingsRepository(shell: shell),
+            xcodes: SpotlightXcodeInstallationRepository(shell: shell),
+            toolEnvironment: ShellToolEnvironmentRepository(state: shell.developerDir)
         )
     }
 }

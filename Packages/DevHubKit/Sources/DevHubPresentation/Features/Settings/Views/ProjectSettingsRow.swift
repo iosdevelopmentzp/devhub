@@ -6,6 +6,9 @@ struct ProjectSettingsRow: View {
     let model: ProjectSettingsRowModel
     @Binding var scheme: String
     @Binding var bundleID: String
+    @Binding var developerDir: String
+    let xcodeOptions: [XcodeOptionModel]
+    let xcodeSummary: String?
     let onRedetect: () -> Void
     let onRemove: () -> Void
 
@@ -48,6 +51,24 @@ struct ProjectSettingsRow: View {
             }
             .textFieldStyle(.roundedBorder)
             .controlSize(.small)
+            HStack(spacing: 8) {
+                Picker("Xcode", selection: $developerDir) {
+                    ForEach(xcodeOptions) { option in
+                        Text(option.title).tag(option.id)
+                    }
+                }
+                .fixedSize()
+                .hint(XcodeOptionMapper.hint)
+                if let xcodeSummary {
+                    Text(xcodeSummary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .hintWhenTruncated(xcodeSummary)
+                }
+            }
+            .controlSize(.small)
             if isConfirmingRemove {
                 InlineConfirmation(
                     model.removeQuestion,
@@ -72,6 +93,9 @@ struct ProjectSettingsRow: View {
             model: .preview,
             scheme: .constant("ExampleApp"),
             bundleID: .constant("com.example.app"),
+            developerDir: .constant(""),
+            xcodeOptions: [XcodeOptionModel(id: "", title: "Default · Xcode 26.1 · Xcode.app"), .preview],
+            xcodeSummary: "Builds use the Xcode of xcode-select: Xcode 26.1 · Xcode.app",
             onRedetect: {},
             onRemove: {}
         )

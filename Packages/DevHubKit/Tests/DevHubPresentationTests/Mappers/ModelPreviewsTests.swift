@@ -10,6 +10,7 @@ import Testing
         #expect(RunBarModel.preview.target?.name == "iPhone 16 Pro")
         #expect(OperationCardModel.preview.tint == .red)
         #expect(OperationsIndicatorModel.preview.isRunning)
+        #expect(XcodeOptionModel.preview.title.hasPrefix("Xcode"))
     }
 
     @Test func claudePreviewsBuild() {

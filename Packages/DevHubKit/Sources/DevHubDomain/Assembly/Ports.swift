@@ -29,6 +29,8 @@ package struct Ports: Sendable {
     package let notifications: any UserNotificationRepository
     package let sleep: any SleepPreventing
     package let simulatorSettings: any SimulatorSettingsRepository
+    package let xcodes: any XcodeInstallationRepository
+    package let toolEnvironment: any ToolEnvironmentRepository
 
     package init(
         usage: any ClaudeUsageRepository,
@@ -58,7 +60,9 @@ package struct Ports: Sendable {
         tools: any ToolLocating,
         notifications: any UserNotificationRepository,
         sleep: any SleepPreventing,
-        simulatorSettings: any SimulatorSettingsRepository
+        simulatorSettings: any SimulatorSettingsRepository,
+        xcodes: any XcodeInstallationRepository,
+        toolEnvironment: any ToolEnvironmentRepository
     ) {
         self.usage = usage
         self.copilotUsage = copilotUsage
@@ -88,5 +92,7 @@ package struct Ports: Sendable {
         self.notifications = notifications
         self.sleep = sleep
         self.simulatorSettings = simulatorSettings
+        self.xcodes = xcodes
+        self.toolEnvironment = toolEnvironment
     }
 }

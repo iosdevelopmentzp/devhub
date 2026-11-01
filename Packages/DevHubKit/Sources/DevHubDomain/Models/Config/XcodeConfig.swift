@@ -7,6 +7,7 @@ package struct XcodeConfig: Codable, Hashable, Sendable {
     package var bundleID: String? = nil
     package var schemes: [String]? = nil
     package var bundleIDs: [String: String]? = nil
+    package var developerDir: String? = nil
 
     package init(
         container: String? = nil,
@@ -14,7 +15,8 @@ package struct XcodeConfig: Codable, Hashable, Sendable {
         configuration: String? = nil,
         bundleID: String? = nil,
         schemes: [String]? = nil,
-        bundleIDs: [String: String]? = nil
+        bundleIDs: [String: String]? = nil,
+        developerDir: String? = nil
     ) {
         self.container = container
         self.scheme = scheme
@@ -22,5 +24,6 @@ package struct XcodeConfig: Codable, Hashable, Sendable {
         self.bundleID = bundleID
         self.schemes = schemes
         self.bundleIDs = bundleIDs
+        self.developerDir = developerDir
     }
 }

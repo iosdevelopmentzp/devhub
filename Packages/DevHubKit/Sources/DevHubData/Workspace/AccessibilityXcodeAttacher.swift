@@ -23,7 +23,7 @@ struct AccessibilityXcodeAttacher: XcodeAttaching {
             throw XcodeAttachError.noProject(projectPath)
         }
         let hadWindows = await windowCount() > 0
-        _ = try await shell.run("open", ["-a", "Xcode", container.url.path], cwd: nil)
+        _ = try await shell.run("open", ["-a", shell.developerDir.xcodeAppName(), container.url.path], cwd: nil)
         if hadWindows == false {
             try await waitForWindow()
             try await Task.sleep(for: .seconds(6))

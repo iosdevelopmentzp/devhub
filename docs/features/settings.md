@@ -85,6 +85,7 @@ One row per project. The selected project has a filled indigo icon. A `launch id
 |---|---|
 | Scheme field | The scheme Build & Run starts with. The run bar can switch it. A change applies at once |
 | Bundle ID field | The fallback bundle ID for uninstall, deep links, push and the log process lookup. `xcode.bundleIDs`, `xcode.bundleID` and the last launch from DevHub come first ([Device identity](device-identity.md#the-bundle-id)). A change applies at once |
+| Xcode picker | The Xcode of this project: "Default" (the `xcode.developerDir` of `.devhub/project.json`, else the Xcode of `xcode-select`) or one of the Xcode apps that Spotlight finds (`mdfind kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'`, newest first, read from `Contents/version.plist`). DevHub passes the choice as `DEVELOPER_DIR` to `xcodebuild`, `xcrun` and `xed`, and opens that Xcode with `open -a`. The selected project shows a line "Builds use …". Saved with the project |
 | Re-detect (circular arrows) | Finds the scheme and the bundle ID again in the project files, saves them and shows them in a toast |
 | Remove (minus) | Asks inside the row, then removes the project from DevHub. The folder stays on disk. The last project cannot be removed |
 | Add Project… | Opens a folder picker that starts in `~/Documents/Projects`. Adding a folder that is already in the list selects it |

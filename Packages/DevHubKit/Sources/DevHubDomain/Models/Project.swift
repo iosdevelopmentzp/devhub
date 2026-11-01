@@ -6,6 +6,7 @@ package struct Project: Identifiable, Hashable, Codable, Sendable {
     package var path: String
     package var scheme: String
     package var bundleID: String
+    package var developerDir: String? = nil
 
     package static let none = Project(id: "", name: "No project", path: "", scheme: "", bundleID: "")
 
@@ -14,12 +15,14 @@ package struct Project: Identifiable, Hashable, Codable, Sendable {
         name: String,
         path: String,
         scheme: String,
-        bundleID: String
+        bundleID: String,
+        developerDir: String? = nil
     ) {
         self.id = id
         self.name = name
         self.path = path
         self.scheme = scheme
         self.bundleID = bundleID
+        self.developerDir = developerDir
     }
 }

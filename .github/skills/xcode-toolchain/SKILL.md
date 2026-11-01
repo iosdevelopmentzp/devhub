@@ -19,6 +19,15 @@ relative to `Packages/DevHubKit/Sources/`.
 | Pipelines | `DevHubDomain/UseCases/`: `BuildAndRunUseCase`, `CommandRunUseCase`, `AppInstallStep`, `LaunchInstalledAppUseCase`, `MockLaunchPreparation` |
 | Project detection | `DevHubData/Workspace/XcodeProjectDetector` (scheme and bundle ID of a new project) |
 
+## Which Xcode runs
+
+`ShellRunner` adds `DEVELOPER_DIR` to `xcodebuild`, `xcrun` and `xed` when the selected project has an Xcode
+(Settings → Projects, else `xcode.developerDir`). `XcodeSelectionStore` sets it through
+`ToolEnvironmentRepository` (`ShellToolEnvironmentRepository` writes `shell.developerDir`). `open -a` uses
+`shell.developerDir.xcodeAppName()` (the `.app` path, else `Xcode`). `SpotlightXcodeInstallationRepository` lists
+the installed apps with `mdfind kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'` and reads
+`Contents/version.plist`; `xcode-select -p` gives the system default. Never pass the folder in a port call.
+
 ## Build and Run pipeline (`kind: xcode`)
 
 `BuildAndRunUseCase.run(_:)` returns an `AsyncThrowingStream<BuildEvent, Error>` and runs these steps. `BuildStore`

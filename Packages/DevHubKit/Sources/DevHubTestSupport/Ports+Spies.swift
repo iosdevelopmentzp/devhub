@@ -31,7 +31,9 @@ package extension Ports {
             tools: spies.tools,
             notifications: spies.notifications,
             sleep: spies.sleep,
-            simulatorSettings: spies.simulatorSettings
+            simulatorSettings: spies.simulatorSettings,
+            xcodes: spies.xcodes,
+            toolEnvironment: spies.toolEnvironment
         )
         return (ports, spies)
     }

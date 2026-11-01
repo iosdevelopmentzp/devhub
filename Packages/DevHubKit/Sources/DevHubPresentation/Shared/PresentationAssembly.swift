@@ -14,6 +14,7 @@ package final class PresentationAssembly {
     let toaster: Toaster
     let notifier: Notifier
     let doctor: DoctorStore
+    let xcodes: XcodeSelectionStore
     let keepAwake: KeepAwakeStore
     let hints: HintCenter
     let output: OutputPanelState
@@ -78,6 +79,7 @@ package final class PresentationAssembly {
         workspace = WorkspaceActions(settings: settings, activity: activity, opener: ports.opener, files: ports.textFiles)
         notifier = Notifier(repository: ports.notifications, settings: settings, activity: activity)
         doctor = DoctorStore(checkTools: useCases.checkTools, attacher: ports.attacher)
+        xcodes = XcodeSelectionStore(repository: ports.xcodes, environment: ports.toolEnvironment, session: session, config: config, activity: activity, events: events)
         keepAwake = KeepAwakeStore(preventer: ports.sleep, activity: activity)
         usage = UsageStore(repository: ports.usage, copilotRepository: ports.copilotUsage)
         usage.providers = initialSettings.usageProviders

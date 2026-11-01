@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(ProjectSession.self) private var session
     @Environment(ConfigStore.self) private var config
+    @Environment(XcodeSelectionStore.self) private var xcodes
     @Environment(Toaster.self) private var toaster
     @Environment(\.codeHostWords) private var words
 
@@ -66,6 +67,14 @@ struct SettingsView: View {
                         ),
                         scheme: field(\.scheme, of: project),
                         bundleID: field(\.bundleID, of: project),
+                        developerDir: xcodeChoice(of: project),
+                        xcodeOptions: XcodeOptionMapper.options(
+                            installations: xcodes.installations,
+                            systemDeveloperDir: xcodes.systemDeveloperDir,
+                            configDeveloperDir: project.id == session.selectedProjectID ? xcodes.configDeveloperDir : nil,
+                            choice: project.developerDir
+                        ),
+                        xcodeSummary: project.id == session.selectedProjectID ? XcodeOptionMapper.summary(effective: xcodes.effectiveDeveloperDir, systemDeveloperDir: xcodes.systemDeveloperDir, installations: xcodes.installations) : nil,
                         onRedetect: { redetect(project) },
                         onRemove: { session.remove(id: project.id) }
                     )
@@ -129,6 +138,9 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
+        .task {
+            await xcodes.refresh()
+        }
     }
 
     private var launchAtLogin: Binding<Bool> {
@@ -142,6 +154,13 @@ struct SettingsView: View {
         Binding(
             get: { project[keyPath: keyPath] },
             set: { session.update(ProjectSettingsRowMapper.project(project, setting: keyPath, to: $0)) }
+        )
+    }
+
+    private func xcodeChoice(of project: Project) -> Binding<String> {
+        Binding(
+            get: { project.developerDir ?? "" },
+            set: { xcodes.choose($0, for: project) }
         )
     }
 

@@ -97,7 +97,7 @@ import Testing
         #expect(CommandKind.classify("osascript", ["-e", "get name of every window"]) == .read)
     }
 
-    @Test(arguments: ["du", "ps", "grep", "plutil", "pgrep"])
+    @Test(arguments: ["du", "ps", "grep", "plutil", "pgrep", "mdfind", "xcode-select"])
     func plainReadToolsAreReads(executable: String) {
         #expect(CommandKind.classify(executable, ["-x"]) == .read)
     }
