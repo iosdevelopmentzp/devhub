@@ -103,6 +103,15 @@ struct GhPullRequestRepository: CodeHostRepository {
         try await GhPullRequestParser.labels(from: client.command(["label", "list", "--json", "name", "--limit", "200"], host: repository))
     }
 
+    func people(repository: CodeHost) async throws -> [String] {
+        let endpoint = "repos/\(GhClient.owner(repository))/\(GhClient.name(repository))/assignees?per_page=100"
+        return try await GhUserListParser.logins(from: client.rest(endpoint, method: "GET", fields: [], host: repository))
+    }
+
+    func updatePeople(iid: Int, role: PullRequestPersonRole, add: [String], remove: [String], repository: CodeHost) async throws {
+        _ = try await client.pr(Self.peopleArguments(iid: iid, role: role, add: add, remove: remove), host: repository)
+    }
+
     func resolveThread(id: String, repository: CodeHost) async throws {
         try await mutate(GhGraphQLQueries.resolveThread, [.text("id", id)], repository)
     }
@@ -179,6 +188,13 @@ struct GhPullRequestRepository: CodeHostRepository {
             .typed("line", String(line)),
             .text("side", comment.newLine == nil ? "LEFT" : "RIGHT"),
         ]
+    }
+
+    static func peopleArguments(iid: Int, role: PullRequestPersonRole, add: [String], remove: [String]) -> [String] {
+        let noun = role == .reviewer ? "reviewer" : "assignee"
+        return ["edit", String(iid)]
+            + (add.isEmpty ? [] : ["--add-\(noun)", add.joined(separator: ",")])
+            + (remove.isEmpty ? [] : ["--remove-\(noun)", remove.joined(separator: ",")])
     }
 
     static func commentArguments(iid: Int, body: String) -> [String] {

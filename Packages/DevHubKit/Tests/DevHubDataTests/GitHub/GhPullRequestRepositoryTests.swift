@@ -5,6 +5,11 @@ import Testing
 @testable import DevHubData
 
 @Suite struct GhPullRequestRepositoryTests {
+    @Test func peopleArgumentsAddAndRemoveByRole() {
+        #expect(GhPullRequestRepository.peopleArguments(iid: 12, role: .reviewer, add: ["sam", "kim"], remove: ["lee"]) == ["edit", "12", "--add-reviewer", "sam,kim", "--remove-reviewer", "lee"])
+        #expect(GhPullRequestRepository.peopleArguments(iid: 12, role: .assignee, add: [], remove: ["alex"]) == ["edit", "12", "--remove-assignee", "alex"])
+    }
+
     @Test func listSearchesTheRepositoryAndPassesTheCursor() {
         let variables = GhPullRequestRepository.listVariables(PullRequestQuery(scope: .mine, state: .merged), after: "abc", repository: .gitHubSample)
 

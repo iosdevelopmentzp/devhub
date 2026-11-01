@@ -5,6 +5,10 @@ import Testing
 @testable import DevHubData
 
 @Suite struct GlabClientTests {
+    @Test func aCommandNamesTheProjectByItsWebAddress() {
+        #expect(GlabClient.commandArguments(["mr", "update", "1"], repository: .gitLabSample) == ["mr", "update", "1", "--repo", CodeHost.gitLabSample.webURL.absoluteString])
+    }
+
     @Test func graphqlPassesTheQueryAndVariablesAsFields() {
         let arguments = GlabClient.graphqlArguments(
             query: "query { x }",

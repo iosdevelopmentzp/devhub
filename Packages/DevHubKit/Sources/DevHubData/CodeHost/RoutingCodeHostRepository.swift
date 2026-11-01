@@ -69,6 +69,14 @@ struct RoutingCodeHostRepository: CodeHostRepository {
         try await target(repository).labels(repository: repository)
     }
 
+    func people(repository: CodeHost) async throws -> [String] {
+        try await target(repository).people(repository: repository)
+    }
+
+    func updatePeople(iid: Int, role: PullRequestPersonRole, add: [String], remove: [String], repository: CodeHost) async throws {
+        try await target(repository).updatePeople(iid: iid, role: role, add: add, remove: remove, repository: repository)
+    }
+
     func resolveThread(id: String, repository: CodeHost) async throws {
         try await target(repository).resolveThread(id: id, repository: repository)
     }

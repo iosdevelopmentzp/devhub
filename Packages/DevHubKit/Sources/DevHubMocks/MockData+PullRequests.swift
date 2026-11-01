@@ -3,6 +3,7 @@ import DevHubDomain
 
 package extension MockData {
     static let gitLabUsername = "alex"
+    static let people = ["alex", "kim", "lee", "robin", "sam"]
 
     static let pullRequests: [PullRequestSummary] = [
         pullRequest(1842, "ABC-2324: Paid call payment", author: "alex", source: "feature/ABC-2324-paid-call", detail: .notApproved, pipeline: .running, approvedBy: ["robin"], labels: ["feature"], assignees: ["alex"], reviewers: ["sam", "kim", "robin"], changesRequestedBy: ["kim"], comments: 4, minutesAgo: 12, diff: (120, 30, 7, 3), threads: (3, 1), behind: true),

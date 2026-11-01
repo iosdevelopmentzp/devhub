@@ -95,6 +95,9 @@ struct PullRequestDetailsView: View {
             if loaded.reviewLines.isEmpty == false {
                 review(loaded.reviewLines)
             }
+            if let people = loaded.people {
+                peopleMenus(people)
+            }
             if let description = loaded.description {
                 ExpandableText(description, lineLimit: 12)
                     .font(.callout)
@@ -308,6 +311,36 @@ struct PullRequestDetailsView: View {
                 }
             }
         }
+    }
+
+    private func peopleMenus(_ people: PullRequestPeopleModel) -> some View {
+        HStack(spacing: 12) {
+            ForEach(people.menus) { menu in
+                Menu {
+                    if let emptyText = menu.emptyText {
+                        Text(emptyText)
+                    }
+                    ForEach(menu.options) { option in
+                        Toggle(option.title, isOn: Binding(
+                            get: { option.isSelected },
+                            set: { _ in actions.togglePerson(option.id, menu.id) }
+                        ))
+                    }
+                } label: {
+                    Label(menu.title, systemImage: menu.icon)
+                        .font(.caption)
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+                .hint(menu.hint)
+            }
+            if people.isBusy {
+                ProgressView()
+                    .controlSize(.mini)
+            }
+        }
+        .controlSize(.small)
+        .disabled(people.isBusy)
     }
 
     private func reviewNoticeLine(_ notice: PullRequestDetailsModel.ReviewNotice) -> some View {

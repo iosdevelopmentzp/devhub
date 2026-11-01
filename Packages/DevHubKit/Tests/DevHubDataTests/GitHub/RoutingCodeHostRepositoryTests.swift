@@ -29,4 +29,16 @@ import Testing
         #expect(gitHub.calls == [.comment(iid: 1, body: "a", repository: .gitHubSample), .requestChanges(iid: 1, body: "b", repository: .gitHubSample)])
         #expect(gitLab.calls == [.comment(iid: 2, body: "c", repository: .gitLabSample)])
     }
+
+    @Test func peopleGoToTheRepositoryOfTheirKind() async throws {
+        let gitHub = SpyCodeHostRepository()
+        let gitLab = SpyCodeHostRepository()
+        let repository = RoutingCodeHostRepository(gitHub: gitHub, gitLab: gitLab)
+
+        _ = try await repository.people(repository: .gitHubSample)
+        try await repository.updatePeople(iid: 2, role: .assignee, add: ["sam"], remove: [], repository: .gitLabSample)
+
+        #expect(gitHub.calls == [.people(repository: .gitHubSample)])
+        #expect(gitLab.calls == [.updatePeople(iid: 2, role: .assignee, add: ["sam"], remove: [], repository: .gitLabSample)])
+    }
 }

@@ -53,6 +53,7 @@ enum PullRequestDetailsMapper {
                     hiddenFilesHint: hidden.isEmpty ? nil : hiddenFilesHint(count: hidden.count, shown: review.showsHiddenFiles),
                     hideSuggestion: hideSuggestion(HiddenFilePolicy.suggestedPaths(in: paths, hidden: hidden)),
                     reviewNotice: reviewNotice(review: review, words: words),
+                    people: PullRequestPeopleMapper.model(summary: summary, context: context),
                     showsHiddenFiles: review.showsHiddenFiles,
                     canExpandAllFiles: visible.count - viewedCount > expandedCount,
                     canCollapseAllFiles: expandedCount > 0,

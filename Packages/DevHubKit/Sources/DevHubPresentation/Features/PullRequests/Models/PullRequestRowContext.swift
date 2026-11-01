@@ -12,4 +12,6 @@ struct PullRequestRowContext {
     var staleDays: Int
     var hiddenFiles: [String]
     var watchedIDs: Set<Int>
+    var people: [String] = []
+    var busyPeopleIDs: Set<Int> = []
 }

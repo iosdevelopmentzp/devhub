@@ -108,6 +108,7 @@ The rewrite plan (ADR 001, M0 to M8) and ADR 005 are complete. Ideas for later: 
 
 ## Known gaps
 
+- Reviewers and assignees: checked by tests and a headless snapshot over the mock ports, not on a live host. `glab mr update … --repo <web address>` and the `+`/`!` prefixes follow `glab mr update --help`. The people list is the first page only (100). A GitHub team reviewer shows as a checked name and can be removed, but teams are not offered to add. On GitHub a reviewer who already reviewed leaves the review requests, so the menu shows no check mark for them; a click requests a new review.
 - Changed since your review: an approve from a row whose details were never opened saves nothing, because DevHub has no diff to compare with. A review made in the browser is not seen. Checked by tests and a headless snapshot over the mock ports.
 - App data: checked by tests and a headless snapshot over the mock ports, not on a booted simulator in this session. `simctl get_app_container … groups` is read as `<group ID><tab><path>` lines; an app without groups is assumed to print nothing or fail. Folder sizes count file sizes, not the disk blocks.
 - Crash reports: the `.ips` fields come from reports of current macOS versions (header line, then `procPath`, `exception`, `asi`, `faultingThread`, `threads`, `usedImages`). Checked with a recorded sample and the mock ports, not with a real crash in this session. A report that is still being written is read on the next folder event.

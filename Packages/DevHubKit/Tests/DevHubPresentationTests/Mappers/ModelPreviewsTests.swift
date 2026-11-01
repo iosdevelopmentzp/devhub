@@ -67,6 +67,7 @@ import Testing
         #expect(SimulatorRowModel.preview.showsActions(isHovered: false))
         #expect(AppDataFileRowModel.preview.name == "Documents")
         #expect(AppDefaultRowModel.preview.canEdit)
+        #expect(PullRequestPeopleModel.preview.menus.count == 2)
         #expect(SimulatorSectionModel.preview.rows.count == 1)
         #expect(UsageMeterModel.preview.levelTint == .orange)
         #expect(UsageSummaryModel.preview.meters.count == 2)

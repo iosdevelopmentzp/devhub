@@ -150,6 +150,22 @@ struct GlabPullRequestRepository: CodeHostRepository {
         return try GlabGraphQLParser.labels(from: data)
     }
 
+    func people(repository: CodeHost) async throws -> [String] {
+        let endpoint = "projects/\(Self.encoded(GlabClient.projectPath(of: repository)))/members/all?per_page=100"
+        return try await GlabMemberListParser.usernames(from: client.rest(endpoint, host: try GlabClient.host(of: repository)))
+    }
+
+    func updatePeople(iid: Int, role: PullRequestPersonRole, add: [String], remove: [String], repository: CodeHost) async throws {
+        _ = try await client.command(Self.peopleArguments(iid: iid, role: role, add: add, remove: remove), repository: repository)
+    }
+
+    static func peopleArguments(iid: Int, role: PullRequestPersonRole, add: [String], remove: [String]) -> [String] {
+        let flag = role == .reviewer ? "--reviewer" : "--assignee"
+        return ["mr", "update", String(iid)]
+            + add.map { "\(flag)=+\($0)" }
+            + remove.map { "\(flag)=!\($0)" }
+    }
+
     func resolveThread(id: String, repository: CodeHost) async throws {
         let data = try await client.graphql(
             GlabGraphQLQueries.toggleResolve,

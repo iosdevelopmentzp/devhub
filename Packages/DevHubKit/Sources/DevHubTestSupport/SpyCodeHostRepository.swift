@@ -19,6 +19,8 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
         case cancelPipeline(id: Int, repository: CodeHost)
         case create(NewPullRequest, repository: CodeHost)
         case labels(repository: CodeHost)
+        case people(repository: CodeHost)
+        case updatePeople(iid: Int, role: PullRequestPersonRole, add: [String], remove: [String], repository: CodeHost)
         case resolveThread(id: String, repository: CodeHost)
         case reply(threadID: String, body: String, iid: Int, repository: CodeHost)
         case comment(iid: Int, body: String, repository: CodeHost)
@@ -42,6 +44,7 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
     private var _actionError: (any Error)? = nil
     private var _createResult: Result<PullRequestSummary, any Error>? = nil
     private var _labelsResult: Result<[String], any Error> = .success([])
+    private var _peopleResult: Result<[String], any Error> = .success([])
     private var _jobLogResult: Result<String, any Error> = .success("")
     private var _fileContentResult: Result<String, any Error> = .success("")
     private var _inboxResult: Result<[InboxItem], any Error> = .success([])
@@ -92,6 +95,11 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
         set { lock.withLock { _labelsResult = newValue } }
     }
 
+    package var peopleResult: Result<[String], any Error> {
+        get { lock.withLock { _peopleResult } }
+        set { lock.withLock { _peopleResult = newValue } }
+    }
+
     package var jobLogResult: Result<String, any Error> {
         get { lock.withLock { _jobLogResult } }
         set { lock.withLock { _jobLogResult = newValue } }
@@ -132,6 +140,14 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
 
     package func labels(repository: CodeHost) async throws -> [String] {
         try record(.labels(repository: repository)) { try _labelsResult.get() }
+    }
+
+    package func people(repository: CodeHost) async throws -> [String] {
+        try record(.people(repository: repository)) { try _peopleResult.get() }
+    }
+
+    package func updatePeople(iid: Int, role: PullRequestPersonRole, add: [String], remove: [String], repository: CodeHost) async throws {
+        try action(.updatePeople(iid: iid, role: role, add: add, remove: remove, repository: repository))
     }
 
     package var actionError: (any Error)? {

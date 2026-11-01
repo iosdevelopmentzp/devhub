@@ -25,7 +25,7 @@ A code host is the web service that keeps the repository and its review requests
 
 ## The port
 
-`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`, `fileContent`, `inbox`, `markInboxDone`.
+`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `people`, `updatePeople`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`, `fileContent`, `inbox`, `markInboxDone`.
 
 Every method takes `repository: CodeHost`. A `CodeHost` holds:
 
@@ -66,6 +66,7 @@ The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsS
 | `retryPipeline`, `cancelPipeline` | `gh run rerun --failed`, `gh run cancel` | REST `retry`; GraphQL `pipelineCancel` |
 | `create` | REST `POST pulls`, then `POST issues/<n>/labels` | REST `POST merge_requests` |
 | `labels` | `gh label list --json name` | GraphQL `labels` |
+| `people`, `updatePeople` | REST `repos/<owner>/<name>/assignees` (`GhUserListParser`); `gh pr edit --add-reviewer\|--remove-reviewer\|--add-assignee\|--remove-assignee` | REST `projects/<project>/members/all` (`GlabMemberListParser`, active only); `glab mr update --reviewer=+a --reviewer=!b --repo <web address>` (`GlabClient.command`). `PullRequestPeopleStore` loads the people once per project and shows them in the "Reviewers" and "Assignees" menus of the details |
 | `resolveThread`, `reply` | GraphQL `resolveReviewThread`, `addPullRequestReviewThreadReply` | GraphQL `discussionToggleResolve`; REST discussion notes |
 | `comment` | `gh pr comment --body` | REST `POST merge_requests/<n>/notes` |
 | `requestChanges` | `gh pr review --request-changes --body` | throws; hidden by `canRequestChanges` |

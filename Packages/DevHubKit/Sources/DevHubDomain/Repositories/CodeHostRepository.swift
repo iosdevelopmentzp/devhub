@@ -17,6 +17,8 @@ package protocol CodeHostRepository: Sendable {
     func cancelPipeline(id: Int, repository: CodeHost) async throws
     func create(_ request: NewPullRequest, repository: CodeHost) async throws -> PullRequestSummary
     func labels(repository: CodeHost) async throws -> [String]
+    func people(repository: CodeHost) async throws -> [String]
+    func updatePeople(iid: Int, role: PullRequestPersonRole, add: [String], remove: [String], repository: CodeHost) async throws
     func resolveThread(id: String, repository: CodeHost) async throws
     func reply(threadID: String, body: String, iid: Int, repository: CodeHost) async throws
     func comment(iid: Int, body: String, repository: CodeHost) async throws

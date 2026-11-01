@@ -5,6 +5,11 @@ import Testing
 @testable import DevHubData
 
 @Suite struct GlabPullRequestRepositoryTests {
+    @Test func peopleArgumentsUsePlusAndBangPrefixes() {
+        #expect(GlabPullRequestRepository.peopleArguments(iid: 12, role: .reviewer, add: ["sam"], remove: ["lee"]) == ["mr", "update", "12", "--reviewer=+sam", "--reviewer=!lee"])
+        #expect(GlabPullRequestRepository.peopleArguments(iid: 12, role: .assignee, add: ["alex"], remove: []) == ["mr", "update", "12", "--assignee=+alex"])
+    }
+
     @Test func autoMergeSendsTheHeadSHAAndTheOptions() {
         let variables = GlabPullRequestRepository.autoMergeVariables(iid: 21, sha: "abc123", squash: true, removeSourceBranch: false, projectPath: "team/app")
 

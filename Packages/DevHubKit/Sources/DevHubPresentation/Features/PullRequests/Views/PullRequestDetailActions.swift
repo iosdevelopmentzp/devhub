@@ -9,6 +9,7 @@ struct PullRequestDetailActions {
     let toggleHiddenFiles: () -> Void
     let toggleOnlyChangedSinceReview: () -> Void
     let forgetReview: () -> Void
+    let togglePerson: (_ login: String, _ role: PullRequestPersonRole) -> Void
     let hideFiles: (_ paths: [String]) -> Void
     let unhideFile: (_ path: String) -> Void
     let showInDiff: (_ threadID: ReviewThread.ID) -> Void
@@ -54,6 +55,7 @@ struct PullRequestDetailActions {
         toggleHiddenFiles: {},
         toggleOnlyChangedSinceReview: {},
         forgetReview: {},
+        togglePerson: { _, _ in },
         hideFiles: { _ in },
         unhideFile: { _ in },
         showInDiff: { _ in },
@@ -101,6 +103,7 @@ struct PullRequestDetailActions {
             toggleHiddenFiles: toggleHiddenFiles,
             toggleOnlyChangedSinceReview: toggleOnlyChangedSinceReview,
             forgetReview: forgetReview,
+            togglePerson: togglePerson,
             hideFiles: hideFiles,
             unhideFile: unhideFile,
             showInDiff: showInDiff,
@@ -146,6 +149,7 @@ extension PullRequestDetailActions {
     static func live(
         for summary: PullRequestSummary,
         detailStore: PullRequestDetailStore,
+        people: PullRequestPeopleStore,
         autoRerun: CIAutoRerunStore,
         pullRequests: PullRequestsStore,
         appActions: AppActions,
@@ -161,6 +165,7 @@ extension PullRequestDetailActions {
             toggleHiddenFiles: { detailStore.toggleHiddenFiles(of: id) },
             toggleOnlyChangedSinceReview: { detailStore.toggleOnlyChangedSinceReview(of: id) },
             forgetReview: { detailStore.forgetReview(of: id) },
+            togglePerson: { people.toggle($0, role: $1, on: summary) },
             hideFiles: { detailStore.hideFiles($0) },
             unhideFile: { detailStore.unhideFile($0) },
             showInDiff: { detailStore.showInDiff(threadID: $0, of: id) },

@@ -27,6 +27,14 @@ struct GlabClient {
 
     private static let booleans: Set<String> = ["true", "false"]
 
+    func command(_ arguments: [String], repository: CodeHost) async throws -> Data {
+        try await run(Self.commandArguments(arguments, repository: repository), host: try Self.host(of: repository))
+    }
+
+    static func commandArguments(_ arguments: [String], repository: CodeHost) -> [String] {
+        arguments + ["--repo", repository.webURL.absoluteString]
+    }
+
     static func host(of repository: CodeHost) throws -> String {
         guard repository.kind == .gitlab else { throw PullRequestError.noCodeHost }
         return repository.host

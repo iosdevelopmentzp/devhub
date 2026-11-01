@@ -99,6 +99,15 @@ struct MockCodeHostRepository: CodeHostRepository {
         ["bugfix", "feature", "tech", "release"]
     }
 
+    func people(repository: CodeHost) async throws -> [String] {
+        try? await Task.sleep(for: .milliseconds(200))
+        return MockData.people
+    }
+
+    func updatePeople(iid: Int, role: PullRequestPersonRole, add: [String], remove: [String], repository: CodeHost) async throws {
+        try? await Task.sleep(for: .milliseconds(300))
+    }
+
     func resolveThread(id: String, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
