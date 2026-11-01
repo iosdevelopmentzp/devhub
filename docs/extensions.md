@@ -107,7 +107,7 @@ All fields optional. Missing values are detected (see "default").
 | `cwd` | `checkout` \| `main` \| `project` \| path | `checkout` | working folder; a relative path starts at the project folder; `checkout` is the checkout chosen in the Git tab (the project folder when none is chosen); `main` is the project folder |
 | `inputs` | [input] | `[]` | section 3.2 |
 | `confirm` | string | — | inline confirmation text; the action runs after the user confirms |
-| `refresh` | [`git` `worktrees` `simulators` `scripts` `logs` `pullRequests` `network`] | `[]` | stores refreshed after success; `pullRequests` reads the pull request tab, the open requests and the Git status line again; `network` reads the mock sets again; `logs` does nothing yet |
+| `refresh` | [`git` `worktrees` `simulators` `scripts` `logs` `pullRequests` `network` `appData`] | `[]` | stores refreshed after success; `pullRequests` reads the pull request tab, the open requests and the Git status line again; `network` reads the mock sets again; `appData` reads an open App Data panel again; `logs` does nothing yet |
 | `when` | object | — | visibility: `{"git": "clean"\|"dirty"}`, `{"simulator": "booted"}` (the target simulator is booted), `{"tool": "<executable>"}`, `{"kind": "xcode"\|"command"}`, `{"host": "github"\|"gitlab"}` (the code host of the remote) |
 
 ### 3.1 `run`
@@ -150,6 +150,7 @@ All fields optional. Missing values are detected (see "default").
 | `worktrees.row` | item in a worktree row's context menu (right-click) | `DEVHUB_WORKTREE_PATH`, `DEVHUB_BRANCH` of the row, `DEVHUB_ROW_ID` = the path |
 | `simulators.runBar` | button in the run bar, under the target | the target simulator |
 | `simulators.row` | item in a simulator row's overflow menu | `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME` of the row, `DEVHUB_ROW_ID` = the UDID |
+| `simulators.appData` | button in the App Data panel of a simulator, under its header | `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME` of the row, `DEVHUB_BUNDLE_ID` = the app of the panel, `DEVHUB_ROW_ID` = the UDID; the panel reads the data again when the action ends, also after a failure |
 | `logs.toolbar` | button in the Logs toolbar | the simulator of the stream, else the target simulator |
 | `pullRequests.row` | item in the overflow and context menu of an open pull request row | `DEVHUB_PR_NUMBER`, `DEVHUB_PR_URL`, `DEVHUB_BRANCH` = the source branch, `DEVHUB_ROW_ID` = the number |
 | `network.toolbar` | button in the toolbar of the Network tab | `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME` of the simulator chosen in the toolbar |
@@ -162,9 +163,28 @@ In a row placement, the inputs and the confirmation of an action open under that
 
 Every script, command, terminal text and `open` string gets these as environment variables and `{placeholders}`:
 
-`DEVHUB_PROJECT_PATH`, `DEVHUB_PROJECT_NAME`, `DEVHUB_CHECKOUT_PATH`, `DEVHUB_MAIN_PATH`, `DEVHUB_BRANCH`, `DEVHUB_BASE_BRANCH`, `DEVHUB_SCHEME`, `DEVHUB_CONFIGURATION`, `DEVHUB_BUNDLE_ID`, `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME`, `DEVHUB_APP_PATH`, `DEVHUB_WORKTREE_PATH`, `DEVHUB_INPUT_<KEY>`, `DEVHUB_CONFIG_DIR` (the `.devhub` folder of the layer that holds the action), `DEVHUB_ROW_ID` (row actions of a `view` and row placements), `DEVHUB_PR_NUMBER` and `DEVHUB_PR_URL` (the `pullRequests.row` placement), `DEVHUB_PROFILE` (the id of the launch profile chosen in the run bar for that simulator), `DEVHUB_HOST` (`github` or `gitlab`, the code host of the remote), `DEVHUB_APP_CONTAINER` and `DEVHUB_DATA_CONTAINER` (the app bundle folder and the data folder of the app on that simulator, from `xcrun simctl get_app_container`; empty when the app is not installed), `DEVHUB_VERSION`. The status script (`simulators.statusScript`) gets the same variables for its simulator. A value that is not known yet (simulator, app path before a build) is an empty string, never unset.
+`DEVHUB_PROJECT_PATH`, `DEVHUB_PROJECT_NAME`, `DEVHUB_CHECKOUT_PATH`, `DEVHUB_MAIN_PATH`, `DEVHUB_BRANCH`, `DEVHUB_BASE_BRANCH`, `DEVHUB_SCHEME`, `DEVHUB_CONFIGURATION`, `DEVHUB_BUNDLE_ID`, `DEVHUB_SIMULATOR_UDID`, `DEVHUB_SIMULATOR_NAME`, `DEVHUB_APP_PATH`, `DEVHUB_WORKTREE_PATH`, `DEVHUB_INPUT_<KEY>`, `DEVHUB_CONFIG_DIR` (the `.devhub` folder of the layer that holds the action), `DEVHUB_ROW_ID` (row actions of a `view` and row placements), `DEVHUB_PR_NUMBER` and `DEVHUB_PR_URL` (the `pullRequests.row` placement), `DEVHUB_PROFILE` (the id of the launch profile chosen in the run bar for that simulator), `DEVHUB_HOST` (`github` or `gitlab`, the code host of the remote), `DEVHUB_APP_CONTAINER` and `DEVHUB_DATA_CONTAINER` (the app bundle folder and the data folder of the app on that simulator, from `xcrun simctl get_app_container`; empty when the app is not installed), `DEVHUB_GROUP_CONTAINERS` (the app group containers of the app on that simulator, one line per group: the group ID, a tab, the folder; from `xcrun simctl get_app_container <udid> <bundle ID> groups`, so it is empty on a simulator that is not booted), `DEVHUB_SIMULATOR_STATE` (`booted`, `shutdown`, `booting` or `shutting-down`, the last known state of that simulator; empty when there is no simulator), `DEVHUB_VERSION`. DevHub also finds the app and data containers on a simulator that is shut down: it then reads the folders of the simulator. The status script (`simulators.statusScript`) gets the same variables for its simulator. A value that is not known yet (simulator, app path before a build) is an empty string, never unset.
 
 Placeholders use the lowercase name without the prefix: `{project_path}`, `{branch}`, `{simulator_udid}`, `{input_key}` is written as `{key}`.
+
+A script that changes the data of the app on a simulator:
+
+```sh
+while IFS=$'\t' read -r group folder; do
+    [ -n "$folder" ] || continue
+    rm -rf "$folder/Library/Caches"
+done <<< "$DEVHUB_GROUP_CONTAINERS"
+
+[ -n "$DEVHUB_DATA_CONTAINER" ] || { echo '@devhub {"error": "The app is not installed on this simulator"}'; exit 1; }
+plist="$DEVHUB_DATA_CONTAINER/Library/Preferences/$DEVHUB_BUNDLE_ID.plist"
+if [ "$DEVHUB_SIMULATOR_STATE" = booted ]; then
+    xcrun simctl spawn "$DEVHUB_SIMULATOR_UDID" defaults delete "$plist" onboardingDone || true
+else
+    plutil -remove onboardingDone "$plist" || true
+fi
+```
+
+Check that a folder is not empty before `rm -rf`: an empty `DEVHUB_GROUP_CONTAINERS` gives one empty line. On a booted simulator, change user defaults only through `xcrun simctl spawn <udid> defaults`: `cfprefsd` inside the simulator keeps the values in memory and writes them back over a changed file. On a simulator that is shut down, change the file.
 
 ## 4. Scripts with a header
 

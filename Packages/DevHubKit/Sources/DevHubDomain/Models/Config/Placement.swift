@@ -25,6 +25,7 @@ package struct Placement: Hashable, Codable, Sendable {
     package static let simulatorsRow = Placement("simulators.row")
     package static let logsToolbar = Placement("logs.toolbar")
     package static let pullRequestsRow = Placement("pullRequests.row")
+    package static let simulatorsAppData = Placement("simulators.appData")
     package static let networkToolbar = Placement("network.toolbar")
     package static let palette = Placement("palette")
 

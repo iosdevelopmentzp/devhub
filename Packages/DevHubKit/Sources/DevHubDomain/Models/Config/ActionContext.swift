@@ -12,6 +12,7 @@ package struct ActionContext: Hashable, Sendable {
     package var bundleID = ""
     package var simulatorUDID = ""
     package var simulatorName = ""
+    package var simulatorState = ""
     package var appPath = ""
     package var worktreePath = ""
     package var configDir = ""
@@ -23,6 +24,7 @@ package struct ActionContext: Hashable, Sendable {
     package var host = ""
     package var appContainer = ""
     package var dataContainer = ""
+    package var groupContainers = ""
     package var inputs: [String: String] = [:]
 
     package init() {}
@@ -40,6 +42,7 @@ package struct ActionContext: Hashable, Sendable {
             "BUNDLE_ID": bundleID,
             "SIMULATOR_UDID": simulatorUDID,
             "SIMULATOR_NAME": simulatorName,
+            "SIMULATOR_STATE": simulatorState,
             "APP_PATH": appPath,
             "WORKTREE_PATH": worktreePath,
             "CONFIG_DIR": configDir,
@@ -50,7 +53,8 @@ package struct ActionContext: Hashable, Sendable {
             "PROFILE": profile,
             "HOST": host,
             "APP_CONTAINER": appContainer,
-            "DATA_CONTAINER": dataContainer
+            "DATA_CONTAINER": dataContainer,
+            "GROUP_CONTAINERS": groupContainers
         ]
         for (key, value) in inputs {
             values["INPUT_" + Self.environmentKey(key)] = value

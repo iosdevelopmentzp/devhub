@@ -51,7 +51,8 @@ struct SimctlAppLaunchRepository: AppLaunchRepository {
         guard udid.isEmpty == false, bundleID.isEmpty == false else { return .none }
         async let app = container(udid: udid, bundleID: bundleID, kind: "app")
         async let data = container(udid: udid, bundleID: bundleID, kind: "data")
-        return AppContainers(app: await app ?? "", data: await data ?? "")
+        async let shared = groups(udid: udid, bundleID: bundleID)
+        return AppContainers(app: await app ?? "", data: await data ?? "", groups: await shared)
     }
 
     // MARK: Helpers
@@ -63,6 +64,12 @@ struct SimctlAppLaunchRepository: AppLaunchRepository {
             return result.stdout.trimmed
         }
         return ContainerLocator.find(udid: udid, bundleID: bundleID, kind: kind)
+    }
+
+    private func groups(udid: String, bundleID: String) async -> [AppDataFile] {
+        guard let result = try? await shell.run("xcrun", ["simctl", "get_app_container", udid, bundleID, "groups"], cwd: nil),
+              result.exitCode == 0 else { return [] }
+        return AppGroupListParser.groups(from: result.stdout)
     }
 
     private func storedProfile(udid: String, bundleID: String, storage: ProfileStorage?) async -> String? {

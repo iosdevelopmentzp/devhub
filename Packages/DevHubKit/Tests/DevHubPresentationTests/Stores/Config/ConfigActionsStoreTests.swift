@@ -52,6 +52,42 @@ import DevHubTestSupport
         #expect(harness.spies.launcher.calls.contains { if case .containers(udid: "SIM-1", bundleID: _) = $0 { true } else { false } })
     }
 
+    @Test func aRowSimulatorGetsItsStateAndTheGroupContainers() async throws {
+        harness.simulators.groups = SimulatorSample.groups
+        harness.spies.launcher.containersResult = AppContainers(app: "", data: "/sim/Data/App", groups: [AppDataFile(name: "group.com.example.app", path: "/sim/Shared/A", size: 0)])
+        let action = ConfigSample.action("clean")
+        await load([action])
+
+        store.request(action, item: ActionItemContext(simulatorUDID: SimulatorSample.booted.id), slot: "s")
+        try await finish("clean")
+
+        let request = try #require(harness.spies.scripts.calls.first)
+        #expect(request.environment["DEVHUB_SIMULATOR_STATE"] == "booted")
+        #expect(request.environment["DEVHUB_GROUP_CONTAINERS"] == "group.com.example.app\t/sim/Shared/A")
+    }
+
+    @Test func anItemBundleIDPicksTheContainersOfThatApp() async throws {
+        let action = ConfigSample.action("clean")
+        await load([action])
+
+        store.request(action, item: ActionItemContext(simulatorUDID: "SIM-1", bundleID: "com.example.app.widget"), slot: "s")
+        try await finish("clean")
+
+        #expect(harness.spies.launcher.calls.contains(.containers(udid: "SIM-1", bundleID: "com.example.app.widget")))
+        #expect(harness.spies.scripts.calls.first?.environment["DEVHUB_BUNDLE_ID"] == "com.example.app.widget")
+    }
+
+    @Test func itemRefreshTargetsArePostedAfterAFailure() async throws {
+        harness.spies.scripts.events = [.output("boom"), .exited(1)]
+        let action = ConfigSample.action("fail")
+        await load([action])
+
+        store.request(action, item: ActionItemContext(refresh: [.appData]), slot: "s")
+        try await finish("fail")
+
+        #expect(harness.postCount("refreshRequested(appData)") == 1)
+    }
+
     @Test func theBranchFallsBackToTheMainWorktree() async throws {
         harness.spies.worktrees.listResult = .success([WorktreeSample.main])
         await harness.worktrees.refresh()

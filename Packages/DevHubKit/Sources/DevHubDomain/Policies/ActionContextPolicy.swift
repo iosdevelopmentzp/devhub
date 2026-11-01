@@ -11,9 +11,10 @@ package enum ActionContextPolicy {
         context.baseBranch = inputs.effective?.baseBranch ?? ""
         context.scheme = inputs.effective?.scheme ?? ""
         context.configuration = inputs.effective?.configuration ?? ""
-        context.bundleID = inputs.effective?.bundleID ?? ""
+        context.bundleID = inputs.item.bundleID ?? inputs.effective?.bundleID ?? ""
         context.simulatorUDID = inputs.item.simulatorUDID ?? inputs.simulatorUDID
         context.simulatorName = inputs.item.simulatorName ?? inputs.simulatorName
+        context.simulatorState = stateText(inputs.simulatorState)
         context.appPath = inputs.appPath
         context.worktreePath = inputs.item.worktreePath ?? ""
         context.configDir = inputs.configDir
@@ -25,6 +26,7 @@ package enum ActionContextPolicy {
         context.host = inputs.hostKind?.rawValue ?? ""
         context.appContainer = inputs.containers.app
         context.dataContainer = inputs.containers.data
+        context.groupContainers = inputs.containers.groups.map { "\($0.name)\t\($0.path)" }.joined(separator: "\n")
         context.inputs = inputs.inputs
         return context
     }
@@ -52,6 +54,16 @@ package enum ActionContextPolicy {
                 expanded = home + expanded.dropFirst()
             }
             return expanded.hasPrefix("/") ? expanded : context.projectPath + "/" + expanded
+        }
+    }
+
+    private static func stateText(_ state: Simulator.State?) -> String {
+        switch state {
+        case .booted: "booted"
+        case .shutdown: "shutdown"
+        case .booting: "booting"
+        case .shuttingDown: "shutting-down"
+        case nil: ""
         }
     }
 }

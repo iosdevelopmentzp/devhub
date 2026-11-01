@@ -12,6 +12,10 @@ struct MockAppLaunchRepository: AppLaunchRepository {
     }
 
     func containers(udid: String, bundleID: String) async -> AppContainers {
-        AppContainers(app: "/tmp/Containers/Bundle/\(bundleID).app", data: "/tmp/Containers/Data/\(bundleID)")
+        AppContainers(
+            app: "/tmp/Containers/Bundle/\(bundleID).app",
+            data: "/tmp/Containers/Data/\(bundleID)",
+            groups: [AppDataFile(name: "group.\(bundleID)", path: "/tmp/Containers/Shared/group.\(bundleID)", size: 0)]
+        )
     }
 }

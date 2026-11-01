@@ -205,6 +205,8 @@ Video recording is not there yet: `simctl io recordVideo` needs SIGINT to finish
 4. **User defaults**, one section for the app and one for each app group. Each key shows its type and value. A filter field narrows the keys by key or value; a section shows 60 keys at most. A string, number or boolean can be edited (pencil), a boolean can be switched in one click, and every key can be deleted (inline confirmation). "Add Key" adds a key of type string, int, float or bool. A date, data, array or dictionary value is read only.
 5. **Reset App Data…** with an inline confirmation: it stops the app, deletes its defaults and the contents of Documents, Library and tmp. A switch also clears the app group containers. Keychain items stay.
 
+Config actions with the `simulators.appData` placement are buttons under the panel header, with their inputs, confirmation and result under the buttons. A script gets the simulator of the row, the app of the panel in `DEVHUB_BUNDLE_ID`, the containers in `DEVHUB_DATA_CONTAINER` and `DEVHUB_GROUP_CONTAINERS`, and `DEVHUB_SIMULATOR_STATE`. The panel reads the data again when the action ends, also after a failure. The schema and an example script are in `docs/extensions.md` (sections 3.3 and 3.4).
+
 Every change runs as an operation: the card under the panel header shows the commands, and a failure keeps the reason. After a change the panel reads the data again. A running app reads a changed key after a relaunch.
 
 | Step | Command |

@@ -7,4 +7,9 @@ fi
 echo "Profile: ${DEVHUB_PROFILE:-none} · host: ${DEVHUB_HOST:-unknown}"
 rm -rf "$DEVHUB_DATA_CONTAINER/Library/Caches"
 mkdir -p "$DEVHUB_DATA_CONTAINER/Library/Caches"
-echo "@devhub {\"toast\": \"Cleared the caches of $DEVHUB_BUNDLE_ID\"}"
+while IFS=$'\t' read -r group folder; do
+    [ -n "$folder" ] || continue
+    rm -rf "$folder/Library/Caches"
+    mkdir -p "$folder/Library/Caches"
+done <<< "$DEVHUB_GROUP_CONTAINERS"
+echo "@devhub {\"toast\": \"Cleared the caches of $DEVHUB_BUNDLE_ID on $DEVHUB_SIMULATOR_NAME ($DEVHUB_SIMULATOR_STATE)\"}"

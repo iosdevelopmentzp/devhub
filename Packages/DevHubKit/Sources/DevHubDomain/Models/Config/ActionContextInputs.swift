@@ -16,6 +16,7 @@ package struct ActionContextInputs: Hashable, Sendable {
     package var profileID: String = ""
     package var hostKind: CodeHostKind? = nil
     package var containers: AppContainers = .none
+    package var simulatorState: Simulator.State? = nil
 
     package init(
         projectPath: String,
@@ -32,7 +33,8 @@ package struct ActionContextInputs: Hashable, Sendable {
         version: String,
         profileID: String = "",
         hostKind: CodeHostKind? = nil,
-        containers: AppContainers = .none
+        containers: AppContainers = .none,
+        simulatorState: Simulator.State? = nil
     ) {
         self.projectPath = projectPath
         self.projectName = projectName
@@ -49,5 +51,6 @@ package struct ActionContextInputs: Hashable, Sendable {
         self.profileID = profileID
         self.hostKind = hostKind
         self.containers = containers
+        self.simulatorState = simulatorState
     }
 }

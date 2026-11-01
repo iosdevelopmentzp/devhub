@@ -8,4 +8,5 @@ package enum RefreshTarget: String, Codable, Hashable, Sendable {
     case logs
     case pullRequests
     case network
+    case appData
 }

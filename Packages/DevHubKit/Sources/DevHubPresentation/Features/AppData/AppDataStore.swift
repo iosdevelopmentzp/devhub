@@ -14,11 +14,18 @@ final class AppDataStore {
     @ObservationIgnored private let operations: OperationLog
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let refreshTask = RefreshTask()
+    @ObservationIgnored private var subscription: SubscriptionToken?
+    @ObservationIgnored private var bundleIDs: [Simulator.ID: String] = [:]
 
-    init(repository: any AppDataRepository, operations: OperationLog, activity: ActivityLog) {
+    init(repository: any AppDataRepository, operations: OperationLog, activity: ActivityLog, events: AppEvents) {
         self.repository = repository
         self.operations = operations
         self.activity = activity
+        subscription = events.subscribe { [weak self] event in
+            guard let self else { return }
+            guard case .refreshRequested(.appData) = event else { return }
+            reloadAll()
+        }
     }
 
     func isBusy(_ id: Simulator.ID) -> Bool {
@@ -27,6 +34,7 @@ final class AppDataStore {
 
     func load(simulatorID: Simulator.ID, bundleID: String) async {
         guard bundleID.isEmpty == false else { return }
+        bundleIDs[simulatorID] = bundleID
         loadingIDs.insert(simulatorID)
         await refreshTask.run { [weak self] in
             guard let self else { return }
@@ -45,6 +53,7 @@ final class AppDataStore {
     func forget(simulatorID: Simulator.ID) {
         data[simulatorID] = nil
         errors[simulatorID] = nil
+        bundleIDs[simulatorID] = nil
     }
 
     func write(_ value: AppDefaultValue, key: String, in suite: AppDefaultsSuite, simulatorID: Simulator.ID) {
@@ -63,6 +72,13 @@ final class AppDataStore {
         guard let current = data[simulatorID] else { return }
         run(simulatorID, title: "Reset app data of \(current.bundleID)") { [repository] in
             try await repository.reset(current, udid: simulatorID, includingGroups: includingGroups)
+        }
+    }
+
+
+    private func reloadAll() {
+        for (simulatorID, bundleID) in bundleIDs {
+            Task { await load(simulatorID: simulatorID, bundleID: bundleID) }
         }
     }
 

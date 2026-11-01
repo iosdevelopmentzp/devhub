@@ -21,6 +21,10 @@ import Testing
         ]))
     }
 
+    @Test func appDataIsARefreshTarget() {
+        #expect(ScriptDirectiveParser.parse(#"@devhub {"refresh": ["appData"]}"#) == .directives([.refresh([.appData])]))
+    }
+
     @Test func aViewIsDecoded() {
         let line = #"@devhub {"view": {"keyValues": [["Env", "staging"]], "rows": [{"id": "1", "title": "Row", "tags": [{"text": "ok", "tint": "green"}]}]}}"#
 

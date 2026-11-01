@@ -21,12 +21,13 @@ extension ConfigActionsStore {
             status = Task.isCancelled ? .cancelled : .failed(error.localizedDescription)
         }
         tasks[action.id] = nil
-        finish(action, status: status, outcome: outcome, startedAt: startedAt)
+        finish(action, item: item, status: status, outcome: outcome, startedAt: startedAt)
     }
 
     private func makeContext(_ action: ResolvedAction, item: ActionItemContext, inputs: [String: String]) async -> ActionContext {
         let project = session.selectedProject
         let target = build.target
+        let udid = item.simulatorUDID ?? target?.id ?? ""
         return ActionContextPolicy.make(ActionContextInputs(
             projectPath: ProjectPath(project.path).expanded,
             projectName: project.name,
@@ -42,7 +43,8 @@ extension ConfigActionsStore {
             version: appVersion,
             profileID: target.flatMap { build.profile(for: $0.id) }?.id ?? "",
             hostKind: codeHosts.kind,
-            containers: await launcher.containers(udid: item.simulatorUDID ?? target?.id ?? "", bundleID: effective.bundleID ?? "")
+            containers: await launcher.containers(udid: udid, bundleID: item.bundleID ?? effective.bundleID ?? ""),
+            simulatorState: simulators.simulator(id: udid)?.state
         ))
     }
 
@@ -97,18 +99,18 @@ extension ConfigActionsStore {
         }
     }
 
-    private func finish(_ action: ResolvedAction, status: ConfigActionRun.Status, outcome: ConfigActionOutcome, startedAt: Date) {
+    private func finish(_ action: ResolvedAction, item: ActionItemContext, status: ConfigActionRun.Status, outcome: ConfigActionOutcome, startedAt: Date) {
         let finishedAt = Date()
         let title = action.config.title
         setRun(ConfigActionRun(status: status, startedAt: startedAt, finishedAt: finishedAt, view: outcome.view), for: action.id)
         finishOperation(of: action.id, status: status)
         recordRun(of: action.id, at: finishedAt)
+        var refresh = Set(item.refresh)
         switch status {
         case .succeeded:
             activity.log(title, detail: action.origin.fileName, outcome: .success)
-            for target in Set(action.config.refresh ?? []).union(outcome.refresh) {
-                events.post(.refreshRequested(target))
-            }
+            refresh.formUnion(action.config.refresh ?? [])
+            refresh.formUnion(outcome.refresh)
         case let .failed(message):
             activity.log(title, detail: message, outcome: .failure)
             toaster.show("\(title) failed: \(message)")
@@ -119,6 +121,9 @@ extension ConfigActionsStore {
             activity.log(title, detail: "Cancelled", outcome: .info)
         case .running:
             break
+        }
+        for target in refresh {
+            events.post(.refreshRequested(target))
         }
     }
 }

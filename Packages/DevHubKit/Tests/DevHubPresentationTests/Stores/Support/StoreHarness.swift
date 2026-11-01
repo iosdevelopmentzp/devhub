@@ -63,6 +63,7 @@ final class StoreHarness {
         worktrees: worktrees,
         codeHosts: codeHostRemote,
         build: build,
+        simulators: simulators,
         launcher: ports.launcher,
         workspace: workspace,
         toaster: toaster,
@@ -257,7 +258,7 @@ final class StoreHarness {
     lazy var network = NetworkStore(session: session, simulators: simulators, mockTraffic: mockServer, events: events, store: store)
 
     lazy var simulatorQA = SimulatorQAStore(repository: ports.simulatorSettings, activity: activity, screenshotFolder: "/tmp/DevHubTests/Shots", now: { Date(timeIntervalSince1970: 1_800_000_000) })
-    lazy var appData = AppDataStore(repository: ports.appData, operations: operations, activity: activity)
+    lazy var appData = AppDataStore(repository: ports.appData, operations: operations, activity: activity, events: events)
     lazy var diskCleanup = DiskCleanupStore(repository: ports.diskCleanup, operations: operations, activity: activity)
     lazy var messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, operations: operations, events: events, store: store)
 

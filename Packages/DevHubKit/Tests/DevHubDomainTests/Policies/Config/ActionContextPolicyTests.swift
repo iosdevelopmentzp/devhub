@@ -51,7 +51,37 @@ import Testing
     @Test func unknownProfileHostAndContainersAreEmptyStrings() {
         let environment = ActionContextPolicy.make(inputs()).environment
 
-        #expect(["DEVHUB_PROFILE", "DEVHUB_HOST", "DEVHUB_APP_CONTAINER", "DEVHUB_DATA_CONTAINER"].map { environment[$0] } == ["", "", "", ""])
+        #expect(["DEVHUB_PROFILE", "DEVHUB_HOST", "DEVHUB_APP_CONTAINER", "DEVHUB_DATA_CONTAINER", "DEVHUB_GROUP_CONTAINERS", "DEVHUB_SIMULATOR_STATE"].map { environment[$0] } == ["", "", "", "", "", ""])
+    }
+
+    @Test func groupContainersBecomeOneLinePerGroup() {
+        var values = inputs()
+        values.containers = AppContainers(app: "", data: "", groups: [
+            AppDataFile(name: "group.com.example.app", path: "/sim/Shared/A", size: 0),
+            AppDataFile(name: "group.com.example.app.widget", path: "/sim/Shared/B", size: 0)
+        ])
+
+        let environment = ActionContextPolicy.make(values).environment
+
+        #expect(environment["DEVHUB_GROUP_CONTAINERS"] == "group.com.example.app\t/sim/Shared/A\ngroup.com.example.app.widget\t/sim/Shared/B")
+    }
+
+    @Test func simulatorStateBecomesText() {
+        let states: [Simulator.State?] = [.booted, .shutdown, .booting, .shuttingDown, nil]
+
+        let texts = states.map { state in
+            var values = inputs()
+            values.simulatorState = state
+            return ActionContextPolicy.make(values).environment["DEVHUB_SIMULATOR_STATE"]
+        }
+
+        #expect(texts == ["booted", "shutdown", "booting", "shutting-down", ""])
+    }
+
+    @Test func theItemBundleIDWins() {
+        let context = ActionContextPolicy.make(inputs(item: ActionItemContext(bundleID: "com.example.app.widget")))
+
+        #expect(context.bundleID == "com.example.app.widget")
     }
 
     @Test func theRowItemWins() {

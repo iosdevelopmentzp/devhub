@@ -48,6 +48,30 @@ import Testing
         #expect(store.data["U1"] == nil)
     }
 
+    @Test func anAppDataRefreshReadsTheOpenPanelsAgain() async throws {
+        harness.spies.appData.readResult = .success(AppDataSample.data)
+        await store.load(simulatorID: "U1", bundleID: "com.example.app")
+
+        harness.events.post(.refreshRequested(.appData))
+
+        try await waitUntil { harness.spies.appData.calls.count == 2 && store.isBusy("U1") == false }
+        #expect(harness.spies.appData.calls == [
+            .read(udid: "U1", bundleID: "com.example.app"),
+            .read(udid: "U1", bundleID: "com.example.app")
+        ])
+    }
+
+    @Test func aClosedPanelIsNotReadOnRefresh() async {
+        harness.spies.appData.readResult = .success(AppDataSample.data)
+        await store.load(simulatorID: "U1", bundleID: "com.example.app")
+        store.forget(simulatorID: "U1")
+
+        harness.events.post(.refreshRequested(.appData))
+        await harness.settle()
+
+        #expect(harness.spies.appData.calls == [.read(udid: "U1", bundleID: "com.example.app")])
+    }
+
     @Test func writeRunsAsAnOperationThenReadsAgain() async throws {
         harness.spies.appData.readResult = .success(AppDataSample.data)
         await store.load(simulatorID: "U1", bundleID: "com.example.app")

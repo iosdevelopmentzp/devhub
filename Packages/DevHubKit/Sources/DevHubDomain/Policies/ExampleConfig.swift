@@ -16,6 +16,12 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
 {
   "name": "Example App",
   "kind": "xcode",
+  "ai": {
+    "commands": {
+      "claude": "claude \"$(cat {prompt})\"",
+      "copilot": "copilot -i \"$(cat {prompt})\""
+    }
+  },
   "xcode": {
     "container": "ExampleApp.xcworkspace",
     "scheme": "ExampleApp",
@@ -70,11 +76,11 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
 {
   "id": "clear-app-caches",
   "title": "Clear App Caches",
-  "subtitle": "Removes Library/Caches of the app on the chosen simulator",
+  "subtitle": "Removes Library/Caches of the app and its app groups on the chosen simulator",
   "icon": "eraser",
-  "placements": ["network.toolbar", "simulators.row"],
+  "placements": ["network.toolbar", "simulators.row", "simulators.appData"],
   "run": { "script": "scripts/clear-app-caches.sh" },
-  "confirm": "Delete the caches of the app on this simulator? Saved logins stay.",
+  "confirm": "Delete the caches of the app and its app groups on this simulator? Saved logins stay.",
   "refresh": ["network", "simulators"]
 }
 """#, isExecutable: false),
@@ -146,7 +152,12 @@ fi
 echo "Profile: ${DEVHUB_PROFILE:-none} · host: ${DEVHUB_HOST:-unknown}"
 rm -rf "$DEVHUB_DATA_CONTAINER/Library/Caches"
 mkdir -p "$DEVHUB_DATA_CONTAINER/Library/Caches"
-echo "@devhub {\"toast\": \"Cleared the caches of $DEVHUB_BUNDLE_ID\"}"
+while IFS=$'\t' read -r group folder; do
+    [ -n "$folder" ] || continue
+    rm -rf "$folder/Library/Caches"
+    mkdir -p "$folder/Library/Caches"
+done <<< "$DEVHUB_GROUP_CONTAINERS"
+echo "@devhub {\"toast\": \"Cleared the caches of $DEVHUB_BUNDLE_ID on $DEVHUB_SIMULATOR_NAME ($DEVHUB_SIMULATOR_STATE)\"}"
 """#, isExecutable: true),
         ExampleFile(path: "scripts/list-devices.sh", text: #"""
 #!/bin/zsh

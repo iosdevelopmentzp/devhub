@@ -138,7 +138,8 @@ final class SimulatorStatusStore {
             version: "",
             profileID: build.profile(for: simulator.id)?.id ?? "",
             hostKind: codeHosts.kind,
-            containers: containers
+            containers: containers,
+            simulatorState: simulator.state
         )).environment
     }
 }
