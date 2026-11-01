@@ -257,7 +257,7 @@ final class StoreHarness {
 
     lazy var network = NetworkStore(session: session, simulators: simulators, mockTraffic: mockServer, events: events, store: store)
 
-    lazy var simulatorQA = SimulatorQAStore(repository: ports.simulatorSettings, activity: activity, operations: operations, screenshotFolder: "/tmp/DevHubTests/Shots", now: { Date(timeIntervalSince1970: 1_800_000_000) })
+    lazy var simulatorQA = SimulatorQAStore(repository: ports.simulatorSettings, media: ports.media, store: store, activity: activity, operations: operations, screenshotFolder: "/tmp/DevHubTests/Shots", now: { Date(timeIntervalSince1970: 1_800_000_000) })
     lazy var media = MediaStore(repository: ports.media, operations: operations, activity: activity)
     lazy var appData = AppDataStore(repository: ports.appData, operations: operations, activity: activity, events: events)
     lazy var diskCleanup = DiskCleanupStore(repository: ports.diskCleanup, operations: operations, activity: activity)

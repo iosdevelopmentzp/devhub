@@ -1,4 +1,5 @@
 import DevHubDomain
+import DevHubMocks
 import DevHubTestSupport
 import Foundation
 import Testing
@@ -35,7 +36,7 @@ import Testing
         try await waitUntil { store.busyIDs.isEmpty }
 
         let path = "/tmp/DevHubTests/Shots/iPhone 16 Pro 2027-01-15 080000.png"
-        #expect(harness.spies.simulatorSettings.calls == [.screenshot(udid: SimulatorFixture.iPhone.id, path: path)])
+        #expect(harness.spies.simulatorSettings.calls == [.screenshot(udid: SimulatorFixture.iPhone.id, path: path, cutsCorners: false)])
         #expect(store.screenshots[SimulatorFixture.iPhone.id] == path)
     }
 
@@ -47,6 +48,37 @@ import Testing
 
         #expect(harness.lastActivity?.outcome == .failure)
         #expect(store.screenshots.isEmpty)
+    }
+
+    @Test func aFramedScreenshotCutsTheCornersThenAddsTheFrame() async throws {
+        store.framesScreenshots = true
+
+        store.screenshot(SimulatorFixture.iPhone)
+        try await waitUntil { store.busyIDs.isEmpty }
+
+        let path = "/tmp/DevHubTests/Shots/iPhone 16 Pro 2027-01-15 080000.png"
+        #expect(harness.spies.simulatorSettings.calls == [.screenshot(udid: SimulatorFixture.iPhone.id, path: path, cutsCorners: true)])
+        #expect(harness.spies.media.calls == [.addFrame(screenshot: path, udid: SimulatorFixture.iPhone.id)])
+        #expect(store.screenshots[SimulatorFixture.iPhone.id] == path)
+        #expect(harness.lastActivity?.detail == "With the device frame")
+    }
+
+    @Test func aMissingFrameKeepsThePlainScreenshot() async throws {
+        store.framesScreenshots = true
+        harness.spies.media.frameError = MediaError.noFrame("Xcode has no frame phone11.")
+
+        store.screenshot(SimulatorFixture.iPhone)
+        try await waitUntil { store.busyIDs.isEmpty }
+
+        #expect(store.screenshots[SimulatorFixture.iPhone.id] != nil)
+        #expect(harness.lastActivity?.title == "Screenshot of iPhone 16 Pro has no frame")
+        #expect(harness.lastActivity?.outcome == .failure)
+    }
+
+    @Test func theFrameChoiceIsSaved() {
+        store.framesScreenshots = true
+
+        #expect(harness.store.bool(forKey: "simulatorQA.framesScreenshots"))
     }
 
     @Test func aRecordingRunsUntilStopThenIsRemembered() async throws {

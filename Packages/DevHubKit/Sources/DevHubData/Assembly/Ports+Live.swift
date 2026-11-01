@@ -54,7 +54,14 @@ extension Ports {
             appData: SimctlAppDataRepository(shell: shell),
             aiText: ShellAITextRepository(shell: shell, folder: FileManager.default.temporaryDirectory.appendingPathComponent("DevHub/AI", isDirectory: true), home: home),
             diskCleanup: XcodeDiskCleanupRepository(shell: shell, home: home, derivedDataRoot: derivedData.root),
-            media: AVMediaRepository()
+            media: AVMediaRepository(chromes: DeviceChromeLocator(
+                devicesRoot: ContainerLocator.defaultDevicesRoot,
+                deviceTypeRoots: [
+                    URL(fileURLWithPath: "/Library/Developer/CoreSimulator/Profiles/DeviceTypes"),
+                    URL(fileURLWithPath: "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes"),
+                ],
+                chromeRoot: URL(fileURLWithPath: "/Library/Developer/DeviceKit/Chrome")
+            ))
         )
     }
 }

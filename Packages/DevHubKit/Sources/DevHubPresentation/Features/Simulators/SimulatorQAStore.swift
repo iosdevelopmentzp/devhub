@@ -11,20 +11,28 @@ final class SimulatorQAStore {
     private(set) var recordingIDs: Set<Simulator.ID> = []
     private(set) var recordingStarts: [Simulator.ID: Date] = [:]
     private(set) var recordings: [Simulator.ID: String] = [:]
+    var framesScreenshots: Bool {
+        didSet { store.set(framesScreenshots, forKey: Keys.framesScreenshots) }
+    }
 
     @ObservationIgnored private let repository: any SimulatorSettingsRepository
+    @ObservationIgnored private let media: any MediaRepository
+    @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let operations: OperationLog
     @ObservationIgnored private let screenshotFolder: String
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private var recordingTasks: [Simulator.ID: Task<Void, Never>] = [:]
 
-    init(repository: any SimulatorSettingsRepository, activity: ActivityLog, operations: OperationLog, screenshotFolder: String, now: @escaping () -> Date) {
+    init(repository: any SimulatorSettingsRepository, media: any MediaRepository, store: any KeyValueStore, activity: ActivityLog, operations: OperationLog, screenshotFolder: String, now: @escaping () -> Date) {
         self.repository = repository
+        self.media = media
+        self.store = store
         self.activity = activity
         self.operations = operations
         self.screenshotFolder = screenshotFolder
         self.now = now
+        framesScreenshots = store.bool(forKey: Keys.framesScreenshots)
     }
 
     func isBusy(_ id: Simulator.ID) -> Bool {
@@ -46,11 +54,32 @@ final class SimulatorQAStore {
     }
 
     func screenshot(_ simulator: Simulator) {
+        guard busyIDs.contains(simulator.id) == false else { return }
+        busyIDs.insert(simulator.id)
         let path = ProjectPath(screenshotFolder).expanded + "/" + SimulatorQAText.screenshotName(simulator: simulator.name, date: now())
-        run(simulator.id, title: "Screenshot of \(simulator.name)") { [repository] in
-            try await repository.screenshot(udid: simulator.id, to: path)
-        } done: { [weak self] in
-            self?.screenshots[simulator.id] = path
+        let framed = framesScreenshots
+        let repository = repository
+        let media = media
+        Task { [weak self] in
+            guard let self else { return }
+            let title = "Screenshot of \(simulator.name)"
+            do {
+                try await repository.screenshot(udid: simulator.id, to: path, cutsCorners: framed)
+                screenshots[simulator.id] = path
+                if framed {
+                    do {
+                        try await media.addFrame(to: path, udid: simulator.id)
+                        activity.log(title, detail: "With the device frame", outcome: .success)
+                    } catch {
+                        activity.log("\(title) has no frame", detail: error.localizedDescription, outcome: .failure)
+                    }
+                } else {
+                    activity.log(title, detail: "", outcome: .success)
+                }
+            } catch {
+                activity.log("\(title) failed", detail: error.localizedDescription, outcome: .failure)
+            }
+            busyIDs.remove(simulator.id)
         }
     }
 
@@ -132,5 +161,9 @@ final class SimulatorQAStore {
             }
             busyIDs.remove(id)
         }
+    }
+
+    private enum Keys {
+        static let framesScreenshots = "simulatorQA.framesScreenshots"
     }
 }

@@ -53,8 +53,9 @@ DevHubData/
                     (AppKit allowed here only)
     Disk/           XcodeDiskCleanupRepository(shell:home:derivedDataRoot:), DiskFolderScanner, SimctlRuntimeListParser,
                     SimctlUnavailableDeviceParser
-    Media/          AVMediaRepository (GIF through AVAssetImageGenerator and CGImageDestination, MP4 through
-                    AVAssetExportSession; no process) (AVFoundation and ImageIO allowed here only)
+    Media/          AVMediaRepository(chromes:) (GIF through AVAssetImageGenerator and CGImageDestination, MP4 through
+                    AVAssetExportSession, device frames through DeviceChromeLocator, DeviceChromeParser,
+                    DeviceFrameLayout and DeviceFrameRenderer; no process) (AVFoundation and ImageIO allowed here only)
     Assembly/       Ports+Live.swift
 DevHubMocks/        Mock<Thing>Repository one per file, MockData and MockData+<Domain>.swift,
                     Persistence/InMemoryKeyValueStore, Ports+Mock.swift

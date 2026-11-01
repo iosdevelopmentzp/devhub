@@ -6,7 +6,7 @@ struct MockSimulatorSettingsRepository: SimulatorSettingsRepository {
         try? await Task.sleep(for: .milliseconds(200))
     }
 
-    func screenshot(udid: String, to path: String) async throws {
+    func screenshot(udid: String, to path: String, cutsCorners: Bool) async throws {
         try? await Task.sleep(for: .milliseconds(200))
     }
 

@@ -4,11 +4,16 @@ import DevHubTestSupport
 import Foundation
 import ImageIO
 import Testing
+import UniformTypeIdentifiers
 @testable import DevHubData
 
 @Suite(.tags(.integration)) struct AVMediaRepositoryIntegrationTests {
     private let folder: TemporaryDirectory
     private let source: String
+
+    private var repository: AVMediaRepository {
+        AVMediaRepository(chromes: DeviceChromeLocator(devicesRoot: folder.url, deviceTypeRoots: [], chromeRoot: folder.url))
+    }
 
     init() async throws {
         folder = try TemporaryDirectory()
@@ -19,7 +24,7 @@ import Testing
     @Test func aGIFHasOneFramePerStepAndTheChosenWidth() async throws {
         let progress = CallbackRecorder<Double>()
 
-        let output = try await AVMediaRepository().makeGIF(from: source, options: GIFOptions(width: 80, framesPerSecond: 5)) { progress.append($0) }
+        let output = try await repository.makeGIF(from: source, options: GIFOptions(width: 80, framesPerSecond: 5)) { progress.append($0) }
 
         #expect(output == folder.path("Recording.gif"))
         let image = try #require(CGImageSourceCreateWithURL(URL(fileURLWithPath: output) as CFURL, nil))
@@ -31,7 +36,6 @@ import Testing
     }
 
     @Test func aSecondGIFDoesNotReplaceTheFirst() async throws {
-        let repository = AVMediaRepository()
         _ = try await repository.makeGIF(from: source, options: GIFOptions(width: 80, framesPerSecond: 5)) { _ in }
 
         let second = try await repository.makeGIF(from: source, options: GIFOptions(width: 80, framesPerSecond: 5)) { _ in }
@@ -40,7 +44,7 @@ import Testing
     }
 
     @Test func aCompressedVideoIsAnMP4WithAVideoTrack() async throws {
-        let output = try await AVMediaRepository().compress(source, as: .h264At720p)
+        let output = try await repository.compress(source, as: .h264At720p)
 
         #expect(output == folder.path("Recording 720p.mp4"))
         let tracks = try await AVURLAsset(url: URL(fileURLWithPath: output)).loadTracks(withMediaType: .video)
@@ -51,13 +55,50 @@ import Testing
         let text = try folder.write("not a video", to: "Notes.mov")
 
         await #expect(throws: (any Error).self) {
-            _ = try await AVMediaRepository().makeGIF(from: text.path, options: GIFOptions(width: 80, framesPerSecond: 5)) { _ in }
+            _ = try await repository.makeGIF(from: text.path, options: GIFOptions(width: 80, framesPerSecond: 5)) { _ in }
         }
     }
 
     @Test func eachCompressionHasAPreset() {
         #expect(AVMediaRepository.preset(for: .h264At720p) == AVAssetExportPreset1280x720)
         #expect(AVMediaRepository.preset(for: .hevcAt1080p) == AVAssetExportPresetHEVC1920x1080)
+    }
+
+    @Test func aFramedScreenshotReplacesThePlainOne() async throws {
+        let tree = DeviceChromeTree(directory: folder)
+        try tree.makeDevice()
+        try tree.makeChrome()
+        let screenshot = folder.path("Shot.png")
+        try writeImage(width: 200, height: 400, to: screenshot)
+
+        try await AVMediaRepository(chromes: tree.locator).addFrame(to: screenshot, udid: DeviceChromeTree.udid)
+
+        let image = try #require(CGImageSourceCreateWithURL(URL(fileURLWithPath: screenshot) as CFURL, nil).flatMap { CGImageSourceCreateImageAtIndex($0, 0, nil) })
+        #expect(image.width == 240)
+        #expect(image.height == 440)
+        let leftovers = try FileManager.default.contentsOfDirectory(atPath: folder.url.path).filter { $0.hasPrefix(".") }
+        #expect(leftovers.isEmpty)
+    }
+
+    @Test func aScreenshotOfAnUnknownDeviceStaysAsItIs() async throws {
+        let screenshot = folder.path("Shot.png")
+        try writeImage(width: 200, height: 400, to: screenshot)
+
+        await #expect(throws: MediaError.self) {
+            try await repository.addFrame(to: screenshot, udid: "OTHER")
+        }
+        let image = try #require(CGImageSourceCreateWithURL(URL(fileURLWithPath: screenshot) as CFURL, nil).flatMap { CGImageSourceCreateImageAtIndex($0, 0, nil) })
+        #expect(image.width == 200)
+    }
+
+    private func writeImage(width: Int, height: Int, to path: String) throws {
+        let context = try #require(CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.setFillColor(CGColor(red: 0, green: 0.5, blue: 1, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        let image = try #require(context.makeImage())
+        let output = try #require(CGImageDestinationCreateWithURL(URL(fileURLWithPath: path) as CFURL, UTType.png.identifier as CFString, 1, nil))
+        CGImageDestinationAddImage(output, image, nil)
+        #expect(CGImageDestinationFinalize(output))
     }
 }
 

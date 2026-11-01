@@ -14,8 +14,8 @@ struct SimctlSettingsRepository: SimulatorSettingsRepository {
         }
     }
 
-    func screenshot(udid: String, to path: String) async throws {
-        try await simctl.run(["io", udid, "screenshot", path], failure: SimulatorError.command)
+    func screenshot(udid: String, to path: String, cutsCorners: Bool) async throws {
+        try await simctl.run(Self.screenshotArguments(udid: udid, path: path, cutsCorners: cutsCorners), failure: SimulatorError.command)
     }
 
     func record(udid: String, to path: String, onStarted: @escaping @Sendable () -> Void) async throws {
@@ -32,6 +32,10 @@ struct SimctlSettingsRepository: SimulatorSettingsRepository {
         guard FileManager.default.fileExists(atPath: path) else {
             throw SimulatorError.command("simctl did not save the recording to \(path).")
         }
+    }
+
+    static func screenshotArguments(udid: String, path: String, cutsCorners: Bool) -> [String] {
+        ["io", udid, "screenshot"] + (cutsCorners ? ["--mask=alpha"] : []) + [path]
     }
 
     static let startedLine = "Recording started"

@@ -74,6 +74,10 @@ struct SimulatorQAPanel: View {
             }
             line("Screenshot") {
                 Button("Save to Desktop", systemImage: "camera") { qa.screenshot(simulator) }
+                Toggle("With frame", isOn: Binding(get: { qa.framesScreenshots }, set: { qa.framesScreenshots = $0 }))
+                    .toggleStyle(.checkbox)
+                    .fixedSize()
+                    .hint("Draws the device frame of Xcode around the screenshot")
                 if let path = qa.screenshots[simulator.id] {
                     Button((path as NSString).lastPathComponent) { appActions.openInFinder(path: path) }
                         .buttonStyle(LinkButtonStyle(.accent))

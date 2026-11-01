@@ -4,7 +4,7 @@ import Foundation
 package final class SpySimulatorSettingsRepository: SimulatorSettingsRepository, @unchecked Sendable {
     package enum Call: Hashable {
         case apply(SimulatorSetting, udid: String)
-        case screenshot(udid: String, path: String)
+        case screenshot(udid: String, path: String, cutsCorners: Bool)
         case record(udid: String, path: String)
     }
 
@@ -28,8 +28,8 @@ package final class SpySimulatorSettingsRepository: SimulatorSettingsRepository,
         try record(.apply(setting, udid: udid))
     }
 
-    package func screenshot(udid: String, to path: String) async throws {
-        try record(.screenshot(udid: udid, path: path))
+    package func screenshot(udid: String, to path: String, cutsCorners: Bool) async throws {
+        try record(.screenshot(udid: udid, path: path, cutsCorners: cutsCorners))
     }
 
     package func record(udid: String, to path: String, onStarted: @escaping @Sendable () -> Void) async throws {

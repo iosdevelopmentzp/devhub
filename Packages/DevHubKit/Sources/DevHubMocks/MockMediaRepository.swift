@@ -14,4 +14,8 @@ struct MockMediaRepository: MediaRepository {
         try await Task.sleep(for: .milliseconds(900))
         return MediaOutputPolicy.compressedPath(for: source, compression: compression) { _ in false }
     }
+
+    func addFrame(to screenshot: String, udid: String) async throws {
+        try await Task.sleep(for: .milliseconds(150))
+    }
 }

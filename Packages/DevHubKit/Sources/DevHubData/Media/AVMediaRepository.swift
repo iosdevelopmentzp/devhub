@@ -5,6 +5,8 @@ import UniformTypeIdentifiers
 import DevHubDomain
 
 struct AVMediaRepository: MediaRepository {
+    let chromes: DeviceChromeLocator
+
     func makeGIF(from source: String, options: GIFOptions, onProgress: @escaping @Sendable (Double) -> Void) async throws -> String {
         let destination = MediaOutputPolicy.gifPath(for: source, exists: FileManager.default.fileExists(atPath:))
         let asset = AVURLAsset(url: URL(fileURLWithPath: source))
@@ -58,6 +60,25 @@ struct AVMediaRepository: MediaRepository {
             }
             throw MediaError.exportFailed(error.localizedDescription)
         }
+    }
+
+    func addFrame(to screenshot: String, udid: String) async throws {
+        let source = try chromes.source(udid: udid)
+        let url = URL(fileURLWithPath: screenshot)
+        guard let input = CGImageSourceCreateWithURL(url as CFURL, nil), let image = CGImageSourceCreateImageAtIndex(input, 0, nil) else {
+            throw MediaError.cannotRead(screenshot)
+        }
+        let framed = try DeviceFrameRenderer(source: source).render(image)
+        let temporary = url.deletingLastPathComponent().appendingPathComponent(".\(UUID().uuidString).png")
+        guard let output = CGImageDestinationCreateWithURL(temporary as CFURL, UTType.png.identifier as CFString, 1, nil) else {
+            throw MediaError.cannotWrite(screenshot)
+        }
+        CGImageDestinationAddImage(output, framed, nil)
+        guard CGImageDestinationFinalize(output) else {
+            try? FileManager.default.removeItem(at: temporary)
+            throw MediaError.cannotWrite(screenshot)
+        }
+        _ = try FileManager.default.replaceItemAt(url, withItemAt: temporary)
     }
 
     static func preset(for compression: VideoCompression) -> String {
