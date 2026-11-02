@@ -75,3 +75,4 @@ A video dropped on the menu bar icon opens the panel on Utils → Compress Video
 |---|---|
 | `f7dddb1` | Step 1: `VideoCompressionRepository`, `FFmpegVideoCompressionRepository` in `DevHubData/Video/` (ffprobe, ffmpeg with x264, `brew install ffmpeg`), `VideoCompressionPolicy`, parsers, mock, spy, the ffmpeg row in Doctor, `CommandKind` by the tool name of a full path, the ffmpeg integration suite. |
 | `c747931` | Step 2: the Utils tab (`FeatureID.utils`, `UtilityID`, `UtilsStore`), `VideoCompressionStore` with the queue, Stop and the install of ffmpeg, `VideoEngineMapper`, `VideoJobRowMapper`, the views, the `utilities` notification kind and target, `FolderPicker.chooseFiles`, `WorkspaceActions.revealInFinder`. |
+| `b605964` | Step 3: `FileDropView` (DevHubUI) over the status item button: a drop of videos calls `AppActions.compressVideos`, clicks go to `statusItemClicked`; the drop zone names the icon. |

@@ -137,4 +137,11 @@ import Testing
         #expect(activity.events.first?.title == "Could not save build.log")
         #expect(activity.events.first?.outcome == .failure)
     }
+
+    @Test func aFolderOpensAndAFileOrAPackageIsSelected() {
+        #expect(WorkspaceActions.opensFolder(exists: true, isDirectory: true, isPackage: false))
+        #expect(WorkspaceActions.opensFolder(exists: true, isDirectory: false, isPackage: false) == false)
+        #expect(WorkspaceActions.opensFolder(exists: true, isDirectory: true, isPackage: true) == false)
+        #expect(WorkspaceActions.opensFolder(exists: false, isDirectory: false, isPackage: false))
+    }
 }

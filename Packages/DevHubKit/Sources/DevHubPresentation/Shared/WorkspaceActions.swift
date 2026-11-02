@@ -45,7 +45,18 @@ final class WorkspaceActions {
     }
 
     func openInFinder(path: String) {
-        NSWorkspace.shared.open(ProjectPath(path).url)
+        let url = ProjectPath(path).url
+        var isDirectory: ObjCBool = false
+        let exists = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
+        guard Self.opensFolder(exists: exists, isDirectory: isDirectory.boolValue, isPackage: NSWorkspace.shared.isFilePackage(atPath: url.path)) else {
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+            return
+        }
+        NSWorkspace.shared.open(url)
+    }
+
+    static func opensFolder(exists: Bool, isDirectory: Bool, isPackage: Bool) -> Bool {
+        exists == false || (isDirectory && isPackage == false)
     }
 
     func revealInFinder(path: String) {
