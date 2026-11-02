@@ -92,6 +92,10 @@ Environment values for the shell: `\.isPinnedWindow` (DevHubUI), `\.togglePin`, 
   projects; a click selects the project and shows DevHub), Keep Mac Awake, Settings…, Quit DevHub. The menu is set on
   the status item only for that click (`statusItem.menu = menu; performClick; statusItem.menu = nil`), so a left
   click still reaches `statusItemClicked`.
+- A `FileDropView` (DevHubUI) covers the status item button. It takes the left and right mouse down (with
+  `acceptsFirstMouse`) and calls `statusItemClicked`, so the clicks work as before. It takes a drop of video files
+  (`VideoCompressionPolicy.isVideo`): the button is highlighted while a video is over it, and a drop calls `show()`,
+  then `AppActions.compressVideos(_:)`, which opens Utils → Compress Video and adds the files (ADR 009 D6).
 - `Notifier.panelShown(_:)` hears every open and close, so notifications show only while the panel and the pinned
   window are closed. The main window counts as shown only while it is visible, not minimized and DevHub is the
   active app.

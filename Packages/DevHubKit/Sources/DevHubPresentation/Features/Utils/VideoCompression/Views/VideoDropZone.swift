@@ -35,6 +35,7 @@ struct VideoDropZone: View {
             .font(.callout)
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
+            .hint("You can also drop videos on the DevHub icon in the menu bar while the panel is closed.")
         } else {
             VStack(spacing: 10) {
                 Image(systemName: "film.stack")
@@ -49,6 +50,10 @@ struct VideoDropZone: View {
                     .frame(maxWidth: 400)
                 Button("Choose Videos…", action: onChoose)
                     .fixedSize()
+                Label("Panel closed? Drop videos on the DevHub icon in the menu bar.", systemImage: "menubar.arrow.up.rectangle")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
             }
             .padding(24)
         }

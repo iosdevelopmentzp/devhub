@@ -47,6 +47,24 @@ package final class AppWindows: NSObject, NSWindowDelegate {
             button.action = #selector(statusItemClicked)
             button.sendAction(on: [.leftMouseDown, .rightMouseDown])
             button.imagePosition = .imageLeading
+            let dropView = FileDropView(
+                accepts: { VideoCompressionPolicy.isVideo($0.path) },
+                onTarget: { [weak self] isTargeted in
+                    guard let self else { return }
+                    statusItem.button?.highlight(isTargeted || panel.isVisible)
+                },
+                onDrop: { [weak self] urls in
+                    guard let self else { return }
+                    show()
+                    assembly.appActions.compressVideos(urls.map(\.path))
+                },
+                onClick: { [weak self] in
+                    guard let self else { return }
+                    statusItemClicked()
+                }
+            )
+            dropView.frame = button.bounds
+            button.addSubview(dropView)
         }
         updateStatusLabel()
         observeLayout()

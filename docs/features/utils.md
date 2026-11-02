@@ -33,7 +33,7 @@ Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Utils/`, `DevHub
 
    Keep sound off adds `-an`.
 
-3. **The drop zone.** Drop one or more videos anywhere on the tab, or press **Choose Videos…**. The zone takes the free height while the list is empty, then shrinks to one line. A file that is not a `.mov`, `.mp4`, `.m4v`, `.mkv`, `.webm` or `.avi` gets a toast and an activity line.
+3. **The drop zone.** Drop one or more videos anywhere on the tab, or press **Choose Videos…**. The menu bar panel closes when you click in Finder, so the zone also says: "Panel closed? Drop videos on the DevHub icon in the menu bar." A video dragged over the icon highlights it; the drop opens the panel on this tool and starts the videos. Other files are not taken. The zone takes the free height while the list is empty, then shrinks to one line. A file that is not a `.mov`, `.mp4`, `.m4v`, `.mkv`, `.webm` or `.avi` gets a toast and an activity line.
 
 4. **The list** of videos, in the order they were added. One video runs at a time.
 
@@ -85,4 +85,3 @@ A finished or failed video posts "Video compressed: <name>" or "Could not compre
 
 - An HDR video (10-bit HEVC) becomes 8-bit SDR without tone mapping, so its colours look flat.
 - DevHub installs ffmpeg only with Homebrew. It never runs the Homebrew installer, which needs an administrator password.
-- The menu bar panel closes when you click in Finder, so a file cannot be dragged from Finder into the panel. Pin the panel, use the window mode, or press **Choose Videos…**.

@@ -293,6 +293,7 @@ package final class PresentationAssembly {
             config: config,
             workspace: workspace,
             utils: utils,
+            videoCompression: videoCompression,
             toaster: toaster
         )
     }

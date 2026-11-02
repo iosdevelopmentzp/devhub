@@ -23,6 +23,7 @@ final class AppActions {
     @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let workspace: WorkspaceActions
     @ObservationIgnored private let utils: UtilsStore
+    @ObservationIgnored private let videoCompression: VideoCompressionStore
     @ObservationIgnored private let toaster: Toaster
 
     init(
@@ -43,6 +44,7 @@ final class AppActions {
         config: ConfigStore,
         workspace: WorkspaceActions,
         utils: UtilsStore,
+        videoCompression: VideoCompressionStore,
         toaster: Toaster
     ) {
         self.navigator = navigator
@@ -62,6 +64,7 @@ final class AppActions {
         self.config = config
         self.workspace = workspace
         self.utils = utils
+        self.videoCompression = videoCompression
         self.toaster = toaster
     }
 
@@ -239,6 +242,11 @@ final class AppActions {
     func openUtility(_ id: UtilityID) {
         utils.selection = id
         navigator.show(.utils)
+    }
+
+    func compressVideos(_ paths: [String]) {
+        openUtility(.compressVideo)
+        videoCompression.add(paths: paths)
     }
 
     func openNotifications() {
