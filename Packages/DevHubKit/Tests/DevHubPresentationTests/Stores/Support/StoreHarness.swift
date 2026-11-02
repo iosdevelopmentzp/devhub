@@ -261,6 +261,8 @@ final class StoreHarness {
     lazy var media = MediaStore(repository: ports.media, operations: operations, activity: activity)
     lazy var appData = AppDataStore(repository: ports.appData, operations: operations, activity: activity, events: events)
     lazy var diskCleanup = DiskCleanupStore(repository: ports.diskCleanup, operations: operations, activity: activity)
+    lazy var utils = UtilsStore(store: store)
+    lazy var videoCompression = VideoCompressionStore(repository: ports.videoCompression, store: store, activity: activity, notifier: notifier, toaster: toaster, now: { Date(timeIntervalSince1970: 1_800_000_000) })
     lazy var messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, operations: operations, events: events, store: store)
 
     lazy var aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, worktrees: worktrees, store: store)

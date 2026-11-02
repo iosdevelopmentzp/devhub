@@ -22,6 +22,7 @@ final class AppActions {
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let workspace: WorkspaceActions
+    @ObservationIgnored private let utils: UtilsStore
     @ObservationIgnored private let toaster: Toaster
 
     init(
@@ -41,6 +42,7 @@ final class AppActions {
         session: ProjectSession,
         config: ConfigStore,
         workspace: WorkspaceActions,
+        utils: UtilsStore,
         toaster: Toaster
     ) {
         self.navigator = navigator
@@ -59,6 +61,7 @@ final class AppActions {
         self.session = session
         self.config = config
         self.workspace = workspace
+        self.utils = utils
         self.toaster = toaster
     }
 
@@ -229,7 +232,13 @@ final class AppActions {
         case .worktree: navigator.show(.worktrees)
         case .build: navigator.show(.simulators)
         case .inbox: openInbox()
+        case .utilities: openUtility(.compressVideo)
         }
+    }
+
+    func openUtility(_ id: UtilityID) {
+        utils.selection = id
+        navigator.show(.utils)
     }
 
     func openNotifications() {
@@ -326,6 +335,14 @@ final class AppActions {
 
     func openInFinder(path: String) {
         workspace.openInFinder(path: path)
+    }
+
+    func revealInFinder(path: String) {
+        workspace.revealInFinder(path: path)
+    }
+
+    func openWithDefaultApp(path: String) {
+        workspace.openWithDefaultApp(path: path)
     }
 
     func openFile(path: String) {

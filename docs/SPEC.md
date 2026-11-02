@@ -20,7 +20,7 @@ When this document and the code disagree, the code is right. Fix this document i
 
 ### 1.1 What DevHub is
 
-DevHub is a personal macOS menu bar app for daily iOS development work across many repositories. One click on the menu bar icon opens a panel. The panel has tabs for git, worktrees, pull requests, simulators, Build & Run, app logs, a network mock server and AI sessions.
+DevHub is a personal macOS menu bar app for daily iOS development work across many repositories. One click on the menu bar icon opens a panel. The panel has tabs for git, worktrees, pull requests, simulators, Build & Run, app logs, a network mock server, AI sessions and small tools such as video compression.
 
 The core is generic. Swift code never names a project, a path, a bundle ID, a host or a branch. Each project describes itself in `.devhub/` config files: how it builds, its launch profiles, its quick actions, its scripts and its own tabs.
 
@@ -160,6 +160,7 @@ Sources:
 | Logs | live app logs, one stream per simulator | [`features/logs.md`](features/logs.md) |
 | Network | the mock server, mock sets, GraphQL | [`features/network.md`](features/network.md) |
 | AI | Copilot CLI and Claude Code sessions, usage | [`features/ai.md`](features/ai.md) |
+| Utils | small tools: compress a video with ffmpeg | [`features/utils.md`](features/utils.md) |
 | custom tabs | tabs from `.devhub/tabs/*.json` | [`features/custom-tabs.md`](features/custom-tabs.md) |
 | Settings | app settings, projects, config folders, Doctor | [`features/settings.md`](features/settings.md) |
 

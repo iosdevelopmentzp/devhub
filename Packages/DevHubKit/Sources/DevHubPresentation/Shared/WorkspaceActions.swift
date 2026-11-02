@@ -48,6 +48,14 @@ final class WorkspaceActions {
         NSWorkspace.shared.open(ProjectPath(path).url)
     }
 
+    func revealInFinder(path: String) {
+        NSWorkspace.shared.activateFileViewerSelecting([ProjectPath(path).url])
+    }
+
+    func openWithDefaultApp(path: String) {
+        NSWorkspace.shared.open(ProjectPath(path).url)
+    }
+
     func openInXcode(path: String, container: String?) {
         Task { [weak self, opener] in
             let failure = await opener.openInXcode(path, container: container)

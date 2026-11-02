@@ -6,4 +6,5 @@ package enum ActivityTarget: Hashable, Codable, Sendable {
     case worktree(path: String)
     case build
     case inbox
+    case utilities
 }

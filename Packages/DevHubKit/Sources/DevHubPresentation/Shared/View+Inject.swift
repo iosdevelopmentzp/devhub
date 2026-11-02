@@ -22,6 +22,8 @@ extension View {
             .environment(assembly.media)
             .environment(assembly.appData)
             .environment(assembly.diskCleanup)
+            .environment(assembly.utils)
+            .environment(assembly.videoCompression)
             .environment(assembly.pullRequestReviews)
             .environment(assembly.output)
             .environment(assembly.layout)

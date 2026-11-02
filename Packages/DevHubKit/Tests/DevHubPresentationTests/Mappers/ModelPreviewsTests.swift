@@ -4,6 +4,11 @@ import Testing
 @testable import DevHubPresentation
 
 @Suite struct ModelPreviewsTests {
+    @Test func utilsPreviewsBuild() {
+        #expect(VideoJobRowModel.preview.canStop)
+        #expect(VideoEngineModel.preview.action == .install("Install ffmpeg"))
+    }
+
     @Test func buildPreviewsBuild() {
         #expect(BranchChoiceModel.preview.id == "feature/login-flow")
         #expect(BuildSourceMenuModel.preview.worktrees.count == 1)

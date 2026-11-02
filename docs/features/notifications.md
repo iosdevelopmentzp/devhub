@@ -28,6 +28,7 @@ Every event that DevHub can also send as a macOS notification carries a kind. Ev
 | Inbox: mentions and requests on GitHub | someone mentioned you, asked for your review or approval, assigned you, or commented where you take part, on the host, in this repository | the request, or the Inbox |
 | App crashes on a simulator | the app you launched from DevHub crashed on a simulator; DevHub reads the new macOS crash report | the run bar with the crash |
 | Script notifications | a script printed a `notify` line | nothing |
+| Utils: compressed videos | a video in Utils → Compress Video finished or failed | the Utils tab |
 
 The words follow the host: "merge request" and "Pipeline" on GitLab.
 

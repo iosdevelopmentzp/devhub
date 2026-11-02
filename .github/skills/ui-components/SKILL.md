@@ -43,7 +43,7 @@ new element. A new shared block goes into DevHubUI and into this table.
 | `PlainTextEditor` | `PlainTextEditor(text: $payload)` | A monospaced plain `NSTextView` editor without smart quotes, dashes or spelling correction (JSON, payloads) |
 | `SplitHandle` | `SplitHandle(axis: .vertical, onDrag: { … }, onEnd: { … })` | A drag handle between two panes: `.vertical` between left and right (the pull request list), `.horizontal` between top and bottom (the Output panel edge). `onDrag` gets the translation along the drag axis |
 | `ToastView` | in `RootView` | Shows `Toaster.text` at the bottom of the tab |
-| `FolderPicker` | `FolderPicker.chooseFolder(directory:prompt:message:)`, `chooseFile(…)`, `saveFile(suggestedName:prompt:message:)` | `NSOpenPanel` or `NSSavePanel` that returns a `URL?` |
+| `FolderPicker` | `FolderPicker.chooseFolder(directory:prompt:message:)`, `chooseFile(…)`, `chooseFiles(directory:prompt:message:extensions:)` (several files of the given extensions, `[URL]`), `saveFile(suggestedName:prompt:message:)` | `NSOpenPanel` or `NSSavePanel` that returns a `URL?` |
 | `WindowAppearance`, `HostWindowReader` | `.background(WindowAppearance(name: .aqua))` | Window appearance and window access from the view tree (`panel-window`) |
 
 Feature views that look shared are not shared blocks: the usage bars (`Features/Usage/`), `ConfigActionBar` and

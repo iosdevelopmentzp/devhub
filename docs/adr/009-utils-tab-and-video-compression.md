@@ -73,3 +73,4 @@ A video dropped on the menu bar icon opens the panel on Utils → Compress Video
 
 | Commit | What it did |
 |---|---|
+| `f7dddb1` | Step 1: `VideoCompressionRepository`, `FFmpegVideoCompressionRepository` in `DevHubData/Video/` (ffprobe, ffmpeg with x264, `brew install ffmpeg`), `VideoCompressionPolicy`, parsers, mock, spy, the ffmpeg row in Doctor, `CommandKind` by the tool name of a full path, the ffmpeg integration suite. |

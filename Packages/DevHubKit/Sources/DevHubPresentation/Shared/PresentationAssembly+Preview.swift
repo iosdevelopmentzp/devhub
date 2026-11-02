@@ -26,6 +26,7 @@ extension PresentationAssembly {
         assembly.ciHistory.remember(MockData.ciPreviousWorkflow, failedTests: MockData.ciPreviousFailedTests, for: 1842)
         seedReview(of: assembly)
         seedOperations(of: assembly)
+        assembly.videoCompression.add(paths: MockData.videoPaths)
         assembly.crashes.watch(bundleID: MockData.crashReport.bundleID ?? "", simulatorID: MockData.crashReport.simulatorID ?? "", launchedAt: MockData.crashReport.date)
         return assembly
     }

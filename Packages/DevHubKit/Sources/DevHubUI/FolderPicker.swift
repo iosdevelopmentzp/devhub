@@ -1,4 +1,5 @@
 import AppKit
+import UniformTypeIdentifiers
 
 package enum FolderPicker {
 
@@ -26,6 +27,21 @@ package enum FolderPicker {
         NSApp.activate()
         guard panel.runModal() == .OK else { return nil }
         return panel.url
+    }
+
+    @MainActor
+    package static func chooseFiles(directory: URL, prompt: String, message: String, extensions: [String]) -> [URL] {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = true
+        panel.allowedContentTypes = extensions.compactMap { UTType(filenameExtension: $0) }
+        panel.prompt = prompt
+        panel.message = message
+        panel.directoryURL = directory
+        NSApp.activate()
+        guard panel.runModal() == .OK else { return [] }
+        return panel.urls
     }
 
     @MainActor

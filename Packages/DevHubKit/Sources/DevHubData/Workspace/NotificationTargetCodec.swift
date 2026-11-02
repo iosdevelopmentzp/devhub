@@ -16,6 +16,7 @@ enum NotificationTargetCodec {
         case .worktree(let path): [Keys.target: "worktree", Keys.path: path]
         case .build: [Keys.target: "build"]
         case .inbox: [Keys.target: "inbox"]
+        case .utilities: [Keys.target: "utilities"]
         }
     }
 
@@ -33,6 +34,8 @@ enum NotificationTargetCodec {
             return .build
         case "inbox":
             return .inbox
+        case "utilities":
+            return .utilities
         default:
             return nil
         }
