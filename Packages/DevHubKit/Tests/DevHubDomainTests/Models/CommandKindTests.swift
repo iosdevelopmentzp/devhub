@@ -144,4 +144,20 @@ import Testing
         #expect(CommandKind.classify("circleci", ["auth", "login"]) == .action)
         #expect(CommandKind.classify("circleci", []) == .action)
     }
+
+    @Test func ffmpegChecksAndProbesAreReads() {
+        #expect(CommandKind.classify("/opt/homebrew/bin/ffmpeg", ["-hide_banner", "-version"]) == .read)
+        #expect(CommandKind.classify("/opt/homebrew/bin/ffmpeg", ["-hide_banner", "-encoders"]) == .read)
+        #expect(CommandKind.classify("/opt/homebrew/bin/ffprobe", ["-v", "error", "-show_format", "/a/clip.mov"]) == .read)
+    }
+
+    @Test func anFFmpegCompressionIsAnAction() {
+        #expect(CommandKind.classify("/opt/homebrew/bin/ffmpeg", ["-i", "/a/clip.mov", "/a/out.mp4"]) == .action)
+        #expect(CommandKind.classify("/opt/homebrew/bin/brew", ["install", "ffmpeg"]) == .action)
+    }
+
+    @Test func aFullPathIsClassifiedByItsToolName() {
+        #expect(CommandKind.classify("/usr/bin/git", ["status"]) == .read)
+        #expect(CommandKind.classify("/usr/bin/security", ["find-generic-password"]) == .secret)
+    }
 }

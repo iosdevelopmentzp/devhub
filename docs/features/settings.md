@@ -161,6 +161,7 @@ The Doctor section checks the tools that DevHub runs. It runs when the section a
 | `copilot` | `copilot --version` | Copilot CLI sessions | `npm install -g @github/copilot` |
 | `claude` | `claude --version` | Claude Code sessions and AI review | `npm install -g @anthropic-ai/claude-code` |
 | `python3` | `python3 --version` | Scripts of the example `.devhub` folder | `xcode-select --install` |
+| `ffmpeg` | `ffmpeg -hide_banner -version` | Utils: compress videos (ffmpeg and ffprobe with libx264) | `brew install ffmpeg` |
 
 Two permission rows follow:
 

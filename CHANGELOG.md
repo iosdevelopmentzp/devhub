@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Settings → Doctor: a row for `ffmpeg` (ffmpeg and ffprobe with libx264, used to compress videos), with `brew install ffmpeg` to copy.
 - Simulators → QA settings → Frame → "Add the device frame": screenshots, GIFs and converted MP4 videos get the device frame of Xcode around them, with the side buttons and round screen corners, for iPhone and iPad simulators. DevHub reads the frame from the Xcode on this Mac. The choice is saved. A device without a frame keeps the plain screenshot, and Recent says why; a GIF or video of such a device fails with the reason. A framed GIF or video has "framed" in its file name.
 - Simulators → QA settings → Video → "Convert": a GIF (320, 480 or 640 px wide) or a smaller MP4 (720p H.264 or 1080p HEVC) from the last recording or from any `.mov`, `.mp4` or `.m4v` file. The file goes next to the source and never replaces another file. The work is an operation with progress and a stop button. A GIF keeps one frame for each change of the screen, so a still screen becomes one long frame. A failed or stopped GIF leaves no file.
 - Simulators → QA settings: "Record" and "Stop" record the screen of a booted simulator into a `.mov` file on the Desktop. The round corners of the screen are recorded black. The line shows the time of the recording, the recording is an operation with a stop button in the panel and in the footer, and the file name links to Finder. Quitting DevHub stops every recording, so the files are written.
@@ -101,6 +102,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- The Output panel sorts a command started by its full path (`/opt/homebrew/bin/ffmpeg`) by the tool name, and shows `ffmpeg -version`, `ffmpeg -encoders` and `ffprobe` as reads.
 - The Output panel no longer opens by itself when an action fails: the operation card shows the reason. "Open When a Command Fails" in its filter menu brings the old behaviour back.
 - The footer no longer shows only the `progress` line of a running script: the operations indicator shows it, and the card of the action shows the bar.
 - Pull Requests: the details hide no files by default. The eye-slash button of a file hides it in the requests of this project, and the eye button shows it again. A line under the files header names the tests, Xcode project files and lock files of the request, and "Hide Them" hides them only when you click it. Patterns in `git.pullRequests.hiddenFiles` still hide files. Before, tests, project files and lock files were hidden without a choice.
@@ -170,6 +172,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- ADR 009: the plan of the Utils tab and video compression with ffmpeg. `VideoCompressionRepository` (Domain) with `FFmpegVideoCompressionRepository` in `DevHubData/Video/`, `VideoCompressionPolicy`, the mock and the spy, and an integration suite that runs the real ffmpeg when it is installed.
 - ADR 008: the plan for simulator recording, GIF and compressed video, device frames, build insights, app and device snapshots, real devices, Xcode 27 and a network monitor.
 - ADR 007: operations with steps and the plan of the daily tools. The data-layer skill explains `OperationScope`.
 - Debug builds: `DEVHUB_PORTS=mock` also shows a failed push card in the Git tab and a running script in the footer.

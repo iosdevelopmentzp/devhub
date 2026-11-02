@@ -36,6 +36,7 @@ package struct Ports: Sendable {
     package let aiText: any AITextRepository
     package let diskCleanup: any DiskCleanupRepository
     package let media: any MediaRepository
+    package let videoCompression: any VideoCompressionRepository
 
     package init(
         usage: any ClaudeUsageRepository,
@@ -72,7 +73,8 @@ package struct Ports: Sendable {
         appData: any AppDataRepository,
         aiText: any AITextRepository,
         diskCleanup: any DiskCleanupRepository,
-        media: any MediaRepository
+        media: any MediaRepository,
+        videoCompression: any VideoCompressionRepository
     ) {
         self.usage = usage
         self.copilotUsage = copilotUsage
@@ -109,5 +111,6 @@ package struct Ports: Sendable {
         self.aiText = aiText
         self.diskCleanup = diskCleanup
         self.media = media
+        self.videoCompression = videoCompression
     }
 }

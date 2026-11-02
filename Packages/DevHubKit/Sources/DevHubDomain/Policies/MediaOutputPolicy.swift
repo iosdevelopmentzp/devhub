@@ -59,7 +59,7 @@ package enum MediaOutputPolicy {
         (source as NSString).deletingPathExtension
     }
 
-    private static func uniquePath(stem: String, suffix: String, fileExtension: String, exists: (String) -> Bool) -> String {
+    package static func uniquePath(stem: String, suffix: String, fileExtension: String, exists: (String) -> Bool) -> String {
         let first = "\(stem)\(suffix).\(fileExtension)"
         guard exists(first) else { return first }
         var index = 2

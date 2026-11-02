@@ -58,6 +58,10 @@ DevHubData/
                     DeviceFrameLayout and DeviceFrameRenderer, framed GIF frames through DeviceFrameOverlay, framed
                     MP4 through FramedVideoComposition; GIF frames come from the sample times of AVAssetReader;
                     no process) (AVFoundation and ImageIO allowed here only)
+    Video/          FFmpegVideoCompressionRepository(shell:tools:) (ffprobe JSON through FFprobeInfoParser, ffmpeg
+                    with libx264 through FFmpegArguments, progress and errors through FFmpegOutputParser, the version
+                    through FFmpegVersionParser, `brew install ffmpeg` steps through HomebrewOutputParser; writes a
+                    hidden partial file and renames it at the end; ADR 009)
     Assembly/       Ports+Live.swift
 DevHubMocks/        Mock<Thing>Repository one per file, MockData and MockData+<Domain>.swift,
                     Persistence/InMemoryKeyValueStore, Ports+Mock.swift

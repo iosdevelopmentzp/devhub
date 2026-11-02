@@ -15,12 +15,13 @@ package enum CommandKind: Sendable {
         "rev-list", "show-ref", "config", "diff", "cherry", "merge-base", "ls-remote", "remote", "show"
     ]
     private static let simctlReads: Set<String> = ["list", "get_app_container", "listapps", "bootstatus"]
-    private static let plainReads: Set<String> = ["du", "ps", "grep", "plutil", "pgrep", "mdfind", "xcode-select"]
+    private static let plainReads: Set<String> = ["du", "ps", "grep", "plutil", "pgrep", "mdfind", "xcode-select", "ffprobe"]
     private static let codeHostReads: Set<String> = ["view", "list", "checks", "diff", "status"]
     private static let circleCIReads: Set<String> = ["run list", "run get", "workflow get", "workflow list", "job get", "job output", "testresult list", "setting list", "version", "auth me"]
 
     package static func classify(_ executable: String, _ arguments: [String]) -> CommandKind {
-        switch executable {
+        let name = (executable as NSString).lastPathComponent
+        switch name {
         case "security":
             return .secret
         case "gh":
@@ -42,8 +43,10 @@ package enum CommandKind: Sendable {
             return arguments.contains("-showBuildSettings") ? .read : .action
         case "osascript":
             return arguments.joined().contains("click ") || arguments.joined().contains("set active run destination") ? .action : .read
+        case "ffmpeg":
+            return arguments.contains("-version") || arguments.contains("-encoders") ? .read : .action
         default:
-            return plainReads.contains(executable) ? .read : .action
+            return plainReads.contains(name) ? .read : .action
         }
     }
 

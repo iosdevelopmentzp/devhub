@@ -61,7 +61,8 @@ extension Ports {
                     URL(fileURLWithPath: "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes"),
                 ],
                 chromeRoot: URL(fileURLWithPath: "/Library/Developer/DeviceKit/Chrome")
-            ))
+            )),
+            videoCompression: FFmpegVideoCompressionRepository(shell: shell, tools: tools)
         )
     }
 }
