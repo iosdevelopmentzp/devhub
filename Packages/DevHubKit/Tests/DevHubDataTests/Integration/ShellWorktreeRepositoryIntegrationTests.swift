@@ -79,6 +79,53 @@ import Testing
         #expect(worktrees.first { $0.branch == "topic/task" }?.kind == .linked)
     }
 
+    // MARK: Location
+
+    @Test func withoutAnIgnoreRuleWorktreesGoNextToTheProject() async {
+        #expect(await repository.location(projectPath: repo.path, settings: .standard) == .nextToProject)
+    }
+
+    @Test func theConfiguredFolderWins() async throws {
+        try await repository.keepInsideProject(projectPath: repo.path)
+        var settings = GitSettings.standard
+        settings.worktrees.folder = "../trees"
+
+        #expect(await repository.location(projectPath: repo.path, settings: settings) == .configured(folder: "../trees"))
+    }
+
+    @Test func keepInsideProjectAddsThePatternToTheExcludeOnce() async throws {
+        try await repository.keepInsideProject(projectPath: repo.path)
+        try await repository.keepInsideProject(projectPath: repo.path)
+
+        let exclude = try String(contentsOfFile: (repo.path as NSString).appendingPathComponent(".git/info/exclude"), encoding: .utf8)
+        #expect(exclude.components(separatedBy: "\n").filter { $0 == ".worktrees/" }.count == 1)
+        #expect(await repository.location(projectPath: repo.path, settings: .standard) == .insideProject)
+    }
+
+    @Test func aGitignoreRuleAlsoPutsWorktreesInside() async throws {
+        try repo.write(".worktrees/\n", to: ".gitignore")
+
+        #expect(await repository.location(projectPath: repo.path, settings: .standard) == .insideProject)
+    }
+
+    @Test func afterKeepInsideProjectANewWorktreeIsInsideAndTheMainCheckoutStaysClean() async throws {
+        try await repository.keepInsideProject(projectPath: repo.path)
+
+        let created = try await repository.create(branch: "topic/inside", base: "main", projectPath: repo.path, settings: .standard)
+
+        #expect(created.path == (repo.path as NSString).appendingPathComponent(".worktrees/topic-inside"))
+        #expect(repo.exists(created.path))
+        #expect(try await repo.git("status", "--porcelain").isEmpty)
+    }
+
+    @Test func aNegatedGitignoreRuleFailsTheChange() async throws {
+        try repo.write("!.worktrees/\n", to: ".gitignore")
+
+        await #expect(throws: WorktreeError.self) {
+            try await repository.keepInsideProject(projectPath: repo.path)
+        }
+    }
+
     @Test func aWorktreeNeedsBootstrapWhenTheMarkerIsOnlyInTheMainCheckout() async throws {
         try repo.write("echo hi\n", at: (repo.linkedPath as NSString).appendingPathComponent("scripts/bootstrap.sh"))
         try FileManager.default.createDirectory(atPath: (repo.path as NSString).appendingPathComponent("Pods"), withIntermediateDirectories: true)

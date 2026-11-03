@@ -3,7 +3,7 @@ import Testing
 
 @Suite struct CommandKindTests {
     @Test(arguments: [
-        "status", "log", "for-each-ref", "rev-parse", "symbolic-ref", "check-ref-format", "reflog",
+        "status", "log", "for-each-ref", "rev-parse", "symbolic-ref", "check-ref-format", "check-ignore", "reflog",
         "rev-list", "show-ref", "config", "diff", "cherry", "merge-base", "ls-remote", "remote", "show",
     ])
     func gitReadSubcommandsAreReads(subcommand: String) {

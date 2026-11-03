@@ -85,7 +85,7 @@ import DevHubTestSupport
         #expect(store.baseBranch == "origin/main")
         #expect(store.error == nil)
         #expect(store.isLoading == false)
-        #expect(Set(harness.spies.worktrees.calls) == [.list(projectPath: ProjectSample.path), .baseBranch(projectPath: ProjectSample.path)])
+        #expect(Set(harness.spies.worktrees.calls) == [.list(projectPath: ProjectSample.path), .baseBranch(projectPath: ProjectSample.path), .location(projectPath: ProjectSample.path)])
         #expect(harness.postedLabels == ["worktreesChanged"])
     }
 
@@ -295,6 +295,40 @@ import DevHubTestSupport
 
         try await waitUntil { listCalls == 1 }
         #expect(harness.lastActivity?.title == "Prune failed")
+        #expect(harness.lastActivity?.outcome == .failure)
+    }
+
+    // MARK: Location
+
+    @Test func refreshReadsTheLocation() async {
+        harness.spies.worktrees.locationResult = .insideProject
+
+        await store.refresh()
+
+        #expect(store.location == .insideProject)
+    }
+
+    @Test func keepInsideProjectChangesTheLocationAndLogs() async throws {
+        harness.spies.worktrees.locationAfterKeep = .insideProject
+
+        store.keepInsideProject()
+
+        #expect(store.isMovingInside)
+        try await waitUntil { store.isMovingInside == false }
+        #expect(harness.spies.worktrees.calls == [.keepInsideProject(projectPath: ProjectSample.path), .location(projectPath: ProjectSample.path)])
+        #expect(store.location == .insideProject)
+        #expect(harness.lastActivity?.title == "New worktrees go inside the project")
+        #expect(harness.lastActivity?.outcome == .success)
+    }
+
+    @Test func aFailedKeepInsideProjectLogsAFailureAndKeepsTheLocation() async throws {
+        harness.spies.worktrees.keepInsideProjectError = failure
+
+        store.keepInsideProject()
+
+        try await waitUntil { store.isMovingInside == false }
+        #expect(store.location == .nextToProject)
+        #expect(harness.lastActivity?.title == "Could not keep worktrees inside the project")
         #expect(harness.lastActivity?.outcome == .failure)
     }
 

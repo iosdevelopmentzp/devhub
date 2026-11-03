@@ -48,12 +48,23 @@ An action below shows an operation card at its place: the steps with their state
 | Clean Finished (N)… | Asks first. Removes every finished worktree that is clean, not locked, not missing and not the build source. For each one it removes the worktree, its DerivedData folder and its local branch. The report counts only the DerivedData that was really removed | see "Delete" below, with both boxes on |
 | New… | Opens a field for a branch name. Create makes the worktree (see below) | — |
 
+### Where new worktrees go
+
+The line under the branch field of New… shows the folder of the new worktree; its hint names the reason (the config key, the ignore rule, or the default). While new worktrees go next to the project, the line has "Keep Inside the Project". It adds two lines to `.git/info/exclude`:
+
+```
+# Worktrees created by DevHub
+.worktrees/
+```
+
+Then git ignores the folder, `git status` of the main checkout stays clean, and new worktrees go to `<project folder>/.worktrees/<branch>`. `.git/info/exclude` is local to this clone and is never committed. Worktrees you already have stay where they are. To go back, remove the line from `.git/info/exclude`. A project that has `.worktrees/` in `.gitignore` works the same way without the button. The step is an operation card under the toolbar and a line in Recent; a failure says why (for example a `!.worktrees/` rule in `.gitignore`).
+
 ### Create a worktree
 
 New…, the Git tab, the Pull Requests tab and the command palette all use the same steps:
 
 1. DevHub removes a `<remote>/` prefix from the name and checks it: `git check-ref-format --branch <branch>`.
-2. The folder is `git.worktrees.folder/<branch>` when the field is set. Without it, the folder is a sibling of the project: `<project folder>-<branch>`. A `/` in the branch name becomes `-`.
+2. The folder is `git.worktrees.folder/<branch>` when the field is set. Without it, the folder is `<project folder>/.worktrees/<branch>` when git ignores `.worktrees/` (`git check-ignore -q .worktrees/`), else a sibling of the project: `<project folder>-<branch>`. A `/` in the branch name becomes `-`. The New… form shows this folder under the branch field.
 3. DevHub runs one of three commands in the main checkout:
 
    | Case | Command |
@@ -140,7 +151,7 @@ DevHub reads the list each time the panel opens, after a branch change in anothe
 |---|---|---|
 | `git.remote` | The remote of Fetch and of the remote branch check | [`project.json`](../extensions.md#2-projectjson) |
 | `git.baseBranch` | The base of new branches and of the merged check | [`project.json`](../extensions.md#2-projectjson) |
-| `git.worktrees.folder` | Where new worktrees go | [`project.json`](../extensions.md#2-projectjson) |
+| `git.worktrees.folder` | Where new worktrees go; without it, `.worktrees/` inside the project when git ignores that folder, else next to the project | [`project.json`](../extensions.md#2-projectjson) |
 | `git.worktrees.include` | Files copied from the main checkout into a new worktree | [`project.json`](../extensions.md#2-projectjson) |
 | `git.worktrees.bootstrap` | The script that prepares a new worktree | [`project.json`](../extensions.md#2-projectjson) |
 | `git.worktrees.bootstrapMarker` | The file that shows that a worktree is prepared | [`project.json`](../extensions.md#2-projectjson) |

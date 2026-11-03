@@ -48,7 +48,7 @@ All fields optional. Missing values are detected (see "default").
 | `git.commitPrefix.pattern` | regex | `^([A-Z][A-Z0-9]+-\d+)` | applied to the branch name; the same pattern without `^` finds the ticket key for the ticket chip and a new merge request title; group 1 is the key; a pattern that does not compile finds nothing |
 | `git.commitPrefix.format` | string | `$1: ` | the commit box starts with this text when the pattern matches |
 | `git.ticketURL` | string | the "Ticket link" of Settings | `{key}` is replaced with the ticket key; the ticket chip opens it; without a link the chip copies the key |
-| `git.worktrees.folder` | path relative to the repo | sibling `<repo>-<branch>` | where new worktrees go; slashes in branch names become dashes |
+| `git.worktrees.folder` | path relative to the repo | `.worktrees` when git ignores `.worktrees/` (Worktrees → New… → "Keep Inside the Project"), else sibling `<repo>-<branch>` | where new worktrees go; slashes in branch names become dashes |
 | `git.worktrees.include` | [path] | `[]` | files copied from the main checkout into a new worktree when they are missing there |
 | `git.worktrees.bootstrap` | path relative to the worktree | — | script run inside a new worktree when `bootstrapMarker` exists in the main checkout and not in the worktree; an executable file runs as is, another file runs with `zsh`; a worktree row offers it in its menu |
 | `git.worktrees.bootstrapMarker` | path | — | see above; without a marker the bootstrap runs once after creation |

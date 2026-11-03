@@ -64,12 +64,32 @@ struct ShellWorktreeRepository: WorktreeRepository {
         _ = try await git.run(["worktree", "prune"], in: (projectPath as NSString).expandingTildeInPath)
     }
 
+    func location(projectPath: String, settings: GitSettings) async -> WorktreeLocation {
+        if let folder = settings.worktrees.folder {
+            return .configured(folder: folder)
+        }
+        return await ignoresProjectFolder(in: (projectPath as NSString).expandingTildeInPath) ? .insideProject : .nextToProject
+    }
+
+    func keepInsideProject(projectPath: String) async throws {
+        let root = (projectPath as NSString).expandingTildeInPath
+        let excludePath = try await git.run(["rev-parse", "--git-path", "info/exclude"], in: root).trimmed
+        let file = excludePath.hasPrefix("/") ? excludePath : (root as NSString).appendingPathComponent(excludePath)
+        let existing = (try? String(contentsOfFile: file, encoding: .utf8)) ?? ""
+        if let updated = WorktreePathPolicy.exclude(addingProjectFolderTo: existing) {
+            try FileManager.default.createDirectory(atPath: (file as NSString).deletingLastPathComponent, withIntermediateDirectories: true)
+            try updated.write(toFile: file, atomically: true, encoding: .utf8)
+        }
+        guard await ignoresProjectFolder(in: root) else { throw WorktreeError.projectFolderNotIgnored }
+    }
+
     func create(branch: String, base: String, projectPath: String, settings: GitSettings) async throws -> NewWorktree {
         let root = (projectPath as NSString).expandingTildeInPath
         let check = try await git.result(["check-ref-format", "--branch", branch], in: root)
         guard check.exitCode == 0 else { throw WorktreeError.invalidBranchName }
 
-        let path = WorktreePathPolicy.path(forBranch: branch, root: root, folder: settings.worktrees.folder)
+        let folder = WorktreePathPolicy.folder(for: await location(projectPath: root, settings: settings))
+        let path = WorktreePathPolicy.path(forBranch: branch, root: root, folder: folder)
         let localExists = (try? await git.run(["rev-parse", "--verify", "--quiet", "refs/heads/\(branch)"], in: root)) != nil
         let remoteBranch = "\(settings.remote)/\(branch)"
         let remoteExists = (try? await git.run(["rev-parse", "--verify", "--quiet", "refs/remotes/\(remoteBranch)"], in: root)) != nil
@@ -176,6 +196,11 @@ struct ShellWorktreeRepository: WorktreeRepository {
     }
 
     // MARK: Create helpers
+
+    private func ignoresProjectFolder(in root: String) async -> Bool {
+        let result = try? await git.result(["check-ignore", "-q", WorktreePathPolicy.ignorePattern], in: root)
+        return result?.exitCode == 0
+    }
 
     private func copyIncludedFiles(_ include: [String], from root: String, to path: String) {
         let manager = FileManager.default

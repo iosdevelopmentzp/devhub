@@ -7,6 +7,8 @@ package protocol WorktreeRepository: Sendable {
     func remove(_ worktree: Worktree, projectPath: String) async throws
     func deleteBranch(_ branch: String, projectPath: String) async throws
     func prune(projectPath: String) async throws
+    func location(projectPath: String, settings: GitSettings) async -> WorktreeLocation
+    func keepInsideProject(projectPath: String) async throws
     func create(branch: String, base: String, projectPath: String, settings: GitSettings) async throws -> NewWorktree
     func bootstrap(worktreePath: String, script: String, onLine: @escaping @Sendable (String) -> Void) async throws
 }

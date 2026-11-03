@@ -9,6 +9,8 @@ package final class SpyWorktreeRepository: WorktreeRepository, @unchecked Sendab
         case remove(Worktree, projectPath: String)
         case deleteBranch(String, projectPath: String)
         case prune(projectPath: String)
+        case location(projectPath: String)
+        case keepInsideProject(projectPath: String)
         case create(branch: String, base: String, projectPath: String)
         case bootstrap(worktreePath: String)
     }
@@ -24,6 +26,9 @@ package final class SpyWorktreeRepository: WorktreeRepository, @unchecked Sendab
     private var _removeError: (any Error)? = nil
     private var _deleteBranchError: (any Error)? = nil
     private var _pruneError: (any Error)? = nil
+    private var _locationResult: WorktreeLocation = .nextToProject
+    private var _locationAfterKeep: WorktreeLocation? = nil
+    private var _keepInsideProjectError: (any Error)? = nil
     private var _createResult: Result<NewWorktree, any Error> = .success(NewWorktree(path: "", branch: ""))
     private var _bootstrapLines: [String] = []
     private var _bootstrapError: (any Error)? = nil
@@ -76,6 +81,21 @@ package final class SpyWorktreeRepository: WorktreeRepository, @unchecked Sendab
         set { lock.withLock { _pruneError = newValue } }
     }
 
+    package var locationResult: WorktreeLocation {
+        get { lock.withLock { _locationResult } }
+        set { lock.withLock { _locationResult = newValue } }
+    }
+
+    package var locationAfterKeep: WorktreeLocation? {
+        get { lock.withLock { _locationAfterKeep } }
+        set { lock.withLock { _locationAfterKeep = newValue } }
+    }
+
+    package var keepInsideProjectError: (any Error)? {
+        get { lock.withLock { _keepInsideProjectError } }
+        set { lock.withLock { _keepInsideProjectError = newValue } }
+    }
+
     package var createResult: Result<NewWorktree, any Error> {
         get { lock.withLock { _createResult } }
         set { lock.withLock { _createResult = newValue } }
@@ -125,6 +145,23 @@ package final class SpyWorktreeRepository: WorktreeRepository, @unchecked Sendab
 
     package func prune(projectPath: String) async throws {
         let error = record(.prune(projectPath: projectPath)) { _pruneError }
+        if let error { throw error }
+    }
+
+    package func location(projectPath: String, settings: GitSettings) async -> WorktreeLocation {
+        record(.location(projectPath: projectPath)) {
+            _settings.append(settings)
+            return _locationResult
+        }
+    }
+
+    package func keepInsideProject(projectPath: String) async throws {
+        let error = record(.keepInsideProject(projectPath: projectPath)) {
+            if _keepInsideProjectError == nil, let location = _locationAfterKeep {
+                _locationResult = location
+            }
+            return _keepInsideProjectError
+        }
         if let error { throw error }
     }
 

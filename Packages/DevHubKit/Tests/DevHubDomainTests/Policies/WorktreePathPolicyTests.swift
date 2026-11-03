@@ -15,4 +15,35 @@ import Testing
     @Test func anAbsoluteFolderIsUsedAsIs() {
         #expect(WorktreePathPolicy.path(forBranch: "fix", root: "/work/app", folder: "/tmp/trees") == "/tmp/trees/fix")
     }
+
+    // MARK: Location
+
+    @Test func theLocationGivesTheFolder() {
+        #expect(WorktreePathPolicy.folder(for: .configured(folder: "../trees")) == "../trees")
+        #expect(WorktreePathPolicy.folder(for: .insideProject) == ".worktrees")
+        #expect(WorktreePathPolicy.folder(for: .nextToProject) == nil)
+    }
+
+    // MARK: Exclude
+
+    @Test func anEmptyExcludeGetsTheHeaderAndThePattern() {
+        #expect(WorktreePathPolicy.exclude(addingProjectFolderTo: "") == "# Worktrees created by DevHub\n.worktrees/\n")
+    }
+
+    @Test func theLinesAreAddedAfterTheExistingText() {
+        #expect(WorktreePathPolicy.exclude(addingProjectFolderTo: "*.log\n") == "*.log\n# Worktrees created by DevHub\n.worktrees/\n")
+    }
+
+    @Test func aLastLineWithoutANewlineIsClosedFirst() {
+        #expect(WorktreePathPolicy.exclude(addingProjectFolderTo: "*.log") == "*.log\n# Worktrees created by DevHub\n.worktrees/\n")
+    }
+
+    @Test(arguments: [".worktrees", ".worktrees/", "/.worktrees", "/.worktrees/", "  .worktrees/  "])
+    func anExistingPatternIsNotAddedAgain(line: String) {
+        #expect(WorktreePathPolicy.exclude(addingProjectFolderTo: "*.log\n\(line)\n") == nil)
+    }
+
+    @Test func anotherFolderWithTheSameStartDoesNotCount() {
+        #expect(WorktreePathPolicy.exclude(addingProjectFolderTo: ".worktrees-old/\n") != nil)
+    }
 }

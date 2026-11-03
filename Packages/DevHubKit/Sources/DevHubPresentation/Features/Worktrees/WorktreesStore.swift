@@ -14,6 +14,8 @@ final class WorktreesStore: WorktreeLookup {
     private(set) var baseBranch = GitSettingsPolicy.baseRef(remote: GitSettingsPolicy.defaultRemote)
     private(set) var busyIDs: Set<Worktree.ID> = []
     private(set) var bootstrappingIDs: Set<Worktree.ID> = []
+    private(set) var location = WorktreeLocation.nextToProject
+    private(set) var isMovingInside = false
 
     @ObservationIgnored private let repository: WorktreeRepository
     @ObservationIgnored private let derivedData: any DerivedDataRepository
@@ -82,6 +84,10 @@ final class WorktreesStore: WorktreeLookup {
         worktrees.first(where: \.isMain)
     }
 
+    var projectRoot: String {
+        ProjectPath(session.selectedProject.path).expanded
+    }
+
     var mainCheckoutPath: String {
         mainWorktree?.path ?? ProjectPath(session.selectedProject.path).expanded
     }
@@ -131,8 +137,10 @@ final class WorktreesStore: WorktreeLookup {
             do {
                 async let list = repository.list(projectPath: projectPath, settings: settings)
                 async let base = repository.baseBranch(projectPath: projectPath, remote: settings.remote)
-                let (loaded, detected) = try await (list, base)
+                async let place = repository.location(projectPath: projectPath, settings: settings)
+                let (loaded, detected, found) = try await (list, base, place)
                 try Task.checkCancellation()
+                location = found
                 let baseName = settings.baseBranch ?? detected
                 let changed = loaded != worktrees || baseName != baseBranch
                 worktrees = loaded
@@ -243,6 +251,26 @@ final class WorktreesStore: WorktreeLookup {
                 activity.log("Prune failed", detail: error.localizedDescription, outcome: .failure)
             }
             await refresh()
+        }
+    }
+
+    func keepInsideProject() {
+        guard isMovingInside == false else { return }
+        isMovingInside = true
+        let projectPath = session.selectedProject.path
+        let settings = gitSettings
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await operations.perform("Keep worktrees inside the project", at: .worktrees, retry: nil) {
+                    try await repository.keepInsideProject(projectPath: projectPath)
+                }
+                location = await repository.location(projectPath: projectPath, settings: settings)
+                activity.log("New worktrees go inside the project", detail: "\(WorktreePathPolicy.ignorePattern) is in .git/info/exclude", outcome: .success)
+            } catch {
+                activity.log("Could not keep worktrees inside the project", detail: error.localizedDescription, outcome: .failure)
+            }
+            isMovingInside = false
         }
     }
 

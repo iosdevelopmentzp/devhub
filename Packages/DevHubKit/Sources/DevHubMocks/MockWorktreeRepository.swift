@@ -23,6 +23,14 @@ struct MockWorktreeRepository: WorktreeRepository {
 
     func prune(projectPath: String) async throws {}
 
+    func location(projectPath: String, settings: GitSettings) async -> WorktreeLocation {
+        settings.worktrees.folder.map { .configured(folder: $0) } ?? .nextToProject
+    }
+
+    func keepInsideProject(projectPath: String) async throws {
+        try await Task.sleep(for: .milliseconds(300))
+    }
+
     func create(branch: String, base: String, projectPath: String, settings: GitSettings) async throws -> NewWorktree {
         try await Task.sleep(for: .milliseconds(600))
         return NewWorktree(path: "\(projectPath)/.worktrees/\(branch)", branch: branch)

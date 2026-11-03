@@ -82,6 +82,7 @@ import Testing
         #expect(KeepAwakeCardModel.preview.isActive)
         #expect(WorktreeRowModel.preview.canDelete)
         #expect(WorktreeSectionModel.preview.id == "In progress")
+        #expect(WorktreeLocationModel.preview.canKeepInside)
         #expect(TestRunPanelModel.preview.failures.count == 1)
         #expect(TestFailureRowModel.preview.line == 42)
         #expect(CIHistoryRowModel.preview.failedJobs.count == 1)

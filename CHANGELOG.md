@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Worktrees → New…: a line under the branch field shows the folder of the new worktree. "Keep Inside the Project" adds `.worktrees/` to `.git/info/exclude`; from then on new worktrees go to `<project>/.worktrees/<branch>`, and `git status` of the main checkout does not list them. A project whose `.gitignore` already ignores `.worktrees/` works the same way without the button. `git.worktrees.folder` in the config still wins. Worktrees you already have stay where they are. This applies to every place that creates a worktree: New…, the Git tab, the Pull Requests tab, the command palette and a build from a branch.
 - Drop videos on the DevHub icon in the menu bar: the icon lights up while a video is over it, and the drop opens Utils → Compress Video and starts the compression. This works while the panel is closed, so a screen recording can go straight from Finder or the Desktop.
 - Utils tab (⌘9) → Compress Video: drop screen recordings or other videos on the tab, or choose them. DevHub compresses each one with ffmpeg (x264) at High, Balanced or Small quality, with or without sound, and saves "<name> compressed.mp4" next to the original. Each row shows the source facts, progress with the time left, then the new size and the saving; Stop leaves no file; a done row opens, shows in Finder or drags the file into a chat. When ffmpeg is missing, the card says so and "Install ffmpeg" runs `brew install ffmpeg` with the current step; videos added before wait and start after the install. A notification arrives when a video is done while the panel is closed.
 - Settings → Doctor: a row for `ffmpeg` (ffmpeg and ffprobe with libx264, used to compress videos), with `brew install ffmpeg` to copy.
@@ -175,6 +176,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- `data-layer` skill: `git check-ignore` is in the list of reads.
 - ADR 009: the plan of the Utils tab and video compression with ffmpeg. `VideoCompressionRepository` (Domain) with `FFmpegVideoCompressionRepository` in `DevHubData/Video/`, `VideoCompressionPolicy`, the mock and the spy, and an integration suite that runs the real ffmpeg when it is installed.
 - ADR 008: the plan for simulator recording, GIF and compressed video, device frames, build insights, app and device snapshots, real devices, Xcode 27 and a network monitor.
 - ADR 007: operations with steps and the plan of the daily tools. The data-layer skill explains `OperationScope`.

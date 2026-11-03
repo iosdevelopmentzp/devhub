@@ -3,7 +3,7 @@ import Testing
 
 @Suite struct WorktreeErrorTests {
     @Test func everyCaseHasADescription() {
-        let errors: [WorktreeError] = [.notARepository("/tmp/x"), .command("fatal"), .invalidBranchName]
+        let errors: [WorktreeError] = [.notARepository("/tmp/x"), .command("fatal"), .invalidBranchName, .projectFolderNotIgnored]
 
         for error in errors {
             #expect(error.errorDescription?.isEmpty == false)

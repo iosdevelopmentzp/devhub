@@ -96,7 +96,48 @@ struct WorktreesToolbar: View {
         )
     }
 
+    private var location: WorktreeLocationModel {
+        WorktreeLocationMapper.model(for: worktrees.location, branch: branchName, remote: worktrees.gitSettings.remote, root: worktrees.projectRoot)
+    }
+
     private var newWorktreeForm: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            newWorktreeFields
+            locationLine
+        }
+        .padding(8)
+        .background(Color.blue.opacity(0.06), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    private var locationLine: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "folder")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(location.path)
+                .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .hint(location.hint)
+            if location.canKeepInside {
+                Button("Keep Inside the Project") {
+                    worktrees.keepInsideProject()
+                }
+                .buttonStyle(LinkButtonStyle(.accent, weight: .medium))
+                .fixedSize()
+                .disabled(worktrees.isMovingInside)
+                .hint(location.keepInsideHint)
+            }
+            if worktrees.isMovingInside {
+                ProgressView()
+                    .controlSize(.mini)
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var newWorktreeFields: some View {
         HStack(spacing: 8) {
             Image(systemName: "arrow.triangle.branch")
                 .foregroundStyle(.blue)
@@ -123,8 +164,6 @@ struct WorktreesToolbar: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(branchName.trimmed.isEmpty || isSubmitting)
         }
-        .padding(8)
-        .background(Color.blue.opacity(0.06), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     private func create() {
