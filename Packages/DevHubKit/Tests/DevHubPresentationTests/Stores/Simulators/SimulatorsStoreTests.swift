@@ -40,7 +40,8 @@ import DevHubTestSupport
         #expect(harness.simulators.simulator(id: shutdown.id)?.isFavorite == false)
         #expect(harness.simulators.installedAppCounts == [booted.id: 2])
         #expect(harness.simulators.error == nil)
-        #expect(harness.spies.simulators.calls == [.list, .installedAppCounts(udids: [booted.id, shutdown.id, SimulatorSample.pad.id])])
+        #expect(harness.spies.simulators.calls == [.list, .installedAppCounts(udids: [booted.id, shutdown.id, SimulatorSample.pad.id]), .simulatorApp])
+        #expect(harness.simulators.app == .simulator)
         #expect(harness.postedLabels == ["simulatorsChanged"])
     }
 
@@ -194,7 +195,19 @@ import DevHubTestSupport
 
         try await waitUntil { listCalls == 2 }
         #expect(harness.spies.simulators.calls.contains(.openInSimulatorApp(udid: booted.id)))
-        #expect(harness.lastActivity?.title == "Opened in Simulator.app iPhone 17")
+        #expect(harness.lastActivity?.title == "Opened in Simulator iPhone 17")
+    }
+
+    @Test func refreshReadsDeviceHubAndTheOpenActionNamesIt() async throws {
+        harness.spies.simulators.simulatorAppResult = .deviceHub
+        await load()
+
+        store.openInSimulatorApp(id: booted.id)
+
+        #expect(store.app == .deviceHub)
+        try await waitUntil { listCalls == 2 }
+        #expect(harness.spies.simulators.calls.contains(.openInSimulatorApp(udid: booted.id)))
+        #expect(harness.lastActivity?.title == "Opened in Device Hub iPhone 17")
     }
 
     @Test func actionsOnAnUnknownSimulatorDoNothing() {

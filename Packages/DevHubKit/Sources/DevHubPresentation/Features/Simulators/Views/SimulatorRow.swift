@@ -129,7 +129,7 @@ struct SimulatorRow<Panels: View>: View {
 
     private var overflowMenu: some View {
         OverflowMenu {
-            Button("Open in Simulator.app", systemImage: "macwindow") {
+            Button(model.openAppTitle, systemImage: "macwindow") {
                 onOpenInSimulator()
             }
             Button("Stream App Logs", systemImage: "text.alignleft") {

@@ -213,7 +213,7 @@ The count appears next to the menu bar icon (`3 PR` on GitHub, `3 MR` on GitLab)
 - **List.** Favourites first, then one section per iOS runtime, newest first. A row shows the state, the runtime, the target tag, the number of installed apps and the line of the status script (`simulators.statusScript`).
 - **Row.** A click on a row makes that simulator the target.
 - **Row buttons.** Build & Run on this simulator, deep link and push (the schemes come from `CFBundleURLTypes` of the installed app), the identity panel (section 3.6), Remove All Installed Apps, and the power button (boot or shut down).
-- **Row menu.** Open in Simulator.app, Stream App Logs, Launch & Attach Xcode, Copy UDID, Erase Content and Settings (inline confirmation), and config actions with the placement `simulators.row`.
+- **Row menu.** Open in Simulator (Open in Device Hub with Xcode 27), Stream App Logs, Launch & Attach Xcode, Copy UDID, Erase Content and Settings (inline confirmation), and config actions with the placement `simulators.row`.
 - Remove Apps from All removes the user apps from every simulator, one at a time, with progress and Stop.
 - A build of a branch without a checkout creates a worktree first. The main checkout keeps its branch.
 - A `kind: command` project runs `build.command`, then `run.command`, instead of `xcodebuild`. Run & Attach is off for these projects.
@@ -441,7 +441,7 @@ Build pipeline for `kind: xcode`:
 3. `xcodebuild -workspace|-project <container> -scheme <s> -configuration <c> -destination id=<udid> ONLY_ACTIVE_ARCH=YES build`, streamed. **No `-derivedDataPath`:** DevHub shares Xcode's DerivedData, so it reuses the cache of the Xcode build of the same checkout.
 4. Locate the `.app`: first from the `Touch`, `Validate`, `CodeSign` or `RegisterExecutionPolicyException` lines of the output; else from the DerivedData folder whose `info.plist` has `WorkspacePath` equal to the container (compared without case) under `Build/Products/<Configuration>-iphonesimulator`; last, `xcodebuild -showBuildSettings -json` (about 30 s on a large project). The bundle ID comes from the `Info.plist` of the app.
 5. Clean install when needed: uninstall the app and run `xcrun simctl keychain <udid> reset`.
-6. `xcrun simctl install`, then write the profile defaults, then `open -a Simulator --args -CurrentDeviceUDID <udid>`, then `xcrun simctl launch --terminate-running-process [--wait-for-debugger] <udid> <bundleID> [args]`. The environment goes through `SIMCTL_CHILD_<NAME>` variables. The launch output `…: <pid>` gives the PID.
+6. `xcrun simctl install`, then write the profile defaults, then open the simulator window (Simulator.app, or Device Hub with Xcode 27: `features/simulators.md`, "Simulator app"), then `xcrun simctl launch --terminate-running-process [--wait-for-debugger] <udid> <bundleID> [args]`. The environment goes through `SIMCTL_CHILD_<NAME>` variables. The launch output `…: <pid>` gives the PID.
 
 Traps:
 

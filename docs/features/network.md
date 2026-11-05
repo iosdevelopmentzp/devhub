@@ -97,7 +97,7 @@ Apply & Relaunch (`RelaunchWithMocksUseCase`) works like this:
    3. DevHub starts the server on `127.0.0.1`. The port comes from a hash of the simulator UDID, between 49152 and 59151. When that port is busy, the system picks one.
    4. DevHub launches the app with `<baseURLVariable>=http://127.0.0.1:<port>`.
 
-The launch is the same as in [Install and launch](simulators.md#install-and-launch), without the install: the profile `defaults`, `open -a Simulator --args -CurrentDeviceUDID <udid>`, then `xcrun simctl launch --terminate-running-process <udid> <bundle ID> <arguments>` with the launch plan environment.
+The launch is the same as in [Install and launch](simulators.md#install-and-launch), without the install: the profile `defaults`, the simulator window ([Simulator app](simulators.md#simulator-app)), then `xcrun simctl launch --terminate-running-process <udid> <bundle ID> <arguments>` with the launch plan environment.
 
 The profile of the relaunch is the profile the app reports (status script `state` line), else the profile stored in the app (`storage`), else the profile of the run bar for this simulator. The ID is the actual ID of the app ([Device identity](device-identity.md)).
 

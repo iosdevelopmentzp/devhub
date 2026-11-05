@@ -24,13 +24,14 @@ Facts checked on this Mac (Xcode 26.6, 2026-11-01):
 - The simulator keychain is one SQLite database for all apps: `<device>/data/Library/Keychains/keychain-2-debug.db` with `-wal` and `-shm`. One device data folder was 6.3 GB.
 - `simctl install_app_data <device> <xcappdata>` replaces the data container of an app and stops the app first.
 - `xcrun devicectl list devices` sees a paired iPhone. `devicectl device copy from --domain-type appDataContainer` copies the data of an app from a device. `devicectl` has no screenshot command.
-- In Xcode 27, `DeviceHub.app` (`com.apple.dt.Devices`) in `Xcode.app/Contents/Applications/` replaces `Simulator.app`. `simctl` stays, and `devicectl` also manages simulators. Tools that run `open -a Simulator` fail on a Mac with only Xcode 27. DevHub runs it in `SimctlSimulatorRepository.openInSimulator` and in the example config (`list-devices` view).
+- In Xcode 27, `DeviceHub.app` (`com.apple.dt.Devices`) in `Xcode.app/Contents/Applications/` replaces `Simulator.app`, which Xcode 26 keeps in `Xcode.app/Contents/Developer/Applications/`. `simctl` stays, and `devicectl` also manages simulators. Tools that run `open -a Simulator` fail on a Mac with only Xcode 27 ("Unable to find application named 'Simulator'"). DevHub ran it in `SimctlSimulatorRepository.openInSimulatorApp` and in the example config (`list-devices` view).
+- Found on the web (2026-11-05), not checked here: Device Hub registers the `devices://` URL scheme, and `open devices://device/open?id=<udid>` shows that device (the React Native CLI and the Expo CLI use it). Device Hub shows no window for a device that starts to boot after the URL, so the device must be booted first. Device Hub ignores `-CurrentDeviceUDID` and `-DeviceSetPath`.
 
 ## Decisions
 
 ### D1. Xcode 27 and Device Hub
 
-1. DevHub opens the simulator app of the Xcode in use: `<developer dir>/../Applications/Simulator.app` or `DeviceHub.app`, the one that exists. The developer dir is the project's `xcode.developerDir`, else `xcode-select -p`. The menu item says "Open in Simulator" or "Open in Device Hub". The example config stops using `open -a Simulator`.
+1. DevHub opens the simulator app of the Xcode in use: `<developer dir>/Applications/Simulator.app` or `<developer dir>/../Applications/DeviceHub.app`, the one that exists (Simulator.app first). Device Hub gets `simctl boot`, then `devices://device/open?id=<udid>`, then `open -a <path>` when the URL fails. The developer dir is the project's `xcode.developerDir`, else `xcode-select -p`. The menu item says "Open in Simulator" or "Open in Device Hub". The example config stops using `open -a Simulator`.
 2. Check on Xcode 27: the simulator list, boot, install, launch, logs, app data, QA settings, and whether Device Hub takes `-CurrentDeviceUDID`.
 3. The owner installs Xcode 27 next to Xcode 26 (for example `/Applications/Xcode-27.app`) and chooses it for one project in Settings → Projects. The system Xcode stays 26. The first start of Xcode 27 installs its simulator service (CoreSimulator) for the whole Mac, and Xcode 26 then uses that service too.
 
@@ -98,7 +99,8 @@ Decision (owner, 2026-11-01): options 1 and 2 from one source, option 2 (the inj
 - [ ] 6. D6 device snapshots with the keychain.
 - [ ] 7. D8 devices: list, install, launch, console.
 - [ ] 8. D8 devices: build with signing, app data copy.
-- [ ] 9. D1 Xcode 27, after the owner installs Xcode 27.
+- [x] 9a. D1.1 open Simulator.app or Device Hub by the Xcode in use; the menu item and the example config follow.
+- [ ] 9. D1.2 check the rest on Xcode 27, after the owner installs Xcode 27.
 - [ ] 10. D7 network monitor: the injected library first, then the companion package.
 
 ## Step log

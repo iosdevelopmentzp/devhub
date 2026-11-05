@@ -21,6 +21,10 @@ struct MockSimulatorRepository: SimulatorRepository {
         try await Task.sleep(for: .milliseconds(600))
     }
 
+    func simulatorApp() async -> SimulatorApp {
+        .simulator
+    }
+
     func openInSimulatorApp(udid: String) async throws {}
 
     func uninstallUserApps(udid: String, wasBooted: Bool) async throws -> [String] {

@@ -26,6 +26,16 @@ import Testing
         #expect(failed.status == SimulatorStatusLineModel(text: "status timed out", tint: .red))
     }
 
+    @Test func openAppTitleFollowsTheSimulatorApp() {
+        var flags = Flags()
+        let simulator = row(SimulatorFixture.iPhone, flags: flags)
+        flags.simulatorApp = .deviceHub
+        let deviceHub = row(SimulatorFixture.iPhone, flags: flags)
+
+        #expect(simulator.openAppTitle == "Open in Simulator")
+        #expect(deviceHub.openAppTitle == "Open in Device Hub")
+    }
+
     @Test func kindIcon() {
         #expect(SimulatorRowMapper.kindIcon(.phone) == "iphone")
         #expect(SimulatorRowMapper.kindIcon(.pad) == "ipad")
@@ -203,6 +213,7 @@ import Testing
             isUninstalling: flags.isUninstalling,
             buildIsRunning: flags.buildIsRunning,
             bundleID: "com.example.app",
+            simulatorApp: flags.simulatorApp,
             isConfirmingErase: flags.isConfirmingErase,
             isEditingIdentity: flags.isEditingIdentity,
             isMessaging: flags.isMessaging,
@@ -222,4 +233,5 @@ private struct Flags {
     var isConfirmingErase = false
     var isEditingIdentity = false
     var isMessaging = false
+    var simulatorApp = SimulatorApp.simulator
 }

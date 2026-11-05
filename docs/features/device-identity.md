@@ -81,7 +81,7 @@ The steps of a launch (`LaunchInstalledAppUseCase`):
    - `xcrun simctl install <udid> <cached app>`. Without a cached copy, DevHub uses the last built app. Without both, the launch fails: "No app bundle to reinstall from".
 3. The profile `defaults`, written as in [Install and launch](simulators.md#install-and-launch).
 4. The mock server variable, when a server runs for this simulator.
-5. `open -a Simulator --args -CurrentDeviceUDID <udid>`.
+5. The simulator window: Simulator.app, or Device Hub with Xcode 27 ([Simulator app](simulators.md#simulator-app)).
 6. `xcrun simctl launch --terminate-running-process [--wait-for-debugger] <udid> <bundle ID> <arguments>`.
 
 ### What a launch sends to the app

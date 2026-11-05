@@ -13,6 +13,7 @@ final class SimulatorsStore: SimulatorLookup {
     private(set) var uninstallingIDs: Set<Simulator.ID> = []
     private(set) var bulkUninstall: BulkProgress?
     private(set) var favoriteOrder: [Simulator.ID]
+    private(set) var app = SimulatorApp.simulator
 
     @ObservationIgnored private let repository: SimulatorRepository
     @ObservationIgnored private let activity: ActivityLog
@@ -87,6 +88,9 @@ final class SimulatorsStore: SimulatorLookup {
                 let counts = await repository.installedAppCounts(udids: all.map(\.id))
                 try Task.checkCancellation()
                 installedAppCounts = counts
+                let app = await repository.simulatorApp()
+                try Task.checkCancellation()
+                self.app = app
                 events.post(.simulatorsChanged)
             } catch {
                 try Task.checkCancellation()
@@ -126,7 +130,7 @@ final class SimulatorsStore: SimulatorLookup {
 
     func openInSimulatorApp(id: Simulator.ID) {
         guard let simulator = simulator(id: id) else { return }
-        perform("Opened in Simulator.app", simulator) { [repository] in
+        perform("Opened in \(SimulatorRowMapper.appName(app))", simulator) { [repository] in
             try await repository.openInSimulatorApp(udid: id)
         }
     }

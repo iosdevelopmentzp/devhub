@@ -31,6 +31,10 @@ final class GatedSimulatorRepository: SimulatorRepository {
         record("erase")
     }
 
+    func simulatorApp() async -> SimulatorApp {
+        .simulator
+    }
+
     func openInSimulatorApp(udid: String) async throws {
         record("openInSimulatorApp")
     }

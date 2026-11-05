@@ -42,7 +42,7 @@ xcrun simctl bootstatus <udid>
 [clean install]  xcrun simctl uninstall <udid> <bundleID> · xcrun simctl keychain <udid> reset
 xcrun simctl install <udid> <app>
 [profile defaults]  xcrun simctl get_app_container <udid> <bundleID> data|<group suite> · xcrun simctl spawn <udid> defaults write <plist> <key> -string <value>
-open -a Simulator --args -CurrentDeviceUDID <udid>
+[window]  open <developer dir>/Applications/Simulator.app --args -CurrentDeviceUDID <udid>   (Xcode 27: simctl boot, then open devices://device/open?id=<udid>)
 xcrun simctl launch --terminate-running-process [--wait-for-debugger] <udid> <bundleID> [arguments]
 [attach]  AccessibilityXcodeAttacher.attach(pid:simulatorUDID:projectPath:container:)
 ```
@@ -108,7 +108,7 @@ also under the sibling `.xcodeproj` folders. Sorted with `localizedStandardCompa
 | Boot, shutdown | `simctl boot`, `simctl shutdown`; exit 149 means "already in that state" and counts as success (`SimctlRunner.run(_:allowingExit:failure:)`) |
 | Erase | `simctl shutdown`, then `simctl erase` |
 | Wait for boot | `simctl bootstatus <udid>` |
-| Open the window | `open -a Simulator --args -CurrentDeviceUDID <udid>` |
+| Open the window | `SimctlSimulatorRepository.openInSimulatorApp`, the app found by `SimulatorAppLocation` from the developer folder (`ShellRunner.developerDir`, else `xcode-select -p`). Xcode 26: `open <developer dir>/Applications/Simulator.app --args -CurrentDeviceUDID <udid>`. Xcode 27 has no Simulator.app: `<Xcode>/Contents/Applications/DeviceHub.app` (`com.apple.dt.Devices`); `simctl boot <udid>`, then `open devices://device/open?id=<udid>` (Device Hub shows no window for a device that is still shut down), else `open -a <DeviceHub path>`. Neither found: `open -a Simulator …`, then the Device Hub steps with `open -b com.apple.dt.Devices` |
 | Installed app count without booting | folders under `~/Library/Developer/CoreSimulator/Devices/<udid>/data/Containers/Bundle/Application` (`installedAppCounts(udids:)`) |
 | User apps | `simctl listapps <udid>` (plist text), `ApplicationType == User` |
 | Uninstall | `simctl uninstall <udid> <bundleID>`. A shut-down device is booted, waited for, then shut down again (`whileBooted`) |

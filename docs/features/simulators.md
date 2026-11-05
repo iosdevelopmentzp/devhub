@@ -57,7 +57,7 @@ Row buttons appear on hover. The overflow menu (`…`) holds the rest.
 | Deep link and push | paper plane button | Opens the messaging panel under the row | see "Deep links and push" below |
 | Build & Run on this simulator | play button | Makes the row the target and starts Build & Run | see "Build & Run" below |
 | Remove all installed apps | `xmark.app` button, and the menu | Removes every user app. Settings stay. A shut-down simulator boots first and shuts down after | `xcrun simctl listapps <udid>`, then `xcrun simctl uninstall <udid> <bundle ID>` per app with `ApplicationType` `User` |
-| Open in Simulator.app | menu | Shows this simulator in Simulator.app | `open -a Simulator --args -CurrentDeviceUDID <udid>` |
+| Open in Simulator, or Open in Device Hub | menu | Shows this simulator in the simulator app of the Xcode in use | see "Simulator app" below |
 | Stream App Logs | menu, booted only | Opens the Logs tab and starts a stream for this simulator | see [Logs](logs.md) |
 | App Data… | menu, booted only | Opens the app data panel under the row | see "App data" below |
 | Add to Favorites, Remove from Favorites | menu | Moves the row to or from the Favorites section | none |
@@ -116,8 +116,23 @@ These steps are shared by both project kinds (`AppInstallStep`).
    - `xcrun simctl get_app_container <udid> <bundle ID> data` (or the `group.…` suite name for an app group);
    - `xcrun simctl spawn <udid> defaults write <container>/Library/Preferences/<suite>.plist <key> -string|-bool|-integer|-float <value>`.
 5. **Mock server.** When the Network tab runs a mock server for this simulator, DevHub moves it to the upstream of the profile and adds `network.baseURLVariable` to the environment ([Network](network.md)).
-6. **Simulator.app:** `open -a Simulator --args -CurrentDeviceUDID <udid>`.
+6. **Simulator window:** the simulator app of the Xcode in use, see "Simulator app" below.
 7. **Launch:** `xcrun simctl launch --terminate-running-process <udid> <bundle ID> <arguments>`. The environment of the profile and of `launch.identity` goes to the app as `SIMCTL_CHILD_<NAME>` variables. The arguments are `launch.identity.args`, then the `args` of the profile.
+
+### Simulator app
+
+Xcode 27 has no Simulator.app. Device Hub (`DeviceHub.app`, bundle ID `com.apple.dt.Devices`) shows the simulators instead, and `xcrun simctl` works as before. DevHub opens the app of the Xcode that the project uses (Settings → Projects, else `xcode-select -p`). Code: `SimctlSimulatorRepository.openInSimulatorApp`, `SimulatorAppLocation`.
+
+| The Xcode has | DevHub runs |
+|---|---|
+| `<Xcode>/Contents/Developer/Applications/Simulator.app` (Xcode 26 and earlier) | `open <that path> --args -CurrentDeviceUDID <udid>` |
+| `<Xcode>/Contents/Applications/DeviceHub.app` (Xcode 27) | `xcrun simctl boot <udid>` (exit code 149 counts as success), then `open devices://device/open?id=<udid>`. When the URL fails: `open -a <DeviceHub path>` |
+| neither, or no developer folder | `open -a Simulator --args -CurrentDeviceUDID <udid>`. When that fails: the Device Hub steps, with `open -b com.apple.dt.Devices` as the last one |
+
+- Device Hub shows no window for a simulator that is still shut down when the URL arrives, so DevHub boots it first.
+- Apple does not document the `devices://` URL. The React Native CLI and the Expo CLI use it to show one device.
+- The row menu says "Open in Simulator" or "Open in Device Hub". The Simulators tab reads the app on every refresh.
+- Not checked on a Mac with Xcode 27 yet.
 
 ### Crash reports
 

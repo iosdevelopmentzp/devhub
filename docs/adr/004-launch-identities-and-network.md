@@ -58,9 +58,9 @@ Every launch goes through `SimulatorRepository.launch` with the environment and 
 
 | Button | Code | Steps |
 |---|---|---|
-| Build & Run | `AppInstallStep` (inside `BuildAndRunUseCase`) | clean install when needed, install, write defaults, mock preparation, open Simulator.app, launch, yield `.launched(record)` |
-| Launch (installed app) | `LaunchInstalledAppUseCase`, called by `IdentityStore` | boot, clean install when needed, write defaults, mock preparation, open Simulator.app, launch, attach Xcode when asked |
-| Apply & Relaunch (Network tab) | `RelaunchWithMocksUseCase`, called by `MockServerStore` | start, change or stop the mock server, write defaults, open Simulator.app, launch |
+| Build & Run | `AppInstallStep` (inside `BuildAndRunUseCase`) | clean install when needed, install, write defaults, mock preparation, open the simulator window, launch, yield `.launched(record)` |
+| Launch (installed app) | `LaunchInstalledAppUseCase`, called by `IdentityStore` | boot, clean install when needed, write defaults, mock preparation, open the simulator window, launch, attach Xcode when asked |
+| Apply & Relaunch (Network tab) | `RelaunchWithMocksUseCase`, called by `MockServerStore` | start, change or stop the mock server, write defaults, open the simulator window, launch |
 
 After each launch the store posts `AppEvent.buildFinished(simulatorID:launch:)` or `AppEvent.appLaunched(simulatorID:launch:)` with the record. `IdentityStore` saves the record, sets `appliedIdentity` and `hasApplied`, and reads the installed app again after 4 seconds. `SimulatorStatusStore` runs the status script again after 3 seconds.
 

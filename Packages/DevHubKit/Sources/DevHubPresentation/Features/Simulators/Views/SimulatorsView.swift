@@ -108,6 +108,7 @@ struct SimulatorsView: View {
             isUninstalling: simulators.isUninstalling(simulator.id),
             buildIsRunning: build.isRunning,
             bundleID: identityStore.bundleID(for: simulator.id),
+            simulatorApp: simulators.app,
             isConfirmingErase: confirmingEraseID == simulator.id,
             isEditingIdentity: editingIdentityID == simulator.id,
             isMessaging: messagingID == simulator.id,

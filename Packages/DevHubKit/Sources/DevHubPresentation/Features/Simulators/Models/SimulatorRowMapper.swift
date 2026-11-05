@@ -15,6 +15,7 @@ enum SimulatorRowMapper {
         isUninstalling: Bool,
         buildIsRunning: Bool,
         bundleID: String,
+        simulatorApp: SimulatorApp,
         isConfirmingErase: Bool,
         isEditingIdentity: Bool,
         isMessaging: Bool,
@@ -47,6 +48,7 @@ enum SimulatorRowMapper {
             canTogglePower: isTransitioning == false,
             canStreamLogs: simulator.state == .booted,
             canLaunchAndAttach: buildIsRunning == false && isInstalled,
+            openAppTitle: "Open in \(appName(simulatorApp))",
             uninstallTitle: "Uninstall \(bundleID)",
             canUninstallFromMenu: isTransitioning == false && isUninstalling == false,
             canShowAppData: simulator.state == .booted && bundleID.isEmpty == false,
@@ -63,6 +65,13 @@ enum SimulatorRowMapper {
 
     static func kindIcon(_ kind: Simulator.Kind) -> String {
         kind == .pad ? "ipad" : "iphone"
+    }
+
+    static func appName(_ app: SimulatorApp) -> String {
+        switch app {
+        case .simulator: "Simulator"
+        case .deviceHub: "Device Hub"
+        }
     }
 
     private static let targetTag = TagModel(

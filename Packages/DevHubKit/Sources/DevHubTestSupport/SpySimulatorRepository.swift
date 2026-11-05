@@ -8,6 +8,7 @@ package final class SpySimulatorRepository: SimulatorRepository, @unchecked Send
         case waitUntilBooted(udid: String)
         case shutdown(udid: String)
         case erase(udid: String)
+        case simulatorApp
         case openInSimulatorApp(udid: String)
         case uninstallUserApps(udid: String, wasBooted: Bool)
         case installedAppCounts(udids: [String])
@@ -26,6 +27,7 @@ package final class SpySimulatorRepository: SimulatorRepository, @unchecked Send
     private var _bootError: (any Error)? = nil
     private var _shutdownError: (any Error)? = nil
     private var _eraseError: (any Error)? = nil
+    private var _simulatorAppResult = SimulatorApp.simulator
     private var _openInSimulatorAppError: (any Error)? = nil
     private var _uninstallUserAppsResult: Result<[String], any Error> = .success([])
     private var _installedAppCountsResult: [String: Int] = [:]
@@ -58,6 +60,11 @@ package final class SpySimulatorRepository: SimulatorRepository, @unchecked Send
     package var eraseError: (any Error)? {
         get { lock.withLock { _eraseError } }
         set { lock.withLock { _eraseError = newValue } }
+    }
+
+    package var simulatorAppResult: SimulatorApp {
+        get { lock.withLock { _simulatorAppResult } }
+        set { lock.withLock { _simulatorAppResult = newValue } }
     }
 
     package var openInSimulatorAppError: (any Error)? {
@@ -116,6 +123,10 @@ package final class SpySimulatorRepository: SimulatorRepository, @unchecked Send
     package func erase(udid: String) async throws {
         let error = record(.erase(udid: udid)) { _eraseError }
         if let error { throw error }
+    }
+
+    package func simulatorApp() async -> SimulatorApp {
+        record(.simulatorApp) { _simulatorAppResult }
     }
 
     package func openInSimulatorApp(udid: String) async throws {

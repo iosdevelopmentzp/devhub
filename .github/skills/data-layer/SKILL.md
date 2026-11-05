@@ -28,7 +28,8 @@ DevHubData/
     CircleCI/       CircleCIRepository(client:), CircleCIClient, CircleCIJSON, CircleCIWorkflowParser, CircleCIRunParser,
                     CircleCIJobOutputParser, CircleCITestResultParser, CircleCIFlakyTestParser, CircleCIToolStateParser
                     (the circleci CLI, ADR 006; see the pull-requests page)
-    Simulators/     SimctlSimulatorRepository, SimctlAppLaunchRepository, SimctlMessagingRepository, SimctlRunner,
+    Simulators/     SimctlSimulatorRepository, SimulatorAppLocation (Simulator.app or Xcode 27 Device Hub),
+                    SimctlAppLaunchRepository, SimctlMessagingRepository, SimctlRunner,
                     SimctlListParser, ContainerLocator, ProfileDefaultsPlan, AppURLSchemeParser,
                     Dictionary+ChildEnvironment
     Build/          XcodeBuildRepository, BuildOutputParser, BuildStepThrottle, ProductLocator, XcodeContainer

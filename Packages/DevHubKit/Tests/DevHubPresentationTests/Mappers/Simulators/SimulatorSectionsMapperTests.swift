@@ -94,6 +94,7 @@ import Testing
                 isUninstalling: false,
                 buildIsRunning: false,
                 bundleID: "com.example.app",
+                simulatorApp: .simulator,
                 isConfirmingErase: false,
                 isEditingIdentity: false,
                 isMessaging: false,

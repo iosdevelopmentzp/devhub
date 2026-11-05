@@ -35,9 +35,21 @@ struct SimctlSimulatorRepository: SimulatorRepository {
         try await simctl.run(["erase", udid], failure: SimulatorError.command)
     }
 
+    func simulatorApp() async -> SimulatorApp {
+        await appLocation().app
+    }
+
     func openInSimulatorApp(udid: String) async throws {
-        let result = try await shell.run("open", ["-a", "Simulator", "--args", "-CurrentDeviceUDID", udid], cwd: nil)
-        guard result.exitCode == 0 else { throw SimulatorError.command(result.stderr.trimmed) }
+        switch await appLocation() {
+        case .simulator(let path):
+            try await open([path, "--args", "-CurrentDeviceUDID", udid])
+        case .deviceHub(let path):
+            try await openInDeviceHub(udid: udid, fallback: ["-a", path])
+        case .unknown:
+            let result = try await shell.run("open", ["-a", "Simulator", "--args", "-CurrentDeviceUDID", udid], cwd: nil)
+            guard result.exitCode != 0 else { return }
+            try await openInDeviceHub(udid: udid, fallback: ["-b", SimulatorAppLocation.deviceHubBundleID])
+        }
     }
 
     func uninstallUserApps(udid: String, wasBooted: Bool) async throws -> [String] {
@@ -96,6 +108,30 @@ struct SimctlSimulatorRepository: SimulatorRepository {
             }
             return counts
         }.value
+    }
+
+    private func openInDeviceHub(udid: String, fallback: [String]) async throws {
+        try await boot(udid: udid)
+        let result = try await shell.run("open", [SimulatorAppLocation.deviceHubURL(udid: udid)], cwd: nil)
+        guard result.exitCode != 0 else { return }
+        try await open(fallback)
+    }
+
+    private func open(_ arguments: [String]) async throws {
+        let result = try await shell.run("open", arguments, cwd: nil)
+        guard result.exitCode == 0 else { throw SimulatorError.command(result.failureMessage) }
+    }
+
+    private func appLocation() async -> SimulatorAppLocation {
+        SimulatorAppLocation.find(developerDir: await developerDir(), exists: FileManager.default.fileExists(atPath:))
+    }
+
+    private func developerDir() async -> String? {
+        if let chosen = shell.developerDir.value {
+            return chosen
+        }
+        guard let result = try? await shell.run("xcode-select", ["-p"], cwd: nil), result.exitCode == 0 else { return nil }
+        return result.stdout.trimmed
     }
 
     private func userApps(udid: String) async throws -> [(bundleID: String, name: String)] {

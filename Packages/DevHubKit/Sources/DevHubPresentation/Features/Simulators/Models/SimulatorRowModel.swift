@@ -27,6 +27,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
     var canTogglePower: Bool
     var canStreamLogs: Bool
     var canLaunchAndAttach: Bool
+    var openAppTitle: String
     var uninstallTitle: String
     var canUninstallFromMenu: Bool
     var canShowAppData: Bool
@@ -68,6 +69,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
         canTogglePower: true,
         canStreamLogs: true,
         canLaunchAndAttach: true,
+        openAppTitle: "Open in Simulator",
         uninstallTitle: "Uninstall com.example.app",
         canUninstallFromMenu: true,
         canShowAppData: true,
