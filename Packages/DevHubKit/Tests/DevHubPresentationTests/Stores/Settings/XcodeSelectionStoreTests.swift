@@ -23,6 +23,27 @@ import DevHubTestSupport
         #expect(store.systemDeveloperDir == release.developerDir)
     }
 
+    @Test func refreshReadsTheSystemXcodeWhenSpotlightMissesIt() async {
+        harness.spies.xcodes.installationsResult = .success([beta])
+        harness.spies.xcodes.selectedResult = .success(release.developerDir)
+        harness.spies.xcodes.installationResult = .success(release)
+
+        await store.refresh()
+
+        #expect(store.installations == [beta, release])
+        #expect(harness.spies.xcodes.calls == [.installations, .selectedDeveloperDir, .installation(developerDir: release.developerDir)])
+    }
+
+    @Test func refreshIfNeededReadsOnce() async {
+        harness.spies.xcodes.installationsResult = .success([release])
+
+        await store.refreshIfNeeded()
+        await store.refreshIfNeeded()
+
+        #expect(store.installations == [release])
+        #expect(harness.spies.xcodes.calls == [.installations, .selectedDeveloperDir])
+    }
+
     @Test func aFailedListIsLogged() async {
         harness.spies.xcodes.installationsResult = .failure(TestError.scripted("mdfind failed"))
 

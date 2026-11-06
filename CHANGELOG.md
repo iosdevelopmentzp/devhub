@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Simulators: the run bar shows a tag with the version of the Xcode that builds the project (`Xcode 26.1`). Its hint names the app path and where the choice comes from: Settings → Projects, `xcode.developerDir`, or `xcode-select`. The Xcode of `xcode-select` and the chosen one are listed with their version even when Spotlight does not find them.
 - Simulators: the status script can put tags on a simulator with a `tags` list in its `state` line (`text`, optional `tint`, `icon`, `hint`). They show after the identity line of the row and under the target of the run bar. Tags of a script `view` row take `icon` and `hint` too.
 - Launch profiles: `launch.profiles[].tint` sets the colour of the profile tag in the identity summary and panel. It wins over the red of a production profile.
 - Xcode 27 support for the simulator window: Xcode 27 has no Simulator.app, so Build & Run, Launch, Apply & Relaunch and the row menu failed with "Unable to find application named 'Simulator'". DevHub now opens the app of the project's Xcode: Simulator.app up to Xcode 26, Device Hub from Xcode 27 (it boots the simulator, then shows it with `devices://device/open?id=<udid>`). The row menu says "Open in Simulator" or "Open in Device Hub". The example `list-devices` script opens either app.

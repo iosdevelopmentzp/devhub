@@ -10,6 +10,7 @@ struct RunBar: View {
     @Environment(MockServerStore.self) private var mockServerStore
     @Environment(CrashReportsStore.self) private var crashes
     @Environment(AppActions.self) private var appActions
+    @Environment(XcodeSelectionStore.self) private var xcodes
 
     @State private var editsSchemes = false
 
@@ -89,6 +90,7 @@ struct RunBar: View {
             }
         }
         .animation(.snappy(duration: 0.2), value: build.isRunning)
+        .task { await xcodes.refreshIfNeeded() }
     }
 
     private var model: RunBarModel {
@@ -101,6 +103,15 @@ struct RunBar: View {
             mockState: target.flatMap { mockServerStore.states[$0.id] },
             hasLog: build.hasLog,
             isLoadingSimulators: simulators.isLoading
+        )
+    }
+
+    private var xcodeTag: TagModel? {
+        XcodeTagMapper.tag(
+            choice: xcodes.chosenDeveloperDir,
+            configDeveloperDir: xcodes.configDeveloperDir,
+            systemDeveloperDir: xcodes.systemDeveloperDir,
+            installations: xcodes.installations
         )
     }
 
@@ -123,6 +134,9 @@ struct RunBar: View {
                     .hint("This project builds and runs with build.command and run.command: \(commands). A line @devhub {\"app\": \"<path>\"} makes DevHub install and launch that app.")
             } else {
                 xcodePickers
+            }
+            if let xcodeTag {
+                ModelTag(model: xcodeTag)
             }
             BuildSourceMenu()
             Toggle("Fast", isOn: Binding(get: { build.state.incremental }, set: { build.setIncremental($0) }))

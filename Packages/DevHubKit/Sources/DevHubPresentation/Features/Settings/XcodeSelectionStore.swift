@@ -16,6 +16,7 @@ final class XcodeSelectionStore {
     @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private var subscription: SubscriptionToken?
+    @ObservationIgnored private var hasLoaded = false
 
     init(
         repository: any XcodeInstallationRepository,
@@ -44,6 +45,10 @@ final class XcodeSelectionStore {
         }
     }
 
+    var chosenDeveloperDir: String? {
+        session.selectedProject.developerDir
+    }
+
     var configDeveloperDir: String? {
         config.config.xcode?.developerDir
     }
@@ -54,11 +59,24 @@ final class XcodeSelectionStore {
 
     func refresh() async {
         do {
-            installations = try await repository.installations()
+            var found = try await repository.installations()
             systemDeveloperDir = try await repository.selectedDeveloperDir()
+            for developerDir in Set([effectiveDeveloperDir, systemDeveloperDir].compactMap { $0 }).sorted()
+            where found.contains(where: { $0.developerDir == developerDir }) == false {
+                if let installation = try await repository.installation(atDeveloperDir: developerDir) {
+                    found.append(installation)
+                }
+            }
+            installations = found
         } catch {
             activity.log("Cannot list the installed Xcode apps", detail: error.localizedDescription, outcome: .failure)
         }
+    }
+
+    func refreshIfNeeded() async {
+        guard hasLoaded == false else { return }
+        hasLoaded = true
+        await refresh()
     }
 
     func apply() async {

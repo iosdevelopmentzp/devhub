@@ -15,6 +15,7 @@ The tab has three parts, from top to bottom.
    - the button next to the scheme picker opens the scheme editor. It lists the schemes and targets from `xcodebuild -list -json` that are not in the picker yet; a click adds one. A text field adds any other name. The schemes added by you show under "Added by you" with a remove button. The list is saved per project. The picker finds only `.xcscheme` files, so a scheme that Xcode creates on the fly (a target without a shared scheme, a Swift package product) needs this editor or `xcode.schemes`;
    - the source menu: the main checkout, a worktree, or "Other Branch…";
    - the **Fast** box (incremental build) and the **Clean install** box;
+   - an Xcode tag (`Xcode 26.1`) with the version of the Xcode that builds the project and runs `simctl` and `xed`. The hint names the app and where the choice comes from: Settings → Projects, `xcode.developerDir` in `.devhub/project.json`, or `xcode-select` ([Settings](settings.md));
    - the launch profile picker, when the project has `launch.profiles`. With 4 profiles or fewer it is a segmented control, with more it is a menu. A summary line shows the environment, the argument count, the defaults count and "clean install";
    - the target: name, device icon, runtime tag, the status script line, and the identity summary (see [Device identity](device-identity.md));
    - config actions with the `simulators.runBar` placement;

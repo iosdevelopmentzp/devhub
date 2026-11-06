@@ -57,4 +57,15 @@ import Testing
         #expect(installation?.version == "26.2")
         #expect(installation?.build == "17C5013c")
     }
+
+    @Test func theRepositoryReadsTheVersionFileFromADeveloperDir() async throws {
+        let folder = try TemporaryDirectory()
+        let plist = try PropertyListSerialization.data(fromPropertyList: ["CFBundleShortVersionString": "26.1"], format: .xml, options: 0)
+        _ = try folder.write(String(decoding: plist, as: UTF8.self), to: "Xcode.app/Contents/version.plist")
+        let repository = SpotlightXcodeInstallationRepository(shell: ShellRunner(recorder: SpyCommandRecorder()))
+
+        let installation = try await repository.installation(atDeveloperDir: folder.path("Xcode.app/Contents/Developer"))
+
+        #expect(installation == XcodeInstallation(appPath: folder.path("Xcode.app"), version: "26.1", build: nil))
+    }
 }

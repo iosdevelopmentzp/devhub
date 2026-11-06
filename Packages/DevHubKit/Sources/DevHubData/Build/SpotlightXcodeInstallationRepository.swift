@@ -17,6 +17,10 @@ struct SpotlightXcodeInstallationRepository: XcodeInstallationRepository {
         return path
     }
 
+    func installation(atDeveloperDir path: String) async throws -> XcodeInstallation? {
+        Self.installation(at: DeveloperDirPolicy.appPath(ofDeveloperDir: path))
+    }
+
     static func installation(at appPath: String) -> XcodeInstallation? {
         let plist = PlistReader.dictionary(at: URL(fileURLWithPath: appPath).appendingPathComponent("Contents/version.plist"))
         return XcodeInstallationParser.installation(appPath: appPath, versionPlist: plist)
