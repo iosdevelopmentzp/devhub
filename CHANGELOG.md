@@ -177,6 +177,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The built-in device identity preset and the built-in default project.
 
 ### Infrastructure
+- Anonymity rule: a doc, a comment, a commit message, a test or the code never names or links another project; a reference describes it without the name (`.claude/rules/anonymity.md`).
 - `data-layer` skill: `git check-ignore` is in the list of reads.
 - ADR 009: the plan of the Utils tab and video compression with ffmpeg. `VideoCompressionRepository` (Domain) with `FFmpegVideoCompressionRepository` in `DevHubData/Video/`, `VideoCompressionPolicy`, the mock and the spy, and an integration suite that runs the real ffmpeg when it is installed.
 - ADR 008: the plan for simulator recording, GIF and compressed video, device frames, build insights, app and device snapshots, real devices, Xcode 27 and a network monitor.

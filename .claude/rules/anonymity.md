@@ -39,3 +39,6 @@ Code, tests, previews, mocks and docs use one set of sample values:
 - A doc that came from another repository is rewritten, not copied: a decision that names a project is generalised or
   left out.
 - When the check fails, rename the value to the sample vocabulary. Never add the real word to an allow list.
+- Never name or link another project in a doc, a comment, a commit message, a test or the code. A public tool that
+  DevHub runs or cites (`gh`, `glab`, `ffmpeg`, a library in the source list of an ADR) is not a project in this sense.
+  When a doc must point at another project, describe it without the name ("the main app", "the owner's iOS app").
