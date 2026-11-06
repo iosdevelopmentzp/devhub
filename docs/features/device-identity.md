@@ -18,6 +18,7 @@ The identity appears in four places.
    - the user, when the status script reports one;
    - an orange `next: <ID>` tag when the next launch uses another ID;
    - a mock server tag, when the Network tab runs a server for this simulator ([Network](network.md));
+   - the tags of the status script `state` line, for example a build flavour or a feature flag ([§7](../extensions.md#7-script-line-protocol));
    - "Launching…" while a launch runs.
 2. **The ID controls** in the run bar and in the "Build & Run on…" picker: the ID field, **Saved**, **New**, **Own** and the alias field.
 3. **The clean install note** under the ID controls. It says what the next launch does (see "Clean install rule" below).
@@ -152,7 +153,8 @@ The note under the ID controls says the result in words:
 | `launch.identity.hookMarker` | The text DevHub searches for in the app binary. Default: the value of `variable` | [§2](../extensions.md#2-projectjson) |
 | `launch.profiles[].storage` | Where the app saves its current profile | [§5](../extensions.md#5-launch-profiles) |
 | `launch.profiles[].production` | The profile tag is red | [§5](../extensions.md#5-launch-profiles) |
-| `simulators.statusScript` | Its `state` line gives the actual ID, profile, host, user and version | [§6](../extensions.md#6-simulator-status-script), [§7](../extensions.md#7-script-line-protocol) |
+| `launch.profiles[].tint` | The colour of the profile tag; it wins over the red of `production` | [§5](../extensions.md#5-launch-profiles) |
+| `simulators.statusScript` | Its `state` line gives the actual ID, profile, host, user, version and extra tags | [§6](../extensions.md#6-simulator-status-script), [§7](../extensions.md#7-script-line-protocol) |
 
 ## Saved preferences
 

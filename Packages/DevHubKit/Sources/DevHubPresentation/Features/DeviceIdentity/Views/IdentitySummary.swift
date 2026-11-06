@@ -45,6 +45,9 @@ struct IdentitySummary: View {
                 if let mockTag = model.mockTag {
                     ModelTag(model: mockTag)
                 }
+                ForEach(model.tags, id: \.self) { tag in
+                    ModelTag(model: tag)
+                }
             }
         }
         .font(.caption2)

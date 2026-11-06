@@ -128,6 +128,7 @@ import Testing
         #expect(summary.deviceID == nil)
         #expect(summary.userText == nil)
         #expect(summary.nextDeviceTag == nil)
+        #expect(summary.tags.isEmpty)
     }
 
     @Test func summaryShowsTheNextIDWhenItDiffers() {
@@ -136,6 +137,35 @@ import Testing
         let summary = IdentityPanelMapper.summary(context: context, mockState: nil)
 
         #expect(summary.nextDeviceTag == TagModel("next: devhub-77b0e4d1", tint: .orange, hint: "The next launch from DevHub uses this ID"))
+    }
+
+    @Test func profileTintComesFromTheConfigAndWinsOverProduction() {
+        let profiles = [
+            LaunchProfile(id: "dev", title: "Dev", tint: .purple),
+            LaunchProfile(id: "production", title: "Production", production: true),
+            LaunchProfile(id: "beta", title: "Beta", production: true, tint: .orange)
+        ]
+        func tag(_ profile: String) -> TagModel? {
+            let report = AppStateReport(identity: nil, profile: profile, host: nil, user: nil, version: nil)
+            return IdentityPanelMapper.profileTag(context: Fixture.context(profiles: profiles, report: report))
+        }
+
+        #expect(tag("dev")?.tint == .purple)
+        #expect(tag("production")?.tint == .red)
+        #expect(tag("beta")?.tint == .orange)
+        #expect(tag("unknown")?.tint == .teal)
+    }
+
+    @Test func summaryShowsTheTagsOfTheStateReport() {
+        var report = Fixture.report
+        report.tags = [ScriptViewTag(text: "beta", tint: .purple, icon: "flask", hint: "Beta build"), ScriptViewTag(text: "plain")]
+
+        let summary = IdentityPanelMapper.summary(context: Fixture.context(report: report), mockState: nil)
+
+        #expect(summary.tags == [
+            TagModel("beta", tint: .purple, systemImage: "flask", hint: "Beta build"),
+            TagModel("plain", tint: .gray)
+        ])
     }
 
     @Test func mockTagShowsTheServerAndWhetherTheAppUsesIt() {

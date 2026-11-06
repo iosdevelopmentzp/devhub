@@ -18,6 +18,7 @@ enum IdentityContextFixture {
 
     static func context(
         app: InstalledApp? = installedApp,
+        profiles: [LaunchProfile] = Self.profiles,
         report: AppStateReport? = nil,
         settings: SimulatorLaunchSettings = .empty,
         savedDeviceIDs: [String] = [],

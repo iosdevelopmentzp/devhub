@@ -12,6 +12,7 @@ struct IdentitySummaryModel: Equatable {
     var userIcon: String
     var nextDeviceTag: TagModel?
     var mockTag: TagModel?
+    var tags: [TagModel]
 
     static let preview = IdentityPanelMapper.summary(context: .preview, mockState: nil)
 }

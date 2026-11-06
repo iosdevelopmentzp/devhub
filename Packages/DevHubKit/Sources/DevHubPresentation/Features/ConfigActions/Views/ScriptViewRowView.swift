@@ -26,7 +26,7 @@ struct ScriptViewRowView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 ForEach(row.tags ?? [], id: \.self) { tag in
-                    Tag(tag.text, tint: ConfigTintMapper.tint(tag.tint).color)
+                    ModelTag(model: ConfigTagMapper.model(tag))
                 }
                 ForEach(Array((row.actions ?? []).enumerated()), id: \.offset) { index, rowAction in
                     Button(rowAction.title) {

@@ -31,7 +31,7 @@ struct IdentityContext: Equatable {
             LaunchProfile(id: "production", title: "Production", production: true)
         ],
         app: InstalledApp(isInstalled: true, version: "2.4.0", hasIdentityHook: true, keepsIdentity: false, storedProfileID: "staging"),
-        report: AppStateReport(identity: "devhub-3f9a1c2e", profile: "staging", host: "api.staging.example.com", user: "qa-12", version: "2.4.0"),
+        report: AppStateReport(identity: "devhub-3f9a1c2e", profile: "staging", host: "api.staging.example.com", user: "qa-12", version: "2.4.0", tags: [ScriptViewTag(text: "beta", tint: .purple, icon: "flask", hint: "Beta features are on")]),
         settings: SimulatorLaunchSettings(desiredIdentity: "devhub-77b0e4d1", appliedIdentity: "devhub-3f9a1c2e", hasApplied: true, lastLaunch: nil),
         savedDeviceIDs: ["devhub-3f9a1c2e", "devhub-77b0e4d1"],
         aliases: ["devhub-3f9a1c2e": "Sam QA"],

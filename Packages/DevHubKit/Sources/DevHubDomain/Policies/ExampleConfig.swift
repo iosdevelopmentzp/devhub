@@ -47,7 +47,7 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
   },
   "launch": {
     "profiles": [
-      { "id": "staging", "title": "Staging", "env": { "API_ENV": "staging" }, "defaults": [ { "suite": "group.com.example.app", "key": "environment", "value": "staging" } ], "storage": { "suite": "group.com.example.app", "key": "environment" }, "upstream": "https://api-qa.example.com" },
+      { "id": "staging", "title": "Staging", "env": { "API_ENV": "staging" }, "defaults": [ { "suite": "group.com.example.app", "key": "environment", "value": "staging" } ], "storage": { "suite": "group.com.example.app", "key": "environment" }, "upstream": "https://api-qa.example.com", "tint": "indigo" },
       { "id": "production", "title": "Production", "env": { "API_ENV": "production" }, "cleanInstall": true, "upstream": "https://api.example.com", "production": true }
     ],
     "identity": { "variable": "APP_DEVICE_ID", "keptVariable": "APP_KEEP_DEVICE_ID", "args": ["-skipOnboarding", "YES"], "idPrefix": "devhub-" }
@@ -218,7 +218,12 @@ if [ -z "$DATA" ]; then
 fi
 ENVIRONMENT="$(/usr/libexec/PlistBuddy -c 'Print :environment' "$DATA/Library/Preferences/group.com.example.app.plist" 2>/dev/null || echo "default")"
 DEVICE_ID="$(/usr/libexec/PlistBuddy -c 'Print :deviceID' "$DATA/Library/Preferences/group.com.example.app.plist" 2>/dev/null || true)"
-echo "@devhub {\"state\": {\"identity\": \"$DEVICE_ID\", \"profile\": \"$ENVIRONMENT\"}}"
+BETA="$(/usr/libexec/PlistBuddy -c 'Print :betaFeatures' "$DATA/Library/Preferences/group.com.example.app.plist" 2>/dev/null || echo false)"
+TAGS='[]'
+if [ "$BETA" = "true" ]; then
+    TAGS='[{"text": "beta", "tint": "purple", "icon": "flask", "hint": "Beta features are on"}]'
+fi
+echo "@devhub {\"state\": {\"identity\": \"$DEVICE_ID\", \"profile\": \"$ENVIRONMENT\", \"tags\": $TAGS}}"
 echo "@devhub {\"view\": {\"keyValues\": [[\"Environment\", \"$ENVIRONMENT\"], [\"ID\", \"$DEVICE_ID\"]]}}"
 """#, isExecutable: true),
         ExampleFile(path: "tabs/qa.json", text: #"""

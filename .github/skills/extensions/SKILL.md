@@ -79,7 +79,7 @@ Every run gets `DEVHUB_PROJECT_PATH`, `DEVHUB_PROJECT_NAME`, `DEVHUB_CHECKOUT_PA
 
 ## Directives
 
-`@devhub ` plus one JSON object per line: `progress`, `toast`, `copy`, `open`, `notify`, `refresh`, `error`, `app`, `view` (`rows`, `keyValues`, `text`). An unknown directive is shown as a plain line with a "unknown directive" tag, never an error.
+`@devhub ` plus one JSON object per line: `progress`, `toast`, `copy`, `open`, `notify`, `refresh`, `error`, `app`, `state` (`identity`, `profile`, `host`, `user`, `version`, `tags`), `view` (`rows`, `keyValues`, `text`). An unknown directive is shown as a plain line with a "unknown directive" tag, never an error.
 
 ## Rules
 

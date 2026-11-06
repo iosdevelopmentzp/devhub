@@ -215,7 +215,8 @@ Any executable under `scripts/` is an action without a JSON file. Header lines, 
   "env": { "API_ENV": "staging" },
   "args": ["-ui-testing"],
   "defaults": [ { "suite": "group.com.example.myapp", "key": "environment", "value": "staging", "type": "string" } ],
-  "cleanInstall": false
+  "cleanInstall": false,
+  "tint": "indigo"
 }
 ```
 
@@ -228,6 +229,7 @@ Any executable under `scripts/` is an action without a JSON file. Header lines, 
 | `storage` | `{"suite": "group.com.example.myapp", "key": "environment"}`: where the app saves its current profile; DevHub reads it to show which profile the installed app uses (same container rule as `defaults`) |
 | `upstream` | the URL of the real server for this profile; the mock server forwards to it in Passthrough mode |
 | `production` | when true the profile tag in the identity panel is red and the mock server refuses to run with it |
+| `tint` | the colour of the profile tag in the identity summary and panel: `gray`, `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `indigo`, `purple` or `pink`. Default: teal, red for a `production` profile. A set `tint` wins over that red |
 
 The selected profile is saved per simulator. The run bar shows a picker when the project has profiles. Launches from Xcode or the home screen do not get these values; the hint of the profile summary says so. A clean install also removes the defaults that an earlier profile wrote.
 
@@ -253,7 +255,7 @@ A line that starts with `@devhub ` followed by one JSON object is a directive. O
 | `{"refresh": ["git", "simulators"]}` | refreshes stores |
 | `{"error": "message"}` | the run is marked failed with this message even with exit code 0 |
 | `{"app": "/path/App.app"}` | `build.command` and `run.command` only: the app to install and launch |
-| `{"state": {"identity": "devhub-3f9a1c2e", "profile": "staging", "host": "api.staging.example.com", "user": "qa-12", "version": "2.4.0"}}` | `simulators.statusScript` only: what the app reports about itself; every field is optional. The clean install rule compares `identity` with the chosen identity, and the mock server status line uses `host` |
+| `{"state": {"identity": "devhub-3f9a1c2e", "profile": "staging", "host": "api.staging.example.com", "user": "qa-12", "version": "2.4.0", "tags": [{"text": "beta", "tint": "purple", "icon": "flask", "hint": "Beta features are on"}]}}` | `simulators.statusScript` only: what the app reports about itself; every field is optional. The clean install rule compares `identity` with the chosen identity, and the mock server status line uses `host`. `tags` are shown after the identity line of the simulator row and under the target of the run bar; a tag has `text` and optional `tint`, `icon` (an SF Symbol name) and `hint` |
 | `{"view": {...}}` | replaces the result area of the action (custom tab section or Output entry) |
 
 `view` shapes:
@@ -265,7 +267,7 @@ A line that starts with `@devhub ` followed by one JSON object is a directive. O
 { "text": "free text, monospaced" }
 ```
 
-Row actions use the same `run` shapes as actions and get the row's `id` as `DEVHUB_ROW_ID`.
+A tag has `text` and optional `tint`, `icon` (an SF Symbol name) and `hint`. Row actions use the same `run` shapes as actions and get the row's `id` as `DEVHUB_ROW_ID`.
 
 ## 8. Custom tabs
 

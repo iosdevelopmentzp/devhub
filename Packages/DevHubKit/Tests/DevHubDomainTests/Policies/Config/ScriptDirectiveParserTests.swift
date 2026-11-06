@@ -50,10 +50,18 @@ import Testing
     }
 
     @Test func readsTheStateDirective() {
-        let line = #"@devhub {"state": {"identity": "devhub-3f9a1c2e", "profile": "staging", "host": "api.staging.example.com", "user": " ", "version": "2.4.0"}}"#
+        let line = #"@devhub {"state": {"identity": "devhub-3f9a1c2e", "profile": "staging", "host": "api.staging.example.com", "user": " ", "version": "2.4.0", "tags": [{"text": "beta", "tint": "purple", "icon": "flask", "hint": "Beta build"}, {"text": " "}]}}"#
 
         #expect(ScriptDirectiveParser.parse(line) == .directives([
-            .state(AppStateReport(identity: "devhub-3f9a1c2e", profile: "staging", host: "api.staging.example.com", user: nil, version: "2.4.0"))
+            .state(AppStateReport(identity: "devhub-3f9a1c2e", profile: "staging", host: "api.staging.example.com", user: nil, version: "2.4.0", tags: [ScriptViewTag(text: "beta", tint: .purple, icon: "flask", hint: "Beta build")]))
         ]))
+    }
+
+    @Test func badStateTagsAreInvalid() {
+        #expect(ScriptDirectiveParser.parse(#"@devhub {"state": {"tags": "beta"}}"#) == .invalid("The state tags are not a JSON list."))
+        guard case .invalid = ScriptDirectiveParser.parse(#"@devhub {"state": {"tags": [{"tint": "green"}]}}"#) else {
+            Issue.record("expected invalid")
+            return
+        }
     }
 }

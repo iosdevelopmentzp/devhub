@@ -19,7 +19,7 @@ import Testing
           "launch": {
             "identity": { "variable": "APP_DEVICE_ID", "keptVariable": "APP_KEEP_DEVICE_ID", "args": ["-skipOnboarding"], "cleanInstallOnChange": false },
             "profiles": [
-              { "id": "staging", "title": "Staging", "storage": { "suite": "group.com.example.app", "key": "environment" }, "upstream": "https://api.staging.example.com" },
+              { "id": "staging", "title": "Staging", "storage": { "suite": "group.com.example.app", "key": "environment" }, "upstream": "https://api.staging.example.com", "tint": "purple" },
               { "id": "production", "title": "Production", "production": true }
             ]
           },
@@ -34,6 +34,8 @@ import Testing
         #expect(config.launch?.profiles?.first?.upstream == "https://api.staging.example.com")
         #expect(config.launch?.profiles?.first?.isProduction == false)
         #expect(config.launch?.profiles?.last?.isProduction == true)
+        #expect(config.launch?.profiles?.first?.tint == .purple)
+        #expect(config.launch?.profiles?.last?.tint == nil)
         #expect(config.network == NetworkConfig(baseURLVariable: "APP_BASE_URL", mocksFolder: "~/mocks/example"))
     }
 

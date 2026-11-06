@@ -40,7 +40,8 @@ enum IdentityPanelMapper {
             userText: context.report?.user,
             userIcon: "person.fill",
             nextDeviceTag: nextDeviceTag(desired: context.settings.desiredIdentity, actual: context.actualIdentity, aliases: context.aliases),
-            mockTag: mockTag(state: mockState, host: context.report?.host, lastLaunch: context.settings.lastLaunch)
+            mockTag: mockTag(state: mockState, host: context.report?.host, lastLaunch: context.settings.lastLaunch),
+            tags: (context.report?.tags ?? []).map(ConfigTagMapper.model)
         )
     }
 
@@ -79,7 +80,7 @@ enum IdentityPanelMapper {
         let isProduction = profile?.isProduction == true
         return TagModel(
             profile?.title ?? value,
-            tint: isProduction ? .red : .teal,
+            tint: profile?.tint.map(ConfigTintMapper.tint) ?? (isProduction ? .red : .teal),
             hint: isProduction ? "A production profile: real data and real users" : "The profile the app uses now"
         )
     }

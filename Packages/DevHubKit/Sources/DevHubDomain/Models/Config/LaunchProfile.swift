@@ -10,6 +10,7 @@ package struct LaunchProfile: Codable, Hashable, Sendable, Identifiable {
     package var storage: ProfileStorage? = nil
     package var upstream: String? = nil
     package var production: Bool? = nil
+    package var tint: ConfigTint? = nil
 
     package init(
         id: String,
@@ -20,7 +21,8 @@ package struct LaunchProfile: Codable, Hashable, Sendable, Identifiable {
         cleanInstall: Bool? = nil,
         storage: ProfileStorage? = nil,
         upstream: String? = nil,
-        production: Bool? = nil
+        production: Bool? = nil,
+        tint: ConfigTint? = nil
     ) {
         self.id = id
         self.title = title
@@ -31,6 +33,7 @@ package struct LaunchProfile: Codable, Hashable, Sendable, Identifiable {
         self.storage = storage
         self.upstream = upstream
         self.production = production
+        self.tint = tint
     }
 
     package var isProduction: Bool {

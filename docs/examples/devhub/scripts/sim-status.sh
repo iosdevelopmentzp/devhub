@@ -11,5 +11,10 @@ if [ -z "$DATA" ]; then
 fi
 ENVIRONMENT="$(/usr/libexec/PlistBuddy -c 'Print :environment' "$DATA/Library/Preferences/group.com.example.app.plist" 2>/dev/null || echo "default")"
 DEVICE_ID="$(/usr/libexec/PlistBuddy -c 'Print :deviceID' "$DATA/Library/Preferences/group.com.example.app.plist" 2>/dev/null || true)"
-echo "@devhub {\"state\": {\"identity\": \"$DEVICE_ID\", \"profile\": \"$ENVIRONMENT\"}}"
+BETA="$(/usr/libexec/PlistBuddy -c 'Print :betaFeatures' "$DATA/Library/Preferences/group.com.example.app.plist" 2>/dev/null || echo false)"
+TAGS='[]'
+if [ "$BETA" = "true" ]; then
+    TAGS='[{"text": "beta", "tint": "purple", "icon": "flask", "hint": "Beta features are on"}]'
+fi
+echo "@devhub {\"state\": {\"identity\": \"$DEVICE_ID\", \"profile\": \"$ENVIRONMENT\", \"tags\": $TAGS}}"
 echo "@devhub {\"view\": {\"keyValues\": [[\"Environment\", \"$ENVIRONMENT\"], [\"ID\", \"$DEVICE_ID\"]]}}"
