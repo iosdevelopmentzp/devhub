@@ -7,6 +7,7 @@ A macOS menu bar panel for daily development work: git, worktrees, pull and merg
 | File | What it explains |
 |---|---|
 | `docs/features/*.md` | one page per tab: what it shows, every action and the command it runs, config, limits |
+| `docs/customization.md` | what a project can change without code: a map from a need to the config mechanism, with a worked example |
 | `docs/extensions.md` | the `.devhub/` config schema |
 | `docs/examples/devhub/` | a complete `.devhub` folder that uses every field |
 | `docs/STATUS.md` | where the project stands, decisions, known gaps |

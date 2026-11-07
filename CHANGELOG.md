@@ -6,6 +6,9 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 
 ## [Unreleased]
 
+### Infrastructure
+- `docs/customization.md`: the map from a need to the `.devhub/` mechanism that covers it, a worked example of a chat command tab built from scripts, actions and a custom tab, and the schema gaps that such a tab still has. Linked from the README, `AGENTS.md`, the example folder and the `extensions` skill.
+
 ### Added
 - Simulators: paired iPhones and iPads show in a "Devices" section at the top of the list, with their iOS version, a `device` tag and "Connected" or "Not connected". A connected device can be the target: Build & Run builds for it with the signing of the project, installs the app with `devicectl` and launches it with the launch profile and the device ID. Clean install removes the app first. Profile defaults are written into the app's preferences on the device. The identity panel reads the installed version, the stored profile and, for a build made by DevHub, the identity hook. Uninstall and favorites work for a device. Logs, the mock server, Run & Attach, deep links, push, erase, app data and QA settings are not available on a device and are hidden in its row; the run bar disables Run & Attach for a device target. The toolbar counts simulators and devices apart. Scripts get `DEVHUB_SIMULATOR_KIND` (`simulator` or `device`).
 - Simulators: without a saved target, a booted simulator is the target before a connected device.

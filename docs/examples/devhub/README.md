@@ -1,6 +1,6 @@
 # Example `.devhub/` folder
 
-Copy this folder into a project as `.devhub/` and adjust the values. Every field is explained in `docs/extensions.md`.
+Copy this folder into a project as `.devhub/` and adjust the values. Every field is explained in `docs/extensions.md`; `docs/customization.md` maps a need to the mechanism.
 
 - `project.json`: how the project builds and runs, base branch, worktree rules, launch profiles with their mock server upstream, the launch identity, the network mocks, log filter, Home grid order.
 - `actions/`: buttons with placements, inputs and confirmation.

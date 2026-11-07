@@ -5,7 +5,7 @@ description: "Add or change anything the user configures through .devhub/ files:
 
 # Extensions
 
-The schema is `docs/extensions.md`. It is normative: the decoder (`Packages/DevHubKit/Sources/DevHubDomain/Models/Config/` and `Policies/`) must match it, and a change to one is a change to both in the same commit. Examples live in `docs/examples/devhub/`. After a change there, run `Scripts/generate-example-config.sh`: it rewrites `DevHubDomain/Policies/ExampleConfig.swift`.
+The map from a need to a mechanism, with a worked example, is `docs/customization.md`; read it first for a request that may need no code. The schema is `docs/extensions.md`. It is normative: the decoder (`Packages/DevHubKit/Sources/DevHubDomain/Models/Config/` and `Policies/`) must match it, and a change to one is a change to both in the same commit. Examples live in `docs/examples/devhub/`. After a change there, run `Scripts/generate-example-config.sh`: it rewrites `DevHubDomain/Policies/ExampleConfig.swift`.
 
 ## Add an item for a project (no code)
 

@@ -2,7 +2,7 @@
 
 Personal macOS menu bar panel for daily development work across many repositories: git, worktrees, pull requests, simulators, builds, logs, network mocks, AI sessions, quick actions and scripts. The core is generic. Project knowledge lives in `.devhub/` config files.
 
-Read first, in this order: this file, `docs/STATUS.md` (where the project stands), `docs/adr/001-port-from-main-devhub.md` (the plan of the current rewrite and its step log), `docs/adr/002-config-system.md` (how the config system sits in the modules), `docs/ARCHITECTURE.md` (the module contract), `docs/extensions.md` (the config schema). Skills under `.github/skills/` explain how to do common tasks; load the matching one before the task.
+Read first, in this order: this file, `docs/STATUS.md` (where the project stands), `docs/adr/001-port-from-main-devhub.md` (the plan of the current rewrite and its step log), `docs/adr/002-config-system.md` (how the config system sits in the modules), `docs/ARCHITECTURE.md` (the module contract), `docs/extensions.md` (the config schema), `docs/customization.md` (the map from a need to a config mechanism, for a change that may need no code). Skills under `.github/skills/` explain how to do common tasks; load the matching one before the task.
 
 ## Project
 
@@ -46,7 +46,7 @@ Modules, one direction: `Composition → Presentation → Domain ← Data`; Pres
 | `Packages/DevHubKit/Sources/DevHubTestSupport` | one `Spy<Port>` per port, `Ports.spies()`, test helpers, sample values |
 | `Packages/DevHubKit/Tests` | `DevHubDomainTests`, `DevHubDataTests`, `DevHubUITests`, `DevHubPresentationTests` |
 | `Scripts/` | build, test, layer and anonymity checks, run, install, smoke, launcher, `ai/` hooks |
-| `docs/` | `ARCHITECTURE.md`, `STATUS.md`, `SPEC.md`, `extensions.md`, `testing.md`, `features/` (one page per tab), `adr/`, `examples/` |
+| `docs/` | `ARCHITECTURE.md`, `STATUS.md`, `SPEC.md`, `extensions.md`, `customization.md`, `testing.md`, `features/` (one page per tab), `adr/`, `examples/` |
 
 ## Conventions
 
