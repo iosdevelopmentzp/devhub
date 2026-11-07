@@ -14,6 +14,7 @@ package enum DoctorPolicy {
         DoctorTool(name: "claude", versionArguments: ["--version"], purpose: "Claude Code sessions and AI review", installCommand: "npm install -g @anthropic-ai/claude-code"),
         DoctorTool(name: "python3", versionArguments: ["--version"], purpose: "Scripts of the example .devhub folder", installCommand: "xcode-select --install"),
         DoctorTool(name: "ffmpeg", versionArguments: ["-hide_banner", "-version"], purpose: "Utils: compress videos (ffmpeg and ffprobe with libx264)", installCommand: "brew install ffmpeg"),
+        DoctorTool(name: "jira", versionArguments: ["version"], purpose: "Utils: Jira tickets (jira-cli, set up with jira init)", installCommand: "brew install jira-cli && jira init"),
     ]
 
     package static func isBelow(minimumMajorVersion minimum: Int, version: String) -> Bool {

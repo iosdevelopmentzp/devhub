@@ -21,7 +21,7 @@ import Testing
     }
 
     @Test func everyToolHasAnInstallCommand() {
-        #expect(DoctorPolicy.tools.map(\.name) == ["git", "xcodebuild", "xcrun", "gh", "glab", "circleci", "copilot", "claude", "python3", "ffmpeg"])
+        #expect(DoctorPolicy.tools.map(\.name) == ["git", "xcodebuild", "xcrun", "gh", "glab", "circleci", "copilot", "claude", "python3", "ffmpeg", "jira"])
         #expect(DoctorPolicy.tools.allSatisfy { $0.installCommand.isEmpty == false })
     }
 

@@ -58,6 +58,8 @@ DevHubData/
                     PathToolLocator, SystemUserNotificationRepository, GlobalHotKey, GlobalShortcut+Carbon,
                     Notification+GlobalHotKey, PlistReader, LaunchOutput, FileManager+ModificationDate
                     (AppKit allowed here only)
+    Jira/           JiraIssueRepository(shell:tools:configFile:), JiraClient, JiraIssueParser, JiraDateParser (the jira tool
+                    of jira-cli with the user's own login; the token stays in the keychain or ~/.netrc, ADR 016)
     Disk/           XcodeDiskCleanupRepository(shell:home:derivedDataRoot:), DiskFolderScanner, SimctlRuntimeListParser,
                     SimctlUnavailableDeviceParser
     Media/          AVMediaRepository(chromes:) (GIF through AVAssetImageGenerator and CGImageDestination, MP4 through

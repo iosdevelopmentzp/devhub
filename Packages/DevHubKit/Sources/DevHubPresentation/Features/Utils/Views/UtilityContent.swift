@@ -9,6 +9,8 @@ struct UtilityContent: View {
         switch id {
         case .compressVideo:
             VideoCompressionView()
+        case .tickets:
+            TicketsView()
         }
     }
 }

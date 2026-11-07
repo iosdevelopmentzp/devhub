@@ -43,7 +43,8 @@ extension Ports {
             media: MockMediaRepository(),
             videoCompression: MockVideoCompressionRepository(),
             updates: MockUpdateRepository(),
-            redactionWords: MockRedactionWordsRepository()
+            redactionWords: MockRedactionWordsRepository(),
+            tracker: MockIssueTrackerRepository()
         )
     }
 }

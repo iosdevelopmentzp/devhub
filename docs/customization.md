@@ -38,6 +38,7 @@ Each layer holds `project.json` (not the global layer), `actions/*.json`, `scrip
 | show what the running app reports (ID, environment, host, user, version, tags) | `simulators.statusScript` printing a `state` directive | §6, §7 |
 | redirect the app to the mock server | `network.baseURLVariable`, `network.mocksFolder`, mock set files | §2, §9 |
 | set git rules: remote, base branch, protected branches, ticket pattern and link, worktree folder and bootstrap | `git.*` | §2 |
+| list the Jira tickets of the project in Utils → Tickets, with Start, Move to and a branch name | `tracker.*` (`kind`, `project`, `statuses`, `startStatus`, `filter`, `branchFormat`); the `jira` tool of jira-cli with your own login | §2, [utils](features/utils.md#tickets) |
 | tune pull requests: targets, template, stale days, hidden files, defaults | `git.pullRequests.*` | §2 |
 | change which AI tool "Fix with AI" and "Write with AI" run | `ai.commands`, `ai.textCommands` | §2 |
 | filter the log stream | `logs.process`, `logs.subsystem` | §2 |

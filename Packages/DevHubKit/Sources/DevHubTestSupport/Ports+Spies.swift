@@ -42,7 +42,8 @@ package extension Ports {
             media: spies.media,
             videoCompression: spies.videoCompression,
             updates: spies.updates,
-            redactionWords: spies.redactionWords
+            redactionWords: spies.redactionWords,
+            tracker: spies.tracker
         )
         return (ports, spies)
     }

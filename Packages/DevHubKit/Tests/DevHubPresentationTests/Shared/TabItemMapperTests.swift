@@ -17,7 +17,7 @@ import Testing
     @Test func utilsHoldsTheUtilitiesThenTheOtherCustomTabs() {
         let items = TabItemMapper.items(in: .utils, layout: TabLayout(), customTabs: [qa, ops], words: .gitHub)
 
-        #expect(items.map(\.id) == [.utility(.compressVideo), .custom("ops")])
+        #expect(items.map(\.id) == [.utility(.compressVideo), .utility(.tickets), .custom("ops")])
         #expect(items.first == TabItem(id: .utility(.compressVideo), title: "Compress Video", systemImage: "film", searchPrompt: "Filter videos"))
         #expect(items.last == TabItem(id: .custom("ops"), title: "Ops", systemImage: TabItemMapper.customIcon, searchPrompt: "Search Ops"))
     }
@@ -30,14 +30,14 @@ import Testing
 
         #expect(bar.contains(.feature(.logs)) == false)
         #expect(bar.last == .utility(.compressVideo))
-        #expect(utils == [.feature(.logs)])
+        #expect(utils == [.feature(.logs), .utility(.tickets)])
     }
 
     @Test func allItemsListTheBarThenUtils() {
         let all = TabItemMapper.allItems(layout: TabLayout(), customTabs: [ops], words: .gitHub).map(\.id)
 
-        #expect(all.suffix(2) == [.utility(.compressVideo), .custom("ops")])
-        #expect(all.count == FeatureRegistry.tabBarFeatures.count + 2)
+        #expect(all.suffix(3) == [.utility(.compressVideo), .utility(.tickets), .custom("ops")])
+        #expect(all.count == FeatureRegistry.tabBarFeatures.count + 3)
     }
 
     @Test func aMissingCustomTabFallsBackToHome() {

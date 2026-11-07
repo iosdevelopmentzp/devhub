@@ -62,6 +62,7 @@ package final class PresentationAssembly {
     let appData: AppDataStore
     let diskCleanup: DiskCleanupStore
     let videoCompression: VideoCompressionStore
+    let tickets: TicketsStore
     let aiSessions: AISessionsStore
     let updates: UpdateStore
     let appActions: AppActions
@@ -309,6 +310,7 @@ package final class PresentationAssembly {
         appData = AppDataStore(repository: ports.appData, operations: operations, activity: activity, events: events)
         diskCleanup = DiskCleanupStore(repository: ports.diskCleanup, operations: operations, activity: activity)
         videoCompression = VideoCompressionStore(repository: ports.videoCompression, store: store, activity: activity, notifier: notifier, toaster: toaster, now: { .now })
+        tickets = TicketsStore(repository: ports.tracker, config: config, activity: activity, toaster: toaster, events: events, store: store)
         aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, worktrees: worktrees, store: store)
         updates = UpdateStore(repository: ports.updates, toaster: toaster, activity: activity, checkInterval: .seconds(300), statusInterval: .seconds(1), now: { .now })
         appActions = AppActions(

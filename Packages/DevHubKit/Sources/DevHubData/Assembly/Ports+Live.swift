@@ -65,7 +65,8 @@ extension Ports {
             )),
             videoCompression: FFmpegVideoCompressionRepository(shell: shell, tools: tools),
             updates: FileUpdateRepository(shell: shell, supportFolder: home.appendingPathComponent("Library/Application Support/DevHub Generic", isDirectory: true)),
-            redactionWords: FileRedactionWordsRepository(file: home.appendingPathComponent(".devhub/anonymity-denylist.txt"))
+            redactionWords: FileRedactionWordsRepository(file: home.appendingPathComponent(".devhub/anonymity-denylist.txt")),
+            tracker: JiraIssueRepository(shell: shell, tools: tools, configFile: home.appendingPathComponent(".config/.jira/.config.yml").path)
         )
     }
 }

@@ -104,5 +104,8 @@ import Testing
         #expect(TestRunPanelModel.preview.failures.count == 1)
         #expect(TestFailureRowModel.preview.line == 42)
         #expect(CIHistoryRowModel.preview.failedJobs.count == 1)
+        #expect(TicketRowModel.preview.canStart)
+        #expect(TicketSectionModel.preview.id == .inProgress)
+        #expect(TrackerToolModel.preview.showsCheckAgain)
     }
 }
