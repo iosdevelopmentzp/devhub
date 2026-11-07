@@ -13,6 +13,7 @@ import Testing
         #expect(settings.showUsageInMenuBar == false)
         #expect(settings.showReviewCountInMenuBar)
         #expect(settings.reviewReminderHours == 4)
+        #expect(settings.showCIStateInMenuBar)
         #expect(settings.remembersReviews)
         #expect(settings.aiTextProvider == .claude)
         #expect(settings.scriptsFolder == "~/s")

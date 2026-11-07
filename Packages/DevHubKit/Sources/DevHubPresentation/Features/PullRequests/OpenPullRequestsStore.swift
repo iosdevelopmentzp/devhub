@@ -92,6 +92,14 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
         Array(requestsByBranch.values)
     }
 
+    var failedOwnRequestIDs: [Int] {
+        guard let username else { return [] }
+        return requestsByBranch.values
+            .filter { $0.author == username && $0.state == .opened && $0.pipeline?.status == .failed }
+            .map(\.iid)
+            .sorted()
+    }
+
     var reviewQueue: ReviewQueueRule {
         checkout.gitSettings.pullRequests.reviewQueue
     }

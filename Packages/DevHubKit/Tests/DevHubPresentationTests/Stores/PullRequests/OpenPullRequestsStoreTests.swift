@@ -398,4 +398,18 @@ import DevHubTestSupport
 
         #expect(harness.activityTitles.contains { $0.contains("waits for your review for") } == false)
     }
+
+    @Test func failedOwnRequestsAreTheOpenOnesWithFailedChecks() async {
+        let failed = PipelineInfo(status: .failed, webURL: nil, updatedAt: nil)
+        script([
+            PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened, author: "me", pipeline: failed),
+            PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, author: "me", pipeline: PipelineInfo(status: .success, webURL: nil, updatedAt: nil)),
+            PullRequestSummaryFixture.request(iid: 3, source: "c", state: .opened, pipeline: failed),
+            PullRequestSummaryFixture.request(iid: 4, source: "d", state: .opened, author: "me", isDraft: true, pipeline: failed),
+        ])
+
+        await store.refresh()
+
+        #expect(store.failedOwnRequestIDs == [1, 4])
+    }
 }

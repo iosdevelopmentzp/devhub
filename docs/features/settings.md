@@ -61,7 +61,7 @@ Rules of the notifications:
 1. A notification needs the macOS permission.
 2. Every kind except the script one appears only while the panel is closed and the main switch is on. A kind with its switch off never appears; its events still go to the Notifications screen.
 3. A script line `@devhub {"notify": "Title", "body": "…"}` posts a notification even when the panel is open or the main switch is off, unless "Script notifications" is off.
-4. The menu bar icon shows a circle while a build runs. After a failed build while the panel is closed, it shows a red dot until you open the panel.
+4. The menu bar icon shows a circle while a build runs. After a failed build while the panel is closed, it shows a red dot until you open the panel. With "Show the CI state of my requests on the menu bar icon" on, it also shows a red dot while the checks of one of your open requests failed and an orange dot while a CircleCI job of one waits for an approval; these dots stay until the checks pass or the job is approved.
 5. Changes of your own requests come from the read of the open requests every 5 minutes, or every 2 minutes while the panel is closed ([Pull Requests](pull-requests.md#other-places-that-use-the-same-data)). A refresh after an action of yours in DevHub (a comment, an approval) updates the baseline without a report.
 
 6. A click on a notification opens DevHub at the place of the event: a request, the review list, the Worktrees tab or the run bar. Every event is also in the Notifications screen (the bell in the header, [Notifications](notifications.md)).
@@ -82,6 +82,7 @@ The title follows the code host: "Pull Requests" for GitHub, "Merge Requests" fo
 | Control | What it does |
 |---|---|
 | Show the number of requests waiting for your review in the menu bar | Shows a count next to the menu bar icon, for example "3 PR" on GitHub or "3 MR" on GitLab. It counts open requests by other people, not drafts, that you have not approved. DevHub checks every 5 minutes |
+| Show the CI state of my requests on the menu bar icon | On by default. A red dot on the icon while the checks of one of your open requests failed, an orange dot while a CircleCI job of one of them waits for an approval. The dot stays while that lasts; the hint of the icon names the request and the job |
 | Remember what I reviewed | On by default. DevHub saves a fingerprint of the diff of each file when you approve, comment, ask for changes or mark every file as viewed, and shows the files that changed since in the details. Viewed marks stay until a file changes. Off removes everything it saved. See [Pull Requests](pull-requests.md#changed-since-your-review) |
 | Forget Flaky Tests | The flaky tests DevHub found itself in this project (a test that failed in a CircleCI run and passed when the same commit ran again) with their count. The button removes them; the CircleCI Insights list stays |
 

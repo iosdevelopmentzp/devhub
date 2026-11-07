@@ -129,8 +129,9 @@ brings the pinned window to the front when it is visible, else toggles the panel
 title again after every change.
 
 ```swift
-let state = StatusItemState.state(isBuilding: assembly.build.isRunning, hasUnseenFailure: assembly.notifier.hasUnseenFailure)
+let state = StatusItemState.state(isBuilding: …, hasUnseenFailure: …, isCIFailed: …, isCIWaiting: …, isKeepingAwake: …)
 statusItem.button?.image = StatusItemImage.image(for: state)
+statusItem.button?.toolTip = StatusItemHint.text(for: state, failedRequests: …, onHold: …, words: …)
 statusItem.button?.title = StatusItemTitle.text(
     usage: settings.values.showUsageInMenuBar ? usage.usage?.limits.first?.percentText : nil,
     reviewCount: settings.values.showReviewCountInMenuBar ? assembly.openPullRequests.reviewCount : nil,
@@ -140,11 +141,12 @@ statusItem.button?.title = StatusItemTitle.text(
 
 | Type | Folder | What it does |
 |---|---|---|
-| `StatusItemState` | `Shared/` | `.idle`, `.building`, `.failed`; `symbolName` (`hammer.fill` or `hammer.circle.fill`) and `showsFailureDot` |
-| `StatusItemImage` | `Shell/` | a template SF Symbol; for `.failed` a drawn copy with a red dot in the corner (not a template) |
+| `StatusItemState` | `Shared/` | `.idle`, `.building`, `.failed`, `.ciFailed` (an own open request with failed checks, `OpenPullRequestsStore.failedOwnRequestIDs`), `.ciWaiting` (a job on hold, `CIWatchStore.onHoldJobNames`), `.awake`, in this order of priority; `symbolName`, `dotTint` (red for `.failed` and `.ciFailed`, orange for `.ciWaiting`) and `showsFailureDot`. The CI states follow the setting `showCIStateInMenuBar` |
+| `StatusItemImage` | `Shell/` | a template SF Symbol; with a `dotTint` a drawn copy with a red or orange dot in the corner (not a template) |
+| `StatusItemHint` | `Shared/` | the `toolTip` of the status button: which request failed or which job waits for an approval |
 | `StatusItemTitle` | `Shell/` | the text after the icon: the usage percent and the review count, joined by ` · `. The count ends with `CodeHostWords.shortRequest`: "PR" on GitHub, "MR" on GitLab |
 
-Tests: `StatusItemStateTests` and `StatusItemTitleTests` in `DevHubPresentationTests`.
+Tests: `StatusItemStateTests`, `StatusItemHintTests` and `StatusItemTitleTests` in `DevHubPresentationTests`.
 
 ## Global shortcut, Dock icon, login item
 

@@ -62,6 +62,8 @@ struct SettingsView: View {
             Section(words.requestsTitle) {
                 Toggle("Show the number of \(words.requests) waiting for your review in the menu bar", isOn: $settings.values.showReviewCountInMenuBar)
                     .hint("Open \(words.requests) by other people, not drafts, that you have not approved. Checked every 5 minutes.")
+                Toggle("Show the CI state of my \(words.requests) on the menu bar icon", isOn: $settings.values.showCIStateInMenuBar)
+                    .hint("A red dot while the \(words.checks) of one of your open \(words.requests) failed, an orange dot while a CircleCI job of it waits for an approval. The hint of the icon names the \(words.request).")
                 Toggle("Remember what I reviewed", isOn: remembersReviews)
                     .hint("When you approve, comment, ask for changes or mark every file as viewed, DevHub saves the diff of each file on this Mac. The details then show the files that changed since, and Viewed marks stay until a file changes. Off removes everything DevHub saved.")
                 LabeledContent {
