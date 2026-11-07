@@ -39,3 +39,4 @@ The app is built from source on the owner's Mac and installed with `Scripts/inst
 | Commit | What |
 |---|---|
 | `87cc43f` | D1 to D5: `UpdateRepository` with `FileUpdateRepository` and `UpdateCommitParser`, `UpdateCheckPolicy` and `UpdateLaunchPolicy`, `UpdateStore` with the footer `UpdateIndicator` and its popover, "Check for Updates" in both menus, `Scripts/update.sh`, `Scripts/update-status.sh`, the clone and `installed.json` in `Scripts/install.sh`, the hooks removed, the debug switch. Checked: a dry run of `update.sh` from a clone of the branch into a scratch folder went through `fetching`, `building`, `installing` and `done` and wrote `installed.json`; headless snapshots of the three footer states. |
+| `e24a160` | The integration suite over a real git clone (behind, equal, unknown commit, detached start). |
