@@ -90,4 +90,6 @@ Steps 1 to 4 are on `main` (merged from the worktree branch `worktree-jira` on 2
 
 | Commit | What it did |
 |---|---|
-| `01f53de` | Steps 1 to 4: the Domain model, config and policies, the `jira` Data layer, the Tickets tool of Utils with its store, mappers, views and tests, the docs. Checked with 2,973 tests and a headless snapshot of the tab with the real tool and no config file. |
+| `01f53de` | Steps 1 to 4: the Domain model, config and policies, the `jira` Data layer, the Tickets tool of Utils with its store, mappers, views and tests, the docs. Checked with 2,973 tests and a headless snapshot of the tab with the real tool and no config file. The message says ADR 015: it means this page. |
+| `911d4ef`, `54f0bb4` | The step log row, then the move to ADR 016 and decision 76 after main took 015 and 75 for the CircleCI depth step. |
+| `129c01d` | The merge into `main`: both sides added a port, a `CommandKind` rule set, a changelog entry and a decision; the merge keeps both. Checked with 3,092 tests, the build and the smoke check. |
