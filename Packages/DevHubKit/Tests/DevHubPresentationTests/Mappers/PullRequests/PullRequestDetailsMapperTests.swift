@@ -421,4 +421,16 @@ import DevHubTestSupport
         #expect(loaded.reviewNotice?.toggleTitle == nil)
         #expect(loaded.files.count == 2)
     }
+
+    @Test func commitsAfterABrowserReviewSaySo() throws {
+        var state = review(expanded: [])
+        state.hostReview = HostReview(submittedAt: Date(timeIntervalSince1970: 1_800_000_000), state: "APPROVED")
+        state.commitsSinceHostReview = 3
+
+        let loaded = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files, error: nil, review: state, context: context()))
+
+        #expect(loaded.reviewNotice?.text.hasPrefix("3 commits since your review on GitLab, ") == true)
+        #expect(loaded.reviewNotice?.tint == .orange)
+        #expect(loaded.reviewNotice?.toggleTitle == nil)
+    }
 }

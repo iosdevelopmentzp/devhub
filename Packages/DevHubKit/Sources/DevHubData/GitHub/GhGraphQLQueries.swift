@@ -38,9 +38,10 @@ enum GhGraphQLQueries {
     """
 
     static let details = """
-    query($owner: String!, $name: String!, $number: Int!) { repository(owner: $owner, name: $name) { pullRequest(number: $number) { \
+    query($owner: String!, $name: String!, $number: Int!) { viewer { login } repository(owner: $owner, name: $name) { pullRequest(number: $number) { \
     body url reviewThreads(first: 100) { nodes { id isResolved path line originalLine diffSide \
-    comments(first: 100) { nodes { databaseId body author { login } createdAt } } } } \(checks) } } }
+    comments(first: 100) { nodes { databaseId body author { login } createdAt } } } } \
+    reviews(last: 50) { nodes { state submittedAt author { login } } } recentCommits: commits(last: 50) { nodes { commit { committedDate } } } \(checks) } } }
     """
 
     static let myApproval = """

@@ -180,6 +180,22 @@ enum GhPullRequestParser {
             let url: String?
             let reviewThreads: Nodes<Thread>
             let lastCommit: Nodes<GhCheckParser.CommitNode>?
+            let reviews: Nodes<SubmittedReview>?
+            let recentCommits: Nodes<CommitDate>?
+        }
+
+        struct SubmittedReview: Decodable {
+            let state: String
+            let submittedAt: Date?
+            let author: Login?
+        }
+
+        struct CommitDate: Decodable {
+            struct Commit: Decodable {
+                let committedDate: Date?
+            }
+
+            let commit: Commit
         }
 
         struct Thread: Decodable {
@@ -199,6 +215,7 @@ enum GhPullRequestParser {
             let createdAt: Date?
         }
 
+        let viewer: Login?
         let repository: Repo?
     }
 
@@ -227,8 +244,18 @@ enum GhPullRequestParser {
             threads: threads,
             failedJobs: rollup.map(GhCheckParser.failedJobs) ?? [],
             pipelineDuration: rollup.flatMap(GhCheckParser.duration),
-            jobs: rollup.map(GhCheckParser.jobs) ?? []
+            jobs: rollup.map(GhCheckParser.jobs) ?? [],
+            myLastReview: myLastReview(request.reviews?.nodes ?? [], viewer: payload.viewer?.login),
+            commitDates: (request.recentCommits?.nodes ?? []).compactMap(\.commit.committedDate)
         )
+    }
+
+    private static func myLastReview(_ reviews: [DetailsData.SubmittedReview], viewer: String?) -> HostReview? {
+        guard let viewer else { return nil }
+        return reviews
+            .filter { $0.author?.login == viewer && $0.state != "PENDING" }
+            .compactMap { review in review.submittedAt.map { HostReview(submittedAt: $0, state: review.state) } }
+            .max { $0.submittedAt < $1.submittedAt }
     }
 
     private struct ApprovalData: Decodable {

@@ -24,6 +24,19 @@ package enum ReviewChangePolicy {
         return paths.filter { snapshot.files[$0] != fingerprints[$0] }
     }
 
+    package static func commitsSince(_ review: HostReview, commitDates: [Date]) -> Int {
+        commitDates.filter { $0 > review.submittedAt }.count
+    }
+
+    package static func isNewer(_ review: HostReview, than snapshot: ReviewSnapshot?) -> Bool {
+        guard let reviewedAt = snapshot?.reviewedAt else { return true }
+        return review.submittedAt > reviewedAt
+    }
+
+    package static func reviewedOnHost(_ snapshot: ReviewSnapshot?, fingerprints: [String: String], review: HostReview) -> ReviewSnapshot {
+        ReviewSnapshot(reviewedAt: review.submittedAt, files: fingerprints, viewed: snapshot?.viewed ?? [:], updatedAt: review.submittedAt)
+    }
+
     package static func viewedPaths(in snapshot: ReviewSnapshot?, fingerprints: [String: String]) -> Set<String> {
         guard let snapshot else { return [] }
         return Set(fingerprints.filter { snapshot.viewed[$0.key] == $0.value }.keys)

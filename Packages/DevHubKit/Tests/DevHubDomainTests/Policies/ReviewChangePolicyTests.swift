@@ -76,4 +76,23 @@ import Testing
         #expect(pruned["0"] == nil)
         #expect(pruned[String(ReviewChangePolicy.requestLimit)] != nil)
     }
+
+    @Test func commitsSinceAHostReviewCountOnlyLaterCommits() {
+        let review = HostReview(submittedAt: Date(timeIntervalSince1970: 100), state: "APPROVED")
+
+        #expect(ReviewChangePolicy.commitsSince(review, commitDates: [Date(timeIntervalSince1970: 50), Date(timeIntervalSince1970: 150), Date(timeIntervalSince1970: 200)]) == 2)
+    }
+
+    @Test func aHostReviewIsNewerThanNoSnapshotOrAnOlderOne() {
+        let review = HostReview(submittedAt: Date(timeIntervalSince1970: 100), state: "COMMENTED")
+        let older = ReviewSnapshot(reviewedAt: Date(timeIntervalSince1970: 50), files: [:], viewed: [:], updatedAt: Date(timeIntervalSince1970: 50))
+        let newer = ReviewSnapshot(reviewedAt: Date(timeIntervalSince1970: 150), files: [:], viewed: [:], updatedAt: Date(timeIntervalSince1970: 150))
+        let viewedOnly = ReviewSnapshot(reviewedAt: nil, files: [:], viewed: ["a": "1"], updatedAt: Date(timeIntervalSince1970: 150))
+
+        #expect(ReviewChangePolicy.isNewer(review, than: nil))
+        #expect(ReviewChangePolicy.isNewer(review, than: older))
+        #expect(ReviewChangePolicy.isNewer(review, than: newer) == false)
+        #expect(ReviewChangePolicy.isNewer(review, than: viewedOnly))
+        #expect(ReviewChangePolicy.reviewedOnHost(viewedOnly, fingerprints: ["a": "2"], review: review) == ReviewSnapshot(reviewedAt: Date(timeIntervalSince1970: 100), files: ["a": "2"], viewed: ["a": "1"], updatedAt: Date(timeIntervalSince1970: 100)))
+    }
 }

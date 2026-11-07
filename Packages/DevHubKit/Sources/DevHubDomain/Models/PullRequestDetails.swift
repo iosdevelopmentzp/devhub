@@ -6,12 +6,16 @@ package struct PullRequestDetails: Hashable, Sendable {
     package let failedJobs: [PipelineJob]
     package let pipelineDuration: Int?
     package let jobs: [PipelineJob]
+    package let myLastReview: HostReview?
+    package let commitDates: [Date]
 
-    package init(description: String, threads: [ReviewThread], failedJobs: [PipelineJob] = [], pipelineDuration: Int? = nil, jobs: [PipelineJob] = []) {
+    package init(description: String, threads: [ReviewThread], failedJobs: [PipelineJob] = [], pipelineDuration: Int? = nil, jobs: [PipelineJob] = [], myLastReview: HostReview? = nil, commitDates: [Date] = []) {
         self.description = description
         self.threads = threads
         self.failedJobs = failedJobs
         self.pipelineDuration = pipelineDuration
         self.jobs = jobs
+        self.myLastReview = myLastReview
+        self.commitDates = commitDates
     }
 }

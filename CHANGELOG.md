@@ -21,6 +21,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Pull Requests: the file list of the details is a plain list, so a scroll to a file from the sidebar or from "Show in diff" works for a file far down. File headers no longer stick to the top while a long diff scrolls.
 
 ### Added
+- Pull requests: "Changed since your review" sees a review made in the browser on GitHub. Without later commits DevHub takes it as your review; with later commits the line says "3 commits since your review on GitHub, 2 hr. ago". ADR 017.
 - Settings → Doctor → Support bundle: Copy or Save one redacted text for a bug report (version, settings, tools, config problems, CI CLI, the last DevHub crash, Recent, the last 100 commands). Links, e-mails, IP addresses, tokens, the user name, paths, project, scheme and bundle names, branches and logins are replaced; the CI diagnostics use the same rules. ADR 017.
 - Home: when DevHub itself crashed, a red bar at the next launch names the exception and the top frame, with "Copy for a Bug Report" (redacted) and a × that hides it until a newer crash. ADR 017.
 - Menu bar: a red dot on the icon while the checks of one of your open requests failed, an orange dot while a CircleCI job of one waits for an approval; the hint of the icon names the request. Settings → Pull Requests → "Show the CI state of my requests on the menu bar icon" (on by default). ADR 017.

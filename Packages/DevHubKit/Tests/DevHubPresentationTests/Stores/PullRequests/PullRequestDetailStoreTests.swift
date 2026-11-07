@@ -872,4 +872,32 @@ import DevHubTestSupport
         #expect(harness.activityTitles.contains("Cannot read the artifacts of the job"))
         #expect(harness.activityTitles.contains("Cannot download the artifacts of unit-tests"))
     }
+
+    @Test func aBrowserReviewWithoutLaterCommitsBecomesTheSavedReview() async {
+        script()
+        let review = HostReview(submittedAt: Date(timeIntervalSince1970: 1_700_000_000), state: "APPROVED")
+        harness.spies.codeHost.detailsResult = .success(PullRequestDetails(description: "", threads: [], myLastReview: review, commitDates: [Date(timeIntervalSince1970: 1_600_000_000)]))
+        harness.spies.codeHost.diffsResult = .success(edited("+x"))
+
+        await store.load(7)
+
+        #expect(store.review(of: 7).reviewedAt == Date(timeIntervalSince1970: 1_700_000_000))
+        #expect(store.review(of: 7).commitsSinceHostReview == nil)
+        #expect(harness.pullRequestReviews.snapshot(of: 7)?.files == ReviewChangePolicy.fingerprints(of: edited("+x")))
+    }
+
+    @Test func commitsAfterABrowserReviewAreCountedAndTheMarksStayOff() async {
+        script()
+        let review = HostReview(submittedAt: Date(timeIntervalSince1970: 1_700_000_000), state: "COMMENTED")
+        harness.spies.codeHost.detailsResult = .success(PullRequestDetails(description: "", threads: [], myLastReview: review, commitDates: [Date(timeIntervalSince1970: 1_700_000_100), Date(timeIntervalSince1970: 1_700_000_200)]))
+        harness.spies.codeHost.diffsResult = .success(edited("+x"))
+
+        await store.load(7)
+
+        let state = store.review(of: 7)
+        #expect(state.commitsSinceHostReview == 2)
+        #expect(state.hostReview == review)
+        #expect(state.changedSinceReview.isEmpty)
+        #expect(harness.pullRequestReviews.snapshot(of: 7) == nil)
+    }
 }

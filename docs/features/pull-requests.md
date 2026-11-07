@@ -59,13 +59,14 @@ The search field in the toolbar filters the loaded rows by title, number, author
 
 ### Changed since your review
 
-Settings → Pull Requests → "Remember what I reviewed" (on by default) lets DevHub compare a request with your last review. Everything stays on this Mac; DevHub asks the host for nothing extra.
+Settings → Pull Requests → "Remember what I reviewed" (on by default) lets DevHub compare a request with your last review. Everything stays on this Mac. On GitHub the details query also reads your last submitted review and the dates of the last 50 commits.
 
 1. DevHub saves a fingerprint of the diff of each file when you approve, post a comment, ask for changes, or mark every file as viewed. It can do this only for a request whose details you opened, because the fingerprint comes from the diff you saw. The fingerprint counts only the added and removed lines, so a rebase that moves a file's changes without editing them does not count as a change.
 2. When the request has new commits, a line above the files says "N files changed since your review <time>". Each such file has an orange "changed since review" tag. "Show Only These" lists only them; "Show All Files" brings the rest back. With no change the line is green: "No file changed since your review <time>".
 3. "Viewed" marks are saved with the fingerprint of the file. They come back after a restart and drop off a file whose diff changed.
 4. "Forget" on the line removes what DevHub saved for that request. Turning the setting off removes it for every project.
 5. DevHub keeps the last 200 requests per project.
+6. A review made in the browser on GitHub counts too. When your last review on GitHub is newer than what DevHub saved (or DevHub saved nothing) and no commit came after it, DevHub saves the files you see now with the date of that review, so the marks work from then on. When commits came after it, the line says "3 commits since your review on GitHub, 2 hr. ago" and the file tags stay off, because DevHub never saw the files at that review. GitLab: no change.
 
 ### Other places that use the same data
 
