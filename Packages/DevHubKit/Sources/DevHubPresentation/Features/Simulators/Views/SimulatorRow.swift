@@ -20,6 +20,9 @@ struct SimulatorRow<Panels: View>: View {
     let onRequestErase: () -> Void
     let onCancelErase: () -> Void
     let onConfirmErase: () -> Void
+    let onRequestDelete: () -> Void
+    let onCancelDelete: () -> Void
+    let onConfirmDelete: () -> Void
     let onConfigAction: (ConfigActionItemModel.ID) -> Void
     @ViewBuilder var panels: () -> Panels
 
@@ -58,6 +61,16 @@ struct SimulatorRow<Panels: View>: View {
                     confirmRole: .destructive,
                     onCancel: onCancelErase,
                     onConfirm: onConfirmErase
+                )
+            }
+            if model.isConfirmingDelete {
+                InlineConfirmation(
+                    model.deleteConfirmation,
+                    confirmTitle: "Delete",
+                    confirmRole: .destructive,
+                    layout: .stacked(warnings: model.deleteWarnings),
+                    onCancel: onCancelDelete,
+                    onConfirm: onConfirmDelete
                 )
             }
         }
@@ -178,6 +191,10 @@ struct SimulatorRow<Panels: View>: View {
                     onRequestErase()
                 }
                 .disabled(model.canErase == false)
+                Button("Delete Simulator…", systemImage: "trash.slash", role: .destructive) {
+                    onRequestDelete()
+                }
+                .disabled(model.canDelete == false)
             }
         }
     }
@@ -199,6 +216,9 @@ struct SimulatorRow<Panels: View>: View {
         onRequestErase: {},
         onCancelErase: {},
         onConfirmErase: {},
+        onRequestDelete: {},
+        onCancelDelete: {},
+        onConfirmDelete: {},
         onConfigAction: { _ in }
     ) {
         EmptyView()

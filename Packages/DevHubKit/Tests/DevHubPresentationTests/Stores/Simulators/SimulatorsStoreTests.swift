@@ -188,6 +188,29 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.title == "Erased iPhone 17")
     }
 
+    @Test func deleteShutsDownAndDeletesTheSimulator() async throws {
+        await load()
+
+        store.delete(id: booted.id)
+
+        #expect(store.simulator(id: booted.id)?.state == .shuttingDown)
+        try await waitUntil { listCalls == 2 }
+        #expect(harness.spies.simulators.calls.contains(.delete(udid: booted.id)))
+        #expect(harness.lastActivity?.title == "Deleted iPhone 17")
+    }
+
+    @Test func deleteOfADeviceOrAnUnknownIDDoesNothing() async {
+        await load()
+
+        store.delete(id: SimulatorSample.device.id)
+        store.delete(id: "unknown")
+
+        #expect(harness.spies.simulators.calls.contains { call in
+            if case .delete = call { return true }
+            return false
+        } == false)
+    }
+
     @Test func openInSimulatorAppOpensIt() async throws {
         await load()
 

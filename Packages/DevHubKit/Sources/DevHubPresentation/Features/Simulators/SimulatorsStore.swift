@@ -156,6 +156,14 @@ final class SimulatorsStore: SimulatorLookup {
         }
     }
 
+    func delete(id: Simulator.ID) {
+        guard let simulator = simulator(id: id), simulator.isPhysical == false else { return }
+        update(id: id) { $0.state = .shuttingDown }
+        perform("Deleted", simulator) { [repository] in
+            try await repository.delete(udid: id)
+        }
+    }
+
     func openInSimulatorApp(id: Simulator.ID) {
         guard let simulator = simulator(id: id), simulator.isPhysical == false else { return }
         perform("Opened in \(SimulatorRowMapper.appName(app))", simulator) { [repository] in

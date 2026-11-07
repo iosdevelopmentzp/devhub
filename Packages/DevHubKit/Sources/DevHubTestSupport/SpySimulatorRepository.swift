@@ -8,6 +8,7 @@ package final class SpySimulatorRepository: SimulatorRepository, @unchecked Send
         case waitUntilBooted(udid: String)
         case shutdown(udid: String)
         case erase(udid: String)
+        case delete(udid: String)
         case simulatorApp
         case openInSimulatorApp(udid: String)
         case uninstallUserApps(udid: String, wasBooted: Bool)
@@ -27,6 +28,7 @@ package final class SpySimulatorRepository: SimulatorRepository, @unchecked Send
     private var _bootError: (any Error)? = nil
     private var _shutdownError: (any Error)? = nil
     private var _eraseError: (any Error)? = nil
+    private var _deleteError: (any Error)? = nil
     private var _simulatorAppResult = SimulatorApp.simulator
     private var _openInSimulatorAppError: (any Error)? = nil
     private var _uninstallUserAppsResult: Result<[String], any Error> = .success([])
@@ -60,6 +62,11 @@ package final class SpySimulatorRepository: SimulatorRepository, @unchecked Send
     package var eraseError: (any Error)? {
         get { lock.withLock { _eraseError } }
         set { lock.withLock { _eraseError = newValue } }
+    }
+
+    package var deleteError: (any Error)? {
+        get { lock.withLock { _deleteError } }
+        set { lock.withLock { _deleteError = newValue } }
     }
 
     package var simulatorAppResult: SimulatorApp {
@@ -122,6 +129,11 @@ package final class SpySimulatorRepository: SimulatorRepository, @unchecked Send
 
     package func erase(udid: String) async throws {
         let error = record(.erase(udid: udid)) { _eraseError }
+        if let error { throw error }
+    }
+
+    package func delete(udid: String) async throws {
+        let error = record(.delete(udid: udid)) { _deleteError }
         if let error { throw error }
     }
 

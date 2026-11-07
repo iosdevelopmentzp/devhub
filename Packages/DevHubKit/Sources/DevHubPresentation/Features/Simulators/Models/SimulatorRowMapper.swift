@@ -17,6 +17,7 @@ enum SimulatorRowMapper {
         bundleID: String,
         simulatorApp: SimulatorApp,
         isConfirmingErase: Bool,
+        isConfirmingDelete: Bool = false,
         isEditingIdentity: Bool,
         isMessaging: Bool,
         configActions: [ConfigActionItemModel]
@@ -57,9 +58,13 @@ enum SimulatorRowMapper {
             canUninstallFromMenu: isTransitioning == false && isUninstalling == false && (isPhysical == false || isConnected),
             canShowAppData: isPhysical == false && simulator.state == .booted && bundleID.isEmpty == false,
             canErase: isPhysical == false && isTransitioning == false,
+            canDelete: isPhysical == false && isTransitioning == false && isUninstalling == false,
             copyUDIDLabel: "UDID \(simulator.id)",
             eraseConfirmation: "Erase all content and settings on \(simulator.name)? The simulator shuts down first.",
+            deleteConfirmation: "Delete \(simulator.name) from this Mac?",
+            deleteWarnings: deleteWarnings,
             isConfirmingErase: isConfirmingErase,
+            isConfirmingDelete: isConfirmingDelete,
             isEditingIdentity: isEditingIdentity,
             isMessaging: isMessaging,
             pinsActions: isTarget || isUninstalling || isEditingIdentity || isMessaging,
@@ -67,6 +72,8 @@ enum SimulatorRowMapper {
             configActions: configActions
         )
     }
+
+    static let deleteWarnings = ["The simulator, its apps and all its data are removed. Xcode can create a new one in Devices and Simulators."]
 
     static func kindIcon(_ kind: Simulator.Kind) -> String {
         kind == .pad ? "ipad" : "iphone"

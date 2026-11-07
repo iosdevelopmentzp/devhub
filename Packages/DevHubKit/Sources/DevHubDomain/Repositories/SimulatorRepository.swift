@@ -6,6 +6,7 @@ package protocol SimulatorRepository: Sendable {
     func waitUntilBooted(udid: String) async throws
     func shutdown(udid: String) async throws
     func erase(udid: String) async throws
+    func delete(udid: String) async throws
     func simulatorApp() async -> SimulatorApp
     func openInSimulatorApp(udid: String) async throws
     func uninstallUserApps(udid: String, wasBooted: Bool) async throws -> [String]

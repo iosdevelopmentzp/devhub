@@ -33,9 +33,13 @@ struct SimulatorRowModel: Identifiable, Equatable {
     var canUninstallFromMenu: Bool
     var canShowAppData: Bool
     var canErase: Bool
+    var canDelete: Bool
     var copyUDIDLabel: String
     var eraseConfirmation: String
+    var deleteConfirmation: String
+    var deleteWarnings: [String]
     var isConfirmingErase: Bool
+    var isConfirmingDelete: Bool
     var isEditingIdentity: Bool
     var isMessaging: Bool
     var pinsActions: Bool
@@ -43,7 +47,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
     var configActions: [ConfigActionItemModel]
 
     func showsActions(isHovered: Bool) -> Bool {
-        (isHovered || pinsActions) && isConfirmingErase == false
+        (isHovered || pinsActions) && isConfirmingErase == false && isConfirmingDelete == false
     }
 
     static let preview = SimulatorRowModel(
@@ -77,9 +81,13 @@ struct SimulatorRowModel: Identifiable, Equatable {
         canUninstallFromMenu: true,
         canShowAppData: true,
         canErase: true,
+        canDelete: true,
         copyUDIDLabel: "UDID 8C2F6A1E-5B3D-4E7A-9F10-2D4C6B8A0E13",
         eraseConfirmation: "Erase all content and settings on iPhone 16 Pro? The simulator shuts down first.",
+        deleteConfirmation: "Delete iPhone 16 Pro from this Mac?",
+        deleteWarnings: ["The simulator, its apps and all its data are removed. Xcode can create a new one in Devices and Simulators."],
         isConfirmingErase: false,
+        isConfirmingDelete: false,
         isEditingIdentity: false,
         isMessaging: false,
         pinsActions: true,

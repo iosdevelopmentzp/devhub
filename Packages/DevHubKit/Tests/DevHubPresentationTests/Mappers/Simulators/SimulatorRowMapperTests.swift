@@ -62,6 +62,7 @@ import Testing
             #expect(model.canShowAppData == (state == .booted))
             #expect(model.canTogglePower == isStable)
             #expect(model.canErase == isStable)
+            #expect(model.canDelete == isStable)
             #expect(model.canRemoveApps == isStable)
             #expect(model.canUninstallFromMenu == isStable)
         }
@@ -89,6 +90,10 @@ import Testing
         #expect(model.copyUDIDLabel == "UDID \(SimulatorFixture.iPhone.id)")
         #expect(model.eraseConfirmation == "Erase all content and settings on iPhone 16 Pro? The simulator shuts down first.")
         #expect(model.isConfirmingErase == false)
+        #expect(model.canDelete)
+        #expect(model.deleteConfirmation == "Delete iPhone 16 Pro from this Mac?")
+        #expect(model.deleteWarnings == SimulatorRowMapper.deleteWarnings)
+        #expect(model.isConfirmingDelete == false)
         #expect(model.isEditingIdentity == false)
         #expect(model.isMessaging == false)
         #expect(model.pinsActions == false)
@@ -117,6 +122,7 @@ import Testing
         #expect(model.canLaunchAndAttach == false)
         #expect(model.canShowAppData == false)
         #expect(model.canErase == false)
+        #expect(model.canDelete == false)
     }
 
     @Test func aDisconnectedDeviceCannotBuildOrUninstall() {
@@ -250,6 +256,7 @@ import Testing
             bundleID: "com.example.app",
             simulatorApp: flags.simulatorApp,
             isConfirmingErase: flags.isConfirmingErase,
+            isConfirmingDelete: flags.isConfirmingDelete,
             isEditingIdentity: flags.isEditingIdentity,
             isMessaging: flags.isMessaging,
             configActions: flags.configActions
@@ -266,6 +273,7 @@ private struct Flags {
     var isUninstalling = false
     var buildIsRunning = false
     var isConfirmingErase = false
+    var isConfirmingDelete = false
     var isEditingIdentity = false
     var isMessaging = false
     var simulatorApp = SimulatorApp.simulator

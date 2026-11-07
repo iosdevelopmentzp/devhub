@@ -67,6 +67,7 @@ Row buttons appear on hover. The overflow menu (`…`) holds the rest.
 | Copy UDID | menu | Copies the UDID | none |
 | Config actions | menu | Actions with the `simulators.row` placement. Their inputs and confirmation open under the row | the action's `run` |
 | Erase Content and Settings… | menu | Asks for confirmation inside the row, then shuts down and erases the simulator | `xcrun simctl shutdown <udid>`, then `xcrun simctl erase <udid>` |
+| Delete Simulator… | menu | Asks for confirmation inside the row (with the warning that the simulator, its apps and its data go away), then shuts down and deletes the simulator from this Mac. The list refreshes without it. Xcode → Devices and Simulators can create a new one | `xcrun simctl shutdown <udid>`, then `xcrun simctl delete <udid>` |
 
 To boot a shut-down simulator for an uninstall, DevHub runs `xcrun simctl boot <udid>` and `xcrun simctl bootstatus <udid>`.
 
@@ -134,7 +135,7 @@ What works on a device, through `xcrun devicectl`:
 - **The identity panel** reads the installed version with `devicectl device info apps`, the stored profile from the copied preferences plist, and the identity hook from the last product that DevHub built on this Mac ([Device identity](device-identity.md)).
 - **Uninstall**, **Favorites**, **Copy UDID**, config actions of the row (`DEVHUB_SIMULATOR_KIND=device`) and the status script (with empty container variables).
 
-Not available on a device, and hidden in its row: boot and shutdown, erase, remove all apps, logs, app data, QA settings, deep links, push, the mock server, and Run & Attach (the run bar disables it for a device target). Build & Run on a device that is "Not connected" is disabled.
+Not available on a device, and hidden in its row: boot and shutdown, erase, delete, remove all apps, logs, app data, QA settings, deep links, push, the mock server, and Run & Attach (the run bar disables it for a device target). Build & Run on a device that is "Not connected" is disabled.
 
 ### Simulator app
 

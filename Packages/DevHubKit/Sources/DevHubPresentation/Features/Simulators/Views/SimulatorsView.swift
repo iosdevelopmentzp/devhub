@@ -13,6 +13,7 @@ struct SimulatorsView: View {
     @Environment(ConfigActionsStore.self) private var configActions
 
     @State private var confirmingEraseID: Simulator.ID?
+    @State private var confirmingDeleteID: Simulator.ID?
     @State private var isConfirmingBulkRemove = false
     @State private var editingIdentityID: Simulator.ID?
     @State private var messagingID: Simulator.ID?
@@ -57,6 +58,7 @@ struct SimulatorsView: View {
                     }
                     .padding(.bottom, 8)
                     .animation(.snappy(duration: 0.18), value: confirmingEraseID)
+                    .animation(.snappy(duration: 0.18), value: confirmingDeleteID)
                     .animation(.snappy(duration: 0.18), value: editingIdentityID)
                     .animation(.snappy(duration: 0.18), value: messagingID)
                     .animation(.snappy(duration: 0.18), value: qaID)
@@ -106,6 +108,7 @@ struct SimulatorsView: View {
             bundleID: identityStore.bundleID(for: simulator.id),
             simulatorApp: simulators.app,
             isConfirmingErase: confirmingEraseID == simulator.id,
+            isConfirmingDelete: confirmingDeleteID == simulator.id,
             isEditingIdentity: editingIdentityID == simulator.id,
             isMessaging: messagingID == simulator.id,
             configActions: ConfigActionItemMapper.models(for: configActions.actions(for: .simulatorsRow), isRunning: configActions.isRunning)
@@ -164,6 +167,12 @@ struct SimulatorsView: View {
             onConfirmErase: {
                 confirmingEraseID = nil
                 simulators.erase(id: id)
+            },
+            onRequestDelete: { confirmingDeleteID = id },
+            onCancelDelete: { confirmingDeleteID = nil },
+            onConfirmDelete: {
+                confirmingDeleteID = nil
+                simulators.delete(id: id)
             },
             onConfigAction: { runConfigAction($0, for: model) }
         ) {

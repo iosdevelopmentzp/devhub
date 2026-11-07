@@ -35,6 +35,11 @@ struct SimctlSimulatorRepository: SimulatorRepository {
         try await simctl.run(["erase", udid], failure: SimulatorError.command)
     }
 
+    func delete(udid: String) async throws {
+        try await shutdown(udid: udid)
+        try await simctl.run(["delete", udid], failure: SimulatorError.command)
+    }
+
     func simulatorApp() async -> SimulatorApp {
         await appLocation().app
     }
