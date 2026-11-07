@@ -111,23 +111,6 @@ enum CIDiagnosticsBuilder {
     }
 
     private static func commandLines(_ entry: CommandLog.Entry) -> [String] {
-        let exit = entry.exitCode.map { "exit \($0)" } ?? (entry.isRunning ? "running" : "no exit code")
-        let duration = entry.finishedAt.map { " \(DurationFormat.text($0.timeIntervalSince(entry.startedAt)))" } ?? ""
-        var lines = ["### \(ISOTimestamp.text(entry.startedAt)) \(exit)\(duration) cwd=\(entry.cwd ?? "-")", "$ \(entry.command)"]
-        if let error = entry.error {
-            lines.append("error: \(error)")
-        }
-        if entry.droppedLines > 0 {
-            lines.append("(\(entry.droppedLines) earlier lines dropped by the command log)")
-        }
-        let output = entry.lines
-        if output.count > outputHeadLines + outputTailLines {
-            lines += output.prefix(outputHeadLines)
-            lines.append("(\(output.count - outputHeadLines - outputTailLines) lines left out)")
-            lines += output.suffix(outputTailLines)
-        } else {
-            lines += output
-        }
-        return lines
+        CommandLogText.lines(entry, head: outputHeadLines, tail: outputTailLines)
     }
 }

@@ -31,7 +31,7 @@ extension PullRequestsStore {
     }
 
     private var scopedRequests: [PullRequestSummary] {
-        guard scope == .reviewing, let username else { return requests }
-        return requests.filter { ReviewQueuePolicy.needsMyReview($0, username: username) }
+        guard scope == .reviewing, let reviewer else { return requests }
+        return requests.filter { ReviewQueuePolicy.needsMyReview($0, reviewer: reviewer) }
     }
 }

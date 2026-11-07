@@ -59,4 +59,25 @@ import DevHubTestSupport
         #expect(model.menus.map(\.title) == ["Reviewers", "Assignees"])
         #expect(model.menus.allSatisfy { $0.emptyText == "No people found in this project" })
     }
+
+    @Test func teamsFollowThePeopleInTheReviewerMenu() throws {
+        var context = context()
+        context.teams = ["example/ios", "example/qa"]
+        let summary = PullRequestSummaryFixture.request(
+            iid: 7,
+            source: "x",
+            state: .opened,
+            author: "alex",
+            reviewers: ["sam"],
+            requestedTeams: ["example/qa"]
+        )
+
+        let model = try #require(PullRequestPeopleMapper.model(summary: summary, context: context))
+
+        #expect(model.menus[0].title == "Reviewers 2")
+        #expect(model.menus[0].teams.map(\.id) == ["example/qa", "example/ios"])
+        #expect(model.menus[0].teams.map(\.isSelected) == [true, false])
+        #expect(model.menus[0].teams.first?.title == "example/qa (team)")
+        #expect(model.menus[1].teams.isEmpty)
+    }
 }

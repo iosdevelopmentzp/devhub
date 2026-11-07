@@ -12,6 +12,8 @@ import Testing
         #expect(settings.showUsageStrip == false)
         #expect(settings.showUsageInMenuBar == false)
         #expect(settings.showReviewCountInMenuBar)
+        #expect(settings.reviewReminderHours == 4)
+        #expect(settings.showCIStateInMenuBar)
         #expect(settings.remembersReviews)
         #expect(settings.aiTextProvider == .claude)
         #expect(settings.scriptsFolder == "~/s")
@@ -52,7 +54,7 @@ import Testing
     }
 
     @Test func settingsRoundTrip() throws {
-        let settings = AppSettings(showDockIcon: true, usageProviders: .copilot, showReviewCountInMenuBar: false, editor: "Cursor", autoFetchMinutes: 15, windowMode: .window)
+        let settings = AppSettings(showDockIcon: true, usageProviders: .copilot, showReviewCountInMenuBar: false, reviewReminderHours: 8, editor: "Cursor", autoFetchMinutes: 15, windowMode: .window)
 
         let decoded = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(settings))
 

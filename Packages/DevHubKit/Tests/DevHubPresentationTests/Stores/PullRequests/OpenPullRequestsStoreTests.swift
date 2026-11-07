@@ -294,4 +294,122 @@ import DevHubTestSupport
         #expect(OpenPullRequestsStore.pollInterval(panelShown: true, watching: true) == .seconds(60))
         #expect(OpenPullRequestsStore.pollInterval(panelShown: false, watching: true) == .seconds(60))
     }
+
+    private func useReviewQueue(_ value: String) async {
+        let config = ProjectConfig(git: GitConfig(pullRequests: PullRequestsConfig(reviewQueue: value)))
+        harness.spies.config.loadResult = ResolvedConfig(project: config, actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+    }
+
+    @Test func theAssignedRuleCountsRequestsForMeOrMyTeamsOnly() async {
+        await useReviewQueue("assigned")
+        harness.spies.codeHost.myTeamsResult = .success(["example/ios"])
+        script([
+            PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened),
+            PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, reviewers: ["me"]),
+            PullRequestSummaryFixture.request(iid: 3, source: "c", state: .opened, requestedTeams: ["example/ios"]),
+            PullRequestSummaryFixture.request(iid: 4, source: "d", state: .opened, requestedTeams: ["example/qa"]),
+        ])
+
+        await store.refresh()
+        await store.refresh()
+
+        #expect(store.reviewQueue == .assigned)
+        #expect(store.reviewTeams == ["example/ios"])
+        #expect(store.reviewCount == 2)
+        #expect(harness.spies.codeHost.calls.filter { $0 == .myTeams(repository: remote) }.count == 1)
+    }
+
+    @Test func theOpenRuleNeverReadsTheTeams() async {
+        script([PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened, requestedTeams: ["example/qa"])])
+
+        await store.refresh()
+
+        #expect(store.reviewQueue == .open)
+        #expect(store.reviewCount == 1)
+        #expect(harness.spies.codeHost.calls == [.openRequests(repository: remote)])
+    }
+
+    @Test func aFailedTeamsReadIsLoggedOnceAndCountsMyOwnRequests() async {
+        await useReviewQueue("assigned")
+        harness.spies.codeHost.myTeamsResult = .failure(PullRequestError.command("no read:org"))
+        script([
+            PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened, assignees: ["me"]),
+            PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, requestedTeams: ["example/ios"]),
+        ])
+
+        await store.refresh()
+        await store.refresh()
+
+        #expect(store.reviewCount == 1)
+        #expect(harness.activityTitles.filter { $0 == "Cannot read your teams on GitLab" }.count == 1)
+    }
+
+    @Test func aChangeOfTheRuleCountsAgainWithoutANotice() async throws {
+        await useReviewQueue("assigned")
+        script([
+            PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened, reviewers: ["me"]),
+            PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened),
+        ])
+        await store.refresh()
+        #expect(store.reviewCount == 1)
+
+        await useReviewQueue("open")
+
+        try await waitUntil { store.reviewCount == 2 }
+        #expect(harness.spies.notifications.posted.isEmpty)
+    }
+
+    @Test func aRequestThatWaitsTooLongForMyReviewIsRemindedOnce() async throws {
+        let key = "gitlab.reviewSince.\(harness.session.selectedProjectID)"
+        harness.store.encode([ReviewWait(iid: 21, since: Date(timeIntervalSinceNow: -5 * 3_600), isReminded: false)], forKey: key)
+        script([PullRequestSummaryFixture.open, PullRequestSummaryFixture.request(iid: 22, source: "b", state: .opened)])
+
+        await store.refresh()
+        await store.refresh()
+
+        let reminder = SpyUserNotificationRepository.Call.post(title: "!21 waits for your review for 5 h", body: "ABC-5: Login", target: .pullRequest(iid: 21))
+        try await waitUntil { harness.spies.notifications.posted.contains(reminder) }
+        #expect(harness.spies.notifications.posted.filter { $0 == reminder }.count == 1)
+        #expect(harness.activityTitles.filter { $0.hasSuffix("waits for your review for 5 h") } == ["!21 waits for your review for 5 h"])
+        let waits = try #require(harness.store.decode([ReviewWait].self, forKey: key))
+        #expect(waits.map(\.iid) == [21, 22])
+        #expect(waits.map(\.isReminded) == [true, false])
+    }
+
+    @Test func aRequestThatLeavesTheQueueForgetsItsWait() async throws {
+        let key = "gitlab.reviewSince.\(harness.session.selectedProjectID)"
+        script([PullRequestSummaryFixture.open])
+        await store.refresh()
+        #expect(harness.store.decode([ReviewWait].self, forKey: key)?.map(\.iid) == [21])
+
+        script([])
+        await store.refresh()
+
+        #expect(harness.store.decode([ReviewWait].self, forKey: key) == [])
+    }
+
+    @Test func noReminderWhenTheSettingIsOff() async {
+        harness.settings.values.reviewReminderHours = 0
+        harness.store.encode([ReviewWait(iid: 21, since: Date(timeIntervalSinceNow: -50 * 3_600), isReminded: false)], forKey: "gitlab.reviewSince.\(harness.session.selectedProjectID)")
+        script([PullRequestSummaryFixture.open])
+
+        await store.refresh()
+
+        #expect(harness.activityTitles.contains { $0.contains("waits for your review for") } == false)
+    }
+
+    @Test func failedOwnRequestsAreTheOpenOnesWithFailedChecks() async {
+        let failed = PipelineInfo(status: .failed, webURL: nil, updatedAt: nil)
+        script([
+            PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened, author: "me", pipeline: failed),
+            PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, author: "me", pipeline: PipelineInfo(status: .success, webURL: nil, updatedAt: nil)),
+            PullRequestSummaryFixture.request(iid: 3, source: "c", state: .opened, pipeline: failed),
+            PullRequestSummaryFixture.request(iid: 4, source: "d", state: .opened, author: "me", isDraft: true, pipeline: failed),
+        ])
+
+        await store.refresh()
+
+        #expect(store.failedOwnRequestIDs == [1, 4])
+    }
 }

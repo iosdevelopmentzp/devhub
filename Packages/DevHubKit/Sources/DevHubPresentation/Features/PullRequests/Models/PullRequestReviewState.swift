@@ -41,6 +41,8 @@ struct PullRequestReviewState: Equatable {
     var toggledGroups: Set<String> = []
     var reviewedAt: Date?
     var changedSinceReview: [String] = []
+    var hostReview: HostReview?
+    var commitsSinceHostReview: Int?
     var showsOnlyChangedSinceReview = false
 
     static let initial = PullRequestReviewState(expandedFiles: [], viewedFiles: [], focus: nil, busyThreads: [], showsThreadsInDiff: true, openDiffThreads: [])

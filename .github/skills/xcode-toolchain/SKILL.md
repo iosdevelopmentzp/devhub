@@ -11,7 +11,7 @@ relative to `Packages/DevHubKit/Sources/`.
 | Area | Code |
 |---|---|
 | Build | `DevHubData/Build/`: `XcodeBuildRepository`, `BuildOutputParser`, `BuildStepThrottle`, `ProductLocator`, `XcodeContainer` |
-| Tests | `DevHubData/Build/`: `XcodeTestRepository` (`xcodebuild … -resultBundlePath <bundle> test`), `TestOutputParser` (XCTest and Swift Testing lines), `SourceFileLocator`; `RunTestsUseCase` (Domain) boots the simulator first; `TestRunsStore` (Presentation) keeps one `TestRun` per worktree |
+| Tests | `DevHubData/Build/`: `XcodeTestRepository` (`xcodebuild … -resultBundlePath <bundle> test`), `TestOutputParser` (XCTest and Swift Testing lines), `SourceFileLocator`, `XcresultParser` (`xcrun xcresulttool get test-results tests --path <bundle>`: `Test Case` nodes under a `Unit test bundle` or `UI test bundle` and a `Test Suite`; a `Failure Message` starts with `File.swift:line:`; the identifier is `<class>/<test>()`, so `-only-testing:` takes `<target>/<class>/<test>`), `XcresultAttachmentParser` (`export attachments … --output-path <dir>` writes `manifest.json` into the folder, not to stdout; `--only-failures` keeps only attachments made at the failure, so DevHub exports all and filters by test); `RunTestsUseCase` (Domain) boots the simulator first; `TestRunsStore` (Presentation) keeps one `TestRun` per worktree |
 | DerivedData | `DevHubData/Workspace/XcodeDerivedDataRepository` |
 | Simulators | `DevHubData/Simulators/`: `SimctlSimulatorRepository`, `SimctlAppLaunchRepository`, `SimctlMessagingRepository`, `SimctlAppDataRepository`, `DefaultsExportParser`, `AppGroupListParser`, `AppDataScanner`, `SimctlRunner`, `SimctlListParser`, `ContainerLocator`, `ProfileDefaultsPlan`, `AppURLSchemeParser`, `Dictionary+ChildEnvironment` |
 | Logs | `DevHubData/Logs/`: `SimctlAppLogRepository`, `AppLogParser`, `LogRedactor`, `LogCounter`; `AppLogPredicatePolicy` (Domain) |
@@ -44,7 +44,7 @@ xcrun simctl install <udid> <app>
 [profile defaults]  xcrun simctl get_app_container <udid> <bundleID> data|<group suite> · xcrun simctl spawn <udid> defaults write <plist> <key> -string <value>
 [window]  open <developer dir>/Applications/Simulator.app --args -CurrentDeviceUDID <udid>   (Xcode 27: simctl boot, then open devices://device/open?id=<udid>)
 xcrun simctl launch --terminate-running-process [--wait-for-debugger] <udid> <bundleID> [arguments]
-[attach]  AccessibilityXcodeAttacher.attach(pid:simulatorUDID:projectPath:container:)
+[attach]  AccessibilityXcodeAttacher.attach(pid:destination: .simulator(udid), projectPath:container:)
 ```
 
 - `<container>` is `-workspace <path>` or `-project <path>`. `XcodeContainer.locate(in:preferred:)` takes
@@ -132,11 +132,13 @@ A paired iPhone or iPad is a `Simulator` value with `isPhysical == true` and its
 | Build | the same `xcodebuild` as a simulator with `-destination id=<udid>` plus `-allowProvisioningUpdates`; the project signs itself (automatic signing with a team, Xcode logged in). The product lands in `Debug-iphoneos` |
 | Install | `devicectl device install app --device <udid> <App.app>` |
 | Uninstall | `devicectl device info apps --device <udid> --bundle-id <id> --json-output <file>` first; when the app is listed, `devicectl device uninstall app --device <udid> <bundle ID>` |
-| Launch | `devicectl device process launch --device <udid> --terminate-existing --environment-variables '<JSON>' --json-output <file> <bundle ID> <args>`. The environment is a JSON dictionary with sorted keys (`DevicectlDeviceRepository.launchArguments`); no `SIMCTL_CHILD_` prefix. The pid is `result.process.processIdentifier` (`DevicectlLaunchParser`). The app opens in the foreground. Error 10004 ("process identifier could not be determined") was seen once right after a terminate |
+| Launch | `devicectl device process launch --device <udid> --terminate-existing [--start-stopped] --environment-variables '<JSON>' --json-output <file> <bundle ID> <args>`. The environment is a JSON dictionary with sorted keys (`DevicectlDeviceRepository.launchArguments`); no `SIMCTL_CHILD_` prefix. The pid is `result.process.processIdentifier` (`DevicectlLaunchParser`). The app opens in the foreground. Error 10004 ("process identifier could not be determined") was seen once right after a terminate. `--start-stopped` keeps the process stopped for Run & Attach |
 | Installed app facts | `devicectl device info apps --bundle-id` gives the version (`DevicectlAppListParser`). The identity markers are read with `AppBundleMarkers` from the last built product on the Mac (`BuildLookup.lastBuiltAppPath()`), only when its `Info.plist` has the same bundle ID; the device binary cannot be read |
 | Profile defaults and stored profile | `devicectl device copy from --domain-type appDataContainer --domain-identifier <bundle ID> --source Library/Preferences/<suite>.plist --destination <local>`, `defaults write <local folder>/<suite> <key> -string\|-bool\|-integer\|-float <value>` on the Mac, then `copy to` with the same paths (`ProfileDefaultsPlan.localWriteArguments`, `preferencesPath`). Checked on an iPhone: the copied key survived a relaunch of the app. The plist of a `group.` suite is read from the app data container too: `appGroupDataContainer` listing failed on that phone (CoreDevice error 3), and the app kept its group suite plist under its own `Library/Preferences` |
 | Clean install | `uninstall` then `install` of the last built product. No keychain reset on a device |
-| Not available | `log stream` (no devicectl command; `idevicesyslog` or `pymobiledevice3` would be a new tool), the mock server (listens on 127.0.0.1 only), Run & Attach (`AccessibilityXcodeAttacher` clicks a simulator destination), `openurl`, `push`, erase, app data, QA settings. The row hides those actions |
+| Not available | `log stream` (no devicectl command; `idevicesyslog` or `pymobiledevice3` would be a new tool), the mock server (listens on 127.0.0.1 only), `openurl`, `push`, erase, app data, QA settings. The row hides those actions |
+
+| Run & Attach | launch with `--start-stopped`, then `AccessibilityXcodeAttacher.attach(pid:destination: .device(udid), …)`. Without a pid from the launch JSON the use case throws. Covered by tests only, not run on a real device |
 
 Facts of the paired devices (name, serial, ECID, UDID) are personal: `DevicectlListFixture` uses sample values.
 
@@ -164,11 +166,11 @@ xcrun simctl spawn <udid> log stream --style ndjson --level debug --predicate 's
 
 ## Run & Attach (Xcode)
 
-`AccessibilityXcodeAttacher.attach(pid:simulatorUDID:projectPath:container:)`:
+`AccessibilityXcodeAttacher.attach(pid:destination:projectPath:container:)`, `AttachDestination` is `.simulator(udid)` or `.device(udid)`:
 
 1. `AXIsProcessTrusted()`. When false: `AXIsProcessTrustedWithOptions` with the prompt, then
    `XcodeAttachError.accessibilityNotGranted`.
-2. `simctl launch --wait-for-debugger` gave the PID before this step.
+2. `simctl launch --wait-for-debugger` (or `devicectl device process launch --start-stopped` on a device) gave the PID before this step.
 3. `open -a Xcode <container>`. The container is `xcode.container` (passed as `container`), else the first `.xcworkspace`, else the first `.xcodeproj` (`XcodeContainer.locate(in:preferred:)`). When Xcode had no window, wait for one (`System Events` window count, every 3 s, up
    to 150 s), then 6 s; else 1.5 s.
 4. `osascript`: select the run destination whose `device identifier` is the UDID in `run destinations of workspace
@@ -176,7 +178,8 @@ xcrun simctl spawn <udid> log stream --style ndjson --level debug --predicate 's
 5. `osascript` on `System Events`, process `Xcode`: click "Attach to Process by PID or Name…" in the Debug menu, `set
    value of text field 1 of sheet 1 of window 1` to the PID (keystrokes do not reach the field), click "Attach".
 6. Poll `ps -o stat= -p <pid>` every second for 25 s. A state that still starts with `T` means stopped →
-   `XcodeAttachError.stillStopped(pid)` with the manual steps.
+   `XcodeAttachError.stillStopped(pid)` with the manual steps. On a device `ps` cannot see the process: the attacher waits
+   `deviceAttachWait` (5 s) and returns.
 
 The app target needs `INFOPLIST_KEY_NSAppleEventsUsageDescription` (set in `project.pbxproj`). A rebuilt ad hoc binary
 can lose the Accessibility permission; Settings → Doctor shows it.

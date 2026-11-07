@@ -138,6 +138,15 @@ enum PullRequestDetailsMapper {
     static let changedSinceReviewTag = TagModel("changed since review", tint: .orange, hint: "The diff of this file is not the one you reviewed")
 
     static func reviewNotice(review: PullRequestReviewState, words: CodeHostWords) -> PullRequestDetailsModel.ReviewNotice? {
+        if let hostReview = review.hostReview, let commits = review.commitsSinceHostReview {
+            return PullRequestDetailsModel.ReviewNotice(
+                text: "\(CountText.count(commits, "commit")) since your review on \(words.hostTitle), \(hostReview.submittedAt.relativeDescription)",
+                icon: "arrow.triangle.2.circlepath",
+                tint: .orange,
+                hint: "You reviewed this \(words.request) on \(words.hostTitle), and new commits came after it. DevHub did not save the files at that review, so it cannot mark which files changed. The marks come back after your next review in DevHub.",
+                toggleTitle: nil
+            )
+        }
         guard let reviewedAt = review.reviewedAt else { return nil }
         let since = "since your review \(reviewedAt.relativeDescription)"
         let hint = "DevHub saved the diff of each file when you approved, commented, asked for changes or marked every file as viewed. It compares the \(words.request) with it, without asking \(words.hostTitle). Turn it off in Settings."

@@ -51,6 +51,12 @@ package enum AITextPromptBuilder {
     }
 
     package static func explain(title: String, description: String, files: [PullRequestFileDiff], changedSinceReview: [String], noun: String) -> String {
+        explain(title: title, description: description, files: files, changedSinceReview: changedSinceReview, noun: noun, part: 1, of: 1)
+    }
+
+    package static func explain(title: String, description: String, files: [PullRequestFileDiff], changedSinceReview: [String], noun: String, part: Int, of total: Int) -> String {
+        let paths = Set(files.map(\.path))
+        let changedSinceReview = changedSinceReview.filter { paths.contains($0) }
         var sections = ["## What it changes", "## Risky places"]
         if changedSinceReview.isEmpty == false {
             sections.append("## Changed since my review")
@@ -61,6 +67,7 @@ package enum AITextPromptBuilder {
             "",
             "Write short Markdown with these sections: \(sections.joined(separator: ", ")).",
             "Name files and functions. Use plain English. Do not invent facts that the diff does not show.",
+            total > 1 ? "The diff is too large for one answer. This is part \(part) of \(total): explain only the files in this part." : "",
             changedSinceReview.isEmpty ? "" : "Under \"Changed since my review\", describe only these files: \(changedSinceReview.joined(separator: ", ")).",
             "",
             "Title: \(title)",

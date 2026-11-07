@@ -9,6 +9,7 @@ final class TestRunsStore {
     private(set) var runs: [Worktree.ID: TestRun] = [:]
 
     @ObservationIgnored private let runTests: RunTestsUseCase
+    @ObservationIgnored private let tests: any TestRunRepository
     @ObservationIgnored private let build: any BuildLookup
     @ObservationIgnored private let worktrees: any WorktreeLookup
     @ObservationIgnored private let config: ConfigStore
@@ -22,6 +23,7 @@ final class TestRunsStore {
 
     init(
         runTests: RunTestsUseCase,
+        tests: any TestRunRepository,
         build: any BuildLookup,
         worktrees: any WorktreeLookup,
         config: ConfigStore,
@@ -31,6 +33,7 @@ final class TestRunsStore {
         prompts: any ReviewPromptRepository
     ) {
         self.runTests = runTests
+        self.tests = tests
         self.build = build
         self.worktrees = worktrees
         self.config = config
@@ -56,6 +59,17 @@ final class TestRunsStore {
     }
 
     func run(worktreeID id: Worktree.ID) {
+        start(worktreeID: id, onlyTests: [])
+    }
+
+    func runFailedAgain(worktreeID id: Worktree.ID) {
+        guard let run = runs[id], run.isRunning == false else { return }
+        let onlyTests = TestResultsPolicy.onlyTests(run.cases)
+        guard onlyTests.isEmpty == false else { return }
+        start(worktreeID: id, onlyTests: onlyTests)
+    }
+
+    private func start(worktreeID id: Worktree.ID, onlyTests: [String]) {
         guard tasks[id] == nil, let worktree = worktrees.worktree(atPath: id), worktree.isMissing == false else { return }
         guard let simulator = build.target else {
             activity.log("No simulator for the tests", detail: "Choose a target simulator in the Simulators tab first.", outcome: .failure)
@@ -67,15 +81,18 @@ final class TestRunsStore {
             scheme: build.selectedScheme,
             configuration: build.selectedConfiguration,
             simulatorUDID: simulator.id,
-            simulatorName: simulator.name
+            simulatorName: simulator.name,
+            onlyTests: onlyTests
         )
-        runs[id] = TestRun(scheme: request.scheme, simulatorName: simulator.name, startedAt: .now, phase: .running(step: "Preparing"))
+        runs[id] = TestRun(scheme: request.scheme, simulatorName: simulator.name, startedAt: .now, phase: .running(step: "Preparing"), onlyTests: onlyTests)
         tasks[id] = Task { [weak self] in
             guard let self else { return }
             do {
                 for try await event in runTests.run(request) {
                     handle(event, for: id)
                 }
+                try Task.checkCancellation()
+                await readBundle(for: id, worktree: worktree)
                 try Task.checkCancellation()
                 reportOutcome(for: id, worktree: worktree)
             } catch is CancellationError {
@@ -140,6 +157,35 @@ final class TestRunsStore {
             run.resultBundlePath = report.resultBundlePath
         }
         runs[id] = run
+    }
+
+    private func readBundle(for id: Worktree.ID, worktree: Worktree) async {
+        guard let bundle = runs[id]?.resultBundlePath else { return }
+        let cases: [TestResultCase]
+        do {
+            cases = try await tests.results(bundlePath: bundle, projectPath: worktree.path)
+        } catch {
+            activity.log("Cannot read the test results of \(worktree.displayName)", detail: error.localizedDescription, outcome: .failure)
+            return
+        }
+        guard cases.isEmpty == false, var run = runs[id] else { return }
+        run.cases = cases
+        run.passed = cases.filter { $0.status == .passed }.count
+        run.failed = cases.filter { $0.status == .failed }.count
+        run.skipped = cases.filter { $0.status == .skipped }.count
+        let failures = TestResultsPolicy.failures(cases)
+        if failures.isEmpty == false {
+            run.failures = Array(failures.prefix(Self.failureLimit))
+        }
+        runs[id] = run
+        guard failures.isEmpty == false else { return }
+        do {
+            let failedIDs = Set(TestResultsPolicy.failed(cases).map(\.identifier))
+            let attachments = try await tests.exportAttachments(bundlePath: bundle)
+            runs[id]?.attachments = attachments.filter { failedIDs.contains($0.testIdentifier) }
+        } catch {
+            activity.log("Cannot read the test attachments of \(worktree.displayName)", detail: error.localizedDescription, outcome: .failure)
+        }
     }
 
     private func reportOutcome(for id: Worktree.ID, worktree: Worktree) {

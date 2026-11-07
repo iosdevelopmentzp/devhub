@@ -174,7 +174,7 @@ final class PullRequestDetailStore {
             ciWorkflows: ciWorkflows,
             ciWorkflowErrors: ciWorkflowErrors,
             ciFailedTests: ciFailedTests,
-            ciFlakyTests: ciFlakyTests,
+            ciFlakyTests: FlakyTrackingPolicy.merged(insights: ciFlakyTests, ledger: history.flakyTests),
             ciBusyWorkflows: ciBusyWorkflows,
             ciWorkflowDetails: ciWorkflowDetails,
             ciJobSteps: ciJobSteps,
@@ -191,9 +191,17 @@ final class PullRequestDetailStore {
             chosenHiddenFiles: hiddenFiles.paths,
             toggledGroups: toggledGroups[id] ?? [],
             reviewedAt: reviews.snapshot(of: id)?.reviewedAt,
-            changedSinceReview: ReviewChangePolicy.changedPaths(since: reviews.snapshot(of: id), paths: diffs[id]?.map(\.path) ?? [], fingerprints: fingerprints[id] ?? [:]),
+            changedSinceReview: hostReviewCommits(of: id) == nil ? ReviewChangePolicy.changedPaths(since: reviews.snapshot(of: id), paths: diffs[id]?.map(\.path) ?? [], fingerprints: fingerprints[id] ?? [:]) : [],
+            hostReview: hostReviewCommits(of: id) == nil ? nil : details[id]?.myLastReview,
+            commitsSinceHostReview: hostReviewCommits(of: id),
             showsOnlyChangedSinceReview: onlyChangedSinceReview.contains(id)
         )
+    }
+
+    private func hostReviewCommits(of id: PullRequestSummary.ID) -> Int? {
+        guard reviews.isOn, let details = details[id], let review = details.myLastReview, ReviewChangePolicy.isNewer(review, than: reviews.snapshot(of: id)) else { return nil }
+        let count = ReviewChangePolicy.commitsSince(review, commitDates: details.commitDates)
+        return count > 0 ? count : nil
     }
 
     func toggleOnlyChangedSinceReview(of id: PullRequestSummary.ID) {
@@ -359,12 +367,19 @@ final class PullRequestDetailStore {
             details[id] = description
             diffs[id] = files
             restoreViewed(of: id, files: files)
+            adoptHostReview(of: id, details: description)
             history.load(id)
             loadCI(of: id)
         } catch is CancellationError {
         } catch {
             errors[id] = error.localizedDescription
         }
+    }
+
+    private func adoptHostReview(of id: PullRequestSummary.ID, details: PullRequestDetails) {
+        guard let review = details.myLastReview, ReviewChangePolicy.isNewer(review, than: reviews.snapshot(of: id)) else { return }
+        guard ReviewChangePolicy.commitsSince(review, commitDates: details.commitDates) == 0 else { return }
+        reviews.recordHostReview(review, of: id, fingerprints: fingerprints[id] ?? [:])
     }
 
     private func restoreViewed(of id: PullRequestSummary.ID, files: [PullRequestFileDiff]) {

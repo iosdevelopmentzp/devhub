@@ -135,7 +135,7 @@ What works on a device, through `xcrun devicectl`:
 - **The identity panel** reads the installed version with `devicectl device info apps`, the stored profile from the copied preferences plist, and the identity hook from the last product that DevHub built on this Mac ([Device identity](device-identity.md)).
 - **Uninstall**, **Favorites**, **Copy UDID**, config actions of the row (`DEVHUB_SIMULATOR_KIND=device`) and the status script (with empty container variables).
 
-Not available on a device, and hidden in its row: boot and shutdown, erase, delete, remove all apps, logs, app data, QA settings, deep links, push, the mock server, and Run & Attach (the run bar disables it for a device target). Build & Run on a device that is "Not connected" is disabled.
+Not available on a device, and hidden in its row: boot and shutdown, erase, delete, remove all apps, logs, app data, QA settings, deep links, push and the mock server. Build & Run, Run & Attach and Launch & Attach on a device that is "Not connected" are disabled.
 
 ### Simulator app
 
@@ -176,6 +176,8 @@ Run & Attach (⇧⌘R) works only for an Xcode project.
 2. DevHub builds and installs as above, then launches with `--wait-for-debugger`.
 3. DevHub opens the project in Xcode (`open -a Xcode <container>`), selects the simulator as the run destination, and clicks **Debug → Attach to Process by PID or Name…** through `osascript`.
 4. DevHub waits up to 25 seconds for the process to continue.
+
+On a physical device, step 2 launches with `devicectl device process launch --start-stopped` and reads the process ID from its JSON. Step 3 selects the device as the run destination. Step 4 is a fixed wait of 5 seconds, because DevHub cannot read the state of a process on the device. Without a process ID from devicectl the run fails with a message. The device path is covered by tests only, not by a run on a real device.
 
 Xcode's console stays empty for an attached process.
 

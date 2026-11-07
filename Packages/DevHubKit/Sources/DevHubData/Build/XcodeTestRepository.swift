@@ -59,8 +59,44 @@ struct XcodeTestRepository: TestRunRepository {
             "-configuration", request.configuration,
             "-destination", "id=\(request.simulatorUDID)",
             "-resultBundlePath", resultBundlePath,
-            "test"
         ]
+            + request.onlyTests.map { "-only-testing:\($0)" }
+            + ["test"]
+    }
+
+    func results(bundlePath: String, projectPath: String) async throws -> [TestResultCase] {
+        let result = try await shell.run("xcrun", Self.resultsArguments(bundlePath: bundlePath), cwd: nil)
+        guard result.exitCode == 0 else { throw TestRunError.failed(result.failureMessage) }
+        let locator = SourceFileLocator(root: projectPath)
+        return try XcresultParser.cases(from: Data(result.stdout.utf8)).map { item in
+            guard item.path == nil, let file = item.file else { return item }
+            var resolved = item
+            resolved.path = locator.path(forFileName: file)
+            return resolved
+        }
+    }
+
+    func exportAttachments(bundlePath: String) async throws -> [TestAttachment] {
+        let folder = attachmentsFolder(forBundle: bundlePath)
+        try? FileManager.default.removeItem(at: folder)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let result = try await shell.run("xcrun", Self.exportArguments(bundlePath: bundlePath, folder: folder.path), cwd: nil)
+        guard result.exitCode == 0 else { throw TestRunError.failed(result.failureMessage) }
+        let manifest = try Data(contentsOf: folder.appendingPathComponent("manifest.json"))
+        return try XcresultAttachmentParser.attachments(from: manifest, folder: folder)
+    }
+
+    static func resultsArguments(bundlePath: String) -> [String] {
+        ["xcresulttool", "get", "test-results", "tests", "--path", bundlePath]
+    }
+
+    static func exportArguments(bundlePath: String, folder: String) -> [String] {
+        ["xcresulttool", "export", "attachments", "--path", bundlePath, "--output-path", folder]
+    }
+
+    func attachmentsFolder(forBundle bundlePath: String) -> URL {
+        let name = ((bundlePath as NSString).lastPathComponent as NSString).deletingPathExtension
+        return resultsFolder.appendingPathComponent("Attachments", isDirectory: true).appendingPathComponent(name, isDirectory: true)
     }
 
     private func resultBundlePath(for request: TestRunRequest) -> String {
@@ -76,6 +112,7 @@ struct XcodeTestRepository: TestRunRepository {
             .sorted { modificationDate($0) > modificationDate($1) }
         for stale in bundles.dropFirst(Self.keptResultBundles) {
             try? FileManager.default.removeItem(at: stale)
+            try? FileManager.default.removeItem(at: attachmentsFolder(forBundle: stale.path))
         }
     }
 

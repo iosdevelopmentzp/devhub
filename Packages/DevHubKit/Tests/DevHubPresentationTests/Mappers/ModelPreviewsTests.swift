@@ -103,6 +103,8 @@ import Testing
         #expect(WorktreeLocationModel.preview.canKeepInside)
         #expect(TestRunPanelModel.preview.failures.count == 1)
         #expect(TestFailureRowModel.preview.line == 42)
+        #expect(TestAttachmentRowModel.preview.isImage == false)
+        #expect(TestSlowRowModel.preview.durationText == "1.8 s")
         #expect(CIHistoryRowModel.preview.failedJobs.count == 1)
         #expect(TicketRowModel.preview.canStart)
         #expect(TicketSectionModel.preview.id == .inProgress)

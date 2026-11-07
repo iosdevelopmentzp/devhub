@@ -33,12 +33,11 @@ package struct LaunchInstalledAppUseCase: Sendable {
         let record = plan.record(bundleID: request.bundleID, baseURL: mocks.baseURL, date: .now)
         guard request.attachDebugger else { return record }
         guard let pid else { throw XcodeAttachError.script("simctl launch did not report a process ID.") }
-        try await attacher.attach(pid: pid, simulatorUDID: udid, projectPath: request.projectPath, container: request.container)
+        try await attacher.attach(pid: pid, destination: .simulator(udid), projectPath: request.projectPath, container: request.container)
         return record
     }
 
     private func executeOnDevice(_ request: IdentityLaunch, cleanInstall: Bool) async throws -> LaunchRecord {
-        guard request.attachDebugger == false else { throw DeviceError.attachNotAvailable }
         let udid = request.simulator.id
         let plan = request.plan
         if cleanInstall {
@@ -49,7 +48,11 @@ package struct LaunchInstalledAppUseCase: Sendable {
         if plan.defaults.isEmpty == false {
             try await devices.writeDefaults(udid: udid, bundleID: request.bundleID, defaults: plan.defaults)
         }
-        _ = try await devices.launch(udid: udid, bundleID: request.bundleID, environment: plan.environment, arguments: plan.arguments)
-        return plan.record(bundleID: request.bundleID, baseURL: nil, date: .now)
+        let pid = try await devices.launch(udid: udid, bundleID: request.bundleID, environment: plan.environment, arguments: plan.arguments, startStopped: request.attachDebugger)
+        let record = plan.record(bundleID: request.bundleID, baseURL: nil, date: .now)
+        guard request.attachDebugger else { return record }
+        guard let pid else { throw XcodeAttachError.script("devicectl did not report a process ID.") }
+        try await attacher.attach(pid: pid, destination: .device(udid), projectPath: request.projectPath, container: request.container)
+        return record
     }
 }

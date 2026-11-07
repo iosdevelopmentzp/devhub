@@ -12,7 +12,7 @@ enum GhGraphQLQueries {
     number title state isDraft url author { login } headRefName baseRefName mergeable mergeStateStatus reviewDecision \
     totalCommentsCount additions deletions changedFiles headRefOid createdAt updatedAt mergedAt closedAt mergedBy { login } \
     autoMergeRequest { enabledAt } labels(first: 20) { nodes { name } } latestReviews(first: 20) { nodes { state author { login } } } \
-    assignees(first: 10) { nodes { login } } reviewRequests(first: 10) { nodes { requestedReviewer { ... on User { login } } } } \
+    assignees(first: 10) { nodes { login } } reviewRequests(first: 10) { nodes { requestedReviewer { ... on User { login } ... on Team { combinedSlug } } } } \
     reviewThreads(first: 100) { totalCount nodes { isResolved } } commitCount: commits { totalCount } \
     comments(last: 10) { nodes { databaseId author { login } } } \
     recentThreads: reviewThreads(last: 10) { nodes { comments(last: 2) { nodes { databaseId author { login } } } } } \(checks)
@@ -38,9 +38,10 @@ enum GhGraphQLQueries {
     """
 
     static let details = """
-    query($owner: String!, $name: String!, $number: Int!) { repository(owner: $owner, name: $name) { pullRequest(number: $number) { \
+    query($owner: String!, $name: String!, $number: Int!) { viewer { login } repository(owner: $owner, name: $name) { pullRequest(number: $number) { \
     body url reviewThreads(first: 100) { nodes { id isResolved path line originalLine diffSide \
-    comments(first: 100) { nodes { databaseId body author { login } createdAt } } } } \(checks) } } }
+    comments(first: 100) { nodes { databaseId body author { login } createdAt } } } } \
+    reviews(last: 50) { nodes { state submittedAt author { login } } } recentCommits: commits(last: 50) { nodes { commit { committedDate } } } \(checks) } } }
     """
 
     static let myApproval = """

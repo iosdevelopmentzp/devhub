@@ -152,7 +152,15 @@ struct GlabPullRequestRepository: CodeHostRepository {
 
     func people(repository: CodeHost) async throws -> [String] {
         let endpoint = "projects/\(Self.encoded(GlabClient.projectPath(of: repository)))/members/all?per_page=100"
-        return try await GlabMemberListParser.usernames(from: client.rest(endpoint, host: try GlabClient.host(of: repository)))
+        return try await GlabMemberListParser.usernames(from: client.paged(endpoint, host: try GlabClient.host(of: repository)))
+    }
+
+    func teams(repository: CodeHost) async throws -> [String] {
+        []
+    }
+
+    func myTeams(repository: CodeHost) async throws -> [String] {
+        []
     }
 
     func updatePeople(iid: Int, role: PullRequestPersonRole, add: [String], remove: [String], repository: CodeHost) async throws {

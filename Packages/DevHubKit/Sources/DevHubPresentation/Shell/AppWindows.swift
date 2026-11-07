@@ -92,6 +92,9 @@ package final class AppWindows: NSObject, NSWindowDelegate {
             await assembly.mockSets.load()
             assembly.mockServer.restoreServers()
         }
+        Task { [assembly] in
+            await assembly.appCrash.check()
+        }
         resignObserver = NotificationCenter.default.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 self?.closePanel()
@@ -510,12 +513,18 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         withObservationTracking {
             let usage = assembly.usage
             let settings = assembly.settings
+            let showsCI = settings.values.showCIStateInMenuBar
+            let failedRequests = showsCI ? assembly.openPullRequests.failedOwnRequestIDs : []
+            let onHold = showsCI ? assembly.ciWatch.onHoldJobNames : [:]
             let state = StatusItemState.state(
                 isBuilding: assembly.build.isRunning,
                 hasUnseenFailure: assembly.notifier.hasUnseenFailure,
+                isCIFailed: failedRequests.isEmpty == false,
+                isCIWaiting: onHold.isEmpty == false,
                 isKeepingAwake: assembly.keepAwake.isActive
             )
             statusItem.button?.image = StatusItemImage.image(for: state)
+            statusItem.button?.toolTip = StatusItemHint.text(for: state, failedRequests: failedRequests, onHold: onHold, words: assembly.codeHostRemote.words)
             statusItem.button?.title = StatusItemTitle.text(
                 usage: settings.values.showUsageInMenuBar ? usage.menuBarPercentText : nil,
                 reviewCount: settings.values.showReviewCountInMenuBar ? assembly.openPullRequests.reviewCount : nil,

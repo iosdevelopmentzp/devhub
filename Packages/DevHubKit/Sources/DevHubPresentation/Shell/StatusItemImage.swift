@@ -5,7 +5,7 @@ import DevHubUI
 enum StatusItemImage {
     static func image(for state: StatusItemState) -> NSImage? {
         guard let symbol = NSImage(systemSymbolName: state.symbolName, accessibilityDescription: "DevHub") else { return nil }
-        guard state.showsFailureDot else {
+        guard let dot = state.dotTint else {
             symbol.isTemplate = true
             return symbol
         }
@@ -17,7 +17,7 @@ enum StatusItemImage {
             tinted.draw(in: rect)
             rect.fill(using: .sourceAtop)
             let diameter = max(5, rect.width * 0.38)
-            NSColor.systemRed.setFill()
+            (dot == .orange ? NSColor.systemOrange : NSColor.systemRed).setFill()
             NSBezierPath(ovalIn: NSRect(x: rect.maxX - diameter, y: rect.minY, width: diameter, height: diameter)).fill()
             return true
         }

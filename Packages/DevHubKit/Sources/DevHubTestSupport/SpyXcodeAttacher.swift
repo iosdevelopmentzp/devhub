@@ -4,7 +4,7 @@ import Foundation
 package final class SpyXcodeAttacher: XcodeAttaching, @unchecked Sendable {
     package enum Call: Hashable {
         case requestTrust
-        case attach(pid: Int32, simulatorUDID: String, projectPath: String, container: String?)
+        case attach(pid: Int32, destination: AttachDestination, projectPath: String, container: String?)
     }
 
     private let lock = NSLock()
@@ -32,8 +32,8 @@ package final class SpyXcodeAttacher: XcodeAttaching, @unchecked Sendable {
         record(.requestTrust) {}
     }
 
-    package func attach(pid: Int32, simulatorUDID: String, projectPath: String, container: String?) async throws {
-        let error = record(.attach(pid: pid, simulatorUDID: simulatorUDID, projectPath: projectPath, container: container)) { _attachError }
+    package func attach(pid: Int32, destination: AttachDestination, projectPath: String, container: String?) async throws {
+        let error = record(.attach(pid: pid, destination: destination, projectPath: projectPath, container: container)) { _attachError }
         if let error { throw error }
     }
 

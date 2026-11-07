@@ -43,6 +43,7 @@ Each section is explained under "Actions".
 | Builds | A build or a launch finished, or the build failed. A click on the notification opens the run bar in the Simulators tab |
 | Test runs | The tests of a worktree finished or did not run. A click opens the Worktrees tab |
 | Pull Requests waiting for your review | The number of requests that wait for your review went up. A click opens that list |
+| Reviews waiting for me for too long | A request waits for your review longer than "Remind me of a review after" (the picker under this switch: Never, 1, 2, 4, 8 hours or 1 day; default 4 hours). One reminder per request until it leaves your queue |
 | Reviews of my pull requests | Someone approved your request or asked for changes. A click opens the request |
 | Checks of my pull requests | The checks or pipeline of your request turned to failed. A click opens the request |
 | Checks of my pull requests passed | The checks or pipeline of your request turned from running to passed. A click opens the request |
@@ -60,7 +61,7 @@ Rules of the notifications:
 1. A notification needs the macOS permission.
 2. Every kind except the script one appears only while the panel is closed and the main switch is on. A kind with its switch off never appears; its events still go to the Notifications screen.
 3. A script line `@devhub {"notify": "Title", "body": "…"}` posts a notification even when the panel is open or the main switch is off, unless "Script notifications" is off.
-4. The menu bar icon shows a circle while a build runs. After a failed build while the panel is closed, it shows a red dot until you open the panel.
+4. The menu bar icon shows a circle while a build runs. After a failed build while the panel is closed, it shows a red dot until you open the panel. With "Show the CI state of my requests on the menu bar icon" on, it also shows a red dot while the checks of one of your open requests failed and an orange dot while a CircleCI job of one waits for an approval; these dots stay until the checks pass or the job is approved.
 5. Changes of your own requests come from the read of the open requests every 5 minutes, or every 2 minutes while the panel is closed ([Pull Requests](pull-requests.md#other-places-that-use-the-same-data)). A refresh after an action of yours in DevHub (a comment, an approval) updates the baseline without a report.
 
 6. A click on a notification opens DevHub at the place of the event: a request, the review list, the Worktrees tab or the run bar. Every event is also in the Notifications screen (the bell in the header, [Notifications](notifications.md)).
@@ -81,7 +82,9 @@ The title follows the code host: "Pull Requests" for GitHub, "Merge Requests" fo
 | Control | What it does |
 |---|---|
 | Show the number of requests waiting for your review in the menu bar | Shows a count next to the menu bar icon, for example "3 PR" on GitHub or "3 MR" on GitLab. It counts open requests by other people, not drafts, that you have not approved. DevHub checks every 5 minutes |
+| Show the CI state of my requests on the menu bar icon | On by default. A red dot on the icon while the checks of one of your open requests failed, an orange dot while a CircleCI job of one of them waits for an approval. The dot stays while that lasts; the hint of the icon names the request and the job |
 | Remember what I reviewed | On by default. DevHub saves a fingerprint of the diff of each file when you approve, comment, ask for changes or mark every file as viewed, and shows the files that changed since in the details. Viewed marks stay until a file changes. Off removes everything it saved. See [Pull Requests](pull-requests.md#changed-since-your-review) |
+| Forget Flaky Tests | The flaky tests DevHub found itself in this project (a test that failed in a CircleCI run and passed when the same commit ran again) with their count. The button removes them; the CircleCI Insights list stays |
 
 ### Projects
 
@@ -153,6 +156,7 @@ The Doctor section checks the tools that DevHub runs. It runs when the section a
 2. DevHub runs the version command with a 5 second limit and shows the first version number in the output.
 3. A found tool shows its version and path (click to copy). A missing tool shows "missing" in orange and **Copy Install Command**. A tool without a version also offers the install command. A tool with a minimum version (`circleci`: 1) shows "<version>, needs 1 or newer" in orange with the upgrade command. A tool that reports a newer version (`circleci version --json` with `outdated` and `latest`) shows "1.13.0, 1.14.0 available" in blue with the upgrade command; DevHub never updates a tool itself.
 4. **CI Diagnostics…** in the header saves the CI diagnostics text (see the CircleCI section of the pull-requests page) through a save panel; it includes the latest CircleCI runs of the current branch and the base branch from the Git tab.
+5. **Support bundle** (the last row): **Copy** puts one text for a bug report on the pasteboard, **Save…** writes it through a save panel ("DevHub support bundle <date>.txt"). It has the DevHub version, macOS, the settings without paths or links, the project kind, scheme and bundle, the config problems, the Doctor tools, the CI provider and its CLI, the last DevHub crash of the last 30 days, the last 50 Recent rows and the last 100 commands of every tool (20 lines from the start and 20 from the end of each output). Before it leaves DevHub, `RedactionPolicy` replaces tokens (`ghp_…`, `github_pat_…`, `glpat-…`, 40 hex characters such as a commit hash) with `<secret>`, every link with `<url>`, e-mail addresses with `<email>`, IPv4 addresses with `<ip>`, the project folder with `<project>`, the home folder with `~`, your user name with `<user>`, the bundle ids, schemes and project names with `<bundle>`, `<scheme>` and `<project>`, then the branches, logins, host, organization and repository and the words of `~/.devhub/anonymity-denylist.txt`. The CI diagnostics use the same policy.
 
 | Tool | Version command | Purpose | Install command |
 |---|---|---|---|

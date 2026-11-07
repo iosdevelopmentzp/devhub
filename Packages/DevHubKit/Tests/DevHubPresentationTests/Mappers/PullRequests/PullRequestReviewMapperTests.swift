@@ -22,6 +22,16 @@ import Testing
         #expect(lines[3].tags.map(\.text) == ["sam"])
     }
 
+    @Test func aRequestedTeamWaitsAfterThePeople() {
+        let request = PullRequestSummaryFixture.request(iid: 1, source: "x", state: .opened, reviewers: ["lee"], requestedTeams: ["example/ios"])
+
+        let lines = PullRequestReviewMapper.lines(for: request, username: "me", words: .gitHub)
+
+        #expect(lines.map(\.id) == ["waiting"])
+        #expect(lines[0].tags.map(\.text) == ["lee", "example/ios"])
+        #expect(lines[0].tags[1].systemImage == "person.3")
+    }
+
     @Test func anOpenRequestWithoutReviewersSaysSo() {
         let lines = PullRequestReviewMapper.lines(for: PullRequestSummaryFixture.open, username: nil, words: .gitHub)
 

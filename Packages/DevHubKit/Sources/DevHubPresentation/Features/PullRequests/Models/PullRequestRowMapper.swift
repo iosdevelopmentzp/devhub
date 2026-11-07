@@ -41,8 +41,8 @@ enum PullRequestRowMapper {
             isWatched: isWatched,
             watchTitle: isOpen ? (isWatched ? "Stop Watching" : "Watch") : nil,
             watchIcon: isWatched ? "bell.slash" : "bell",
-            primaryActions: PullRequestActionMapper.primary(for: request, username: username, words: words),
-            actions: PullRequestActionMapper.overflow(for: request, username: username, words: words),
+            primaryActions: PullRequestActionMapper.primary(for: request, reviewer: context.reviewer, words: words),
+            actions: PullRequestActionMapper.overflow(for: request, reviewer: context.reviewer, words: words),
             mergeTitle: "Merge \(words.reference(request.iid)) into \(request.targetBranch)?",
             autoMergeTitle: "Merge \(words.reference(request.iid)) into \(request.targetBranch) when \(words.checksPass)?",
             squashByDefault: request.squashOnMerge,
@@ -51,6 +51,13 @@ enum PullRequestRowMapper {
             isExpanded: isExpanded,
             configActions: request.state == .opened ? configActions : []
         )
+    }
+
+    static func reviewHint(_ request: PullRequestSummary, rule: ReviewQueueRule) -> String {
+        switch rule {
+        case .open: "Opened by \(request.author), not a draft, you have not approved it"
+        case .assigned: "Opened by \(request.author), asks for a review from you or your team, you have not approved it"
+        }
     }
 
     private static func tags(_ request: PullRequestSummary, context: PullRequestRowContext) -> [TagModel] {
@@ -62,8 +69,8 @@ enum PullRequestRowMapper {
         if isOpen == false {
             tags.append(TagModel(request.state.name, tint: tint(request)))
         }
-        if context.scope != .reviewing, let username = context.username, ReviewQueuePolicy.needsMyReview(request, username: username) {
-            tags.append(TagModel("needs your review", tint: .indigo, systemImage: "eye", hint: "Opened by \(request.author), not a draft, you have not approved it"))
+        if context.scope != .reviewing, let reviewer = context.reviewer, ReviewQueuePolicy.needsMyReview(request, reviewer: reviewer) {
+            tags.append(TagModel("needs your review", tint: .indigo, systemImage: "eye", hint: reviewHint(request, rule: reviewer.rule)))
         }
         if isOpen, context.watchedIDs.contains(request.iid) {
             tags.append(TagModel("watching", tint: .teal, systemImage: "bell", hint: "DevHub reports approvals, requests for changes, failed \(context.words.checks), new comments and the merge of this \(context.words.request)"))

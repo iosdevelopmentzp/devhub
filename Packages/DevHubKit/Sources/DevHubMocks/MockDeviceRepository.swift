@@ -15,7 +15,7 @@ struct MockDeviceRepository: DeviceRepository {
         try await Task.sleep(for: .milliseconds(500))
     }
 
-    func launch(udid: String, bundleID: String, environment: [String: String], arguments: [String]) async throws -> Int32? {
+    func launch(udid: String, bundleID: String, environment: [String: String], arguments: [String], startStopped: Bool) async throws -> Int32? {
         try await Task.sleep(for: .milliseconds(400))
         return 2424
     }

@@ -19,6 +19,7 @@ package struct PullRequestSummary: Identifiable, Hashable, Sendable {
     package let labels: [String]
     package let assignees: [String]
     package let reviewers: [String]
+    package let requestedTeams: [String]
     package let changesRequestedBy: [String]
     package let recentComments: [RecentComment]
     package let createdAt: Date?
@@ -54,6 +55,7 @@ package struct PullRequestSummary: Identifiable, Hashable, Sendable {
         labels: [String],
         assignees: [String] = [],
         reviewers: [String] = [],
+        requestedTeams: [String] = [],
         changesRequestedBy: [String] = [],
         recentComments: [RecentComment] = [],
         createdAt: Date? = nil,
@@ -88,6 +90,7 @@ package struct PullRequestSummary: Identifiable, Hashable, Sendable {
         self.labels = labels
         self.assignees = assignees
         self.reviewers = reviewers
+        self.requestedTeams = requestedTeams
         self.changesRequestedBy = changesRequestedBy
         self.recentComments = recentComments
         self.createdAt = createdAt

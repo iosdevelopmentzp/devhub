@@ -7,6 +7,7 @@ package final class SpyDeviceRepository: DeviceRepository, @unchecked Sendable {
         case install(udid: String, appPath: String)
         case uninstall(udid: String, bundleID: String)
         case launch(udid: String, bundleID: String, environment: [String: String])
+        case launchStopped(udid: String, bundleID: String, environment: [String: String])
         case inspect(udid: String, bundleID: String, identity: LaunchIdentityConfig?, storage: ProfileStorage?, localAppPath: String?)
         case writeDefaults(udid: String, bundleID: String, defaults: [ProfileDefault])
     }
@@ -75,9 +76,10 @@ package final class SpyDeviceRepository: DeviceRepository, @unchecked Sendable {
         if let error { throw error }
     }
 
-    package func launch(udid: String, bundleID: String, environment: [String: String], arguments: [String]) async throws -> Int32? {
+    package func launch(udid: String, bundleID: String, environment: [String: String], arguments: [String], startStopped: Bool) async throws -> Int32? {
         lock.withLock { _launchArguments.append(arguments) }
-        return try record(.launch(udid: udid, bundleID: bundleID, environment: environment)) { try _launchResult.get() }
+        let call: Call = startStopped ? .launchStopped(udid: udid, bundleID: bundleID, environment: environment) : .launch(udid: udid, bundleID: bundleID, environment: environment)
+        return try record(call) { try _launchResult.get() }
     }
 
     package func inspect(udid: String, bundleID: String, identity: LaunchIdentityConfig?, storage: ProfileStorage?, localAppPath: String?) async -> InstalledApp {

@@ -59,7 +59,7 @@ One `Spy<Port>` per port: `SpyGitRepository`, `SpyGitChangesRepository`, `SpyWor
 `SpyAppLaunchRepository`, `SpyDerivedDataRepository`, `SpyAppLogRepository`, `SpyMockServerRepository` (`emit(_:udid:)` calls the saved `onExchange`), `SpyMockSetRepository` (`savedSets`), `SpyAISessionRepository`, `SpyCopilotUsageRepository`,
 `SpyClaudeUsageRepository`, `SpyWorkspaceOpener`, `SpyXcodeAttacher`, `SpyProjectDetector`,
 `SpyReviewPromptRepository`, `SpyConfigRepository`, `SpyScriptRunner`, `SpyToolLocator`,
-`SpyUserNotificationRepository`, `SpyCrashReportRepository` (`emitChange()`), `SpyAppDataRepository` (`readResult`, `actionError`), `SpyAITextRepository` (`generateResult`; `SpyGitChangesRepository.patchResult` gives the diff), `SpyDiskCleanupRepository` (`itemsResult`, `sizes`, `cleanError`), plus `SpyCommandRecorder` (`events`) and `CallbackRecorder<Value>` (a thread-safe list for `@Sendable` callbacks).
+`SpyUserNotificationRepository`, `SpyCrashReportRepository` (`emitChange()`, `ownReportsResult` for a crash of DevHub), `SpyTestRunRepository` (`runEvents`, `runResult`, `resultsResult` and `attachmentsResult` for the `.xcresult` bundle), `SpyAppDataRepository` (`readResult`, `actionError`), `SpyAITextRepository` (`generateResult`; `SpyGitChangesRepository.patchResult` gives the diff), `SpyDiskCleanupRepository` (`itemsResult`, `sizes`, `cleanError`), plus `SpyCommandRecorder` (`events`) and `CallbackRecorder<Value>` (a thread-safe list for `@Sendable` callbacks).
 
 - `calls: [Call]` records every call in order. `Call` is a `Hashable` enum with one case per port method.
 - Scripted answers: `<method>Result` (`Result<Value, any Error>` or a plain value) and `<method>Error`
@@ -93,7 +93,7 @@ file (see `PushRejectingGitRepository` in `GitChangesStoreTests.swift`).
 `Stores/Support/StoreHarness.swift` builds the same graph as `PresentationAssembly` over spies: `ports`, `spies`,
 `useCases`, `InMemoryKeyValueStore`, `AppEvents`, `ActivityLog`, `ProjectSession`, and one `lazy var` per store. A
 `Toaster` writes into `copied`. It records every posted event: `postedLabels`, `postCount(_:)`, `clearPosted()`.
-`activityTitles` and `lastActivity` read the activity log. `settle()` yields a hundred times; use it only to show
+`activityTitles` and `lastActivity` read the activity log. `appIdentity` is a fixed `AppIdentity` (bundle `com.example.app`, home `/Users/alex`), so a redaction test knows which values must disappear. `settle()` yields a hundred times; use it only to show
 that something did **not** happen.
 
 ```swift

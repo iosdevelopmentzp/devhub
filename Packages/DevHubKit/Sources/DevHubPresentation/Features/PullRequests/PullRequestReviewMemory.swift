@@ -39,6 +39,11 @@ final class PullRequestReviewMemory {
         update(iid, ReviewChangePolicy.reviewed(snapshots[String(iid)], fingerprints: fingerprints, at: now()))
     }
 
+    func recordHostReview(_ review: HostReview, of iid: Int, fingerprints: [String: String]) {
+        guard isOn, fingerprints.isEmpty == false else { return }
+        update(iid, ReviewChangePolicy.reviewedOnHost(snapshots[String(iid)], fingerprints: fingerprints, review: review))
+    }
+
     func setViewed(_ isViewed: Bool, path: String, fingerprint: String?, of iid: Int) {
         guard isOn else { return }
         update(iid, ReviewChangePolicy.settingViewed(isViewed, path: path, fingerprint: fingerprint, in: snapshots[String(iid)], at: now()))

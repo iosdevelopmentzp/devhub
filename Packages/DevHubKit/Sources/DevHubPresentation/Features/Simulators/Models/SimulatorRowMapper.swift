@@ -52,7 +52,7 @@ enum SimulatorRowMapper {
             canRemoveApps: isPhysical == false && isTransitioning == false && buildIsRunning == false,
             canTogglePower: isPhysical == false && isTransitioning == false,
             canStreamLogs: isPhysical == false && simulator.state == .booted,
-            canLaunchAndAttach: isPhysical == false && buildIsRunning == false && isInstalled,
+            canLaunchAndAttach: (isPhysical == false || isConnected) && buildIsRunning == false && isInstalled,
             openAppTitle: "Open in \(appName(simulatorApp))",
             uninstallTitle: "Uninstall \(bundleID)",
             canUninstallFromMenu: isTransitioning == false && isUninstalling == false && (isPhysical == false || isConnected),

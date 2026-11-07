@@ -47,4 +47,18 @@ import Testing
 
         #expect(await woke.value)
     }
+
+    @Test func ownReportsAreTheMacCrashesOfOneProcess() async throws {
+        _ = try folder.write(CrashReportFixture.simulatorCrash, to: "ExampleApp-new.ips")
+        _ = try folder.write(CrashReportFixture.macCrash, to: "Notes-new.ips")
+        _ = try folder.write(CrashReportFixture.hang, to: "ExampleApp-hang.ips")
+
+        let own = try await repository.ownReports(processName: "Notes", bundleID: "com.example.notes", since: Date(timeIntervalSince1970: 2_000))
+        let other = try await repository.ownReports(processName: "Notes", bundleID: "com.example.other", since: Date(timeIntervalSince1970: 2_000))
+        let simulator = try await repository.ownReports(processName: "ExampleApp", bundleID: nil, since: Date(timeIntervalSince1970: 2_000))
+
+        #expect(own.map { URL(fileURLWithPath: $0.path).lastPathComponent } == ["Notes-new.ips"])
+        #expect(other.isEmpty)
+        #expect(simulator.isEmpty)
+    }
 }

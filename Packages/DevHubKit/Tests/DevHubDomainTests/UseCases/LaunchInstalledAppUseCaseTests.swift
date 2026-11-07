@@ -56,7 +56,7 @@ import Testing
         _ = try await launch(ports, request, cleanInstall: false)
 
         #expect(spies.simulators.calls.last == .launch(udid: udid, bundleID: bundleID, waitForDebugger: true, environment: [:]))
-        #expect(spies.attacher.calls == [.attach(pid: 4242, simulatorUDID: udid, projectPath: "/repo", container: nil)])
+        #expect(spies.attacher.calls == [.attach(pid: 4242, destination: .simulator(udid), projectPath: "/repo", container: nil)])
     }
 
     @Test func attachWithoutAProcessIDFails() async {
@@ -152,16 +152,29 @@ import Testing
         #expect(spies.devices.calls.isEmpty)
     }
 
-    @Test func attachOnADeviceFails() async {
+    @Test func attachOnADeviceLaunchesStoppedAndAttaches() async throws {
         let (ports, spies) = Ports.spies()
+        spies.devices.launchResult = .success(808)
         var request = IdentityLaunchFixture.plain
         request.simulator = SimulatorFixture.device(udid)
         request.attachDebugger = true
 
-        await #expect(throws: DeviceError.self) {
+        _ = try await launch(ports, request, cleanInstall: false)
+
+        #expect(spies.devices.calls == [.launchStopped(udid: udid, bundleID: IdentityLaunchFixture.bundleID, environment: request.plan.environment)])
+        #expect(spies.attacher.calls == [.attach(pid: 808, destination: .device(udid), projectPath: "/repo", container: request.container)])
+    }
+
+    @Test func attachOnADeviceWithoutAProcessIDFails() async {
+        let (ports, spies) = Ports.spies()
+        spies.devices.launchResult = .success(nil)
+        var request = IdentityLaunchFixture.plain
+        request.simulator = SimulatorFixture.device(udid)
+        request.attachDebugger = true
+
+        await #expect(throws: XcodeAttachError.self) {
             try await launch(ports, request, cleanInstall: false)
         }
-        #expect(spies.devices.calls.isEmpty)
         #expect(spies.attacher.calls.isEmpty)
     }
 }

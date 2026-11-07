@@ -292,7 +292,7 @@ import DevHubTestSupport
 
         try await waitUntil { hasFinished }
         #expect(harness.spies.build.calls.first == .build(request(path: ProjectSample.path, attachDebugger: true)))
-        #expect(harness.spies.attacher.calls == [.attach(pid: 42, simulatorUDID: simulator.id, projectPath: ProjectSample.path, container: nil)])
+        #expect(harness.spies.attacher.calls == [.attach(pid: 42, destination: .simulator(simulator.id), projectPath: ProjectSample.path, container: nil)])
         #expect(harness.lastActivity?.title == "Launched App, Xcode attached")
     }
 

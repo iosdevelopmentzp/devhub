@@ -8,6 +8,6 @@ import Testing
 
         #expect(attacher.isTrusted)
         attacher.requestTrust()
-        try await attacher.attach(pid: 4242, simulatorUDID: "sim", projectPath: "~/App", container: nil)
+        try await attacher.attach(pid: 4242, destination: .simulator("sim"), projectPath: "~/App", container: nil)
     }
 }

@@ -23,7 +23,7 @@ enum RunBarMapper {
             outcome: outcome(state.phase, targetName: target?.name, scheme: state.scheme),
             isRunning: state.isRunning,
             canRun: target != nil,
-            canAttach: target != nil && isCommandProject == false && isPhysical == false,
+            canAttach: target != nil && isCommandProject == false,
             runHint: isPhysical ? "Build and launch on the target device (⌘R)" : "Build and launch on the target simulator (⌘R)",
             attachHint: attachHint(isCommandProject: isCommandProject, isPhysical: isPhysical),
             canShowLog: hasLog,
@@ -52,7 +52,7 @@ enum RunBarMapper {
 
     private static func attachHint(isCommandProject: Bool, isPhysical: Bool) -> String {
         if isCommandProject { return "Run & Attach needs an Xcode project. This project builds with its commands." }
-        if isPhysical { return "Run & Attach is not available on a physical device yet. Use Build & Run, then attach Xcode by hand." }
+        if isPhysical { return "Build, launch stopped with devicectl --start-stopped and attach Xcode (⇧⌘R). Xcode's console stays empty for an attached process." }
         return "Build, launch frozen with --wait-for-debugger and attach Xcode (⇧⌘R). Xcode's console stays empty for an attached process."
     }
 

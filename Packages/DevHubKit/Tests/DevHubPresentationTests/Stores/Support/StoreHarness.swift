@@ -140,7 +140,8 @@ final class StoreHarness {
 
     lazy var ciProjects = CIProjectResolver(config: config, worktrees: worktrees, remote: codeHostRemote, tools: ports.tools, events: events)
 
-    lazy var ciHistory = CIWorkflowHistory(session: session, events: events, store: store)
+    lazy var flakyTests = FlakyTestLedger(session: session, events: events, store: store)
+    lazy var ciHistory = CIWorkflowHistory(session: session, ledger: flakyTests, events: events, store: store)
 
     lazy var ciBranchRuns = CIBranchRunsStore(ci: ports.ci, projects: ciProjects, checkout: git, activity: activity, operations: operations, notifier: notifier, events: events, basePollInterval: .milliseconds(5))
 
@@ -160,7 +161,7 @@ final class StoreHarness {
         store: store
     )
 
-    lazy var pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events, store: store)
+    lazy var pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, openRequests: openPullRequests, activity: activity, operations: operations, events: events, store: store)
     lazy var pullRequestPeople = PullRequestPeopleStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events)
     lazy var aiText = AITextStore(
         repository: ports.aiText,
@@ -174,7 +175,7 @@ final class StoreHarness {
         events: events
     )
 
-    lazy var openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
+    lazy var openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, checkout: git, settings: settings, activity: activity, notifier: notifier, events: events, store: store, now: { .now })
 
     lazy var ciWatch = CIWatchStore(
         repository: ports.codeHost,
@@ -284,7 +285,35 @@ final class StoreHarness {
         )
     }
 
-    lazy var testRuns = TestRunsStore(runTests: useCases.runTests, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events, prompts: ports.reviewPrompts)
+    let appIdentity = AppIdentity(version: "1.0", systemVersion: "Version 26.4", processName: "DevHub", bundleID: "com.example.app", home: "/Users/alex")
+
+    lazy var supportBundle = SupportBundleStore(
+        settings: settings,
+        session: session,
+        config: config,
+        checkTools: useCases.checkTools,
+        ci: ports.ci,
+        projects: ciProjects,
+        crashes: ports.crashes,
+        words: ports.redactionWords,
+        files: ports.textFiles,
+        commandLog: commandLog,
+        checkout: git,
+        openRequests: openPullRequests,
+        activity: activity,
+        toaster: toaster,
+        app: appIdentity,
+        now: { Date(timeIntervalSince1970: 1_800_000_000) },
+        chooseFile: { [weak self] name in
+            guard let self else { return nil }
+            requestedFileNames.append(name)
+            return saveTarget
+        }
+    )
+
+    lazy var appCrash = AppCrashStore(crashes: ports.crashes, words: ports.redactionWords, activity: activity, toaster: toaster, store: store, app: appIdentity, now: { Date(timeIntervalSince1970: 1_800_000_000) })
+
+    lazy var testRuns = TestRunsStore(runTests: useCases.runTests, tests: ports.testRuns, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events, prompts: ports.reviewPrompts)
 
     lazy var logs = LogsStore(repository: ports.logs, session: session, config: config, simulators: simulators, identity: identity, activity: activity, store: store)
 

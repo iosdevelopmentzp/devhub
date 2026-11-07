@@ -38,6 +38,7 @@ import Testing
             labels: ["feature"],
             assignees: ["sam"],
             reviewers: ["kim"],
+            requestedTeams: ["example/ios"],
             recentComments: [RecentComment(id: "501", author: "sam"), RecentComment(id: "601", author: "lee")],
             createdAt: ISO8601.date(from: "2026-10-17T22:30:37Z"),
             mergedAt: nil,
@@ -172,5 +173,16 @@ import Testing
         #expect(details.jobs.map(\.name) == ["ci/circleci: unit-tests", "build-and-test - 1a2b3c4d", "notes"])
         #expect(details.jobs.map(\.ciWorkflowID) == ["11111111-2222-3333-4444-555555555555", "11111111-2222-3333-4444-555555555555", nil])
         #expect(details.jobs.map(\.status) == [.failed, .failed, .success])
+    }
+
+    @Test func detailsKeepMyLastSubmittedReviewAndTheCommitDates() throws {
+        let details = try GhPullRequestParser.details(from: GhFixture.threadDetails)
+
+        #expect(details.myLastReview == HostReview(submittedAt: try #require(ISO8601.date(from: "2026-10-17T22:45:00Z")), state: "APPROVED"))
+        #expect(details.commitDates == [ISO8601.date(from: "2026-10-17T22:30:00Z"), ISO8601.date(from: "2026-10-17T22:47:00Z")].compactMap { $0 })
+    }
+
+    @Test func detailsWithoutTheViewerHaveNoReview() throws {
+        #expect(try GhPullRequestParser.details(from: GhFixture.failedDetails).myLastReview == nil)
     }
 }

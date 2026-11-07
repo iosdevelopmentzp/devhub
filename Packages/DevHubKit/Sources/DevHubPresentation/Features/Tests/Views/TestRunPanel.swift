@@ -7,12 +7,16 @@ struct TestRunPanel: View {
     let onCancel: () -> Void
     let onDismiss: () -> Void
     let onRunAgain: () -> Void
+    let onRunFailedAgain: () -> Void
     let onOpenFailure: (TestFailureRowModel) -> Void
+    let onOpenSlowTest: (TestSlowRowModel) -> Void
+    let onOpenAttachment: (String) -> Void
     let onOpenIssue: (BuildIssueRowModel) -> Void
     let onOpenResults: (String) -> Void
     let onFix: (AIProvider) -> Void
 
     @State private var showsAllFailures = false
+    @State private var showsSlowest = false
 
     private static let collapsedCount = 5
 
@@ -31,6 +35,9 @@ struct TestRunPanel: View {
             }
             if let title = model.failuresTitle {
                 failureList(title)
+            }
+            if let title = model.slowestTitle {
+                slowestList(title)
             }
             if let title = model.issuesTitle {
                 BuildIssuesList(title: title, rows: model.issues, onOpen: onOpenIssue, onFix: nil)
@@ -125,6 +132,71 @@ struct TestRunPanel: View {
                 .buttonStyle(.plain)
                 .disabled(row.path == nil)
                 .hint(row.hint)
+                if row.attachments.isEmpty == false {
+                    attachments(row.attachments)
+                        .padding(.leading, 18)
+                }
+            }
+        }
+    }
+
+    private func attachments(_ rows: [TestAttachmentRowModel]) -> some View {
+        FlowLayout(spacing: 8) {
+            ForEach(rows) { attachment in
+                Button {
+                    onOpenAttachment(attachment.path)
+                } label: {
+                    if attachment.isImage {
+                        VStack(alignment: .leading, spacing: 2) {
+                            FileImage(path: attachment.path, maxHeight: 120)
+                            Text(attachment.name)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                    } else {
+                        Label(attachment.name, systemImage: "paperclip")
+                            .font(.caption)
+                    }
+                }
+                .buttonStyle(.plain)
+                .hint(attachment.hint)
+            }
+        }
+    }
+
+    private func slowestList(_ title: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Button {
+                showsSlowest.toggle()
+            } label: {
+                Label(title, systemImage: showsSlowest ? "chevron.down" : "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .hint(showsSlowest ? "Hide the slowest tests" : "Show the \(model.slowest.count) slowest tests of this run")
+            if showsSlowest {
+                ForEach(model.slowest) { row in
+                    Button {
+                        onOpenSlowTest(row)
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(row.title)
+                                .font(.caption)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                            Spacer(minLength: 4)
+                            Text(row.durationText)
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.leading, 18)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(row.path == nil)
+                }
             }
         }
     }
@@ -134,6 +206,12 @@ struct TestRunPanel: View {
             Button("Run Again", systemImage: "arrow.clockwise", action: onRunAgain)
                 .buttonStyle(LinkButtonStyle(.accent))
                 .disabled(model.canRunAgain == false)
+            if let title = model.runFailedTitle {
+                Button(title, systemImage: "arrow.clockwise.circle", action: onRunFailedAgain)
+                    .buttonStyle(LinkButtonStyle(.accent))
+                    .fixedSize()
+                    .hint("Runs only the failed tests with xcodebuild -only-testing")
+            }
             if model.canFix {
                 AIProviderMenu(title: "Fix with AI", systemImage: "sparkles", hint: "Writes the failed tests and the compiler errors into a prompt file and starts the tool in the terminal, inside this worktree", onPick: onFix)
             }
@@ -154,7 +232,10 @@ struct TestRunPanel: View {
         onCancel: {},
         onDismiss: {},
         onRunAgain: {},
+        onRunFailedAgain: {},
         onOpenFailure: { _ in },
+        onOpenSlowTest: { _ in },
+        onOpenAttachment: { _ in },
         onOpenIssue: { _ in },
         onOpenResults: { _ in },
         onFix: { _ in }

@@ -11,8 +11,9 @@ package struct PullRequestSettings: Hashable, Sendable {
     package var squash: Bool
     package var aiCommands: [AIProvider: String]
     package var aiTextCommands: [AIProvider: String] = [:]
+    package var reviewQueue: ReviewQueueRule = .open
 
-    package init(targets: [String]?, template: String?, staleDays: Int, hiddenFiles: [String], fileGroups: [PullRequestFileGroup] = [], isDraft: Bool, deleteSourceBranch: Bool, squash: Bool, aiCommands: [AIProvider: String], aiTextCommands: [AIProvider: String] = [:]) {
+    package init(targets: [String]?, template: String?, staleDays: Int, hiddenFiles: [String], fileGroups: [PullRequestFileGroup] = [], isDraft: Bool, deleteSourceBranch: Bool, squash: Bool, aiCommands: [AIProvider: String], aiTextCommands: [AIProvider: String] = [:], reviewQueue: ReviewQueueRule = .open) {
         self.targets = targets
         self.template = template
         self.staleDays = staleDays
@@ -23,5 +24,6 @@ package struct PullRequestSettings: Hashable, Sendable {
         self.squash = squash
         self.aiCommands = aiCommands
         self.aiTextCommands = aiTextCommands
+        self.reviewQueue = reviewQueue
     }
 }

@@ -6,6 +6,7 @@ import DevHubDomain
 @Observable
 final class PullRequestPeopleStore {
     private(set) var people: [String] = []
+    private(set) var teams: [String] = []
     private(set) var busyIDs: Set<PullRequestSummary.ID> = []
 
     @ObservationIgnored private let repository: CodeHostRepository
@@ -28,6 +29,7 @@ final class PullRequestPeopleStore {
             switch event {
             case .projectChanged, .configChanged:
                 people = []
+                teams = []
                 hasLoaded = false
             default:
                 break
@@ -41,9 +43,11 @@ final class PullRequestPeopleStore {
         await refreshTask.run { [weak self] in
             guard let self else { return }
             do {
-                let loaded = try await repository.people(repository: remote.codeHost())
+                let host = try await remote.codeHost()
+                let loaded = try await repository.people(repository: host)
                 try Task.checkCancellation()
                 people = loaded
+                await loadTeams(host)
             } catch is CancellationError {
                 hasLoaded = false
             } catch {
@@ -53,10 +57,21 @@ final class PullRequestPeopleStore {
         }
     }
 
+    private func loadTeams(_ host: CodeHost) async {
+        do {
+            let loaded = try await repository.teams(repository: host)
+            try Task.checkCancellation()
+            teams = loaded
+        } catch is CancellationError {
+        } catch {
+            activity.log("Cannot read the teams of this project", detail: error.localizedDescription, outcome: .failure)
+        }
+    }
+
     func toggle(_ login: String, role: PullRequestPersonRole, on summary: PullRequestSummary) {
         let id = summary.id
         guard busyIDs.contains(id) == false else { return }
-        let isOn = (role == .reviewer ? summary.reviewers : summary.assignees).contains(login)
+        let isOn = (role == .reviewer ? summary.reviewers + summary.requestedTeams : summary.assignees).contains(login)
         let title = PullRequestPeopleText.title(login: login, role: role, adds: isOn == false, reference: remote.words.reference(id))
         busyIDs.insert(id)
         Task { [weak self] in

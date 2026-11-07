@@ -109,7 +109,8 @@ import Testing
                 template: "docs/pr.md",
                 staleDays: 3,
                 hiddenFiles: ["Generated/*", " "],
-                defaults: PullRequestDefaultsConfig(draft: true, deleteSourceBranch: false, squash: true)
+                defaults: PullRequestDefaultsConfig(draft: true, deleteSourceBranch: false, squash: true),
+                reviewQueue: "assigned"
             )),
             ai: AIConfig(reviewCommand: "codex {prompt}")
         )
@@ -125,8 +126,13 @@ import Testing
             deleteSourceBranch: false,
             squash: true,
             aiCommands: [.claude: "codex {prompt}", .copilot: #"copilot -i "$(cat {prompt})""#],
-            aiTextCommands: AITextCommandPolicy.commands(nil)
+            aiTextCommands: AITextCommandPolicy.commands(nil),
+            reviewQueue: .assigned
         ))
+    }
+
+    @Test func theReviewQueueIsOpenByDefault() {
+        #expect(GitSettingsPolicy.settings(for: ProjectConfig()).pullRequests.reviewQueue == .open)
     }
 
     @Test func aiCommandsComeFromTheCommandsMapBeforeTheOldReviewCommand() {

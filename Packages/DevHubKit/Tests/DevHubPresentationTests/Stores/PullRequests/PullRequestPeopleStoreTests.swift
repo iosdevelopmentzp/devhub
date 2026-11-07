@@ -24,7 +24,7 @@ import DevHubTestSupport
         await store.loadIfNeeded()
 
         #expect(store.people == ["alex", "sam"])
-        #expect(harness.spies.codeHost.calls == [.people(repository: remote)])
+        #expect(harness.spies.codeHost.calls == [.people(repository: remote), .teams(repository: remote)])
     }
 
     @Test func aFailedReadIsLoggedAndTriedAgainLater() async {
@@ -84,5 +84,39 @@ import DevHubTestSupport
         #expect(harness.operations.latest(at: .pullRequest(7))?.failureMessage == "not allowed")
         #expect(harness.lastActivity?.title == "Remove sam as reviewer of !7 failed")
         #expect(harness.postedLabels.contains("refreshRequested(pullRequests)") == false)
+    }
+
+    @Test func teamsAreReadWithThePeople() async {
+        harness.spies.git.webURLResult = remote.webURL
+        harness.spies.codeHost.peopleResult = .success(["alex"])
+        harness.spies.codeHost.teamsResult = .success(["example/ios"])
+
+        await store.loadIfNeeded()
+
+        #expect(store.people == ["alex"])
+        #expect(store.teams == ["example/ios"])
+    }
+
+    @Test func aFailedTeamsReadKeepsThePeople() async {
+        harness.spies.git.webURLResult = remote.webURL
+        harness.spies.codeHost.peopleResult = .success(["alex"])
+        harness.spies.codeHost.teamsResult = .failure(PullRequestError.command("forbidden"))
+
+        await store.loadIfNeeded()
+
+        #expect(store.people == ["alex"])
+        #expect(store.teams.isEmpty)
+        #expect(harness.lastActivity?.title == "Cannot read the teams of this project")
+    }
+
+    @Test func togglingARequestedTeamRemovesIt() async throws {
+        harness.spies.git.webURLResult = remote.webURL
+        _ = try await harness.codeHostRemote.codeHost()
+        let summary = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, requestedTeams: ["example/ios"])
+
+        store.toggle("example/ios", role: .reviewer, on: summary)
+
+        try await waitUntil { store.busyIDs.isEmpty }
+        #expect(harness.spies.codeHost.calls.contains(.updatePeople(iid: 7, role: .reviewer, add: [], remove: ["example/ios"], repository: remote)))
     }
 }

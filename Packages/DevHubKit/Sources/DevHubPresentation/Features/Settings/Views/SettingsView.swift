@@ -8,6 +8,7 @@ struct SettingsView: View {
     @Environment(ConfigStore.self) private var config
     @Environment(XcodeSelectionStore.self) private var xcodes
     @Environment(PullRequestReviewMemory.self) private var reviews
+    @Environment(FlakyTestLedger.self) private var flakyTests
     @Environment(Toaster.self) private var toaster
     @Environment(\.codeHostWords) private var words
 
@@ -61,8 +62,24 @@ struct SettingsView: View {
             Section(words.requestsTitle) {
                 Toggle("Show the number of \(words.requests) waiting for your review in the menu bar", isOn: $settings.values.showReviewCountInMenuBar)
                     .hint("Open \(words.requests) by other people, not drafts, that you have not approved. Checked every 5 minutes.")
+                Toggle("Show the CI state of my \(words.requests) on the menu bar icon", isOn: $settings.values.showCIStateInMenuBar)
+                    .hint("A red dot while the \(words.checks) of one of your open \(words.requests) failed, an orange dot while a CircleCI job of it waits for an approval. The hint of the icon names the \(words.request).")
                 Toggle("Remember what I reviewed", isOn: remembersReviews)
                     .hint("When you approve, comment, ask for changes or mark every file as viewed, DevHub saves the diff of each file on this Mac. The details then show the files that changed since, and Viewed marks stay until a file changes. Off removes everything DevHub saved.")
+                LabeledContent {
+                    Button("Forget Flaky Tests") {
+                        flakyTests.forget()
+                        toaster.show("Flaky tests forgotten")
+                    }
+                    .disabled(flakyTests.records.isEmpty)
+                } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(FlakyLedgerText.title(count: flakyTests.records.count))
+                        Text("A test that failed in a CircleCI workflow and passed when the same commit ran again. DevHub counts it per project and marks it \"flaky (DevHub)\" next to the CircleCI Insights list.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
 
             Section {

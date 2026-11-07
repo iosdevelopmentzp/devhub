@@ -30,6 +30,7 @@ package final class PresentationAssembly {
     let history: CommitHistoryStore
     let codeHostRemote: CodeHostRemote
     let ciProjects: CIProjectResolver
+    let flakyTests: FlakyTestLedger
     let ciHistory: CIWorkflowHistory
     let ciAutoRerun: CIAutoRerunStore
     let pullRequestHiddenFiles: PullRequestHiddenFiles
@@ -40,6 +41,8 @@ package final class PresentationAssembly {
     let openPullRequests: OpenPullRequestsStore
     let ciWatch: CIWatchStore
     let ciDiagnostics: CIDiagnosticsStore
+    let supportBundle: SupportBundleStore
+    let appCrash: AppCrashStore
     let inbox: InboxStore
     let newPullRequest: NewPullRequestStore
     let pullRequestDetails: PullRequestDetailStore
@@ -139,11 +142,13 @@ package final class PresentationAssembly {
         branchPullRequest = BranchPullRequestStore(repository: ports.codeHost, checkout: git, events: events)
         codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
         ciProjects = CIProjectResolver(config: config, worktrees: worktrees, remote: codeHostRemote, tools: ports.tools, events: events)
-        ciHistory = CIWorkflowHistory(session: session, events: events, store: store)
+        flakyTests = FlakyTestLedger(session: session, events: events, store: store)
+        ciHistory = CIWorkflowHistory(session: session, ledger: flakyTests, events: events, store: store)
         ciBranchRuns = CIBranchRunsStore(ci: ports.ci, projects: ciProjects, checkout: git, activity: activity, operations: operations, notifier: notifier, events: events, basePollInterval: .seconds(300))
         pullRequestHiddenFiles = PullRequestHiddenFiles(session: session, events: events, store: store)
         pullRequestReviews = PullRequestReviewMemory(session: session, settings: settings, events: events, store: store, now: { .now })
-        pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events, store: store)
+        openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, checkout: git, settings: settings, activity: activity, notifier: notifier, events: events, store: store, now: { .now })
+        pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, openRequests: openPullRequests, activity: activity, operations: operations, events: events, store: store)
         pullRequestPeople = PullRequestPeopleStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events)
         aiText = AITextStore(
             repository: ports.aiText,
@@ -156,7 +161,6 @@ package final class PresentationAssembly {
             activity: activity,
             events: events
         )
-        openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
         ciWatch = CIWatchStore(
             repository: ports.codeHost,
             ci: ports.ci,
@@ -186,6 +190,33 @@ package final class PresentationAssembly {
             now: { .now },
             chooseFile: { FolderPicker.saveFile(suggestedName: $0, prompt: "Save", message: "A text file for a bug report. Project names, branches and logins are replaced.") }
         )
+        let appIdentity = AppIdentity(
+            version: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "",
+            systemVersion: ProcessInfo.processInfo.operatingSystemVersionString,
+            processName: ProcessInfo.processInfo.processName,
+            bundleID: Bundle.main.bundleIdentifier,
+            home: FileManager.default.homeDirectoryForCurrentUser.path
+        )
+        supportBundle = SupportBundleStore(
+            settings: settings,
+            session: session,
+            config: config,
+            checkTools: useCases.checkTools,
+            ci: ports.ci,
+            projects: ciProjects,
+            crashes: ports.crashes,
+            words: ports.redactionWords,
+            files: ports.textFiles,
+            commandLog: commandLog,
+            checkout: git,
+            openRequests: openPullRequests,
+            activity: activity,
+            toaster: toaster,
+            app: appIdentity,
+            now: { .now },
+            chooseFile: { FolderPicker.saveFile(suggestedName: $0, prompt: "Save", message: "A text file for a bug report. Links, e-mails, tokens, paths and project names are replaced.") }
+        )
+        appCrash = AppCrashStore(crashes: ports.crashes, words: ports.redactionWords, activity: activity, toaster: toaster, store: store, app: appIdentity, now: { .now })
         inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
         ciAutoRerun = CIAutoRerunStore(
             repository: ports.codeHost,
@@ -254,7 +285,7 @@ package final class PresentationAssembly {
             prompts: ports.reviewPrompts
         )
         identity.use(build: build)
-        testRuns = TestRunsStore(runTests: useCases.runTests, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events, prompts: ports.reviewPrompts)
+        testRuns = TestRunsStore(runTests: useCases.runTests, tests: ports.testRuns, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events, prompts: ports.reviewPrompts)
         simulatorStatuses = SimulatorStatusStore(
             readStatus: useCases.readSimulatorStatus,
             config: config,

@@ -6,5 +6,5 @@ struct MockXcodeAttacher: XcodeAttaching {
 
     func requestTrust() {}
 
-    func attach(pid: Int32, simulatorUDID: String, projectPath: String, container: String?) async throws {}
+    func attach(pid: Int32, destination: AttachDestination, projectPath: String, container: String?) async throws {}
 }

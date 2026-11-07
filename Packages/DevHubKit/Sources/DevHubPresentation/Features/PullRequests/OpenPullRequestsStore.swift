@@ -9,10 +9,14 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
     private(set) var reviewCount = 0
     private(set) var username: String?
     private(set) var watchedIDs: Set<Int> = []
+    private(set) var reviewTeams: [String] = []
 
     @ObservationIgnored private let repository: CodeHostRepository
     @ObservationIgnored private let remote: any CodeHostLookup
     @ObservationIgnored private let session: ProjectSession
+    @ObservationIgnored private let checkout: any CheckoutContext
+    @ObservationIgnored private let settings: SettingsStore
+    @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let notifier: Notifier
     @ObservationIgnored private let store: any KeyValueStore
@@ -22,6 +26,9 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
     @ObservationIgnored private var hasReportedCap = false
     @ObservationIgnored private var pollingTask: Task<Void, Never>?
     @ObservationIgnored private var subscription: SubscriptionToken?
+    @ObservationIgnored private var teamsHost: CodeHost?
+    @ObservationIgnored private var hasReportedTeams = false
+    @ObservationIgnored private var countedRule: ReviewQueueRule?
 
     private static let staleAfter: TimeInterval = 60
     private static let panelPollInterval: Duration = .seconds(300)
@@ -32,10 +39,24 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
         remote.words
     }
 
-    init(repository: CodeHostRepository, remote: any CodeHostLookup, session: ProjectSession, activity: ActivityLog, notifier: Notifier, events: AppEvents, store: any KeyValueStore) {
+    init(
+        repository: CodeHostRepository,
+        remote: any CodeHostLookup,
+        session: ProjectSession,
+        checkout: any CheckoutContext,
+        settings: SettingsStore,
+        activity: ActivityLog,
+        notifier: Notifier,
+        events: AppEvents,
+        store: any KeyValueStore,
+        now: @escaping () -> Date
+    ) {
         self.repository = repository
         self.remote = remote
         self.session = session
+        self.checkout = checkout
+        self.settings = settings
+        self.now = now
         self.activity = activity
         self.notifier = notifier
         self.store = store
@@ -48,8 +69,15 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
                 reviewCount = 0
                 loadedAt = nil
                 hasReportedCap = false
+                reviewTeams = []
+                teamsHost = nil
+                hasReportedTeams = false
+                countedRule = nil
                 watchedIDs = Self.loadWatched(from: store, projectID: session.selectedProjectID)
                 Task { await self.refresh() }
+            case .configChanged:
+                guard countedRule != nil, countedRule != reviewQueue else { return }
+                Task { await self.refresh(reportingChanges: false) }
             case .pullRequestsChanged:
                 Task { await self.refresh(reportingChanges: false) }
             case .refreshRequested(.pullRequests):
@@ -62,6 +90,18 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
 
     var requests: [PullRequestSummary] {
         Array(requestsByBranch.values)
+    }
+
+    var failedOwnRequestIDs: [Int] {
+        guard let username else { return [] }
+        return requestsByBranch.values
+            .filter { $0.author == username && $0.state == .opened && $0.pipeline?.status == .failed }
+            .map(\.iid)
+            .sorted()
+    }
+
+    var reviewQueue: ReviewQueueRule {
+        checkout.gitSettings.pullRequests.reviewQueue
     }
 
     func request(forBranch branch: String) -> PullRequestSummary? {
@@ -150,6 +190,8 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
                 let url = try await remote.codeHost()
                 let loaded = try await repository.openRequests(repository: url)
                 try Task.checkCancellation()
+                await loadTeams(url)
+                try Task.checkCancellation()
                 let changes = loadedAt == nil || reportingChanges == false
                     ? []
                     : OwnRequestChangePolicy.changes(from: Array(requestsByBranch.values), to: loaded.requests, username: loaded.username, watched: watchedIDs)
@@ -160,6 +202,22 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
             } catch {
                 report(error)
             }
+        }
+    }
+
+    private func loadTeams(_ url: CodeHost) async {
+        guard reviewQueue == .assigned, teamsHost != url else { return }
+        do {
+            let teams = try await repository.myTeams(repository: url)
+            teamsHost = url
+            if teams != reviewTeams {
+                reviewTeams = teams
+            }
+        } catch is CancellationError {
+        } catch {
+            guard hasReportedTeams == false else { return }
+            hasReportedTeams = true
+            activity.log("Cannot read your teams on \(words.hostTitle)", detail: "The review count shows only requests that name you. \(error.localizedDescription)", outcome: .failure)
         }
     }
 
@@ -200,15 +258,20 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
         if username != loaded.username {
             username = loaded.username
         }
-        let count = ReviewQueuePolicy.count(in: loaded.requests, username: loaded.username)
+        let rule = reviewQueue
+        let reviewer = ReviewerIdentity(username: loaded.username, teams: reviewTeams, rule: rule)
+        let count = ReviewQueuePolicy.count(in: loaded.requests, reviewer: reviewer)
+        let isSameRule = countedRule == rule
+        countedRule = rule
         if count != reviewCount {
-            if count > reviewCount, loadedAt != nil {
+            if count > reviewCount, loadedAt != nil, isSameRule {
                 let title = count == 1 ? "1 \(words.request) waits for your review" : "\(count) \(words.requests) wait for your review"
                 activity.log(title, detail: "", outcome: .info, kind: .reviewRequests, target: .reviewQueue)
                 notifier.notify(.reviewRequests, title: title, body: nil, target: .reviewQueue)
             }
             reviewCount = count
         }
+        remind(loaded.requests.filter { ReviewQueuePolicy.needsMyReview($0, reviewer: reviewer) })
         loadedAt = .now
         loggedError = nil
         if loaded.totalCount > loaded.requests.count, hasReportedCap == false {
@@ -218,6 +281,22 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
                 detail: "Branch tags and the review count can miss the rest",
                 outcome: .info
             )
+        }
+    }
+
+    private func remind(_ queue: [PullRequestSummary]) {
+        let key = PullRequestsPreferenceKeys.reviewSince(projectID: session.selectedProjectID)
+        let date = now()
+        let saved = store.decode([ReviewWait].self, forKey: key) ?? []
+        let step = ReviewReminderPolicy.step(saved, queue: queue.map(\.iid), hours: settings.values.reviewReminderHours, now: date)
+        if step.waits != saved {
+            store.encode(step.waits, forKey: key)
+        }
+        for wait in step.due {
+            guard let request = queue.first(where: { $0.iid == wait.iid }) else { continue }
+            let title = "\(words.reference(request.iid)) waits for your review for \(ReviewReminderPolicy.waitedHours(wait, now: date)) h"
+            activity.log(title, detail: request.title, outcome: .info, kind: .reviewReminders, target: .pullRequest(iid: request.iid))
+            notifier.notify(.reviewReminders, title: title, body: request.title, target: .pullRequest(iid: request.iid))
         }
     }
 

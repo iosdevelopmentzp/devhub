@@ -10,7 +10,7 @@ import Testing
     @Test func gitHubActionsUseGitHubWords() {
         let request = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, pipeline: PipelineInfo(status: .failed, webURL: nil, updatedAt: nil, id: 90))
 
-        let overflow = PullRequestActionMapper.overflow(for: request, username: "me", words: .gitHub)
+        let overflow = PullRequestActionMapper.overflow(for: request, reviewer: ReviewerIdentity(username: "me"), words: .gitHub)
 
         #expect(overflow.map(\.title) == ["Mark as Draft", "Update Branch from dev", "Re-run Failed Checks"])
         #expect(overflow[1].hint == "GitHub merges dev into the source branch on the server. Fails on conflicts.")
@@ -19,15 +19,15 @@ import Testing
     @Test func revokeNeedsThePermission() {
         let approved = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, approvedBy: ["me"], permissions: readOnly)
 
-        #expect(PullRequestActionMapper.overflow(for: approved, username: "me", words: .gitHub).contains { $0.id == .unapprove } == false)
+        #expect(PullRequestActionMapper.overflow(for: approved, reviewer: ReviewerIdentity(username: "me"), words: .gitHub).contains { $0.id == .unapprove } == false)
     }
 
     @Test func autoMergeNeedsThePermission() {
         let running = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, author: "me", detail: .ciStillRunning, permissions: readOnly)
         let allowed = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, author: "me", detail: .ciStillRunning)
 
-        #expect(PullRequestActionMapper.primary(for: running, username: "me", words: .gitHub).isEmpty)
-        #expect(PullRequestActionMapper.primary(for: allowed, username: "me", words: .gitHub).map(\.title) == ["Merge When Checks Pass…"])
+        #expect(PullRequestActionMapper.primary(for: running, reviewer: ReviewerIdentity(username: "me"), words: .gitHub).isEmpty)
+        #expect(PullRequestActionMapper.primary(for: allowed, reviewer: ReviewerIdentity(username: "me"), words: .gitHub).map(\.title) == ["Merge When Checks Pass…"])
     }
 
     @Test func tagsAndReferencesUseTheHashSign() throws {

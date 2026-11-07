@@ -176,4 +176,4 @@ The old key `simulators.identity` is not read.
 4. Launches from Xcode or the home screen do not get the ID, unless the app keeps it itself (`keptVariable`).
 5. Only the first profile with `storage` is used to read the stored profile.
 6. A clean install from the identity panel needs an installed app or a built app to copy from.
-7. On a physical device a clean install needs the last built product on this Mac, keeps the keychain of the device, and the hook tag is right only for a build that DevHub made. Launch & Attach is hidden there.
+7. On a physical device a clean install needs the last built product on this Mac, keeps the keychain of the device, and the hook tag is right only for a build that DevHub made. Launch & Attach on a device launches with `devicectl device process launch --start-stopped`, opens Xcode and attaches by the process ID; it is covered by tests only, not by a run on a real device.

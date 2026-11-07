@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import DevHubDomain
+import DevHubUI
 
 @MainActor
 @Observable
@@ -97,11 +98,14 @@ final class AITextStore {
     func explain(_ summary: PullRequestSummary, description: String, files: [PullRequestFileDiff], changedSinceReview: [String], provider: AIProvider) {
         let id = summary.id
         let noun = remote.words.request
-        run(.explain(iid: id), title: "Explain \(remote.words.reference(id))", origin: .pullRequest(id), provider: provider, cwd: checkout.checkoutPath) {
-            guard files.isEmpty == false else { throw AITextError.nothingToDescribe }
-            return AITextPromptBuilder.explain(title: summary.title, description: description, files: files, changedSinceReview: changedSinceReview, noun: noun)
-        } done: { [weak self] answer in
-            self?.explanations[id] = AITextAnswerParser.clean(answer)
+        let plan = ExplainPartsPolicy.plan(files, limit: AITextPromptBuilder.patchLimit)
+        let steps: [() async throws -> String] = plan.parts.isEmpty
+            ? [{ throw AITextError.nothingToDescribe }]
+            : plan.parts.enumerated().map { index, part in
+                { AITextPromptBuilder.explain(title: summary.title, description: description, files: part, changedSinceReview: changedSinceReview, noun: noun, part: index + 1, of: plan.parts.count) }
+            }
+        run(.explain(iid: id), title: "Explain \(remote.words.reference(id))", origin: .pullRequest(id), provider: provider, cwd: checkout.checkoutPath, steps: steps) { [weak self] answers in
+            self?.explanations[id] = ExplainPartsPolicy.joined(answers.map(AITextAnswerParser.clean), leftOut: plan.leftOut)
         }
     }
 
@@ -118,6 +122,20 @@ final class AITextStore {
         prompt: @escaping () async throws -> String,
         done: @escaping (String) -> Void
     ) {
+        run(target, title: title, origin: origin, provider: provider, cwd: cwd, steps: [prompt]) { answers in
+            done(answers.last ?? "")
+        }
+    }
+
+    private func run(
+        _ target: AITextTarget,
+        title: String,
+        origin: OperationOrigin,
+        provider: AIProvider,
+        cwd: String,
+        steps: [() async throws -> String],
+        done: @escaping ([String]) -> Void
+    ) {
         guard running.contains(target) == false else { return }
         let command = checkout.gitSettings.pullRequests.aiTextCommands[provider] ?? ""
         let tool = AISessionRowMapper.toolTitle(for: provider)
@@ -131,12 +149,20 @@ final class AITextStore {
         tasks[target] = Task { [weak self] in
             guard let self else { return }
             do {
-                let answer = try await OperationScope.$current.withValue(id) {
-                    try await repository.generate(prompt: prompt(), command: command, cwd: cwd)
+                var answers: [String] = []
+                for (index, step) in steps.enumerated() {
+                    if steps.count > 1 {
+                        operations.setProgress(of: id, text: "Reading part \(index + 1) of \(steps.count)…", fraction: Double(index) / Double(steps.count))
+                    }
+                    let answer = try await OperationScope.$current.withValue(id) {
+                        try await repository.generate(prompt: step(), command: command, cwd: cwd)
+                    }
+                    try Task.checkCancellation()
+                    answers.append(answer)
                 }
                 operations.succeed(id)
-                activity.log(fullTitle, detail: "", outcome: .success)
-                done(answer)
+                activity.log(fullTitle, detail: steps.count > 1 ? CountText.count(steps.count, "part") : "", outcome: .success)
+                done(answers)
             } catch is CancellationError {
                 operations.cancel(id)
                 activity.log("\(fullTitle) stopped", detail: "", outcome: .info)

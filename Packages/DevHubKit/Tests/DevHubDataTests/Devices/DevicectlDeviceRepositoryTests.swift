@@ -9,7 +9,8 @@ import Testing
             udid: "00008110-000000000000001B",
             bundleID: "com.example.app",
             environment: ["B": "2", "A": "1"],
-            arguments: ["-skipOnboarding", "YES"]
+            arguments: ["-skipOnboarding", "YES"],
+            startStopped: false
         )
 
         #expect(arguments == [
@@ -20,9 +21,15 @@ import Testing
     }
 
     @Test func launchArgumentsWithoutAnEnvironmentSkipTheFlag() {
-        let arguments = DevicectlDeviceRepository.launchArguments(udid: "D1", bundleID: "com.example.app", environment: [:], arguments: [])
+        let arguments = DevicectlDeviceRepository.launchArguments(udid: "D1", bundleID: "com.example.app", environment: [:], arguments: [], startStopped: false)
 
         #expect(arguments == ["device", "process", "launch", "--device", "D1", "--terminate-existing", "com.example.app"])
+    }
+
+    @Test func aStoppedLaunchWaitsForTheDebugger() {
+        let arguments = DevicectlDeviceRepository.launchArguments(udid: "D1", bundleID: "com.example.app", environment: [:], arguments: [], startStopped: true)
+
+        #expect(arguments == ["device", "process", "launch", "--device", "D1", "--terminate-existing", "--start-stopped", "com.example.app"])
     }
 
     @Test func copyArgumentsNameTheAppDataContainer() {

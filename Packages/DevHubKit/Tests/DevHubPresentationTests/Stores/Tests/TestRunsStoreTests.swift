@@ -46,7 +46,7 @@ import DevHubTestSupport
         #expect(run.resultBundlePath == "/tmp/App.xcresult")
         guard case .finished(.failed, _) = run.phase else { Issue.record("Expected a finished failed run, got \(run.phase)"); return }
         let request = TestRunRequest(projectPath: worktree.path, container: nil, scheme: "AppTests", configuration: "Debug", simulatorUDID: SimulatorSample.booted.id, simulatorName: SimulatorSample.booted.name)
-        #expect(harness.spies.testRuns.calls == [.run(request)])
+        #expect(harness.spies.testRuns.calls == [.run(request), .results(bundlePath: "/tmp/App.xcresult", projectPath: worktree.path)])
         #expect(harness.spies.simulators.calls.contains(.boot(udid: SimulatorSample.booted.id)))
         #expect(harness.lastActivity?.title == "Tests failed: feature/login")
         #expect(harness.lastActivity?.detail == "1 passed · 1 failed · 1 skipped · AppTests · iPhone 17")
@@ -192,5 +192,70 @@ import DevHubTestSupport
         await harness.worktrees.refresh()
 
         #expect(store.runs.isEmpty)
+    }
+
+    private var bundleCases: [TestResultCase] {
+        [
+            TestResultCase(identifier: "LoginTests/testLogin()", target: "AppTests", suite: "LoginTests", name: "testLogin()", status: .passed, duration: 2),
+            TestResultCase(identifier: "LoginTests/testLogout()", target: "AppTests", suite: "LoginTests", name: "testLogout()", status: .failed, duration: 0.5, failureMessage: "boom", file: "LoginTests.swift", path: "/repo/LoginTests.swift", line: 9),
+            TestResultCase(identifier: "FeedTests/testFeed()", target: "AppTests", suite: "FeedTests", name: "testFeed()", status: .failed, duration: 0.1, failureMessage: "crashed"),
+        ]
+    }
+
+    @Test func theBundleIsTheSourceAfterTheRun() async throws {
+        await prepare()
+        harness.spies.testRuns.runEvents = [.testFinished(TestCaseResult(suite: "LoginTests", name: "testLogout", status: .failed, duration: 0.1))]
+        harness.spies.testRuns.runResult = .success(TestRunReport(status: .failed, resultBundlePath: "/tmp/App.xcresult"))
+        harness.spies.testRuns.resultsResult = .success(bundleCases)
+        harness.spies.testRuns.attachmentsResult = .success([
+            TestAttachment(testIdentifier: "LoginTests/testLogout()", name: "Failure", path: "/tmp/a/failure.png", isAssociatedWithFailure: true),
+            TestAttachment(testIdentifier: "LoginTests/testLogin()", name: "Kept", path: "/tmp/a/kept.png", isAssociatedWithFailure: false),
+        ])
+
+        store.run(worktreeID: worktree.id)
+        try await finished()
+
+        let run = try #require(store.runs[worktree.id])
+        #expect(run.passed == 1)
+        #expect(run.failed == 2)
+        #expect(run.failures.map(\.test) == ["LoginTests.testLogout()", "FeedTests.testFeed()"])
+        #expect(run.failures.first?.path == "/repo/LoginTests.swift")
+        #expect(run.attachments.map(\.path) == ["/tmp/a/failure.png"])
+        #expect(harness.spies.testRuns.calls.last == .exportAttachments(bundlePath: "/tmp/App.xcresult"))
+        #expect(harness.lastActivity?.detail == "1 passed · 2 failed · AppTests · iPhone 17")
+    }
+
+    @Test func runFailedAgainRunsOnlyTheFailedTests() async throws {
+        await prepare()
+        harness.spies.testRuns.runResult = .success(TestRunReport(status: .failed, resultBundlePath: "/tmp/App.xcresult"))
+        harness.spies.testRuns.resultsResult = .success(bundleCases)
+        store.run(worktreeID: worktree.id)
+        try await finished()
+        harness.spies.testRuns.resultsResult = .success([])
+
+        store.runFailedAgain(worktreeID: worktree.id)
+        try await waitUntil { [harness] in harness.spies.testRuns.calls.filter { if case .run = $0 { return true } else { return false } }.count == 2 }
+        try await finished()
+
+        let request = TestRunRequest(projectPath: worktree.path, container: nil, scheme: "AppTests", configuration: "Debug", simulatorUDID: SimulatorSample.booted.id, simulatorName: SimulatorSample.booted.name, onlyTests: ["AppTests/LoginTests/testLogout", "AppTests/FeedTests/testFeed"])
+        #expect(harness.spies.testRuns.calls.contains(.run(request)))
+    }
+
+    @Test func aBundleThatCannotBeReadKeepsTheTextResult() async throws {
+        await prepare()
+        harness.spies.testRuns.runEvents = [
+            .testFinished(TestCaseResult(suite: "LoginTests", name: "testLogout", status: .failed, duration: 0.1)),
+            .failure(TestFailure(test: "LoginTests.testLogout", file: "LoginTests.swift", path: "/repo/LoginTests.swift", line: 9, message: "boom")),
+        ]
+        harness.spies.testRuns.runResult = .success(TestRunReport(status: .failed, resultBundlePath: "/tmp/App.xcresult"))
+        harness.spies.testRuns.resultsResult = .failure(TestRunError.failed("no bundle"))
+
+        store.run(worktreeID: worktree.id)
+        try await finished()
+
+        #expect(store.runs[worktree.id]?.failures.map(\.test) == ["LoginTests.testLogout"])
+        #expect(harness.activityTitles.contains("Cannot read the test results of feature/login"))
+        store.runFailedAgain(worktreeID: worktree.id)
+        #expect(harness.spies.testRuns.calls.filter { if case .run = $0 { return true } else { return false } }.count == 1)
     }
 }

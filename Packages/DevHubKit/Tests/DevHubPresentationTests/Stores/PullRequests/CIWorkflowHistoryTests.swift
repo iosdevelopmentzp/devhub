@@ -62,4 +62,18 @@ import DevHubTestSupport
 
         #expect(history.records.isEmpty)
     }
+
+    private func run(_ id: String, status: CheckStatus) -> CIWorkflow {
+        CIWorkflow(id: id, name: "build", status: status, runID: "pipeline-1", jobs: [CIJob(id: "job-\(id)", name: "unit-tests", status: status, isApproval: false)])
+    }
+
+    @Test func aTestThatPassesInARerunOfTheSameCommitFlakesOnce() {
+        history.remember(run("w1", status: .failed), failedTests: ["job-w1": [test]], for: 7)
+
+        history.remember(run("w2", status: .success), failedTests: [:], for: 7)
+        history.remember(run("w2", status: .success), failedTests: [:], for: 7)
+
+        #expect(harness.flakyTests.records.map(\.timesFlaked) == [1])
+        #expect(history.flakyTests == [CIFlakyTest(className: "LoginTests", name: "testRetry", jobName: "unit-tests", workflowName: "build", timesFlaked: 1, source: .devhub)])
+    }
 }

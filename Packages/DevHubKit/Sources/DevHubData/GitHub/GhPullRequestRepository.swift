@@ -105,7 +105,17 @@ struct GhPullRequestRepository: CodeHostRepository {
 
     func people(repository: CodeHost) async throws -> [String] {
         let endpoint = "repos/\(GhClient.owner(repository))/\(GhClient.name(repository))/assignees?per_page=100"
-        return try await GhUserListParser.logins(from: client.rest(endpoint, method: "GET", fields: [], host: repository))
+        return try await GhUserListParser.logins(from: client.paged(endpoint, host: repository))
+    }
+
+    func teams(repository: CodeHost) async throws -> [String] {
+        let owner = GhClient.owner(repository)
+        let endpoint = "repos/\(owner)/\(GhClient.name(repository))/teams?per_page=100"
+        return try await GhTeamListParser.repositoryTeams(from: client.paged(endpoint, host: repository), owner: owner)
+    }
+
+    func myTeams(repository: CodeHost) async throws -> [String] {
+        try await GhTeamListParser.myTeams(from: client.paged("user/teams?per_page=100", host: repository), owner: GhClient.owner(repository))
     }
 
     func updatePeople(iid: Int, role: PullRequestPersonRole, add: [String], remove: [String], repository: CodeHost) async throws {

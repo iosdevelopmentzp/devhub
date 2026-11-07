@@ -200,6 +200,16 @@ import Testing
         #expect(row(SimulatorFixture.iPhone, flags: flags).canLaunchAndAttach == false)
     }
 
+    @Test func aConnectedDeviceWithTheAppCanLaunchAndAttach() {
+        var flags = Flags()
+        flags.identity = IdentityContextFixture.context(isPhysicalDevice: true)
+        #expect(row(SimulatorFixture.device, flags: flags).canLaunchAndAttach)
+
+        var disconnected = SimulatorFixture.device
+        disconnected.state = .shutdown
+        #expect(row(disconnected, flags: flags).canLaunchAndAttach == false)
+    }
+
     @Test func identitySummaryNeedsConfigAndInstalledApp() {
         var flags = Flags()
         #expect(row(SimulatorFixture.iPhone, flags: flags).identity == nil)

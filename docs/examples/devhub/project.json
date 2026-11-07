@@ -32,7 +32,8 @@
         { "name": "Project", "patterns": ["*.xcodeproj/*", "*.resolved"], "hidden": true },
         { "name": "UI", "patterns": ["*/Calls/*", "*UI/*"] }
       ],
-      "defaults": { "draft": true, "deleteSourceBranch": true, "squash": false }
+      "defaults": { "draft": true, "deleteSourceBranch": true, "squash": false },
+      "reviewQueue": "assigned"
     }
   },
   "launch": {

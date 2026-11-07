@@ -40,6 +40,10 @@ import Testing
         #expect(arguments == ["api", "--hostname", "gitlab.example.com", "-X", "PUT", "projects/team%2Fapp/merge_requests/7/merge", "-f", "squash=true"])
     }
 
+    @Test func aPagedReadAsksForEveryPage() {
+        #expect(GlabClient.pagedArguments(endpoint: "projects/team%2Fapp/members/all?per_page=100", host: "gitlab.example.com") == ["api", "--hostname", "gitlab.example.com", "--paginate", "projects/team%2Fapp/members/all?per_page=100"])
+    }
+
     @Test func hostAndProjectComeFromTheCodeHost() throws {
         #expect(try GlabClient.host(of: .gitLabSample) == "gitlab.example.com")
         #expect(GlabClient.projectPath(of: .gitLabSample) == "team/app")

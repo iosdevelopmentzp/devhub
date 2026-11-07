@@ -37,7 +37,7 @@ Each row shows:
 - a blue dot when the request changed since your last visit to this scope;
 - the number and the title;
 - the author, the age, the source and target branches, the line and file counts;
-- tags: ticket chip, checks or pipeline status, `draft`, `needs your review`, `auto-merge`, `stale`, conflicts, approvals, open threads, and the labels.
+- tags: ticket chip, checks or pipeline status, `draft`, `needs your review` (who counts follows `git.pullRequests.reviewQueue`: `open` takes every open request by someone else that you have not approved, `assigned` only those that name you or ask one of your GitHub teams), `auto-merge`, `stale`, conflicts, approvals, open threads, and the labels.
 
 A click on a row opens the details under it. When the panel is 960 points wide or more, the list and the details show side by side. A handle between them changes the width of the list.
 
@@ -49,7 +49,7 @@ The search field in the toolbar filters the loaded rows by title, number, author
 
 1. The checks or pipeline tag (click opens it in the browser), the duration, "Cancel" while it runs, and "Open in Window".
 2. The checks or jobs of the last commit, grouped by stage (GitLab) or by workflow (GitHub). A group header shows the state of the group; inside, failed jobs come first, then running, waiting and passed. Each row shows the status, the name, how long the job ran, an "allowed to fail" mark, and, when it failed, a folded "reason" that opens the failure message (GitLab) or the check title (GitHub). Buttons: the log icon shows the last 200 lines of the log inside DevHub (timestamps, colours and tokens removed, with Copy Log); Retry runs a failed or cancelled job again; the globe opens it in the browser. Log and Retry need a GitHub Actions job or a GitLab job; an external status check has only the link. Without the job list (an old answer), the failed jobs show as links. With CircleCI (see the CircleCI section), a check that points at a CircleCI workflow is replaced by the jobs of that workflow.
-3. The review block: "Approved by", "Changes requested", "Waiting for" (a requested reviewer without an answer) and "Assigned to", one tag per person; "you" stands for your own account. An open request without reviewers says "none requested". GitHub takes the latest review of each person and the review requests; GitLab takes the review state of each reviewer. Under it, "Reviewers" and "Assignees" menus list the people of the project with a check mark on the current ones; a click adds or removes that person. The menus show on an open request that you wrote or that you can merge. Each change shows as an operation card and refreshes the list. Under the menus, "Explain" asks Claude Code or Copilot CLI to explain the request (see "Write with AI and Explain").
+3. The review block: "Approved by", "Changes requested", "Waiting for" (a requested reviewer without an answer, then each requested GitHub team) and "Assigned to", one tag per person; "you" stands for your own account. An open request without reviewers says "none requested". GitHub takes the latest review of each person and the review requests; GitLab takes the review state of each reviewer. Under it, "Reviewers" and "Assignees" menus list the people of the project (every page) with a check mark on the current ones; a click adds or removes that person. On GitHub the Reviewers menu also lists the teams of the repository under a divider ("example/ios (team)"); a click requests or removes the team. The menus show on an open request that you wrote or that you can merge. Each change shows as an operation card and refreshes the list. Under the menus, "Explain" asks Claude Code or Copilot CLI to explain the request (see "Write with AI and Explain").
 4. The description.
 5. The review threads: author, time, file and line, the full text with inline markdown (selectable), and the replies behind "N replies". Each thread has Reply, Resolve, "Show in diff", "Open file at this line" and "Open in browser".
 6. A comment box: "Comment" (⌘Return) posts a comment on the request. "Request Changes" sends the text as a review that asks for changes; it shows only on GitHub, on an open request by someone else. The text stays in the box until the post works.
@@ -59,13 +59,14 @@ The search field in the toolbar filters the loaded rows by title, number, author
 
 ### Changed since your review
 
-Settings → Pull Requests → "Remember what I reviewed" (on by default) lets DevHub compare a request with your last review. Everything stays on this Mac; DevHub asks the host for nothing extra.
+Settings → Pull Requests → "Remember what I reviewed" (on by default) lets DevHub compare a request with your last review. Everything stays on this Mac. On GitHub the details query also reads your last submitted review and the dates of the last 50 commits.
 
 1. DevHub saves a fingerprint of the diff of each file when you approve, post a comment, ask for changes, or mark every file as viewed. It can do this only for a request whose details you opened, because the fingerprint comes from the diff you saw. The fingerprint counts only the added and removed lines, so a rebase that moves a file's changes without editing them does not count as a change.
 2. When the request has new commits, a line above the files says "N files changed since your review <time>". Each such file has an orange "changed since review" tag. "Show Only These" lists only them; "Show All Files" brings the rest back. With no change the line is green: "No file changed since your review <time>".
 3. "Viewed" marks are saved with the fingerprint of the file. They come back after a restart and drop off a file whose diff changed.
 4. "Forget" on the line removes what DevHub saved for that request. Turning the setting off removes it for every project.
 5. DevHub keeps the last 200 requests per project.
+6. A review made in the browser on GitHub counts too. When your last review on GitHub is newer than what DevHub saved (or DevHub saved nothing) and no commit came after it, DevHub saves the files you see now with the date of that review, so the marks work from then on. When commits came after it, the line says "3 commits since your review on GitHub, 2 hr. ago" and the file tags stay off, because DevHub never saw the files at that review. GitLab: no change.
 
 ### Other places that use the same data
 
@@ -73,6 +74,7 @@ Settings → Pull Requests → "Remember what I reviewed" (on by default) lets D
 - Local and remote branch rows show the open request of the branch.
 - The tab bar shows a badge with the number of requests that wait for your review.
 - When that number grows while the panel is closed, DevHub posts a macOS notification ("2 pull requests wait for your review") and a Recent row; a click on either opens the "To review" scope.
+- A request that stays in your review queue longer than "Remind me of a review after" (Settings → Notifications, default 4 hours) gets one reminder: "#12 waits for your review for 5 h", a Recent row and, while the panel is closed, a macOS notification; a click opens the request. DevHub counts from the moment it first saw the request in the queue (`gitlab.reviewSince.<project>`). A request that leaves the queue forgets its time and starts again when it comes back.
 - Changes of your own open requests between two reads go to the Recent list on Home and, while the panel is closed, to a macOS notification (one switch per kind in Settings → Notifications; a click opens the request): "#12 approved by alex" (new approvers, not you), "Changes requested on #12 by sam" (a new review that asks for changes), "Checks failed on #12" (the checks or pipeline turned to failed), "sam commented on #12" (new comments by someone else, with their authors; your own comments are silent; "2 new comments on #12" when the host gives no authors), "#12 merged" and "#12 closed without a merge". A request that left the open list gets one status read of its branch (the request line read) to learn its final state; a request that is still open (for example beyond the first page) is silent. A new request of yours and the first read after a start or a project switch report nothing. A refresh after your own action in DevHub updates the baseline without a report.
 
 ## Actions
@@ -138,7 +140,7 @@ How it runs:
 2. It runs the command of the tool from `ai.textCommands` with `/bin/sh -c` in the main checkout. The PATH gets `~/.local/bin`, `~/.claude/local`, `~/.npm-global/bin`, `/opt/homebrew/bin` and `/usr/local/bin` first.
 3. The defaults are `claude -p "$(cat {prompt})" --output-format text` and `copilot -p "$(cat {prompt})" -s --no-ask-user --no-color --stream off`. `{prompt}` becomes the quoted path of the prompt file.
 4. DevHub removes code fences and terminal colour codes from the answer. Exit code 127 means "not installed". Another failure shows the last 6 lines of the output.
-5. A diff longer than 60,000 characters is cut, with a note to the tool about the rest. A file whose diff the host did not send is described by its counts only.
+5. Explain splits a diff longer than 60,000 characters into parts of whole files (at most 5 parts) and asks the tool once per part, one after another; the card says "Reading part 2 of 3…", and the answer shows each part under "Part N of M". Files after the fifth part are named under "Not explained". A single file longer than the limit is cut, with a note to the tool about the rest; a commit message or a new request is cut the same way. A file whose diff the host did not send is described by its counts only.
 
 The command lands in the Output panel like every other command. The prompt holds the diff, so it goes to the AI service of the chosen tool.
 
@@ -238,6 +240,8 @@ DevHub watches your open requests whose checks still run or wait, every minute w
 DevHub keeps every finished CircleCI workflow it reads for a request: the workflow, the state of its jobs and the failed tests with their messages. A re-run makes a new workflow, so the failed run moves under "Previous CircleCI runs N" below the jobs, folded by default. A row shows the workflow name, its state, when DevHub first read it and the number of failed jobs and tests. A click on the chevron lists the failed jobs and their tests; the message of a test opens behind its own chevron. "Forget" removes the saved runs of the request.
 
 The runs are saved per project and request (`gitlab.ciHistory.<project>.<number>`), at most 20 per request, at most 50 tests per job and 4000 characters per message. DevHub saves a run only when it reads it: when the details are open, or when the auto re-run below runs it again.
+
+DevHub also finds flaky tests itself. When it saves a new run of the same commit (the same CircleCI pipeline) and a test that failed in an earlier run of it now passes (the whole workflow passed, or the job of that test passed), the test flaked once. The counts are saved per project (`gitlab.flakyTests.<project>`, the class, the name, the job, the workflow, the count and the last date, at most 500 tests) and join the flaky list of CircleCI Insights: a failed test row says "flaky · flaked 2 times (DevHub)" when the DevHub count is the higher one. The flaky tag of a job and "Only flaky failures" of the auto re-run use the joined list too. "Forget" of a request leaves the counts; Settings → Pull Requests → "Forget Flaky Tests" removes them.
 
 ### Auto re-run
 

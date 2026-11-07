@@ -27,8 +27,8 @@ struct DevicectlDeviceRepository: DeviceRepository {
         try await devicectl.run(["device", "uninstall", "app", "--device", udid, bundleID], failure: DeviceError.command)
     }
 
-    func launch(udid: String, bundleID: String, environment: [String: String], arguments: [String]) async throws -> Int32? {
-        let data = try await devicectl.json(Self.launchArguments(udid: udid, bundleID: bundleID, environment: environment, arguments: arguments), failure: DeviceError.command)
+    func launch(udid: String, bundleID: String, environment: [String: String], arguments: [String], startStopped: Bool) async throws -> Int32? {
+        let data = try await devicectl.json(Self.launchArguments(udid: udid, bundleID: bundleID, environment: environment, arguments: arguments, startStopped: startStopped), failure: DeviceError.command)
         return DevicectlLaunchParser.pid(from: data)
     }
 
@@ -69,8 +69,8 @@ struct DevicectlDeviceRepository: DeviceRepository {
         }
     }
 
-    static func launchArguments(udid: String, bundleID: String, environment: [String: String], arguments: [String]) -> [String] {
-        var result = ["device", "process", "launch", "--device", udid, "--terminate-existing"]
+    static func launchArguments(udid: String, bundleID: String, environment: [String: String], arguments: [String], startStopped: Bool) -> [String] {
+        var result = ["device", "process", "launch", "--device", udid, "--terminate-existing"] + (startStopped ? ["--start-stopped"] : [])
         if environment.isEmpty == false, let json = try? JSONSerialization.data(withJSONObject: environment, options: [.sortedKeys]) {
             result += ["--environment-variables", String(decoding: json, as: UTF8.self)]
         }

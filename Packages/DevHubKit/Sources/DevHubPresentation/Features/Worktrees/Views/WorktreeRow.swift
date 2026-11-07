@@ -18,6 +18,7 @@ struct WorktreeRow: View {
     let onRequestLaunch: () -> Void
     let onCancelLaunch: () -> Void
     let onRunTests: () -> Void
+    let onRunFailedTests: () -> Void
     let onCancelTests: () -> Void
     let onDismissTests: () -> Void
     let onFixTests: (AIProvider) -> Void
@@ -92,7 +93,10 @@ struct WorktreeRow: View {
                     onCancel: onCancelTests,
                     onDismiss: onDismissTests,
                     onRunAgain: onRunTests,
+                    onRunFailedAgain: onRunFailedTests,
                     onOpenFailure: { openFile($0.path, line: $0.line) },
+                    onOpenSlowTest: { openFile($0.path, line: $0.line) },
+                    onOpenAttachment: { appActions.open(URL(fileURLWithPath: $0)) },
                     onOpenIssue: { openFile($0.path, line: $0.line) },
                     onOpenResults: { appActions.open(URL(fileURLWithPath: $0)) },
                     onFix: onFixTests
@@ -274,6 +278,7 @@ struct WorktreeRow: View {
         onRequestLaunch: {},
         onCancelLaunch: {},
         onRunTests: {},
+        onRunFailedTests: {},
         onCancelTests: {},
         onDismissTests: {},
         onFixTests: { _ in },

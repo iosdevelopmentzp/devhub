@@ -36,9 +36,11 @@ import Testing
         let repository = RoutingCodeHostRepository(gitHub: gitHub, gitLab: gitLab)
 
         _ = try await repository.people(repository: .gitHubSample)
+        _ = try await repository.teams(repository: .gitHubSample)
+        _ = try await repository.myTeams(repository: .gitHubSample)
         try await repository.updatePeople(iid: 2, role: .assignee, add: ["sam"], remove: [], repository: .gitLabSample)
 
-        #expect(gitHub.calls == [.people(repository: .gitHubSample)])
+        #expect(gitHub.calls == [.people(repository: .gitHubSample), .teams(repository: .gitHubSample), .myTeams(repository: .gitHubSample)])
         #expect(gitLab.calls == [.updatePeople(iid: 2, role: .assignee, add: ["sam"], remove: [], repository: .gitLabSample)])
     }
 }
