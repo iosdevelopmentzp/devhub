@@ -9,7 +9,7 @@ extension ConfigActionsStore {
         let context = await makeContext(action, item: item, inputs: inputs)
         var status = ConfigActionRun.Status.succeeded
         do {
-            let exitCode = try await perform(action, context: context, outcome: &outcome)
+            let exitCode = try await perform(action, item: item, context: context, outcome: &outcome)
             if let message = outcome.error {
                 status = .failed(message)
             } else if exitCode != 0 {
@@ -25,31 +25,15 @@ extension ConfigActionsStore {
     }
 
     private func makeContext(_ action: ResolvedAction, item: ActionItemContext, inputs: [String: String]) async -> ActionContext {
-        let project = session.selectedProject
-        let target = build.target
-        let udid = item.simulatorUDID ?? target?.id ?? ""
-        return ActionContextPolicy.make(ActionContextInputs(
-            projectPath: ProjectPath(project.path).expanded,
-            projectName: project.name,
-            checkoutPath: ProjectPath(checkout.checkoutPath.isEmpty ? project.path : checkout.checkoutPath).expanded,
-            branch: currentBranch ?? "",
-            effective: effective,
-            simulatorUDID: target?.id ?? "",
-            simulatorName: target?.name ?? "",
-            appPath: build.lastBuiltAppPath() ?? "",
-            configDir: action.origin.directory,
-            item: item,
-            inputs: inputs,
-            version: appVersion,
-            profileID: target.flatMap { build.profile(for: $0.id) }?.id ?? "",
-            hostKind: codeHosts.kind,
-            containers: await launcher.containers(udid: udid, bundleID: item.bundleID ?? effective.bundleID ?? ""),
-            simulatorState: simulators.simulator(id: udid)?.state,
-            isPhysicalDevice: simulators.simulator(id: udid)?.isPhysical == true
-        ))
+        guard action.config.run.copyTemplate == nil else {
+            return ActionContextPolicy.make(contextInputs(action, item: item, inputs: inputs))
+        }
+        let udid = item.simulatorUDID ?? build.target?.id ?? ""
+        let containers = await launcher.containers(udid: udid, bundleID: item.bundleID ?? effective.bundleID ?? "")
+        return ActionContextPolicy.make(contextInputs(action, item: item, inputs: inputs, containers: containers))
     }
 
-    private func perform(_ action: ResolvedAction, context: ActionContext, outcome: inout ConfigActionOutcome) async throws -> Int32 {
+    private func perform(_ action: ResolvedAction, item: ActionItemContext, context: ActionContext, outcome: inout ConfigActionOutcome) async throws -> Int32 {
         let config = action.config
         let placeholders = context.placeholders
         let folder = ActionContextPolicy.workingFolder(config.cwd, context: context, home: home)
@@ -67,9 +51,27 @@ extension ConfigActionsStore {
             workspace.runInTerminal(PlaceholderExpander.expand(text, values: placeholders, encodesForURL: false), at: folder, title: config.title)
             return 0
         case let .open(target):
-            let expanded = PlaceholderExpander.expand(target, values: placeholders, encodesForURL: target.contains("://"))
-            return workspace.openTarget(expanded, relativeTo: folder) ? 0 : 1
+            return open(target, placeholders: placeholders, folder: folder) ? 0 : 1
+        case let .copy(template, open):
+            let text = PlaceholderExpander.expand(template, values: placeholders, encodesForURL: false)
+            toaster.copy(text, label: text)
+            recordCopy(ConfigCopyRecord(
+                projectPath: session.selectedProject.path,
+                tabID: item.tabID,
+                actionID: action.id,
+                title: config.title,
+                text: text,
+                open: open.map { PlaceholderExpander.expand($0, values: placeholders, encodesForURL: $0.contains("://")) },
+                date: Date()
+            ))
+            guard let open else { return 0 }
+            return self.open(open, placeholders: placeholders, folder: folder) ? 0 : 1
         }
+    }
+
+    private func open(_ target: String, placeholders: [String: String], folder: String) -> Bool {
+        let expanded = PlaceholderExpander.expand(target, values: placeholders, encodesForURL: target.contains("://"))
+        return workspace.openTarget(expanded, relativeTo: folder)
     }
 
     private func stream(_ request: ScriptRunRequest, action: ResolvedAction, outcome: inout ConfigActionOutcome) async throws -> Int32 {

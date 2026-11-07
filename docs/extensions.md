@@ -103,10 +103,10 @@ All fields optional. Missing values are detected (see "default").
 | `icon` | SF Symbol name | `terminal` | |
 | `tint` | `gray` `red` `orange` `yellow` `green` `teal` `blue` `indigo` `purple` `pink` | `gray` | icon tile colour |
 | `placements` | [placement] | `["home.scripts"]` | where the action appears; `palette` is always added |
-| `run` | one of `script`, `command`, `terminal`, `open` | required | section 3.1 |
+| `run` | one of `script`, `command`, `terminal`, `open`, `copy` | required | section 3.1 |
 | `cwd` | `checkout` \| `main` \| `project` \| path | `checkout` | working folder; a relative path starts at the project folder; `checkout` is the checkout chosen in the Git tab (the project folder when none is chosen); `main` is the project folder |
 | `inputs` | [input] | `[]` | section 3.2 |
-| `confirm` | string | — | inline confirmation text; the action runs after the user confirms |
+| `confirm` | string | — | inline confirmation text; the action runs after the user confirms. A `confirm` on the chosen option of a `choice` input (section 3.2) wins over this text |
 | `refresh` | [`git` `worktrees` `simulators` `scripts` `logs` `pullRequests` `network` `appData`] | `[]` | stores refreshed after success; `pullRequests` reads the pull request tab, the open requests and the Git status line again; `network` reads the mock sets again; `appData` reads an open App Data panel again; `logs` does nothing yet |
 | `when` | object | — | visibility: `{"git": "clean"\|"dirty"}`, `{"simulator": "booted"}` (the target simulator is booted), `{"tool": "<executable>"}`, `{"kind": "xcode"\|"command"}`, `{"host": "github"\|"gitlab"}` (the code host of the remote) |
 
@@ -118,11 +118,12 @@ All fields optional. Missing values are detected (see "default").
 | `{ "command": ["git", "fetch", "--prune"] }` | an argument array, placeholders expanded in each argument |
 | `{ "terminal": "make lint" }` | opens the configured terminal in `cwd` and runs the text; placeholders are expanded, the `DEVHUB_*` variables are not exported |
 | `{ "open": "https://ci.example.com/{branch}" }` | URL or path, placeholders expanded (percent-encoded inside a URL, slashes kept), opened with the default app |
+| `{ "copy": "{env} coins {user} {amount}", "open": "slack://channel?team=T0&id=C0" }` | puts the text on the clipboard with the placeholders expanded, then opens `open` when it is set (same rules as the `open` run). No process runs. The prompt shows the rendered text under the inputs before the user presses Copy. Every copy lands in the Recent list of its custom tab with Resend |
 
 ### 3.2 Inputs
 
 ```json
-{ "key": "target", "title": "Target", "type": "choice", "options": [{"value": "app", "title": "App"}, {"value": "widget", "title": "Widget"}], "default": "app", "remember": true, "placeholder": "…" }
+{ "key": "target", "title": "Target", "type": "choice", "options": [{"value": "app", "title": "App"}, {"value": "widget", "title": "Widget", "confirm": "Build the widget?"}], "default": "app", "remember": true, "recent": false, "placeholder": "…" }
 ```
 
 | `type` | Control | Value |
@@ -137,7 +138,7 @@ All fields optional. Missing values are detected (see "default").
 | `scheme` | searchable picker over the schemes of the project | scheme name |
 | `file` / `folder` | file or folder picker | path |
 
-`remember: true` stores the last value per project and action. `title` defaults to `key`; `default` may be a string, a number or true or false; `placeholder` is the hint text of an empty field. The `branch`, `worktree`, `choice` and `scheme` pickers fall back to a text field while their list is empty. Values reach a script as `DEVHUB_INPUT_<KEY uppercased>` and all `run` strings as `{key}`.
+`remember: true` stores the last value per project and action. `recent: true` on a `text` or `number` input keeps the last 12 distinct values per project and action (or per tab for a shared input) and shows them in a clock menu next to the field, with "Forget" for each. An option of a `choice` input may carry `confirm`: when that option is chosen, its text is the confirmation of the action and wins over the action's own `confirm`; an action without inputs then asks too. `title` defaults to `key`; `default` may be a string, a number or true or false; `placeholder` is the hint text of an empty field. The `branch`, `worktree`, `choice` and `scheme` pickers fall back to a text field while their list is empty. Values reach a script as `DEVHUB_INPUT_<KEY uppercased>` and all `run` strings as `{key}`.
 
 ### 3.3 Placements
 
@@ -277,6 +278,10 @@ A tag has `text` and optional `tint`, `icon` (an SF Symbol name) and `hint`. Row
   "title": "QA",
   "icon": "wrench.and.screwdriver",
   "searchPrompt": "Search QA tools",
+  "inputs": [
+    { "key": "env", "title": "Environment", "type": "choice", "options": [{ "value": "qa" }, { "value": "prod", "confirm": "Run against PROD?" }], "default": "qa" },
+    { "key": "user", "title": "User ID", "type": "text", "recent": true }
+  ],
   "sections": [
     { "title": "Accounts", "actions": ["login-as-tester", "reset-account"] },
     { "title": "Devices", "source": { "script": "scripts/list-devices.sh", "refresh": "onOpen" } }
@@ -288,10 +293,11 @@ A tag has `text` and optional `tint`, `icon` (an SF Symbol name) and `hint`. Row
 |---|---|
 | `id` | tab id; `tab.<id>` placement; the first custom tab gets ⌘9, the others have no shortcut |
 | `title`, `icon`, `searchPrompt` | tab bar and the search field of the tab |
+| `inputs` | inputs shared by every action and source script of the tab (section 3.2 shapes). They show in a bar under the toolbar, and their values are saved per project and tab. Every run of the tab gets them as `DEVHUB_INPUT_<KEY>` and `{key}`; an input of the action with the same key wins. A `confirm` on the chosen option asks before every action of the tab |
 | `sections[].actions` | action ids rendered as rows with their inputs and a Run button |
 | `sections[].source.script` | a script whose `view` directive renders the section; `refresh` is `onOpen` (default), `manual` (a refresh button) or a number of seconds |
 
-The search field in the toolbar filters rows by title, subtitle and tags.
+The search field in the toolbar filters rows by title, subtitle and tags. A tab whose actions have a `copy` run ends with a "Recent" section: the last 30 copied texts of the project for that tab, newest first, each with Resend (copies again and opens the target again) and Remove, plus Clear in the header.
 
 ## 9. Mock set files
 

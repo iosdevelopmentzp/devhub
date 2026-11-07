@@ -342,6 +342,179 @@ import DevHubTestSupport
         #expect(store.actions(for: .homeScripts).map(\.id) == ["gh"])
     }
 
+    // MARK: Copy runs, shared tab inputs, recent values
+
+    private let chatTab = TabConfig(id: "chat", title: "Chat", inputs: [
+        ActionInput(key: "env", title: "Environment", type: .choice, options: [InputOption(value: "/qabot", title: "QA"), InputOption(value: "/prodbot", title: "PROD", confirm: "Send to PROD?")], defaultValue: "/qabot"),
+        ActionInput(key: "user", title: "User ID", type: .text, recent: true),
+    ], sections: [TabSection(title: "Accounts", actions: ["coins"])])
+
+    private var coins: ResolvedAction {
+        ConfigSample.action("coins", run: .copy("{env} coins {user} {amount}", open: nil), placements: [.tab("chat")], inputs: [ActionInput(key: "amount", title: "Coins", type: .number, defaultValue: "100", recent: true)])
+    }
+
+    private func loadChat() async {
+        harness.spies.config.loadResult = ConfigSample.resolved([coins], tabs: [chatTab])
+        await harness.config.reload()
+    }
+
+    @Test func aCopyRunRendersTheTemplateCopiesAndRecordsIt() async throws {
+        await loadChat()
+        store.setTabInput("4242", for: "user", tab: chatTab)
+        let item = ActionItemContext(tabID: "chat", inputs: store.tabInputValues(for: chatTab))
+
+        store.request(coins, item: item, slot: "tab.chat:0:coins")
+        let pending = try #require(store.pending)
+        #expect(store.copyPreview(for: pending) == "/qabot coins 4242 100")
+        #expect(store.confirmation(for: pending) == nil)
+        store.setInput("250", for: "amount")
+        store.confirmPending()
+        try await finish("coins")
+
+        #expect(harness.copied == ["/qabot coins 4242 250"])
+        #expect(store.runs["coins"]?.status == .succeeded)
+        #expect(harness.spies.scripts.calls.isEmpty)
+        let record = try #require(store.copyHistory(in: "chat").first)
+        #expect(record.text == "/qabot coins 4242 250")
+        #expect(record.actionID == "coins")
+        #expect(record.title == "Coins")
+        #expect(record.open == nil)
+        #expect(store.copyHistory(in: nil).isEmpty)
+    }
+
+    @Test func tabInputsAreSavedPerProjectAndTab() async {
+        await loadChat()
+
+        #expect(store.tabInputValues(for: chatTab) == ["env": "/qabot", "user": ""])
+        store.setTabInput("/prodbot", for: "env", tab: chatTab)
+
+        #expect(store.tabInputValues(for: chatTab)["env"] == "/prodbot")
+        #expect(harness.store.decode([String: [String: String]].self, forKey: "configActions.tabInputs")?.values.first?["env"] == "/prodbot")
+    }
+
+    @Test func aProdOptionOfTheTabAsksBeforeAnActionWithoutInputs() async throws {
+        let plain = ConfigSample.action("siq", run: .copy("{env} siq {user}", open: nil), placements: [.tab("chat")])
+        harness.spies.config.loadResult = ConfigSample.resolved([plain], tabs: [chatTab])
+        await harness.config.reload()
+        store.setTabInput("/prodbot", for: "env", tab: chatTab)
+        store.setTabInput("7", for: "user", tab: chatTab)
+
+        store.request(plain, item: ActionItemContext(tabID: "chat", inputs: store.tabInputValues(for: chatTab)), slot: "s")
+
+        let pending = try #require(store.pending(in: "s"))
+        #expect(store.confirmation(for: pending) == "Send to PROD?")
+        #expect(store.copyPreview(for: pending) == "/prodbot siq 7")
+        #expect(harness.copied.isEmpty)
+
+        store.confirmPending()
+        try await finish("siq")
+        #expect(harness.copied == ["/prodbot siq 7"])
+    }
+
+    @Test func aQAOptionOfTheTabRunsAtOnce() async throws {
+        let plain = ConfigSample.action("siq", run: .copy("{env} siq {user}", open: nil), placements: [.tab("chat")])
+        harness.spies.config.loadResult = ConfigSample.resolved([plain], tabs: [chatTab])
+        await harness.config.reload()
+        store.setTabInput("7", for: "user", tab: chatTab)
+
+        store.request(plain, item: ActionItemContext(tabID: "chat", inputs: store.tabInputValues(for: chatTab)), slot: "s")
+        try await finish("siq")
+
+        #expect(store.pending == nil)
+        #expect(harness.copied == ["/qabot siq 7"])
+    }
+
+    @Test func recentValuesAreKeptPerScopeNewestFirstAndCanBeForgotten() async throws {
+        await loadChat()
+        let tabScope = store.tabScope("chat")
+        let actionScope = store.actionScope("coins")
+        for user in ["1", "2", "1"] {
+            store.setTabInput(user, for: "user", tab: chatTab)
+            store.runWithDefaults(coins, item: ActionItemContext(tabID: "chat", inputs: store.tabInputValues(for: chatTab)))
+            try await finish("coins")
+            store.dismissResult(of: "coins")
+        }
+
+        #expect(store.recentValues(for: "user", scope: tabScope) == ["1", "2"])
+        #expect(store.recentValues(for: "amount", scope: actionScope) == ["100"])
+        #expect(store.recentValues(for: "user", scope: actionScope).isEmpty)
+
+        store.forgetRecent("2", for: "user", scope: tabScope)
+
+        #expect(store.recentValues(for: "user", scope: tabScope) == ["1"])
+        #expect(harness.store.decode([String: [String]].self, forKey: "configActions.recentInputs")?[tabScope + "|user"] == ["1"])
+    }
+
+    @Test func anEmptyRecentValueIsNotKept() async throws {
+        await loadChat()
+
+        store.runWithDefaults(coins, item: ActionItemContext(tabID: "chat", inputs: ["env": "/qabot", "user": "  "]))
+        try await finish("coins")
+
+        #expect(store.recentValues(for: "user", scope: store.tabScope("chat")).isEmpty)
+    }
+
+    @Test func resendCopiesAgainAndMovesTheRecordToTheTop() async throws {
+        await loadChat()
+        let first = ConfigCopyRecord(projectPath: ProjectSample.path, tabID: "chat", actionID: "coins", title: "Coins", text: "a", open: nil, date: Date(timeIntervalSince1970: 1))
+        let second = ConfigCopyRecord(projectPath: ProjectSample.path, tabID: "chat", actionID: "coins", title: "Coins", text: "b", open: nil, date: Date(timeIntervalSince1970: 2))
+        store.recordCopy(first)
+        store.recordCopy(second)
+        #expect(store.copyHistory(in: "chat").map(\.text) == ["b", "a"])
+
+        store.resend(first)
+
+        #expect(harness.copied == ["a"])
+        #expect(store.copyHistory(in: "chat").map(\.text) == ["a", "b"])
+        #expect(store.copyHistory(in: "chat").first?.date != first.date)
+        #expect(harness.lastActivity?.outcome == .success)
+    }
+
+    @Test func theCopyHistoryKeepsThirtyPerProjectAndDropsDuplicates() async {
+        await loadChat()
+        for index in 0..<35 {
+            store.recordCopy(ConfigCopyRecord(projectPath: ProjectSample.path, tabID: "chat", actionID: "coins", title: "Coins", text: "cmd \(index)", open: nil, date: Date()))
+        }
+        store.recordCopy(ConfigCopyRecord(projectPath: "/other", tabID: "chat", actionID: "coins", title: "Coins", text: "cmd 0", open: nil, date: Date()))
+        store.recordCopy(ConfigCopyRecord(projectPath: ProjectSample.path, tabID: "chat", actionID: "coins", title: "Coins", text: "cmd 34", open: nil, date: Date()))
+
+        let own = store.copyHistory(in: "chat")
+        #expect(own.count == 30)
+        #expect(own.first?.text == "cmd 34")
+        #expect(own.filter { $0.text == "cmd 34" }.count == 1)
+        #expect(own.contains { $0.text == "cmd 4" } == false)
+        #expect(store.copyHistory.contains { $0.projectPath == "/other" })
+    }
+
+    @Test func removeAndClearDropRecordsOfTheTabOnly() async {
+        await loadChat()
+        let chat = ConfigCopyRecord(projectPath: ProjectSample.path, tabID: "chat", actionID: "coins", title: "Coins", text: "a", open: nil, date: Date())
+        let other = ConfigCopyRecord(projectPath: ProjectSample.path, tabID: "ops", actionID: "x", title: "X", text: "b", open: nil, date: Date())
+        let gone = ConfigCopyRecord(projectPath: ProjectSample.path, tabID: "chat", actionID: "coins", title: "Coins", text: "c", open: nil, date: Date())
+        store.recordCopy(chat)
+        store.recordCopy(other)
+        store.recordCopy(gone)
+
+        store.removeCopy(id: gone.id)
+        #expect(store.copyHistory(in: "chat").map(\.text) == ["a"])
+
+        store.clearCopyHistory(in: "chat")
+
+        #expect(store.copyHistory(in: "chat").isEmpty)
+        #expect(store.copyHistory(in: "ops").map(\.text) == ["b"])
+        #expect(harness.store.decode([ConfigCopyRecord].self, forKey: "configActions.copyHistory")?.map(\.text) == ["b"])
+    }
+
+    @Test func theCopyHistoryComesBackFromTheStore() async {
+        await loadChat()
+        store.recordCopy(ConfigCopyRecord(projectPath: ProjectSample.path, tabID: "chat", actionID: "coins", title: "Coins", text: "saved", open: "example://chat", date: Date()))
+
+        let again = StoreHarness(store: harness.store)
+
+        #expect(again.configActions.copyHistory(in: "chat").first?.text == "saved")
+        #expect(again.configActions.copyHistory(in: "chat").first?.open == "example://chat")
+    }
+
     @Test func isVisibleChecksTheConditionAndKeepsBuiltins() async {
         harness.spies.tools.installedTools = ["gh"]
         let gh = ConfigSample.action("gh", when: ActionCondition(tool: "gh"))

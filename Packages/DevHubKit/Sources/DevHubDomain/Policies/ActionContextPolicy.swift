@@ -28,7 +28,7 @@ package enum ActionContextPolicy {
         context.appContainer = inputs.containers.app
         context.dataContainer = inputs.containers.data
         context.groupContainers = inputs.containers.groups.map { "\($0.name)\t\($0.path)" }.joined(separator: "\n")
-        context.inputs = inputs.inputs
+        context.inputs = inputs.item.inputs.merging(inputs.inputs) { _, own in own }
         return context
     }
 

@@ -1,0 +1,14 @@
+{
+  "id": "chat",
+  "title": "Chat",
+  "icon": "bubble.left.and.text.bubble.right",
+  "searchPrompt": "Search chat commands",
+  "inputs": [
+    { "key": "env", "title": "Environment", "type": "choice", "options": [{ "value": "/qabot", "title": "QA" }, { "value": "/prodbot", "title": "PROD", "confirm": "Copy a command for PROD?" }], "default": "/qabot" },
+    { "key": "user", "title": "User ID", "type": "text", "recent": true, "placeholder": "the ID from the profile page" }
+  ],
+  "sections": [
+    { "title": "Accounts", "actions": ["chat-coins"] },
+    { "title": "CI", "actions": ["chat-build"] }
+  ]
+}

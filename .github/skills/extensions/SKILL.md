@@ -11,11 +11,12 @@ The map from a need to a mechanism, with a worked example, is `docs/customizatio
 
 1. Find the layer: `<repo>/.devhub/` (shared), `~/.devhub/projects/<folder name>/` (only this user), `~/.devhub/` (every project).
 2. Pick the shape:
-   - a button that runs something → `actions/<id>.json` with `run`, `placements`, optional `inputs`, `confirm`, `refresh`, `when`;
+   - a button that runs something → `actions/<id>.json` with `run` (`script`, `command`, `terminal`, `open` or `copy`), `placements`, optional `inputs`, `confirm`, `refresh`, `when`;
    - a script the user runs from Home → an executable in `scripts/` with `# devhub:` header lines; no JSON needed;
    - a launch variant (environment variables, arguments, defaults in the app container) → `launch.profiles[]` in `project.json`;
    - a status line under a simulator → `simulators.statusScript` in `project.json`;
-   - a whole tab → `tabs/<id>.json` with sections of action ids and source scripts.
+   - a whole tab → `tabs/<id>.json` with sections of action ids and source scripts, and `inputs` shared by every row (saved per project and tab, `recent: true` for a menu of recent values, `confirm` on a choice option);
+   - a text to paste somewhere (a chat command, a ticket line) → an action with `run: { "copy": "{env} coins {user}", "open": "slack://…" }`: no script, the rendered text shows under the inputs, every copy lands in the Recent list of its tab with Resend.
 3. Save. DevHub reloads on file change. A decode error shows inline with the file name and the reason; fix and save again.
 4. Check the result in the Output panel: the command line, the context variables are visible in the hint of the action, the directives are listed as "directive" lines.
 

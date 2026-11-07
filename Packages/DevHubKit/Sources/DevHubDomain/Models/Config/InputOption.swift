@@ -3,6 +3,7 @@ import Foundation
 package struct InputOption: Codable, Hashable, Sendable {
     package var value: String
     package var title: String? = nil
+    package var confirm: String? = nil
 
     package var label: String {
         title ?? value
@@ -10,9 +11,11 @@ package struct InputOption: Codable, Hashable, Sendable {
 
     package init(
         value: String,
-        title: String? = nil
+        title: String? = nil,
+        confirm: String? = nil
     ) {
         self.value = value
         self.title = title
+        self.confirm = confirm
     }
 }

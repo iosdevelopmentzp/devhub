@@ -21,7 +21,7 @@ enum ConfigSample {
         )
     }
 
-    static func resolved(_ actions: [ResolvedAction], issues: [ConfigIssue] = []) -> ResolvedConfig {
-        ResolvedConfig(project: .empty, actions: actions, tabs: [], issues: issues, layers: [ConfigLayerInfo(layer: .project, directory: directory, exists: true)])
+    static func resolved(_ actions: [ResolvedAction], tabs: [TabConfig] = [], issues: [ConfigIssue] = []) -> ResolvedConfig {
+        ResolvedConfig(project: .empty, actions: actions, tabs: tabs, issues: issues, layers: [ConfigLayerInfo(layer: .project, directory: directory, exists: true)])
     }
 }

@@ -10,6 +10,7 @@ struct CustomTabSourceSection: View {
     let title: String
     let action: ResolvedAction
     let refresh: TabRefresh
+    let item: ActionItemContext
 
     var body: some View {
         let run = store.runs[action.id]
@@ -79,7 +80,7 @@ struct CustomTabSourceSection: View {
     }
 
     private func reload() {
-        store.runWithDefaults(action, item: .none)
+        store.runWithDefaults(action, item: item)
     }
 
     private func autoRefresh() async {
@@ -106,7 +107,8 @@ struct CustomTabSourceSection: View {
             config: ActionConfig(id: "script:list-devices", title: "list-devices", run: .script("scripts/list-devices.sh")),
             origin: ActionOrigin(layer: .project, directory: "/repo/.devhub", fileName: "scripts/list-devices.sh", isHeaderScript: true, isExecutable: true)
         ),
-        refresh: .manual
+        refresh: .manual,
+        item: .none
     )
     .padding()
     .previewEnvironment()

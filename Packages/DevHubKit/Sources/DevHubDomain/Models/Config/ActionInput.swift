@@ -8,6 +8,7 @@ package struct ActionInput: Codable, Hashable, Sendable, Identifiable {
     package var defaultValue: String? = nil
     package var remember: Bool? = nil
     package var placeholder: String? = nil
+    package var recent: Bool? = nil
 
     package var id: String {
         key
@@ -20,7 +21,8 @@ package struct ActionInput: Codable, Hashable, Sendable, Identifiable {
         options: [InputOption]? = nil,
         defaultValue: String? = nil,
         remember: Bool? = nil,
-        placeholder: String? = nil
+        placeholder: String? = nil,
+        recent: Bool? = nil
     ) {
         self.key = key
         self.title = title
@@ -29,10 +31,11 @@ package struct ActionInput: Codable, Hashable, Sendable, Identifiable {
         self.defaultValue = defaultValue
         self.remember = remember
         self.placeholder = placeholder
+        self.recent = recent
     }
 
     private enum CodingKeys: String, CodingKey {
-        case key, title, type, options, remember, placeholder
+        case key, title, type, options, remember, placeholder, recent
         case defaultValue = "default"
     }
 
@@ -45,5 +48,6 @@ package struct ActionInput: Codable, Hashable, Sendable, Identifiable {
         defaultValue = try container.decodeFlexibleString(forKey: .defaultValue)
         remember = try container.decodeIfPresent(Bool.self, forKey: .remember)
         placeholder = try container.decodeIfPresent(String.self, forKey: .placeholder)
+        recent = try container.decodeIfPresent(Bool.self, forKey: .recent)
     }
 }

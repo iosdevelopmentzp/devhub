@@ -1,0 +1,11 @@
+{
+  "id": "chat-coins",
+  "title": "Top up coins",
+  "subtitle": "{env} coins {user} {amount}",
+  "icon": "plus.circle",
+  "placements": ["tab.chat"],
+  "run": { "copy": "{env} coins {user} {amount}", "open": "slack://channel?team=T0000000&id=C0000000" },
+  "inputs": [
+    { "key": "amount", "title": "Coins", "type": "number", "default": 10000, "recent": true }
+  ]
+}

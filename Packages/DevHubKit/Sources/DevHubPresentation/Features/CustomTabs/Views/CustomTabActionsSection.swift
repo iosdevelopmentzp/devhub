@@ -14,6 +14,7 @@ struct CustomTabActionsSection: View {
     let actions: [CatalogAction]
     let missing: [String]
     let slot: String
+    let item: ActionItemContext
 
     var body: some View {
         let shown = actions.filter(matches)
@@ -73,7 +74,7 @@ struct CustomTabActionsSection: View {
         case let .config(resolved):
             ScriptRow(
                 model: ScriptRowMapper.model(for: resolved, isRunning: store.isRunning(resolved.id), lastRun: store.lastRun(of: resolved.id), editor: settings.values.editor, isFavorite: false),
-                onRun: { store.request(resolved, item: .none, slot: rowSlot(resolved)) },
+                onRun: { store.request(resolved, item: item, slot: rowSlot(resolved)) },
                 onStop: { store.stop(resolved.id) },
                 onEdit: { path in appActions.openInEditor(path: path, editor: settings.values.editor) },
                 onReveal: { path in appActions.openInFinder(path: path) },
@@ -106,7 +107,7 @@ struct CustomTabActionsSection: View {
 }
 
 #Preview {
-    CustomTabActionsSection(title: "Project", actions: [], missing: ["old-action"], slot: "preview")
+    CustomTabActionsSection(title: "Project", actions: [], missing: ["old-action"], slot: "preview", item: .none)
         .padding()
         .previewEnvironment()
 }

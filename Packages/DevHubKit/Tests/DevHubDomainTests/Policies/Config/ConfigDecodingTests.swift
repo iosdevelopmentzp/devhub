@@ -67,6 +67,53 @@ import Testing
         #expect(number.defaultValue == "4")
     }
 
+    @Test func aCopyRunTakesAnOptionalOpenTarget() throws {
+        let withOpen = try ConfigDecoding.decode(ActionConfig.self, from: ["id": "x", "title": "X", "run": ["copy": "{env} coins {user}", "open": "example://chat"]])
+        let plain = try ConfigDecoding.decode(ActionConfig.self, from: ["id": "x", "title": "X", "run": ["copy": "hello"]])
+        let open = try ConfigDecoding.decode(ActionConfig.self, from: ["id": "x", "title": "X", "run": ["open": "example://chat"]])
+
+        #expect(withOpen.run == .copy("{env} coins {user}", open: "example://chat"))
+        #expect(plain.run == .copy("hello", open: nil))
+        #expect(open.run == .open("example://chat"))
+        #expect(withOpen.run.copyTemplate == "{env} coins {user}")
+        #expect(open.run.copyTemplate == nil)
+    }
+
+    @Test func aRunWithoutAKnownShapeNamesTheShapes() {
+        #expect(describe(["id": "x", "title": "X", "run": ["shell": "ls"]]).contains("script, command, terminal, open or copy"))
+    }
+
+    @Test func aCopyRunRoundTripsThroughCodable() throws {
+        let run = ActionRun.copy("hello", open: "example://chat")
+
+        let data = try JSONEncoder().encode(run)
+
+        #expect(try JSONDecoder().decode(ActionRun.self, from: data) == run)
+    }
+
+    @Test func aTabDecodesSharedInputsWithRecentAndOptionConfirmations() throws {
+        let json = """
+        {
+          "id": "chat",
+          "title": "Chat",
+          "inputs": [
+            { "key": "env", "title": "Environment", "type": "choice", "options": [{ "value": "/qabot", "title": "QA" }, { "value": "/prodbot", "title": "PROD", "confirm": "Send to PROD?" }], "default": "/qabot" },
+            { "key": "user", "title": "User ID", "type": "text", "recent": true }
+          ],
+          "sections": [{ "title": "Accounts", "actions": ["chat-coins"] }]
+        }
+        """
+
+        let tab = try ConfigDecoding.decode(TabConfig.self, from: ConfigDecoding.parseJSON(json))
+
+        #expect(tab.inputs?.map(\.key) == ["env", "user"])
+        #expect(tab.inputs?.first?.options?.last == InputOption(value: "/prodbot", title: "PROD", confirm: "Send to PROD?"))
+        #expect(tab.inputs?.first?.options?.first?.confirm == nil)
+        #expect(tab.inputs?.last?.recent == true)
+        #expect(tab.inputs?.first?.recent == nil)
+        #expect(tab.actionIDs == ["chat-coins"])
+    }
+
     @Test func invalidJSONIsAnIssueNotACrash() {
         #expect(throws: ConfigError.self) {
             try ConfigDecoding.parseJSON("{ nope")

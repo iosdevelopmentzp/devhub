@@ -63,6 +63,7 @@ import Testing
         #expect(ConfigIssueRowModel.preview.message.isEmpty == false)
         #expect(ScriptRowModel.preview.isRunnable)
         #expect(ConfigActionItemModel.preview.tint == .red)
+        #expect(CopyHistoryRowModel.preview.text.isEmpty == false)
     }
 
     @Test func otherFeaturePreviewsBuild() {

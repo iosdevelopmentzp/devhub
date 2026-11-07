@@ -10,6 +10,8 @@ package struct ActionItemContext: Hashable, Sendable {
     package var pullRequestNumber: Int? = nil
     package var pullRequestURL: URL? = nil
     package var refresh: [RefreshTarget] = []
+    package var tabID: String? = nil
+    package var inputs: [String: String] = [:]
 
     package static let none = ActionItemContext()
 
@@ -22,7 +24,9 @@ package struct ActionItemContext: Hashable, Sendable {
         rowID: String? = nil,
         pullRequestNumber: Int? = nil,
         pullRequestURL: URL? = nil,
-        refresh: [RefreshTarget] = []
+        refresh: [RefreshTarget] = [],
+        tabID: String? = nil,
+        inputs: [String: String] = [:]
     ) {
         self.branch = branch
         self.worktreePath = worktreePath
@@ -33,5 +37,7 @@ package struct ActionItemContext: Hashable, Sendable {
         self.pullRequestNumber = pullRequestNumber
         self.pullRequestURL = pullRequestURL
         self.refresh = refresh
+        self.tabID = tabID
+        self.inputs = inputs
     }
 }

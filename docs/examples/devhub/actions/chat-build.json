@@ -1,0 +1,11 @@
+{
+  "id": "chat-build",
+  "title": "Build a branch on CI",
+  "subtitle": "/cibot build {branch}",
+  "icon": "hammer",
+  "placements": ["tab.chat"],
+  "run": { "copy": "/cibot build {branch}", "open": "slack://channel?team=T0000000&id=C0000000" },
+  "inputs": [
+    { "key": "branch", "title": "Branch", "type": "branch", "default": "current" }
+  ]
+}

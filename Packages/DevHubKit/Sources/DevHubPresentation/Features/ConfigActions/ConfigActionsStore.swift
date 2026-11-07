@@ -9,6 +9,9 @@ final class ConfigActionsStore {
     private(set) var pending: PendingConfigAction?
     private(set) var runs: [String: ConfigActionRun] = [:]
     private(set) var lastRunDates: [String: Date]
+    private(set) var tabInputs: [String: [String: String]]
+    private(set) var recentInputs: [String: [String]]
+    private(set) var copyHistory: [ConfigCopyRecord]
 
     @ObservationIgnored let config: ConfigStore
     @ObservationIgnored let scripts: any ScriptRunning
@@ -73,6 +76,9 @@ final class ConfigActionsStore {
         self.appVersion = appVersion
         self.home = home
         lastRunDates = store.decode([String: Date].self, forKey: Keys.lastRun) ?? [:]
+        tabInputs = store.decode([String: [String: String]].self, forKey: Keys.tabInputs) ?? [:]
+        recentInputs = store.decode([String: [String]].self, forKey: Keys.recentInputs) ?? [:]
+        copyHistory = store.decode([ConfigCopyRecord].self, forKey: Keys.copyHistory) ?? []
     }
 
     var effective: EffectiveProject {
@@ -111,11 +117,22 @@ final class ConfigActionsStore {
             toaster.show("Run chmod +x on \(catalog.fileName ?? action.config.title) first")
             return
         }
-        guard catalog.needsPrompt else {
+        let inputs = initialInputs(for: action, item: item)
+        guard ActionConfirmationPolicy.needsPrompt(action.config, sharedInputs: sharedInputs(of: item), values: item.inputs.merging(inputs) { _, own in own }) else {
             run(action, item: item, inputs: [:])
             return
         }
-        pending = PendingConfigAction(action: action, slot: slot, item: item, inputs: initialInputs(for: action, item: item))
+        pending = PendingConfigAction(action: action, slot: slot, item: item, inputs: inputs)
+    }
+
+    func confirmation(for pending: PendingConfigAction) -> String? {
+        ActionConfirmationPolicy.text(for: pending.action.config, sharedInputs: sharedInputs(of: pending.item), values: pending.item.inputs.merging(pending.inputs) { _, own in own })
+    }
+
+    func copyPreview(for pending: PendingConfigAction) -> String? {
+        guard let template = pending.action.config.run.copyTemplate else { return nil }
+        let context = ActionContextPolicy.make(contextInputs(pending.action, item: pending.item, inputs: pending.inputs))
+        return PlaceholderExpander.expand(template, values: context.placeholders, encodesForURL: false)
     }
 
     func request(id: String, item: ActionItemContext, slot: String) {
@@ -147,6 +164,10 @@ final class ConfigActionsStore {
     func run(_ action: ResolvedAction, item: ActionItemContext, inputs: [String: String]) {
         guard isRunning(action.id) == false else { return }
         remember(inputs, for: action)
+        recordRecents(inputs, inputs: action.config.inputs ?? [], scope: runKey(action.id))
+        if let tabID = item.tabID {
+            recordRecents(item.inputs, inputs: sharedInputs(of: item), scope: tabKey(tabID))
+        }
         runs[action.id] = ConfigActionRun(status: .running, startedAt: Date())
         let operationID = operations.start(
             action.config.title,
@@ -185,6 +206,130 @@ final class ConfigActionsStore {
     func recordRun(of id: String, at date: Date) {
         lastRunDates[runKey(id)] = date
         store.encode(lastRunDates, forKey: Keys.lastRun)
+    }
+
+    func recentValues(for key: String, scope: String) -> [String] {
+        recentInputs[scope + "|" + key] ?? []
+    }
+
+    func forgetRecent(_ value: String, for key: String, scope: String) {
+        recentInputs[scope + "|" + key]?.removeAll { $0 == value }
+        store.encode(recentInputs, forKey: Keys.recentInputs)
+    }
+
+    func actionScope(_ id: String) -> String {
+        runKey(id)
+    }
+
+    func tabScope(_ tabID: String) -> String {
+        tabKey(tabID)
+    }
+
+    func tabInputValues(for tab: TabConfig) -> [String: String] {
+        let saved = tabInputs[tabKey(tab.id)] ?? [:]
+        var values: [String: String] = [:]
+        for input in tab.inputs ?? [] {
+            values[input.key] = saved[input.key] ?? ActionContextPolicy.defaultValue(
+                for: input,
+                branch: currentBranch ?? "",
+                simulatorUDID: build.target?.id ?? "",
+                scheme: effective.scheme ?? build.selectedScheme
+            )
+        }
+        return values
+    }
+
+    func setTabInput(_ value: String, for key: String, tab: TabConfig) {
+        var values = tabInputValues(for: tab)
+        values[key] = value
+        tabInputs[tabKey(tab.id)] = values
+        store.encode(tabInputs, forKey: Keys.tabInputs)
+    }
+
+    func copyHistory(in tabID: String?) -> [ConfigCopyRecord] {
+        copyHistory.filter { $0.projectPath == session.selectedProject.path && $0.tabID == tabID }
+    }
+
+    func recordCopy(_ record: ConfigCopyRecord) {
+        copyHistory.removeAll { $0.id == record.id || ($0.projectPath == record.projectPath && $0.text == record.text) }
+        copyHistory.insert(record, at: 0)
+        let own = copyHistory.filter { $0.projectPath == record.projectPath }
+        if own.count > Limits.copyHistory {
+            let dropped = Set(own.suffix(from: Limits.copyHistory).map(\.id))
+            copyHistory.removeAll { dropped.contains($0.id) }
+        }
+        store.encode(copyHistory, forKey: Keys.copyHistory)
+    }
+
+    func resend(_ record: ConfigCopyRecord) {
+        toaster.copy(record.text, label: record.text)
+        var sent = record
+        sent.date = Date()
+        recordCopy(sent)
+        if let open = record.open, workspace.openTarget(open, relativeTo: ProjectPath(session.selectedProject.path).expanded) == false {
+            activity.log(record.title, detail: "Cannot open \(open)", outcome: .failure)
+            toaster.show("Cannot open \(open)")
+            return
+        }
+        activity.log(record.title, detail: "Copied again: \(record.text)", outcome: .success)
+    }
+
+    func removeCopy(id: ConfigCopyRecord.ID) {
+        copyHistory.removeAll { $0.id == id }
+        store.encode(copyHistory, forKey: Keys.copyHistory)
+    }
+
+    func clearCopyHistory(in tabID: String?) {
+        let project = session.selectedProject.path
+        copyHistory.removeAll { $0.projectPath == project && $0.tabID == tabID }
+        store.encode(copyHistory, forKey: Keys.copyHistory)
+    }
+
+    func contextInputs(_ action: ResolvedAction, item: ActionItemContext, inputs: [String: String], containers: AppContainers = .none) -> ActionContextInputs {
+        let project = session.selectedProject
+        let target = build.target
+        let udid = item.simulatorUDID ?? target?.id ?? ""
+        return ActionContextInputs(
+            projectPath: ProjectPath(project.path).expanded,
+            projectName: project.name,
+            checkoutPath: ProjectPath(checkout.checkoutPath.isEmpty ? project.path : checkout.checkoutPath).expanded,
+            branch: currentBranch ?? "",
+            effective: effective,
+            simulatorUDID: target?.id ?? "",
+            simulatorName: target?.name ?? "",
+            appPath: build.lastBuiltAppPath() ?? "",
+            configDir: action.origin.directory,
+            item: item,
+            inputs: inputs,
+            version: appVersion,
+            profileID: target.flatMap { build.profile(for: $0.id) }?.id ?? "",
+            hostKind: codeHosts.kind,
+            containers: containers,
+            simulatorState: simulators.simulator(id: udid)?.state,
+            isPhysicalDevice: simulators.simulator(id: udid)?.isPhysical == true
+        )
+    }
+
+    private func sharedInputs(of item: ActionItemContext) -> [ActionInput] {
+        guard let tabID = item.tabID else { return [] }
+        return config.resolved.tabs.first { $0.id == tabID }?.inputs ?? []
+    }
+
+    private func recordRecents(_ values: [String: String], inputs: [ActionInput], scope: String) {
+        let tracked = inputs.filter { $0.recent == true }
+        guard tracked.isEmpty == false else { return }
+        for input in tracked {
+            guard let value = values[input.key]?.trimmingCharacters(in: .whitespacesAndNewlines), value.isEmpty == false else { continue }
+            var list = recentInputs[scope + "|" + input.key] ?? []
+            list.removeAll { $0 == value }
+            list.insert(value, at: 0)
+            recentInputs[scope + "|" + input.key] = Array(list.prefix(Limits.recentValues))
+        }
+        store.encode(recentInputs, forKey: Keys.recentInputs)
+    }
+
+    private func tabKey(_ tabID: String) -> String {
+        session.selectedProject.path + "|tab." + tabID
     }
 
     private var facts: ActionConditionFacts {
@@ -232,5 +377,13 @@ final class ConfigActionsStore {
     private enum Keys {
         static let lastRun = "configActions.lastRun"
         static let inputs = "configActions.inputs"
+        static let tabInputs = "configActions.tabInputs"
+        static let recentInputs = "configActions.recentInputs"
+        static let copyHistory = "configActions.copyHistory"
+    }
+
+    private enum Limits {
+        static let copyHistory = 30
+        static let recentValues = 12
     }
 }

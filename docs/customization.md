@@ -21,9 +21,11 @@ Each layer holds `project.json` (not the global layer), `actions/*.json`, `scrip
 | ask for values before the run | `inputs` on the action or `# devhub: input =` in the header: text, number, toggle, choice, branch, worktree, simulator, scheme, file, folder; `remember: true` keeps the last value | §3.2 |
 | put the button in a specific place | `placements`: Home grid, Home scripts list, Git header pills, branch and worktree row menus, run bar, simulator row menu, App Data panel, Logs and Network toolbars, pull request rows, the command palette, a custom tab | §3.3 |
 | show the button only when it makes sense | `when`: git clean or dirty, target simulator booted, a tool installed, `kind` xcode or command, host github or gitlab | §3 |
-| ask before a destructive run | `confirm: "text"` (inline, no alert) | §3 |
+| ask before a destructive run | `confirm: "text"` (inline, no alert); `confirm` on one option of a `choice` input asks only for that value | §3, §3.2 |
 | refresh a tab after the run | `refresh: ["git", "worktrees", "simulators", …]` | §3 |
 | open a URL built from the branch, ticket or request | `run: { "open": "https://…/{branch}" }` with placeholders | §3.1, §3.4 |
+| put a rendered text on the clipboard and open the place to paste it | `run: { "copy": "{env} coins {user}", "open": "slack://…" }`; the prompt shows the text live; a custom tab keeps the last 30 with Resend | §3.1, §8 |
+| share inputs between every row of a tab, with recent values | `inputs` on the tab (`tabs/<id>.json`), `recent: true` on a text or number input | §8, §3.2 |
 | know the project, branch, simulator, app or request inside a script | the `DEVHUB_*` variables (project path, checkout, branch, base branch, scheme, bundle ID, simulator UDID, name, state and kind, app path, containers, profile, host, PR number and URL, inputs) | §3.4 |
 | make a script talk back to DevHub | `@devhub {…}` lines: `progress`, `toast`, `copy`, `open`, `notify`, `refresh`, `error`, `app`, `state`, `view` | §7 |
 | render a list, a key-value block or text from a script | the `view` directive with `rows` (title, subtitle, tags, row actions), `keyValues` or `text` | §7 |
@@ -42,61 +44,9 @@ Each layer holds `project.json` (not the global layer), `actions/*.json`, `scrip
 
 ## 3. Worked example: a tab of chat commands
 
-A team bot takes slash commands in a chat channel. Nobody can send such a command through an API, so the tool prepares the text, copies it and opens the channel: the user pastes and presses Return. This fits the existing pieces: one script that renders a template, one action per command, one custom tab. Put the files in `~/.devhub/` when every project should see the tab, or in the project folder.
+A team bot takes slash commands in a chat channel. Nobody can send such a command through an API, so the tool prepares the text, copies it and opens the channel: the user pastes and presses Return. This needs no script: one action per command with a `copy` run, and one custom tab with the inputs that every command shares. Put the files in `~/.devhub/` when every project should see the tab, or in the project folder. The example folder `docs/examples/devhub/` holds this tab as `tabs/chat.json`, `actions/chat-coins.json` and `actions/chat-build.json`.
 
-`scripts/chat-command.sh`: renders the template from the inputs, copies it and opens the channel.
-
-```sh
-#!/bin/zsh
-# devhub: title = Chat command
-# devhub: placements = palette
-set -u
-text="$DEVHUB_INPUT_TEMPLATE"
-text="${text//\{env\}/$DEVHUB_INPUT_ENV}"
-text="${text//\{user\}/$DEVHUB_INPUT_USER}"
-text="${text//\{amount\}/${DEVHUB_INPUT_AMOUNT:-}}"
-text="${text//\{branch\}/${DEVHUB_INPUT_BRANCH:-}}"
-printf '@devhub {"copy": %s}\n' "$(printf '%s' "$text" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')"
-printf '@devhub {"open": "%s"}\n' "slack://channel?team=T0000000&id=C0000000"
-printf '@devhub {"toast": "Pasted? Press Return in the channel"}\n'
-```
-
-`actions/chat-commands.json`: one action per command. The environment and the user ID are inputs with `remember: true`, so DevHub keeps the last values per action.
-
-```json
-[
-  {
-    "id": "chat-coins",
-    "title": "Top up coins",
-    "subtitle": "/<env>bot coins <user> <amount>",
-    "icon": "plus.circle",
-    "placements": ["tab.chat"],
-    "run": { "script": "scripts/chat-command.sh" },
-    "inputs": [
-      { "key": "env", "title": "Environment", "type": "choice", "options": [{ "value": "/qabot", "title": "QA" }, { "value": "/prodbot", "title": "PROD" }], "default": "/qabot", "remember": true },
-      { "key": "user", "title": "User ID", "type": "text", "remember": true, "placeholder": "the ID from the profile page" },
-      { "key": "amount", "title": "Coins", "type": "number", "default": "10000" },
-      { "key": "template", "title": "Template", "type": "text", "default": "{env} coins {user} {amount}" }
-    ],
-    "confirm": "Copy the command for the chosen environment?"
-  },
-  {
-    "id": "chat-build",
-    "title": "Build a branch on CI",
-    "icon": "hammer",
-    "placements": ["tab.chat"],
-    "run": { "script": "scripts/chat-command.sh" },
-    "inputs": [
-      { "key": "env", "title": "Environment", "type": "choice", "options": [{ "value": "/qabot", "title": "QA" }], "default": "/qabot" },
-      { "key": "user", "title": "User ID", "type": "text", "remember": true },
-      { "key": "branch", "title": "Branch", "type": "branch", "default": "current" },
-      { "key": "template", "title": "Template", "type": "text", "default": "{env} build {branch}" }
-    ]
-  }
-]
-```
-
-`tabs/chat.json`: the tab.
+`tabs/chat.json`: the tab and its shared inputs. The environment is a choice whose PROD option asks before every command. The user ID keeps a menu of recent values.
 
 ```json
 {
@@ -104,6 +54,10 @@ printf '@devhub {"toast": "Pasted? Press Return in the channel"}\n'
   "title": "Chat",
   "icon": "bubble.left.and.text.bubble.right",
   "searchPrompt": "Search chat commands",
+  "inputs": [
+    { "key": "env", "title": "Environment", "type": "choice", "options": [{ "value": "/qabot", "title": "QA" }, { "value": "/prodbot", "title": "PROD", "confirm": "Copy a command for PROD?" }], "default": "/qabot" },
+    { "key": "user", "title": "User ID", "type": "text", "recent": true, "placeholder": "the ID from the profile page" }
+  ],
   "sections": [
     { "title": "Accounts", "actions": ["chat-coins"] },
     { "title": "CI", "actions": ["chat-build"] }
@@ -111,16 +65,41 @@ printf '@devhub {"toast": "Pasted? Press Return in the channel"}\n'
 }
 ```
 
-What this gives today: a tab with one row per command, inputs under each row, a confirmation, the command copied to the clipboard, the channel opened, every run in the Output panel with its command line. The `branch` input is a live picker over the branches of the Git tab.
+`actions/chat-coins.json`: one command. `{env}` and `{user}` come from the tab, `{amount}` from the action's own input. The run copies the rendered text and opens the channel.
 
-What the schema does not give yet, and where the design would go when it is needed:
+```json
+{
+  "id": "chat-coins",
+  "title": "Top up coins",
+  "subtitle": "{env} coins {user} {amount}",
+  "icon": "plus.circle",
+  "placements": ["tab.chat"],
+  "run": { "copy": "{env} coins {user} {amount}", "open": "slack://channel?team=T0000000&id=C0000000" },
+  "inputs": [
+    { "key": "amount", "title": "Coins", "type": "number", "default": 10000, "recent": true }
+  ]
+}
+```
 
-- **Inputs shared by a whole tab** (the environment and the user ID typed once for every row, with a menu of recent values). Today each row has its own `remember`ed inputs. The natural extension is `tabs[].inputs`, shown in the tab toolbar and passed to every action of the tab as `DEVHUB_INPUT_<KEY>` and `{key}`.
-- **A copy-and-open run without a script**: `run: { "copy": "{env} coins {user} {amount}", "open": "slack://…" }` with the rendered text shown live under the inputs.
-- **A confirmation that depends on a value** (ask only for PROD): `confirm` on one `choice` option, or `when` conditions that read an input.
-- **A history of sent commands with Resend.** The Output panel keeps every run; a tab-level recent list is not there.
+`actions/chat-build.json`: a command without an input of its own except the branch, a live picker over the branches of the Git tab.
 
-Each of these is a small schema change that other tabs can use too; none of them needs a feature-specific tab in Swift.
+```json
+{
+  "id": "chat-build",
+  "title": "Build a branch on CI",
+  "subtitle": "/cibot build {branch}",
+  "icon": "hammer",
+  "placements": ["tab.chat"],
+  "run": { "copy": "/cibot build {branch}", "open": "slack://channel?team=T0000000&id=C0000000" },
+  "inputs": [
+    { "key": "branch", "title": "Branch", "type": "branch", "default": "current" }
+  ]
+}
+```
+
+What this gives: a tab with the environment and the user ID in a bar under the toolbar (saved per project), one row per command, the action's own inputs under the row with the rendered command shown live, a confirmation only for PROD, the text on the clipboard, the channel opened, and a "Recent" section at the bottom with the last 30 commands, Resend and Remove. A command that needs more than a template (a lookup, a file, a computed value) keeps the script shape: `run: {"script": …}` with `@devhub {"copy": …}` and `@devhub {"open": …}` lines.
+
+What the schema still does not give: a `when` condition that reads an input, a history for actions outside a custom tab, and a `copy` run that reads the output of a command. Each would be a small schema change that other tabs can use too.
 
 ## 4. Rules for an agent that adds a customization
 

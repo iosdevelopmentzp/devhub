@@ -10,6 +10,7 @@ struct ConfigActionInputField: View {
 
     let input: ActionInput
     @Binding var value: String
+    let recent: RecentInputValues?
 
     var body: some View {
         HStack(spacing: 8) {
@@ -44,8 +45,42 @@ struct ConfigActionInputField: View {
                     .fixedSize()
             }
         case .text, .number:
-            textField
+            if let recent, recent.values.isEmpty == false {
+                HStack(spacing: 4) {
+                    textField
+                    recentMenu(recent)
+                }
+            } else {
+                textField
+            }
         }
+    }
+
+    private func recentMenu(_ recent: RecentInputValues) -> some View {
+        Menu {
+            ForEach(recent.values, id: \.self) { candidate in
+                Button(candidate) {
+                    value = candidate
+                }
+            }
+            Divider()
+            ForEach(recent.values, id: \.self) { candidate in
+                Button("Forget \(candidate)") {
+                    recent.forget(candidate)
+                }
+            }
+        } label: {
+            Image(systemName: "clock.arrow.circlepath")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(width: 24, height: 24)
+                .contentShape(Rectangle())
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .frame(width: 24, height: 24)
+        .hint("Recent values")
     }
 
     private var flag: Binding<Bool> {
@@ -107,7 +142,8 @@ struct ConfigActionInputField: View {
     @Previewable @State var value = "app"
     ConfigActionInputField(
         input: ActionInput(key: "target", title: "Target", type: .choice, options: [InputOption(value: "app"), InputOption(value: "widget")]),
-        value: $value
+        value: $value,
+        recent: nil
     )
     .padding()
     .previewEnvironment()

@@ -5,9 +5,10 @@ package enum ActionRun: Hashable, Sendable, Codable {
     case command([String])
     case terminal(String)
     case open(String)
+    case copy(String, open: String?)
 
     private enum CodingKeys: String, CodingKey {
-        case script, command, terminal, open
+        case script, command, terminal, open, copy
     }
 
     package init(from decoder: any Decoder) throws {
@@ -18,11 +19,13 @@ package enum ActionRun: Hashable, Sendable, Codable {
             self = .command(value)
         } else if let value = try container.decodeIfPresent(String.self, forKey: .terminal) {
             self = .terminal(value)
+        } else if let value = try container.decodeIfPresent(String.self, forKey: .copy) {
+            self = .copy(value, open: try container.decodeIfPresent(String.self, forKey: .open))
         } else if let value = try container.decodeIfPresent(String.self, forKey: .open) {
             self = .open(value)
         } else {
             throw DecodingError.dataCorrupted(
-                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "run needs one of script, command, terminal or open.")
+                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "run needs one of script, command, terminal, open or copy.")
             )
         }
     }
@@ -34,6 +37,14 @@ package enum ActionRun: Hashable, Sendable, Codable {
         case let .command(value): try container.encode(value, forKey: .command)
         case let .terminal(value): try container.encode(value, forKey: .terminal)
         case let .open(value): try container.encode(value, forKey: .open)
+        case let .copy(value, open):
+            try container.encode(value, forKey: .copy)
+            try container.encodeIfPresent(open, forKey: .open)
         }
+    }
+
+    package var copyTemplate: String? {
+        guard case let .copy(text, _) = self else { return nil }
+        return text
     }
 }

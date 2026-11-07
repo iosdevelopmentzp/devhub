@@ -10,6 +10,7 @@ Code: `Packages/DevHubKit/Sources/DevHubPresentation/Features/CustomTabs/`, `Fea
 
 - The tab button uses `title` and `icon` (default icon `square.grid.2x2`).
 - The search field in the toolbar uses `searchPrompt` (default "Search <title>").
+- A tab with `inputs` shows them in a bar under the toolbar, one field per input, with the same controls as action inputs. The values are saved per project and tab, and every action and source script of the tab gets them as `DEVHUB_INPUT_<KEY>` and `{key}`. An input marked `recent: true` has a clock menu with the last 12 values and "Forget" for each.
 
 ### Sections
 
@@ -20,6 +21,7 @@ The tab shows its `sections` in file order. One section in the file can give two
 | Actions (`sections[].actions`) | One row per action id. A config action row has the same look and controls as a script row on Home: icon, title, subtitle, file name, last run, Run, Stop, overflow menu, inputs and the result view. A built-in action (`builtin.*`) is a plain row with its icon, title and subtitle. An id that does not exist shows "Unknown action <id>" in red. A config action whose `when` condition does not match is hidden. A section where every action is hidden is not shown |
 | Source (`sections[].source`) | The output of a script. The header shows "read 5 min ago" or a spinner, and a refresh button. The body shows the `view` of the last run: key-value pairs, monospaced text, or rows with tags and buttons. A failed run shows its message in red. A missing script shows "No script <path> in the .devhub folders" |
 | Actions (extra) | Actions with the placement `tab.<id>` that no section lists. DevHub adds them in a last section called "Actions" |
+| Recent | The last 30 texts that `copy` actions of this tab put on the clipboard, for this project, newest first: the text (click to copy), the action title and the time. Hover shows Resend (copies again and opens the target again) and Remove; Clear in the header drops the list of this tab. The section is hidden while the list is empty |
 
 A tab without sections shows "This tab has no sections. Add actions or a source script in .devhub/tabs/<id>.json."
 
@@ -31,7 +33,8 @@ The search field in the toolbar filters action rows by title and subtitle, and s
 
 | Control | What it does | Command |
 |---|---|---|
-| Run | Runs the action. When it has `inputs` or `confirm`, the prompt opens under the row | the `run` of the action (see [`run`](../extensions.md#31-run)) |
+| Run | Runs the action. When it has `inputs` or `confirm`, the prompt opens under the row. A `copy` action shows the rendered text under its inputs and the button says Copy | the `run` of the action (see [`run`](../extensions.md#31-run)) |
+| Confirmation | The action's `confirm`, or the `confirm` of the chosen option of a `choice` input of the action or of the tab, which wins. An action without inputs asks too when the chosen tab option has one | — |
 | Stop | Cancels a running script | — |
 | Edit in `<editor>` (menu) | Opens the script file in the editor from Settings | `open -a <editor> <file>` |
 | Reveal in Finder (menu) | Shows the script file | — |
@@ -92,6 +95,7 @@ A tab file:
 |---|---|---|
 | `id` | The tab id, the `tab.<id>` placement, and the saved tab `tab.<id>` | [Custom tabs](../extensions.md#8-custom-tabs) |
 | `title`, `icon`, `searchPrompt` | The tab button and the search field | [Custom tabs](../extensions.md#8-custom-tabs) |
+| `inputs` | The shared inputs in the bar under the toolbar | [Custom tabs](../extensions.md#8-custom-tabs), [Inputs](../extensions.md#32-inputs) |
 | `sections[].title` | The section header | [Custom tabs](../extensions.md#8-custom-tabs) |
 | `sections[].actions` | Action ids: config actions, `script:<name>`, `builtin.*` | [Custom tabs](../extensions.md#8-custom-tabs), [`project.json`](../extensions.md#2-projectjson) (the built-in ids) |
 | `sections[].source.script`, `.refresh` | The source script and when it runs | [Custom tabs](../extensions.md#8-custom-tabs) |
@@ -111,6 +115,9 @@ A custom tab has no store of its own (`docs/STATUS.md`, decision 31). It shares 
 | `navigator.selection` | The selected tab. A custom tab is saved as `tab.<id>` |
 | `configActions.lastRun` | The last run time per project and action. A source section shows it as "read 5 min ago". Home shows the same time for the same script |
 | `configActions.inputs` | The remembered inputs (`remember: true`) per project and action |
+| `configActions.tabInputs` | The values of the shared inputs per project and tab |
+| `configActions.recentInputs` | The recent values (`recent: true`) per project, action or tab, and input key |
+| `configActions.copyHistory` | The Recent list of `copy` actions: 30 per project, with the text, the action, the tab and the open target |
 
 The last `view` of a source section lives in memory. After a restart the section is empty until the script runs again.
 

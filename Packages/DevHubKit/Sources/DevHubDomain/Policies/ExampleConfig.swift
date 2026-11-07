@@ -5,12 +5,12 @@ package enum ExampleConfig {
         ExampleFile(path: "README.md", text: #"""
 # Example `.devhub/` folder
 
-Copy this folder into a project as `.devhub/` and adjust the values. Every field is explained in `docs/extensions.md`.
+Copy this folder into a project as `.devhub/` and adjust the values. Every field is explained in `docs/extensions.md`; `docs/customization.md` maps a need to the mechanism.
 
 - `project.json`: how the project builds and runs, base branch, worktree rules, launch profiles with their mock server upstream, the launch identity, the network mocks, log filter, Home grid order.
 - `actions/`: buttons with placements, inputs and confirmation.
 - `scripts/`: executables. A script with a `# devhub:` header becomes a row on Home without a JSON file. The helper scripts that an action, a tab or `simulators.statusScript` runs have `placements = palette`, so Home does not list them twice.
-- `tabs/`: a custom tab built from actions and a source script.
+- `tabs/`: `qa.json`, a custom tab built from actions and a source script; `chat.json`, a tab of chat commands with shared inputs (environment and user ID), `copy` actions that put the rendered command on the clipboard and open the channel, and a Recent list with Resend.
 """#, isExecutable: false),
         ExampleFile(path: "project.json", text: #"""
 {
@@ -56,6 +56,32 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
   "logs": { "subsystem": "com.example.app" },
   "simulators": { "statusScript": "scripts/sim-status.sh" },
   "home": { "quickActions": ["builtin.buildRun", "builtin.runAttach", "clean-derived-data", "open-ci", "builtin.terminal", "builtin.copyBranch"] }
+}
+"""#, isExecutable: false),
+        ExampleFile(path: "actions/chat-build.json", text: #"""
+{
+  "id": "chat-build",
+  "title": "Build a branch on CI",
+  "subtitle": "/cibot build {branch}",
+  "icon": "hammer",
+  "placements": ["tab.chat"],
+  "run": { "copy": "/cibot build {branch}", "open": "slack://channel?team=T0000000&id=C0000000" },
+  "inputs": [
+    { "key": "branch", "title": "Branch", "type": "branch", "default": "current" }
+  ]
+}
+"""#, isExecutable: false),
+        ExampleFile(path: "actions/chat-coins.json", text: #"""
+{
+  "id": "chat-coins",
+  "title": "Top up coins",
+  "subtitle": "{env} coins {user} {amount}",
+  "icon": "plus.circle",
+  "placements": ["tab.chat"],
+  "run": { "copy": "{env} coins {user} {amount}", "open": "slack://channel?team=T0000000&id=C0000000" },
+  "inputs": [
+    { "key": "amount", "title": "Coins", "type": "number", "default": 10000, "recent": true }
+  ]
 }
 """#, isExecutable: false),
         ExampleFile(path: "actions/clean-derived-data.json", text: #"""
@@ -226,6 +252,22 @@ fi
 echo "@devhub {\"state\": {\"identity\": \"$DEVICE_ID\", \"profile\": \"$ENVIRONMENT\", \"tags\": $TAGS}}"
 echo "@devhub {\"view\": {\"keyValues\": [[\"Environment\", \"$ENVIRONMENT\"], [\"ID\", \"$DEVICE_ID\"]]}}"
 """#, isExecutable: true),
+        ExampleFile(path: "tabs/chat.json", text: #"""
+{
+  "id": "chat",
+  "title": "Chat",
+  "icon": "bubble.left.and.text.bubble.right",
+  "searchPrompt": "Search chat commands",
+  "inputs": [
+    { "key": "env", "title": "Environment", "type": "choice", "options": [{ "value": "/qabot", "title": "QA" }, { "value": "/prodbot", "title": "PROD", "confirm": "Copy a command for PROD?" }], "default": "/qabot" },
+    { "key": "user", "title": "User ID", "type": "text", "recent": true, "placeholder": "the ID from the profile page" }
+  ],
+  "sections": [
+    { "title": "Accounts", "actions": ["chat-coins"] },
+    { "title": "CI", "actions": ["chat-build"] }
+  ]
+}
+"""#, isExecutable: false),
         ExampleFile(path: "tabs/qa.json", text: #"""
 {
   "id": "qa",

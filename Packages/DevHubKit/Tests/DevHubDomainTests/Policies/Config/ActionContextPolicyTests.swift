@@ -84,6 +84,15 @@ import Testing
         #expect(context.bundleID == "com.example.app.widget")
     }
 
+    @Test func sharedItemInputsSitUnderTheActionInputs() {
+        let context = ActionContextPolicy.make(inputs(item: ActionItemContext(tabID: "chat", inputs: ["env": "/qabot", "target-name": "shared"])))
+
+        #expect(context.environment["DEVHUB_INPUT_ENV"] == "/qabot")
+        #expect(context.environment["DEVHUB_INPUT_TARGET_NAME"] == "app")
+        #expect(context.placeholders["env"] == "/qabot")
+        #expect(context.placeholders["target-name"] == "app")
+    }
+
     @Test func theRowItemWins() {
         let context = ActionContextPolicy.make(inputs(item: ActionItemContext(branch: "feature/ABC-1", worktreePath: "/wt", simulatorUDID: "ROW", simulatorName: "iPad", rowID: "r1")))
 
