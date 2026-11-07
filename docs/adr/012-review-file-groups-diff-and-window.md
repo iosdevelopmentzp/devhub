@@ -45,6 +45,7 @@ The tray of ADR 010 D2 floated over the list with whole cards and could cover mo
 
 | Commit | What |
 |---|---|
-| `f19941e` | D1 and D2: `FileGroupConfig`, `PullRequestFileGroup`, `FileGroupPolicy`, `PullRequestFileGroupChipMapper`, the chips and the group toggle; `DiffLineEmphasis` in `DiffMapper` and `DiffLine`; the example config. |
-| `f1fbaac` | D3 and D4: `DiffLayout`, `SplitDiffMapper`, `SplitDiffRow`, the saved picker; `PullRequestFileSidebar` with its mapper, `revealFile`, the plain file list, the window size and the debug switches. |
-| `9ce48c2` | D5: `SimulatorRepository.delete`, "Delete Simulator…" with the inline confirmation. |
+| `987353e` | D1 and D2: `FileGroupConfig`, `PullRequestFileGroup`, `FileGroupPolicy`, `PullRequestFileGroupChipMapper`, the chips and the group toggle; `DiffLineEmphasis` in `DiffMapper` and `DiffLine`; the example config. |
+| `8754f0f` | D3 and D4: `DiffLayout`, `SplitDiffMapper`, `SplitDiffRow`, the saved picker; `PullRequestFileSidebar` with its mapper, `revealFile`, the plain file list, the window size and the debug switches. |
+| `d0f6edd` | D5: `SimulatorRepository.delete`, "Delete Simulator…" with the inline confirmation. |
+| `5bbb1d3` | D6: `OperationsStrip`, `OperationStripMapper`, `OperationLog.expandedID`, the tray draws only the open card; the docs of D1 to D5. |
