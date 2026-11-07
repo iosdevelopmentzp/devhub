@@ -1,4 +1,4 @@
-# ADR 015. Jira tickets through jira-cli
+# ADR 016. Jira tickets through jira-cli
 
 Date: 2026-11-07. Status: in progress (see "Where we stopped" and the step log).
 

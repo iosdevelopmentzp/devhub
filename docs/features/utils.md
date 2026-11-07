@@ -7,7 +7,7 @@ Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Utils/`, `Shell/
 | Tool | What it does |
 |---|---|
 | Compress Video | makes a screen recording or any video much smaller with ffmpeg, next to the original |
-| Tickets | the open Jira tickets of the project through `jira-cli`: yours or the whole project, Start, Move to, the branch name, the link (ADR 015) |
+| Tickets | the open Jira tickets of the project through `jira-cli`: yours or the whole project, Start, Move to, the branch name, the link (ADR 016) |
 | a custom tab | the sections of a `.devhub/tabs/<id>.json` file ([Custom tabs](custom-tabs.md)) |
 | a moved built-in tab | the same screen as in the tab bar, for example Logs or Network |
 
@@ -22,7 +22,7 @@ Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Utils/`, `Shell/
 
 ## Tickets
 
-Source: `Features/Utils/Tickets/`, `DevHubData/Jira/`, `DevHubDomain/Models/Tracker/`, `Policies/TrackerSettingsPolicy.swift`, `TrackerQueryPolicy.swift`, `TrackerBranchPolicy.swift`, `Repositories/IssueTrackerRepository.swift`. The plan and the decisions are in ADR 015.
+Source: `Features/Utils/Tickets/`, `DevHubData/Jira/`, `DevHubDomain/Models/Tracker/`, `Policies/TrackerSettingsPolicy.swift`, `TrackerQueryPolicy.swift`, `TrackerBranchPolicy.swift`, `Repositories/IssueTrackerRepository.swift`. The plan and the decisions are in ADR 016.
 
 The tab reads Jira through the `jira` tool of `jira-cli`, with the user's own login. DevHub never reads the token: it lives in the keychain item `jira-cli` (account = the login), in `~/.netrc`, or in `JIRA_API_TOKEN` of the shell (a menu bar app does not see the shell, so use the keychain or `~/.netrc`). Set-up once: `brew install jira-cli`, an API token from the Atlassian account, `security add-generic-password -s jira-cli -a <login> -w <token>`, then `jira init`.
 
@@ -44,7 +44,7 @@ The tab reads Jira through the `jira` tool of `jira-cli`, with the user's own lo
 
 5. **Commands.** `jira version`, `jira me`, `jira issue list -q <jql> --raw --paginate 0:50 --order-by updated [-p <project>]` (reads), `jira issue move <key> <status>` (an action). All in the Output panel.
 
-6. **Limits.** Checked by tests and the mock ports; the live tool was not run with a token in the session that built the tab (ADR 015, step 5). The list is one page of 50. Jira statuses are matched by name, as `jira issue move` takes them. A summary without ASCII letters gives a branch name of the key alone. The ticket chip of the Git tab still shows only the key.
+6. **Limits.** Checked by tests and the mock ports; the live tool was not run with a token in the session that built the tab (ADR 016, step 5). The list is one page of 50. Jira statuses are matched by name, as `jira issue move` takes them. A summary without ASCII letters gives a branch name of the key alone. The ticket chip of the Git tab still shows only the key.
 
 ## Compress Video
 
