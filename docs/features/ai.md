@@ -19,7 +19,7 @@ Each row shows:
 4. a provider tag (`Claude` or `Copilot`), the git branch tag (click to copy), and a red `folder missing` tag when the folder no longer exists;
 5. the last prompt, when it differs from the title.
 
-The header search filters by title, folder, branch, last prompt and provider name.
+The search field in the toolbar filters by title, folder, branch, last prompt and provider name.
 
 **This project** shows sessions whose folder is the project folder, a worktree of the project, or a folder inside one of them. A worktree folder next to the project folder counts too. A favorite session shows in every scope. **All** shows every session.
 

@@ -12,6 +12,7 @@ import Testing
     @Test func buildPreviewsBuild() {
         #expect(BranchChoiceModel.preview.id == "feature/login-flow")
         #expect(BuildSourceMenuModel.preview.worktrees.count == 1)
+        #expect(CheckoutBadgeModel.preview.isMain == false)
         #expect(RunBarModel.preview.target?.name == "iPhone 16 Pro")
         #expect(OperationCardModel.preview.tint == .red)
         #expect(OperationsIndicatorModel.preview.isRunning)

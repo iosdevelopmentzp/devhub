@@ -13,6 +13,7 @@ struct ScriptHintCard: View {
     # devhub: placements = home.scripts, git.pills
     # devhub: confirm = Continue?
     # devhub: refresh = git
+    echo '@devhub {"progress": "Step 1 of 2", "fraction": 0.5}'
     """
 
     var body: some View {
@@ -20,7 +21,7 @@ struct ScriptHintCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 Label("Add your own", systemImage: "lightbulb")
                     .font(.callout.weight(.medium))
-                Text("Any executable file in .devhub/scripts becomes a row here: in the project, in ~/.devhub/projects/<folder> or in ~/.devhub. Header lines in the first 20 lines set the title, inputs and placements. Run chmod +x on the file. Print @devhub lines to drive the panel. See docs/extensions.md.")
+                Text("Any executable file in .devhub/scripts becomes a row here: in the project, in ~/.devhub/projects/<folder> or in ~/.devhub. Header lines in the first 20 lines set the title, inputs and placements. Run chmod +x on the file. Print @devhub lines to drive the panel: a progress line shows in the operation card at the bottom of the tab and in the footer. See docs/extensions.md.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

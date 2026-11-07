@@ -18,7 +18,7 @@ Related pages: [Simulators](simulators.md).
    - config actions with the `logs.toolbar` placement.
 3. **The line list.** Each line shows the time, the level (Debug, Info, Default, Error, Fault), the subsystem and category, and the message. Error and Fault messages are red or purple. The list follows the newest line unless the stream is paused.
 
-The header search filters lines by message and category.
+The search field in the toolbar filters lines by message and category.
 
 When there is no stream, the tab says: "Boot a simulator and press + to stream its logs."
 

@@ -10,30 +10,42 @@ struct CustomTabView: View {
 
     var body: some View {
         let sections = CustomTabMapper.sections(for: tab, resolved: config.resolved, placed: store.actions(for: .tab(tab.id)), isVisible: store.isVisible)
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                if sections.isEmpty {
-                    Text("This tab has no sections. Add actions or a source script in .devhub/tabs/\(tab.id).json.")
-                        .font(.caption)
+        VStack(spacing: 0) {
+            ToolbarBar {
+                HStack {
+                    Text(CountText.invariant(sections.count, "sections"))
+                        .font(.callout)
                         .foregroundStyle(.secondary)
+                    Spacer()
+                    TabSearchField()
                 }
-                ForEach(sections) { section in
-                    switch section.content {
-                    case let .actions(actions, missing):
-                        CustomTabActionsSection(title: section.title, actions: actions, missing: missing, slot: "tab.\(tab.id):\(section.id)")
-                    case let .source(action, refresh):
-                        CustomTabSourceSection(title: section.title, action: action, refresh: refresh)
-                    case let .missingSource(script):
-                        VStack(alignment: .leading, spacing: 8) {
-                            SectionHeader(section.title) {}
-                            Label("No script \(script) in the .devhub folders", systemImage: "exclamationmark.triangle.fill")
-                                .font(.caption)
-                                .foregroundStyle(Tint.red.color)
+            }
+            Divider()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    if sections.isEmpty {
+                        Text("This tab has no sections. Add actions or a source script in .devhub/tabs/\(tab.id).json.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    ForEach(sections) { section in
+                        switch section.content {
+                        case let .actions(actions, missing):
+                            CustomTabActionsSection(title: section.title, actions: actions, missing: missing, slot: "tab.\(tab.id):\(section.id)")
+                        case let .source(action, refresh):
+                            CustomTabSourceSection(title: section.title, action: action, refresh: refresh)
+                        case let .missingSource(script):
+                            VStack(alignment: .leading, spacing: 8) {
+                                SectionHeader(section.title) {}
+                                Label("No script \(script) in the .devhub folders", systemImage: "exclamationmark.triangle.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(Tint.red.color)
+                            }
                         }
                     }
                 }
+                .padding(14)
             }
-            .padding(14)
         }
         .background(Theme.surface)
     }

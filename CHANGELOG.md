@@ -10,6 +10,9 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - `docs/customization.md`: the map from a need to the `.devhub/` mechanism that covers it, a worked example of a chat command tab built from scripts, actions and a custom tab, and the schema gaps that such a tab still has. Linked from the README, `AGENTS.md`, the example folder and the `extensions` skill.
 
 ### Added
+- Operations tray: every running or failed action shows as a card at the bottom of the tab, over the list and above the Output panel, with its steps, the last output line, the progress of a script, Stop, Retry, Copy Error and Full Output. Several actions at once are several cards. The tray floats, so the list no longer jumps when a card appears or grows. A pull request window has its own tray.
+- Simulators → Remove Apps from All…: runs as an operation with "3/10 · iPhone 16", a bar and Stop in its card, instead of a progress line that grew the toolbar.
+- Simulators and Git: a checkout badge. Gray "Main checkout · <branch>" for the main checkout; orange "Worktree · <name>" or "Branch · <name>" when the build or the Git actions use another checkout. A click opens the menu as before.
 - Simulators: paired iPhones and iPads show in a "Devices" section at the top of the list, with their iOS version, a `device` tag and "Connected" or "Not connected". A connected device can be the target: Build & Run builds for it with the signing of the project, installs the app with `devicectl` and launches it with the launch profile and the device ID. Clean install removes the app first. Profile defaults are written into the app's preferences on the device. The identity panel reads the installed version, the stored profile and, for a build made by DevHub, the identity hook. Uninstall and favorites work for a device. Logs, the mock server, Run & Attach, deep links, push, erase, app data and QA settings are not available on a device and are hidden in its row; the run bar disables Run & Attach for a device target. The toolbar counts simulators and devices apart. Scripts get `DEVHUB_SIMULATOR_KIND` (`simulator` or `device`).
 - Simulators: without a saved target, a booted simulator is the target before a connected device.
 - Simulators: the run bar shows a tag with the version of the Xcode that builds the project (`Xcode 26.1`). Its hint names the app path and where the choice comes from: Settings → Projects, `xcode.developerDir`, or `xcode-select`. The Xcode of `xcode-select` and the chosen one are listed with their version even when Spotlight does not find them.
@@ -114,6 +117,10 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- The search field moved from the header into the toolbar of each tab, next to the list it filters (Home: next to the "Quick actions" title; custom tabs: a new toolbar). ⌘F focuses it and Esc clears it as before, and the text per tab is kept. The "Showing only items that match" bar is gone: the field shows the text.
+- Operation cards no longer show inline under a header, a toolbar or a row; they show in the tray.
+- Simulators: the run bar options wrap to two rows when the panel is narrow, with the checkout badge first. The Git section bar shows its tip as a hint of the picker.
+- Home → Scripts: the hint card shows a `progress` line in its example script.
 - The Output panel sorts a command started by its full path (`/opt/homebrew/bin/ffmpeg`) by the tool name, and shows `ffmpeg -version`, `ffmpeg -encoders` and `ffprobe` as reads.
 - The Output panel no longer opens by itself when an action fails: the operation card shows the reason. "Open When a Command Fails" in its filter menu brings the old behaviour back.
 - The footer no longer shows only the `progress` line of a running script: the operations indicator shows it, and the card of the action shows the bar.

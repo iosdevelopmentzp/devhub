@@ -31,6 +31,7 @@ struct LogsToolbar: View {
                     .hint("When set, the stream shows this subsystem instead of the process")
                 runButton
                 Spacer(minLength: 0)
+                TabSearchField()
                 if stream.isRunning {
                     ProgressView()
                         .controlSize(.mini)

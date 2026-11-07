@@ -17,6 +17,7 @@ struct PullRequestsToolbar: View {
                     filters
                     options
                     Spacer()
+                    TabSearchField()
                     status
                 }
                 VStack(alignment: .leading, spacing: 8) {
@@ -27,6 +28,8 @@ struct PullRequestsToolbar: View {
                     }
                     HStack(spacing: 8) {
                         options
+                        Spacer()
+                        TabSearchField()
                     }
                 }
             }

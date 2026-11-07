@@ -32,42 +32,71 @@ struct WorktreesToolbar: View {
     }
 
     private var header: some View {
-        HStack(spacing: 8) {
-            Text(CountText.invariant(worktrees.worktrees.count, "worktrees"))
-                .font(.callout)
-                .foregroundStyle(.secondary)
-            Tag("base \(worktrees.baseBranch)", systemImage: "arrow.triangle.branch")
-            if worktrees.linkedDerivedDataSize > 0 {
-                Tag("DerivedData \(ByteFormat.text(worktrees.linkedDerivedDataSize))", tint: .blue, systemImage: "internaldrive")
-                    .hint("Total DerivedData of linked worktrees. The main checkout is not counted.")
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8) {
+                facts
+                Spacer()
+                TabSearchField()
+                buttons
             }
-            Spacer()
-            if worktrees.isFetching || worktrees.isLoading {
-                ProgressView()
-                    .controlSize(.mini)
-            }
-            Button("Fetch", systemImage: "arrow.down.circle") {
-                worktrees.fetchAndRefresh()
-            }
-            .hint("git fetch --prune \(worktrees.gitSettings.remote), then re-read merged and remote-deleted branches")
-            .disabled(worktrees.isFetching)
-            if worktrees.missingCount > 0 {
-                Button("Prune \(worktrees.missingCount)", systemImage: "scissors") {
-                    worktrees.prune()
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    facts
+                    Spacer()
+                    TabSearchField()
                 }
-                .hint("git worktree prune: forget worktrees whose folder is gone")
-            }
-            Button("Clean Finished (\(finished.count))…", systemImage: "sparkles") {
-                isCreating = false
-                isConfirmingClean = true
-            }
-            .disabled(finished.isEmpty)
-            Button("New…", systemImage: "plus") {
-                isConfirmingClean = false
-                isCreating = true
-                isBranchFieldFocused = true
+                HStack(spacing: 8) {
+                    buttons
+                    Spacer()
+                }
             }
         }
+    }
+
+    @ViewBuilder
+    private var facts: some View {
+        Text(CountText.invariant(worktrees.worktrees.count, "worktrees"))
+            .font(.callout)
+            .foregroundStyle(.secondary)
+            .fixedSize()
+        Tag("base \(worktrees.baseBranch)", systemImage: "arrow.triangle.branch")
+        if worktrees.linkedDerivedDataSize > 0 {
+            Tag("DerivedData \(ByteFormat.text(worktrees.linkedDerivedDataSize))", tint: .blue, systemImage: "internaldrive")
+                .hint("Total DerivedData of linked worktrees. The main checkout is not counted.")
+        }
+    }
+
+    @ViewBuilder
+    private var buttons: some View {
+        if worktrees.isFetching || worktrees.isLoading {
+            ProgressView()
+                .controlSize(.mini)
+        }
+        Button("Fetch", systemImage: "arrow.down.circle") {
+            worktrees.fetchAndRefresh()
+        }
+        .fixedSize()
+        .hint("git fetch --prune \(worktrees.gitSettings.remote), then re-read merged and remote-deleted branches")
+        .disabled(worktrees.isFetching)
+        if worktrees.missingCount > 0 {
+            Button("Prune \(worktrees.missingCount)", systemImage: "scissors") {
+                worktrees.prune()
+            }
+            .fixedSize()
+            .hint("git worktree prune: forget worktrees whose folder is gone")
+        }
+        Button("Clean Finished (\(finished.count))…", systemImage: "sparkles") {
+            isCreating = false
+            isConfirmingClean = true
+        }
+        .fixedSize()
+        .disabled(finished.isEmpty)
+        Button("New…", systemImage: "plus") {
+            isConfirmingClean = false
+            isCreating = true
+            isBranchFieldFocused = true
+        }
+        .fixedSize()
     }
 
     private var confirmClean: some View {

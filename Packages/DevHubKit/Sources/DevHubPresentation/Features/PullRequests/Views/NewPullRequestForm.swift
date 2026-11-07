@@ -53,7 +53,6 @@ struct NewPullRequestForm: View {
                 .fixedSize()
                 .hint("Target branch")
             }
-            OperationSlot(origin: .newPullRequest)
             TextField("Title", text: binding(\.title))
                 .textFieldStyle(.roundedBorder)
             PlainTextEditor(text: binding(\.description))

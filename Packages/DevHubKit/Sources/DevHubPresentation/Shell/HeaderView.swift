@@ -3,42 +3,22 @@ import DevHubDomain
 import DevHubUI
 
 struct HeaderView: View {
-    @Environment(ProjectSession.self) private var session
     @Environment(Navigator.self) private var navigator
     @Environment(AppActions.self) private var appActions
-    @Environment(ConfigStore.self) private var config
     @Environment(SettingsStore.self) private var settings
     @Environment(ActivityLog.self) private var activity
     @Environment(InboxStore.self) private var inbox
     @Environment(\.isPinnedWindow) private var isPinnedWindow
     @Environment(\.togglePin) private var togglePin
-    @Environment(\.codeHostWords) private var words
-    @FocusState private var isSearchFocused: Bool
 
     private var badgeCount: Int {
         activity.unreadCount + inbox.unreadCount
     }
 
-    private var searchPrompt: String? {
-        TabItemMapper.item(for: navigator.selection, customTabs: config.resolved.tabs, words: words).searchPrompt
-    }
-
     var body: some View {
-        @Bindable var session = session
         HStack(spacing: 10) {
             ProjectMenu()
             Spacer(minLength: 8)
-            if let searchPrompt {
-                SearchField(prompt: searchPrompt, text: $session.searchText, focus: $isSearchFocused)
-                    .frame(width: 260)
-                    .hint("\(searchPrompt) on this tab (⌘F). Esc clears.")
-                    .background(
-                        Button("") { isSearchFocused = true }
-                            .keyboardShortcut("f", modifiers: .command)
-                            .opacity(0)
-                            .allowsHitTesting(false)
-                    )
-            }
             IconButton(systemImage: "command", help: "Command palette (⌘K): tabs, actions, branches, simulators, worktrees, requests, sessions") {
                 navigator.togglePalette()
             }

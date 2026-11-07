@@ -30,7 +30,6 @@ struct AppDataPanel: View {
                 placement: .simulatorsAppData,
                 item: ActionItemContext(simulatorUDID: simulator.id, simulatorName: simulator.name, bundleID: bundleID, rowID: simulator.id, refresh: [.appData])
             )
-            OperationSlot(origin: .simulator(simulator.id))
             if isBooted == false {
                 message("Boot the simulator first. DevHub reads the app data through the running simulator.", tint: .orange)
             } else if let error = store.errors[simulator.id] {

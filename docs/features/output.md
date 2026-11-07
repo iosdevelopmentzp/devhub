@@ -13,7 +13,7 @@ The footer has an "Output" button (⇧⌘O). It shows or hides the panel. Before
 - a spinner while a command that is not a read runs;
 - a red dot when one of the last 5 commands failed and was not a read.
 
-A failed action shows an operation card at the place where it started, with the failed step, the lines that explain it and the whole output on request (see "Operations" below). The panel opens by itself on such a failure only when "Open When a Command Fails" is on in the filter menu (off by default).
+A failed action shows an operation card in the tray at the bottom of the tab, with the failed step, the lines that explain it and the whole output on request (see "Operations" below). The panel opens by itself on such a failure only when "Open When a Command Fails" is on in the filter menu (off by default).
 
 ### Panel
 
@@ -81,18 +81,23 @@ The panel runs no commands of its own.
 
 An operation is one action that you started. `OperationScope.current` (a Domain task-local ID) is set while the action works, and `ShellRunner` puts it into the `started` event of every command, so the command log knows which commands belong to which action. `OperationLog` (`Shared/Operations/`) keeps the running operations and the last 30 finished ones, in memory only.
 
-Code: `DevHubPresentation/Shared/Operations/`, `Features/Operations/`, `Shared/ActionRunner.swift`, `DevHubDomain/Models/OperationScope.swift`, `DevHubDomain/Policies/FailureDigestPolicy.swift`.
+Code: `DevHubPresentation/Shared/Operations/`, `Features/Operations/` (`OperationsTray`, `OperationsTrayMapper`, `OperationCard`, `OperationsIndicator`), `Shared/ActionRunner.swift`, `DevHubDomain/Models/OperationScope.swift`, `DevHubDomain/Policies/FailureDigestPolicy.swift`.
 
-| Place | Card | Started by |
-|---|---|---|
-| Git tab, under the header | `OperationOrigin.git` | Fetch, Pull, Push, Force Push, Rebase, Stash, Switch, Update, Delete and the other actions of `GitStore` |
-| Git tab, under the commit box | `.changes` | Commit, Commit & Push, Stage, Unstage, Discard |
-| Under a tile grid, a script row, the Git pills, a toolbar bar, a custom tab action | `.action(<id>)` | config actions and scripts; the `progress` line moves the bar of the card and the footer |
-| Simulators, under the toolbar | `.simulators` | Boot, Shut Down, Erase, Remove Apps and the other actions of `SimulatorsStore` |
-| The push panel of a simulator | `.messaging` | Send Push |
-| Worktrees, under the toolbar | `.worktrees` | Fetch, Prune, Clean Finished, New (create) |
-| Worktrees, under a row | `.worktree(<path>)` | Delete, Bootstrap (with Retry) |
-| Pull Requests, under a row, at the top of the details pane and in a request window | `.pullRequest(<number>)` | Approve, Revoke, Ready, Draft, Update, Merge, Auto-merge, Retry and Cancel the checks (with Retry); Comment, Request Changes, a line comment, Resolve, Reply, Retry a job, the CircleCI Re-run, Cancel and Approve |
+The cards show in one tray at the bottom of the tab, over the list and above the Output panel, in the order the operations started. The tray floats over the content, so nothing below it moves when a card appears or grows. Several operations at once are several cards. When the cards need more than 45 % of the panel height, the tray scrolls. A request window has its own tray with the operations of that request. Each card has its origin: where the action started and which place its Retry repeats.
+
+| Origin | Started by |
+|---|---|
+| `OperationOrigin.git` | Fetch, Pull, Push, Force Push, Rebase, Stash, Switch, Update, Delete and the other actions of `GitStore` |
+| `.changes` | Commit, Commit & Push, Stage, Unstage, Discard, Write with AI in the commit box |
+| `.action(<id>)` | config actions and scripts from a tile grid, a script row, the Git pills, a toolbar bar or a custom tab; the `progress` line sets the detail text and the bar of the card and the footer |
+| `.simulators` | Boot, Shut Down, Erase, Remove Apps, Remove Apps from All (with its progress and Stop) and the other actions of `SimulatorsStore` |
+| `.simulator(<udid>)` | Record, the QA settings, the app data changes of that simulator |
+| `.messaging` | Send Push |
+| `.worktrees` | Fetch, Prune, Clean Finished, New (create), Keep Inside the Project |
+| `.worktree(<path>)` | Delete, Bootstrap (with Retry) |
+| `.pullRequest(<number>)` | Approve, Revoke, Ready, Draft, Update, Merge, Auto-merge, Retry and Cancel the checks (with Retry); Comment, Request Changes, a line comment, Resolve, Reply, Retry a job, the CircleCI Re-run, Cancel and Approve; Explain |
+| `.newPullRequest` | Write with AI in the new request form |
+| `.disk` | Delete in Settings → Disk |
 
 A card shows:
 
@@ -101,7 +106,7 @@ A card shows:
 - after a success with a failed step (a commit whose push failed): an orange card "<title> · a step failed" with the same failure part;
 - after a success: a green line with the duration that goes away after 4 seconds.
 
-A new operation at the same place replaces the card of the last one. Retry runs the same action again with the same inputs.
+A new operation at the same origin hides the finished card of the last one. A success goes away after 4 seconds; a failure stays until its close button. Retry runs the same action again with the same inputs.
 
 The footer shows the operations next to the build state: the title and progress of a running operation, "N running", or "N failed" in red until the list is opened. A click opens the list of this session with the same cards; the close button of a card removes it from the list, and "Clear Finished" removes every finished one.
 

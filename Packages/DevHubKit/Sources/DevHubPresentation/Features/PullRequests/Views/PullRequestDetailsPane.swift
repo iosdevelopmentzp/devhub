@@ -72,7 +72,6 @@ struct PullRequestDetailsPane: View {
         return ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    OperationSlot(origin: .pullRequest(id))
                     PullRequestDetailsView(
                         model: details,
                         actions: detailActions.withoutWindow

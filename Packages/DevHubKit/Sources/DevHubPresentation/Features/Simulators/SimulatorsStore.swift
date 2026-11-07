@@ -19,6 +19,7 @@ final class SimulatorsStore: SimulatorLookup {
     @ObservationIgnored private let repository: SimulatorRepository
     @ObservationIgnored private let devices: any DeviceRepository
     @ObservationIgnored private let activity: ActivityLog
+    @ObservationIgnored private let operations: OperationLog
     @ObservationIgnored private let runner: ActionRunner
     @ObservationIgnored private let events: AppEvents
     @ObservationIgnored private let store: any KeyValueStore
@@ -32,6 +33,7 @@ final class SimulatorsStore: SimulatorLookup {
         self.repository = repository
         self.devices = devices
         self.activity = activity
+        self.operations = operations
         runner = ActionRunner(activity: activity, operations: operations, origin: .simulators)
         self.events = events
         self.store = store
@@ -223,28 +225,49 @@ final class SimulatorsStore: SimulatorLookup {
         let targets = withApps
         guard targets.isEmpty == false, bulkUninstall == nil else { return }
         bulkUninstall = BulkProgress(done: 0, total: targets.count, current: targets[0].name)
+        let operationID = operations.start(
+            "Remove apps from \(CountText.invariant(targets.count, "simulators"))",
+            at: .simulators,
+            retry: nil,
+            stop: { [weak self] in
+                guard let self else { return }
+                cancelBulkUninstall()
+            }
+        )
         bulkUninstallTask = Task { [weak self] in
             guard let self else { return }
             var removedApps = 0
             var failures: [String] = []
-            for (index, simulator) in targets.enumerated() {
-                guard Task.isCancelled == false else { break }
-                bulkUninstall = BulkProgress(done: index, total: targets.count, current: simulator.name)
-                uninstallingIDs.insert(simulator.id)
-                do {
-                    let removed = try await repository.uninstallUserApps(udid: simulator.id, wasBooted: simulator.state == .booted)
-                    removedApps += removed.count
-                    installedAppCounts[simulator.id] = 0
-                } catch {
-                    failures.append(simulator.name)
+            await OperationScope.$current.withValue(operationID) {
+                for (index, simulator) in targets.enumerated() {
+                    guard Task.isCancelled == false else { break }
+                    let progress = BulkProgress(done: index, total: targets.count, current: simulator.name)
+                    bulkUninstall = progress
+                    operations.setProgress(of: operationID, text: "\(progress.done + 1)/\(progress.total) · \(progress.current)", fraction: Double(progress.done) / Double(progress.total))
+                    uninstallingIDs.insert(simulator.id)
+                    do {
+                        let removed = try await repository.uninstallUserApps(udid: simulator.id, wasBooted: simulator.state == .booted)
+                        removedApps += removed.count
+                        installedAppCounts[simulator.id] = 0
+                    } catch {
+                        failures.append(simulator.name)
+                    }
+                    uninstallingIDs.remove(simulator.id)
                 }
-                uninstallingIDs.remove(simulator.id)
             }
             let wasCancelled = Task.isCancelled
             bulkUninstall = nil
             bulkUninstallTask = nil
-            let detail = "\(removedApps) apps" + (failures.isEmpty ? "" : " · failed on \(failures.joined(separator: ", "))")
+            let failedOn = failures.isEmpty ? nil : "Failed on \(failures.joined(separator: ", "))"
+            let detail = "\(removedApps) apps" + (failedOn.map { " · \($0.lowercased())" } ?? "")
             activity.log(wasCancelled ? "Stopped removing apps" : "Removed apps from all simulators", detail: detail, outcome: failures.isEmpty ? .success : .failure)
+            if wasCancelled {
+                operations.cancel(operationID)
+            } else if let failedOn {
+                operations.fail(operationID, message: failedOn)
+            } else {
+                operations.succeed(operationID)
+            }
             await refresh()
         }
     }

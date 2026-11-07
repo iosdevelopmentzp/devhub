@@ -36,10 +36,10 @@ The core is generic. Swift code never names a project, a path, a bundle ID, a ho
 2. **Every external command is visible.** Every process runs through one `ShellRunner`. Each run appears in the Output panel with its folder, output, duration and exit code.
 3. **The user's branch never changes without a request.** A build of another branch uses a worktree. Pull and update use fast-forward only.
 4. **Secrets stay in memory.** A token is read for one request and then dropped. The output of `security` and `gh auth token` is never recorded. Log lines are masked before DevHub keeps them.
-5. **Search in every list.** The header search filters the list of the current tab. Long pickers have a search field.
+5. **Search in every list.** The search field in the toolbar filters the list of the current tab. Long pickers have a search field.
 6. **Fast open.** The panel opens at once with the last state and refreshes in the background.
 7. **A missing tool does not break the app.** When `gh`, `glab`, `copilot` or `claude` is missing or not logged in, the feature shows what to install or run. The other tabs work.
-8. **Every failure is visible.** A failed action shows an operation card at the place where it started: the failed step, its exit code and the lines that explain it. It also adds a red line to the Recent list on Home. No error is caught without a message.
+8. **Every failure is visible.** A failed action shows an operation card in the tray at the bottom of the tab: the failed step, its exit code and the lines that explain it. It also adds a red line to the Recent list on Home. No error is caught without a message.
 
 ### 1.4 Non-goals
 
@@ -142,7 +142,7 @@ Sources:
 - Kinds: builds (finished, launched or failed), crashes of the launched app on a simulator (from the macOS crash reports, see the Simulators page), test runs of a worktree, more requests waiting for your review, and changes of your own open requests: an approval or a request for changes, failed checks or pipeline, new comments by someone else ("sam commented on #12"), a merge or a close. DevHub compares two reads of the open requests (every 5 minutes, every 2 minutes while the panel is closed); a request that left the list gets one status read to tell a merge from a close.
 - The `notify` directive of a script posts a notification when the permission is given, even while the panel is open and with the main switch off, unless its kind is muted.
 - A click on a notification opens DevHub at the place of the event (a request, the review list, the Worktrees tab, the run bar). A notification without a place opens the Notifications screen.
-- The Notifications screen (the bell in the header, with a badge of unseen events) lists every event of the last 30 days (500 at most, saved between launches) by day, with a filter by kind, the header search, Clear and an arrow that opens the place of an event. Home → Recent shows the last 8 of them.
+- The Notifications screen (the bell in the header, with a badge of unseen events) lists every event of the last 30 days (500 at most, saved between launches) by day, with a filter by kind, the search field of the tab, Clear and an arrow that opens the place of an event. Home → Recent shows the last 8 of them.
 - The Inbox pane of the Notifications screen lists the unread GitHub notification threads or the pending GitLab to-dos of this repository (`gh api notifications`, `glab api todos`), with the actor, an open action, a browser link and "Mark as Done". A new item posts a notification of the kind "Inbox". The bell badge counts the Inbox items too.
 
 ---
@@ -164,7 +164,7 @@ Sources:
 | custom tabs | tabs from `.devhub/tabs/*.json` | [`features/custom-tabs.md`](features/custom-tabs.md) |
 | Settings | app settings, projects, config folders, Doctor | [`features/settings.md`](features/settings.md) |
 
-Every tab filters its lists with the header search. Every tab shows an empty state with a short hint when there is nothing to show. Errors appear inside the tab with a Retry button.
+Every tab filters its lists with the search field in its toolbar (⌘F focuses it, Esc clears it). Every tab shows an empty state with a short hint when there is nothing to show. Errors appear inside the tab with a Retry button.
 
 ### 3.1 Home
 

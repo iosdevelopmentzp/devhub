@@ -66,7 +66,6 @@ struct DiskCleanupSection: View {
                     .controlSize(.small)
                     .disabled(store.isScanning)
                 }
-                OperationSlot(origin: .disk)
             }
         } footer: {
             Text("Xcode, simulator and package manager folders that every Mac has. DevHub reads the sizes with du and the simulators with simctl. Deleted files do not go to the Trash.")

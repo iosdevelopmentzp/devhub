@@ -174,7 +174,7 @@ A tool that a project does not use can stay missing.
 
 ### Disk
 
-The first time the Settings tab opens, DevHub lists the Xcode, simulator and package manager folders that every Mac has, then measures each one with `du -sck` (four at a time). "Scan Again" reads everything again. The header shows the total. Each line shows its size and a "Delete…" button that asks first, inside the line: the title names the size, the warnings say what you lose. A delete runs as an operation card under the header, with Retry after a failure, and the line goes away when it worked. Nothing goes to the Trash.
+The first time the Settings tab opens, DevHub lists the Xcode, simulator and package manager folders that every Mac has, then measures each one with `du -sck` (four at a time). "Scan Again" reads everything again. The header shows the total. Each line shows its size and a "Delete…" button that asks first, inside the line: the title names the size, the warnings say what you lose. A delete runs as an operation card in the tray at the bottom of the tab, with Retry after a failure, and the line goes away when it worked. Nothing goes to the Trash.
 
 | Line | What it is | Delete runs |
 |---|---|---|

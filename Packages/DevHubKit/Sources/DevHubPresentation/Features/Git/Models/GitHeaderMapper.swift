@@ -27,11 +27,6 @@ enum GitHeaderMapper {
         )
     }
 
-    static func checkoutLabel(path: String, worktree: Worktree?) -> String {
-        guard let worktree else { return path.abbreviatingHome }
-        return worktree.isMain ? "Main checkout" : "Worktree \(worktree.displayName)"
-    }
-
     static func checkoutTitle(_ worktree: Worktree) -> String {
         worktree.isMain ? "\(worktree.displayName) · main checkout" : worktree.displayName
     }

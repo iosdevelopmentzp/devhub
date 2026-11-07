@@ -126,34 +126,62 @@ struct RunBar: View {
     }
 
     private func options(_ model: RunBarModel) -> some View {
-        HStack(spacing: 8) {
-            if let commands = build.commandsSummary {
-                Label(commands, systemImage: "terminal")
-                    .font(.caption.monospaced())
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .hint("This project builds and runs with build.command and run.command: \(commands). A line @devhub {\"app\": \"<path>\"} makes DevHub install and launch that app.")
-            } else {
-                xcodePickers
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8) {
+                BuildSourceMenu()
+                buildPickers
+                buildToggles
+                Spacer()
+                refreshButton(model)
             }
-            if let xcodeTag {
-                ModelTag(model: xcodeTag)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    BuildSourceMenu()
+                    buildPickers
+                    Spacer()
+                }
+                HStack(spacing: 8) {
+                    buildToggles
+                    Spacer()
+                    refreshButton(model)
+                }
             }
-            BuildSourceMenu()
-            Toggle("Fast", isOn: Binding(get: { build.state.incremental }, set: { build.setIncremental($0) }))
-                .toggleStyle(.checkbox)
-                .hint("Incremental build: skip xcodebuild clean and reuse DerivedData")
-                .disabled(build.isCommandProject)
-            Toggle("Clean install", isOn: Binding(get: { build.state.cleanInstall }, set: { build.setCleanInstall($0) }))
-                .toggleStyle(.checkbox)
-                .hint("Cold install: delete the app before installing. A simulator also gets its keychain reset")
-            Spacer()
-            IconButton(systemImage: "arrow.clockwise", help: "Refresh simulators") {
-                Task { await simulators.refresh() }
-            }
-            .disabled(model.canRefreshSimulators == false)
         }
         .controlSize(.small)
+    }
+
+    @ViewBuilder
+    private var buildPickers: some View {
+        if let commands = build.commandsSummary {
+            Label(commands, systemImage: "terminal")
+                .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .hint("This project builds and runs with build.command and run.command: \(commands). A line @devhub {\"app\": \"<path>\"} makes DevHub install and launch that app.")
+        } else {
+            xcodePickers
+        }
+        if let xcodeTag {
+            ModelTag(model: xcodeTag)
+        }
+    }
+
+    @ViewBuilder
+    private var buildToggles: some View {
+        Toggle("Fast", isOn: Binding(get: { build.state.incremental }, set: { build.setIncremental($0) }))
+            .toggleStyle(.checkbox)
+            .hint("Incremental build: skip xcodebuild clean and reuse DerivedData")
+            .disabled(build.isCommandProject)
+        Toggle("Clean install", isOn: Binding(get: { build.state.cleanInstall }, set: { build.setCleanInstall($0) }))
+            .toggleStyle(.checkbox)
+            .hint("Cold install: delete the app before installing. A simulator also gets its keychain reset")
+    }
+
+    private func refreshButton(_ model: RunBarModel) -> some View {
+        IconButton(systemImage: "arrow.clockwise", help: "Refresh simulators") {
+            Task { await simulators.refresh() }
+        }
+        .disabled(model.canRefreshSimulators == false)
     }
 
     private var xcodePickers: some View {

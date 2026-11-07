@@ -37,7 +37,6 @@ struct GitHeader: View {
                         operationBanner(operationText, canContinue: model.canContinueOperation)
                     }
                     actions(model)
-                    OperationSlot(origin: .git)
                     ConfigActionResults(placement: .gitPills, slot: Placement.gitPills.slot)
                     if let confirming {
                         confirmation(confirming, model: model)
@@ -60,10 +59,12 @@ struct GitHeader: View {
                     }
                 }
             } label: {
-                Label(checkoutLabel, systemImage: "folder")
+                CheckoutBadge(model: checkoutBadge)
             }
-            .fixedSize()
-            .hint("Which checkout the actions below run in")
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .hint(checkoutBadge.hint)
             Spacer()
             if let busy = git.busyTitle {
                 ProgressView()
@@ -84,9 +85,9 @@ struct GitHeader: View {
         .controlSize(.small)
     }
 
-    private var checkoutLabel: String {
+    private var checkoutBadge: CheckoutBadgeModel {
         let path = git.checkoutPath
-        return GitHeaderMapper.checkoutLabel(path: path, worktree: worktrees.worktree(atPath: path))
+        return CheckoutBadgeMapper.gitCheckout(path: path, worktree: worktrees.worktree(atPath: path))
     }
 
     private var pullRequestLine: some View {

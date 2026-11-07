@@ -30,11 +30,12 @@ struct BuildSourceMenu: View {
                 isPickingBranch = true
             }
         } label: {
-            Label(model.label, systemImage: model.icon)
-                .lineLimit(1)
+            CheckoutBadge(model: badge)
         }
-        .frame(width: 200)
-        .hint(model.hint)
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .hint(badge.hint)
         .popover(isPresented: $isPickingBranch, arrowEdge: .bottom) {
             BranchPicker { name in
                 build.useSource(branch: name)
@@ -44,13 +45,17 @@ struct BuildSourceMenu: View {
         }
     }
 
-    private var model: BuildSourceMenuModel {
-        BuildSourceMenuMapper.model(
-            source: build.source,
+    private var badge: CheckoutBadgeModel {
+        CheckoutBadgeMapper.buildSource(
+            build.source,
             label: build.sourceLabel,
-            worktrees: worktrees.worktrees,
-            projectName: session.selectedProject.name
+            hasWorktree: build.sourceWorktreeID != nil,
+            worktrees: worktrees.worktrees
         )
+    }
+
+    private var model: BuildSourceMenuModel {
+        BuildSourceMenuMapper.model(worktrees: worktrees.worktrees, projectName: session.selectedProject.name)
     }
 }
 

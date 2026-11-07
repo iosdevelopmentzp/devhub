@@ -33,11 +33,11 @@ Each row shows:
 5. `needs bootstrap` (orange) when the bootstrap marker exists in the main checkout but not in this worktree. A click runs the bootstrap script. While it runs, the row shows "Running <script>…".
 6. The time and subject of the last commit.
 
-The row of the build source has a highlighted background. The header search filters by name, path and last commit subject.
+The row of the build source has a highlighted background. The search field in the toolbar filters by name, path and last commit subject.
 
 ## Actions
 
-An action below shows an operation card at its place: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry (when the action can run again), Copy Error and Full Output. See [Operations](output.md#operations).
+An action below shows an operation card in the tray at the bottom of the tab: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry (when the action can run again), Copy Error and Full Output. See [Operations](output.md#operations).
 
 ### Toolbar
 
@@ -57,7 +57,7 @@ The line under the branch field of New… shows the folder of the new worktree; 
 .worktrees/
 ```
 
-Then git ignores the folder, `git status` of the main checkout stays clean, and new worktrees go to `<project folder>/.worktrees/<branch>`. `.git/info/exclude` is local to this clone and is never committed. Worktrees you already have stay where they are. To go back, remove the line from `.git/info/exclude`. A project that has `.worktrees/` in `.gitignore` works the same way without the button. The step is an operation card under the toolbar and a line in Recent; a failure says why (for example a `!.worktrees/` rule in `.gitignore`).
+Then git ignores the folder, `git status` of the main checkout stays clean, and new worktrees go to `<project folder>/.worktrees/<branch>`. `.git/info/exclude` is local to this clone and is never committed. Worktrees you already have stay where they are. To go back, remove the line from `.git/info/exclude`. A project that has `.worktrees/` in `.gitignore` works the same way without the button. The step is an operation card in the tray at the bottom of the tab and a line in Recent; a failure says why (for example a `!.worktrees/` rule in `.gitignore`).
 
 ### Create a worktree
 

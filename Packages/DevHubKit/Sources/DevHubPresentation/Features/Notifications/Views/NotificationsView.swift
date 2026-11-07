@@ -19,6 +19,7 @@ struct NotificationsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()
+                    TabSearchField()
                     if inbox.pane == .inbox {
                         inboxActions
                     } else {

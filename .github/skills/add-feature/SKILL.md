@@ -247,7 +247,7 @@ struct DevicesView: View {
 Feature(id: .devices, title: "Devices", systemImage: "ipad.and.iphone", searchPrompt: "Search devices") { DevicesView() },
 ```
 
-- The tab bar (⌘1 to ⌘9 for the first nine tabs), the header search prompt and the ⌘K palette read
+- The tab bar (⌘1 to ⌘9 for the first nine tabs), the search prompt of the tab (`TabSearchField`) and the ⌘K palette read
   `FeatureRegistry` through `TabItemMapper`. Nothing else to add.
 - `showsInTabBar: false` hides a tab from the bar (Settings uses it). `searchPrompt: nil` hides the search field.
 - Open the tab from code with `navigator.show(.devices)`. The selection is a `TabID` (`.feature(FeatureID)` or

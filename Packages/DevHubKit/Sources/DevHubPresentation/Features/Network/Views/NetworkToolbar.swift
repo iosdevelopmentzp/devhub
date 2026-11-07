@@ -29,6 +29,7 @@ struct NetworkToolbar: View {
                 .fixedSize()
                 .hint("Only booted simulators are listed")
                 Spacer(minLength: 0)
+                TabSearchField()
             }
             HStack(spacing: 8) {
                 Picker("Filter", selection: $network.filter) {

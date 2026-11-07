@@ -9,7 +9,7 @@ Code: `Packages/DevHubKit/Sources/DevHubPresentation/Features/CustomTabs/`, `Fea
 ### Tab bar and header
 
 - The tab button uses `title` and `icon` (default icon `square.grid.2x2`).
-- The header search uses `searchPrompt` (default "Search <title>").
+- The search field in the toolbar uses `searchPrompt` (default "Search <title>").
 
 ### Sections
 
@@ -23,7 +23,7 @@ The tab shows its `sections` in file order. One section in the file can give two
 
 A tab without sections shows "This tab has no sections. Add actions or a source script in .devhub/tabs/<id>.json."
 
-The header search filters action rows by title and subtitle, and source rows by title, subtitle and tag text.
+The search field in the toolbar filters action rows by title and subtitle, and source rows by title, subtitle and tag text.
 
 ## Actions
 
@@ -91,7 +91,7 @@ A tab file:
 | Field | Effect | Reference |
 |---|---|---|
 | `id` | The tab id, the `tab.<id>` placement, and the saved tab `tab.<id>` | [Custom tabs](../extensions.md#8-custom-tabs) |
-| `title`, `icon`, `searchPrompt` | The tab button and the header search | [Custom tabs](../extensions.md#8-custom-tabs) |
+| `title`, `icon`, `searchPrompt` | The tab button and the search field | [Custom tabs](../extensions.md#8-custom-tabs) |
 | `sections[].title` | The section header | [Custom tabs](../extensions.md#8-custom-tabs) |
 | `sections[].actions` | Action ids: config actions, `script:<name>`, `builtin.*` | [Custom tabs](../extensions.md#8-custom-tabs), [`project.json`](../extensions.md#2-projectjson) (the built-in ids) |
 | `sections[].source.script`, `.refresh` | The source script and when it runs | [Custom tabs](../extensions.md#8-custom-tabs) |

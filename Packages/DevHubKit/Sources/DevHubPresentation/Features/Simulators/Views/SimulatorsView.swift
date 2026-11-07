@@ -33,10 +33,6 @@ struct SimulatorsView: View {
 
             Divider()
 
-            OperationSlot(origin: .simulators)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-
             ListState(
                 failure: unavailableMessage,
                 isLoading: simulators.groups.isEmpty && simulators.isLoading,

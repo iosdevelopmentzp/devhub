@@ -29,7 +29,6 @@ struct RootView: View {
             FeatureTabBar(selection: $navigator.selection)
             Divider()
             if session.hasProject {
-                SearchFilterBar()
                 featureView
             } else {
                 NoProjectState()
@@ -100,9 +99,12 @@ struct RootView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(alignment: .bottom) {
-                    if let toast = toaster.text {
-                        ToastView(text: toast)
-                            .padding(.bottom, 12)
+                    VStack(spacing: 0) {
+                        OperationsTray(origin: nil, maxHeight: layout.size.height * 0.45)
+                        if let toast = toaster.text {
+                            ToastView(text: toast)
+                                .padding(.bottom, 12)
+                        }
                     }
                 }
                 .animation(.snappy(duration: 0.2), value: toaster.text)

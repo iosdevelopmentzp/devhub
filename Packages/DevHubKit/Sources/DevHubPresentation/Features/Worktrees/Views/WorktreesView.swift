@@ -29,10 +29,6 @@ struct WorktreesView: View {
 
             Divider()
 
-            OperationSlot(origin: .worktrees)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-
             content
         }
         .background(Theme.surface)
@@ -91,10 +87,6 @@ struct WorktreesView: View {
                                     .padding(.horizontal, 14)
                                     .padding(.bottom, 8)
                             }
-                            OperationSlot(origin: .worktree(model.id))
-                                .padding(.leading, 56)
-                                .padding(.trailing, 14)
-                                .padding(.bottom, 8)
                             if model.id != section.rows.last?.id {
                                 Divider()
                                     .padding(.leading, 56)

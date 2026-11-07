@@ -13,7 +13,7 @@ The tab has three parts, from top to bottom.
 1. **The run bar.** It shows:
    - the scheme picker and the configuration picker (`Debug`, `Release` and the configured one). A `kind: command` project shows its `build.command → run.command` line instead;
    - the button next to the scheme picker opens the scheme editor. It lists the schemes and targets from `xcodebuild -list -json` that are not in the picker yet; a click adds one. A text field adds any other name. The schemes added by you show under "Added by you" with a remove button. The list is saved per project. The picker finds only `.xcscheme` files, so a scheme that Xcode creates on the fly (a target without a shared scheme, a Swift package product) needs this editor or `xcode.schemes`;
-   - the source menu: the main checkout, a worktree, or "Other Branch…";
+   - the source badge: a gray "Main checkout · <branch>", or an orange "Worktree · <name>" or "Branch · <name>", so a build that does not come from the main checkout stands out; a click opens the menu with the main checkout, the worktrees and "Other Branch…";
    - the **Fast** box (incremental build) and the **Clean install** box;
    - an Xcode tag (`Xcode 26.1`) with the version of the Xcode that builds the project and runs `simctl` and `xed`. The hint names the app and where the choice comes from: Settings → Projects, `xcode.developerDir` in `.devhub/project.json`, or `xcode-select` ([Settings](settings.md));
    - the launch profile picker, when the project has `launch.profiles`. With 4 profiles or fewer it is a segmented control, with more it is a menu. A summary line shows the environment, the argument count, the defaults count and "clean install";
@@ -30,7 +30,7 @@ The tab has three parts, from top to bottom.
    - the status script line (see "Status script line" below);
    - the identity summary, when `launch.identity` is set and the app is installed.
 
-The header search filters rows by simulator name, runtime and UDID.
+The search field in the toolbar filters rows by simulator name, runtime and UDID.
 
 The list comes from `xcrun simctl list devices available -j`. Only iOS runtimes are listed. The app count is the number of folders in `~/Library/Developer/CoreSimulator/Devices/<udid>/data/Containers/Bundle/Application`. The devices come from `xcrun devicectl list devices`; when that command fails (an old Xcode), the simulators still show and the failure is logged once.
 
@@ -44,7 +44,7 @@ The target is the simulator that Build & Run uses.
 
 ## Actions
 
-An action below shows an operation card at its place: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry (when the action can run again), Copy Error and Full Output. See [Operations](output.md#operations).
+An action below shows an operation card in the tray at the bottom of the tab: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry (when the action can run again), Copy Error and Full Output. See [Operations](output.md#operations).
 
 ### Simulator rows
 
@@ -189,7 +189,7 @@ Build (⌘B) runs the steps of Build & Run up to "Locate the app" and stops: no 
 | Cancel | Stops the running build |
 | Show log | Writes the build output (last 20,000 lines) to `DevHub-build.log` in the temporary folder and opens it |
 | Refresh simulators | Reads the simulator list again |
-| Source menu | Main checkout, a worktree, or "Other Branch…". A branch with a checkout uses that checkout; a branch without one gets a worktree on the next run |
+| Source badge | Gray "Main checkout · <branch>", or orange "Worktree · <name>" or "Branch · <name>". A click opens the menu: the main checkout, a worktree, or "Other Branch…". A branch with a checkout uses that checkout; a branch without one gets a worktree on the next run |
 
 A finished build posts a macOS notification while the panel is closed ([Settings](settings.md#notifications)).
 

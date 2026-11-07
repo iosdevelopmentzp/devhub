@@ -148,12 +148,6 @@ struct PullRequestsView: View {
                     LazyVStack(alignment: .leading, spacing: 0) {
                         ForEach(visible) { model in
                             row(model, isSplit: layout.isSplit)
-                            if layout.isSplit == false {
-                                OperationSlot(origin: .pullRequest(model.id))
-                                    .padding(.leading, 40)
-                                    .padding(.trailing, 14)
-                                    .padding(.bottom, 8)
-                            }
                             if let pending = configActions.pending(in: Placement.pullRequestsRow.slot(for: String(model.id))) {
                                 ConfigActionPrompt(pending: pending)
                                     .padding(.horizontal, 14)

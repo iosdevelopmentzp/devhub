@@ -37,7 +37,7 @@ Related pages: [Simulators](simulators.md), [Device identity](device-identity.md
    - the request body and the response body (JSON is formatted);
    - the request headers and the response headers.
 
-The header search filters by method, path, status, host and GraphQL operation name.
+The search field in the toolbar filters by method, path, status, host and GraphQL operation name.
 
 ### Empty states
 

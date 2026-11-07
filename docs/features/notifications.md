@@ -9,7 +9,7 @@ Code: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Notifications/`, `
 - The bell in the header shows a badge with the number of events since the last time the screen was open (`ActivityLog.unreadCount`, saved as `activity.seenAt`). The screen marks everything as seen when it opens.
 - A toolbar with the count ("12 events", or "3 of 12 events" with a filter), a filter menu and Clear.
 - Sections by day: "Today", "Yesterday", then the date. Each row: a coloured dot (green success, red failure, grey info), the title, the detail, the time ("5 min. ago"), the kind ("Build", "Tests", "Review", "My PR" or "My MR", "Script") and an arrow button when the event has a place to open.
-- The header search filters the rows by title and detail.
+- The search field in the toolbar filters the rows by title and detail.
 
 ## Kinds
 
@@ -36,7 +36,7 @@ The words follow the host: "merge request" and "Pipeline" on GitLab.
 
 The second pane of the Notifications screen ("Events | Inbox" at the start of the toolbar) lists what the host holds for you in this repository: GitHub notification threads (`gh api notifications?per_page=50`, unread only) or GitLab to-dos (`glab api todos?state=pending&per_page=50`). Threads and to-dos of other repositories are left out.
 
-- Each row: an icon for the kind (mention, review requested, assigned, comment, approval needed, checks failed, other), a title with the actor ("sam mentioned you in #12", "kim asked for your review on !9", "lee assigned you issue #31"), the title of the request or issue and, on GitLab, the text of the note, the time, and on hover: open the request in DevHub (requests only), open in the browser, and a checkmark that marks the item as done on the host (`gh api -X PATCH notifications/threads/<id>`, `glab api -X POST todos/<id>/mark_as_done`). "Mark All as Done" in the toolbar does it for every item. The header search filters the rows.
+- Each row: an icon for the kind (mention, review requested, assigned, comment, approval needed, checks failed, other), a title with the actor ("sam mentioned you in #12", "kim asked for your review on !9", "lee assigned you issue #31"), the title of the request or issue and, on GitLab, the text of the note, the time, and on hover: open the request in DevHub (requests only), open in the browser, and a checkmark that marks the item as done on the host (`gh api -X PATCH notifications/threads/<id>`, `glab api -X POST todos/<id>/mark_as_done`). "Mark All as Done" in the toolbar does it for every item. The search field in the toolbar filters the rows.
 - GitHub names no actor in a thread. For a mention or a comment thread DevHub reads the last comment (`gh api -X GET <latest_comment_url>`, at most 10 per read) to show who wrote it and to link to that comment. A review request shows "Your review is requested on #12".
 - DevHub reads the Inbox with the open requests (every 5 minutes, every 2 minutes while the panel is closed), when the pane opens, and on Refresh. A new item after the first read goes to Events and posts a notification of the kind "Inbox: mentions and requests" (its own switch in Settings). A click on it opens the request, or the Inbox when the item is an issue or something else.
 - The bell badge counts the unseen events plus the items in the Inbox.

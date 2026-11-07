@@ -10,7 +10,7 @@ In the commands below, `<remote>` is `git.remote` (default `origin`), `<base>` i
 
 ### Header
 
-1. **Checkout menu.** "Main checkout" or "Worktree <name>". The actions of the tab run in the checkout you choose here.
+1. **Checkout badge.** A gray badge "Main checkout · <branch>" for the main checkout, an orange badge "Worktree · <name>" for a worktree, so a checkout that is not the main one stands out. A click opens the menu of the checkouts. The actions of the tab run in the checkout you choose here.
 2. **Last fetch time** ("fetched 5 min ago"), or the title of the running command. A refresh button reads the repository again.
 3. **Branch line.** The branch name (click to copy), the short hash (click to copy) and tags:
    - ticket chip (when the branch name matches the ticket pattern);
@@ -38,11 +38,11 @@ A segmented control selects one section. The choice is saved.
 
 A click on a commit or a reflog row lists its files. A click on a file shows its diff. A click on a changed file shows its diff. A diff shows at most 4,000 lines.
 
-The header search filters the rows of the current section: branch name and subject, commit subject, hash, author and refs, file path, stash message.
+The search field in the toolbar filters the rows of the current section: branch name and subject, commit subject, hash, author and refs, file path, stash message.
 
 ## Actions
 
-An action below shows an operation card under the header (or under the commit box for the commit and the file actions): the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry, Copy Error and Full Output. See [Operations](output.md#operations).
+An action below shows an operation card in the tray at the bottom of the tab: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry, Copy Error and Full Output. See [Operations](output.md#operations).
 
 ### Header action bar
 
@@ -127,7 +127,7 @@ When a stash pop after a switch fails, the changes stay in the stash and a red R
 | Reveal in Finder, Copy Path, Copy File Name (menu) | — | — |
 | Commit (⌘↩) | Commits the staged files. "Amend" replaces the last commit | `git commit -m <message> [--amend]` |
 | Commit & Push | Commits, then pushes like the Push button | `git commit -m <message>`, then `git push` or `git push -u <remote> <branch>` |
-| Write with AI | Writes the commit message from the staged diff, the branch name and the last 15 commit subjects, and puts it into the box. The button uses the tool from Settings → AI usage; its arrow picks the other one. It runs as an operation card under the commit box, with Stop | `git diff --cached --no-color --no-ext-diff`, `git log --format=%s -n 50 HEAD~15..HEAD`, then the command of the tool from `ai.textCommands` |
+| Write with AI | Writes the commit message from the staged diff, the branch name and the last 15 commit subjects, and puts it into the box. The button uses the tool from Settings → AI usage; its arrow picks the other one. It runs as an operation card in the tray at the bottom of the tab, with Stop | `git diff --cached --no-color --no-ext-diff`, `git log --format=%s -n 50 HEAD~15..HEAD`, then the command of the tool from `ai.textCommands` |
 
 The commit box starts with the ticket prefix of the branch (for example `ABC-123: `). Commit is disabled while there are conflicts, while the message is empty, or when nothing is staged and Amend is off. "Write with AI" fails with "There are no changes to describe." when nothing is staged.
 

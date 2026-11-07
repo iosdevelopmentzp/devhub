@@ -14,7 +14,9 @@ struct QuickActionsSection: View {
     var body: some View {
         let tiles = models
         VStack(alignment: .leading, spacing: 8) {
-            SectionHeader("Quick actions")
+            SectionHeader("Quick actions") {
+                TabSearchField()
+            }
             if tiles.isEmpty {
                 Text("No actions match “\(session.searchText)”")
                     .font(.caption)

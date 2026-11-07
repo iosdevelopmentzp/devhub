@@ -46,7 +46,7 @@ Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Utils/`, `DevHub
    | failed | the reason in red, for example "Cannot read clip.mov: Invalid data found when processing input" |
    | stopped | "Stopped. No file was written." |
 
-   The header search filters the list by file name. **Clear Finished** removes the done, failed and stopped rows; the files stay.
+   The search field in the toolbar filters the list by file name. **Clear Finished** removes the done, failed and stopped rows; the files stay.
 
 ### Actions
 

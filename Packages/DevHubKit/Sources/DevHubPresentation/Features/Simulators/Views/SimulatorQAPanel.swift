@@ -23,7 +23,6 @@ struct SimulatorQAPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            OperationSlot(origin: .simulator(simulator.id))
             line("Appearance") {
                 Button("Light", systemImage: "sun.max") { apply(.appearance(.light)) }
                 Button("Dark", systemImage: "moon") { apply(.appearance(.dark)) }

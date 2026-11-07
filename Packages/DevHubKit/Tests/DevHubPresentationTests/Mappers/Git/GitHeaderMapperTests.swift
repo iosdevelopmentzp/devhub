@@ -178,14 +178,6 @@ import DevHubTestSupport
         #expect(model.canContinueOperation == false)
     }
 
-    @Test func checkoutLabel() {
-        let path = NSHomeDirectory() + "/Projects/ExampleApp"
-
-        #expect(GitHeaderMapper.checkoutLabel(path: path, worktree: nil) == "~/Projects/ExampleApp")
-        #expect(GitHeaderMapper.checkoutLabel(path: path, worktree: WorktreeFixture.main) == "Main checkout")
-        #expect(GitHeaderMapper.checkoutLabel(path: path, worktree: WorktreeFixture.linked) == "Worktree feature/login")
-    }
-
     @Test func checkoutTitle() {
         var detached = WorktreeFixture.linked
         detached.branch = nil

@@ -43,7 +43,7 @@ A click on a row opens the details under it. When the panel is 960 points wide o
 
 At the end of the list, "Load N more" reads the next page. N is the page size of the host: 50 on GitHub, 100 on GitLab.
 
-The header search filters the loaded rows by title, number, author, branches and labels. The filter menu narrows the same rows by exact values.
+The search field in the toolbar filters the loaded rows by title, number, author, branches and labels. The filter menu narrows the same rows by exact values.
 
 ### Details
 
@@ -77,7 +77,7 @@ Settings → Pull Requests → "Remember what I reviewed" (on by default) lets D
 
 ## Actions
 
-An action below shows an operation card at its place: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry (when the action can run again), Copy Error and Full Output. See [Operations](output.md#operations).
+An action below shows an operation card in the tray at the bottom of the tab: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry (when the action can run again), Copy Error and Full Output. See [Operations](output.md#operations).
 
 ### Request actions
 
@@ -187,7 +187,7 @@ Create runs these steps:
 
 The Create button says "Push & Create" when step 1 is needed.
 
-"Write with AI" in the form header fills the title and the description from the diff of the branch (see "Write with AI and Explain"). Its operation card shows under the form.
+"Write with AI" in the form header fills the title and the description from the diff of the branch (see "Write with AI and Explain"). Its operation card shows in the tray at the bottom of the tab.
 
 "Open in GitHub Instead" (or "Open in GitLab Instead") closes the form and opens the web page that creates the request.
 

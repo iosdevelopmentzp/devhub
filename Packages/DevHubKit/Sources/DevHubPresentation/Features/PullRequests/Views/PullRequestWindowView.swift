@@ -45,9 +45,9 @@ struct PullRequestWindowView: View {
                     onLabel: nil
                 )
                 .padding(.vertical, 8)
-                OperationSlot(origin: .pullRequest(summary.id))
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 8)
+            }
+            .overlay(alignment: .bottom) {
+                OperationsTray(origin: .pullRequest(summary.id), maxHeight: 320)
             }
             .environment(\.diffScrollProxy, proxy)
             .onChange(of: detailStore.focus(of: summary.id)) { _, focus in

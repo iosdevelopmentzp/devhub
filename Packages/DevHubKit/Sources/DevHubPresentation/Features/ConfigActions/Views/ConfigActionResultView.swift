@@ -8,7 +8,6 @@ struct ConfigActionResultView: View {
     let action: ResolvedAction
 
     var body: some View {
-        OperationSlot(origin: .action(action.id))
         if let run = visibleRun {
             HStack(alignment: .top, spacing: 6) {
                 content(run)

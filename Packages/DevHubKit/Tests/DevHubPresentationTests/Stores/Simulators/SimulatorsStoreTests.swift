@@ -277,9 +277,13 @@ import DevHubTestSupport
         store.removeAppsFromAll()
 
         #expect(store.bulkUninstall == BulkProgress(done: 0, total: 2, current: booted.name))
+        #expect(harness.operations.records.last?.title == "Remove apps from 2 simulators")
+        #expect(harness.operations.records.last?.canStop == true)
         try await waitUntil { listCalls == 2 }
         #expect(store.bulkUninstall == nil)
         #expect(store.uninstallingIDs.isEmpty)
+        #expect(harness.operations.records.last?.status == .succeeded)
+        #expect(harness.operations.records.last?.progressText == "2/2 · \(shutdown.name)")
         #expect(harness.spies.simulators.calls.filter { if case .uninstallUserApps = $0 { true } else { false } } == [
             .uninstallUserApps(udid: booted.id, wasBooted: true),
             .uninstallUserApps(udid: shutdown.id, wasBooted: false),
@@ -305,6 +309,7 @@ import DevHubTestSupport
         store.cancelBulkUninstall()
 
         try await waitUntil { store.bulkUninstall == nil }
+        #expect(harness.operations.records.last?.status == .cancelled)
         #expect(harness.lastActivity?.title == "Stopped removing apps")
         #expect(harness.lastActivity?.detail == "0 apps")
         #expect(harness.spies.simulators.calls.contains { if case .uninstallUserApps = $0 { true } else { false } } == false)

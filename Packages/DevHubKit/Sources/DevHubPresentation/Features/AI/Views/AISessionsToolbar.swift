@@ -10,40 +10,63 @@ struct AISessionsToolbar: View {
     let count: Int
 
     var body: some View {
-        @Bindable var sessions = sessions
         ToolbarBar(controlSize: .regular) {
-            HStack(spacing: 8) {
-                Text(CountText.invariant(count, "sessions"))
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                if sessions.isLoading {
-                    ProgressView()
-                        .controlSize(.mini)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) {
+                    countText
+                    Spacer()
+                    TabSearchField()
+                    controls
                 }
-                Picker("Provider", selection: $sessions.providerFilter) {
-                    ForEach(AISessionsStore.ProviderFilter.allCases) { filter in
-                        Text(AISessionsToolbar.title(for: filter)).tag(filter)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        countText
+                        Spacer()
+                        TabSearchField()
                     }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .fixedSize()
-                .hint("Show Copilot CLI sessions, Claude Code sessions or both")
-                Picker("Scope", selection: $sessions.scope) {
-                    ForEach(AISessionsStore.Scope.allCases) { scope in
-                        Text(scope.rawValue).tag(scope)
+                    HStack(spacing: 8) {
+                        controls
+                        Spacer()
                     }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .fixedSize()
-                .hint("This project: sessions started inside the selected project or its worktrees. All: every session.")
-                newSessionMenu
-                IconButton(systemImage: "arrow.clockwise", help: "Read the sessions again") {
-                    Task { await sessions.refresh() }
                 }
             }
+        }
+    }
+
+    private var countText: some View {
+        Text(CountText.invariant(count, "sessions"))
+            .font(.callout)
+            .foregroundStyle(.secondary)
+    }
+
+    @ViewBuilder
+    private var controls: some View {
+        @Bindable var sessions = sessions
+        if sessions.isLoading {
+            ProgressView()
+                .controlSize(.mini)
+        }
+        Picker("Provider", selection: $sessions.providerFilter) {
+            ForEach(AISessionsStore.ProviderFilter.allCases) { filter in
+                Text(AISessionsToolbar.title(for: filter)).tag(filter)
+            }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .fixedSize()
+        .hint("Show Copilot CLI sessions, Claude Code sessions or both")
+        Picker("Scope", selection: $sessions.scope) {
+            ForEach(AISessionsStore.Scope.allCases) { scope in
+                Text(scope.rawValue).tag(scope)
+            }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .fixedSize()
+        .hint("This project: sessions started inside the selected project or its worktrees. All: every session.")
+        newSessionMenu
+        IconButton(systemImage: "arrow.clockwise", help: "Read the sessions again") {
+            Task { await sessions.refresh() }
         }
     }
 

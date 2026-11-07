@@ -45,6 +45,7 @@ struct GitView: View {
                     .pickerStyle(.segmented)
                     .labelsHidden()
                     .fixedSize()
+                    .hint(sectionHint)
                     if git.section == .history {
                         Picker("Commits", selection: $history.scope) {
                             ForEach(CommitHistoryStore.Scope.allCases, id: \.self) { scope in
@@ -57,11 +58,7 @@ struct GitView: View {
                         .hint("This branch: the commits that are not in \(git.baseName) yet. All: the last 150 commits.")
                     }
                     Spacer()
-                    Text(sectionHint)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .hintWhenTruncated(sectionHint)
+                    TabSearchField()
                 }
             }
             Divider()

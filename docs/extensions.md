@@ -247,7 +247,7 @@ A line that starts with `@devhub ` followed by one JSON object is a directive. O
 
 | Directive | Effect |
 |---|---|
-| `{"progress": "Compiling", "fraction": 0.4}` | footer and run bar step text; `fraction` optional (0 to 1) |
+| `{"progress": "Compiling", "fraction": 0.4}` | the detail text and the bar of the operation card in the tray at the bottom of the tab, and the footer; `fraction` optional (0 to 1) |
 | `{"toast": "Done"}` | toast |
 | `{"copy": "text"}` | clipboard plus toast |
 | `{"open": "https://… or /path"}` | opens with the default app |
@@ -287,11 +287,11 @@ A tag has `text` and optional `tint`, `icon` (an SF Symbol name) and `hint`. Row
 | Field | Effect |
 |---|---|
 | `id` | tab id; `tab.<id>` placement; the first custom tab gets ⌘9, the others have no shortcut |
-| `title`, `icon`, `searchPrompt` | tab bar and header search |
+| `title`, `icon`, `searchPrompt` | tab bar and the search field of the tab |
 | `sections[].actions` | action ids rendered as rows with their inputs and a Run button |
 | `sections[].source.script` | a script whose `view` directive renders the section; `refresh` is `onOpen` (default), `manual` (a refresh button) or a number of seconds |
 
-The header search filters rows by title, subtitle and tags.
+The search field in the toolbar filters rows by title, subtitle and tags.
 
 ## 9. Mock set files
 

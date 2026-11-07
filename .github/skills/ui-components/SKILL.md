@@ -30,7 +30,7 @@ new element. A new shared block goes into DevHubUI and into this table.
 | `HoverActions` | `HoverActions(isVisible: isHovered, count: 3, spacing: 2) { IconButton(…) }` | Hover buttons that keep their width when hidden (an empty frame of `count` buttons) |
 | `ActionBar`, `ActionItem` | `ActionBar(items: [ActionItem("Push", systemImage: "arrow.up", hint: "git push", priority: 6, isDisabled: false) { … }])` | A row of labelled buttons that never cuts a title: the lowest `priority` buttons lose their title first (`ActionBarLayout`, `ActionBarFit`) |
 | `PanelCard` | `PanelCard { VStack { … } }` | A white card: padding 12, corner 10, hairline border, soft shadow |
-| `SearchField` | `SearchField(prompt: "Search worktrees", text: $session.searchText, focus: $isSearchFocused)` | The header search. One in the app, in `HeaderView` |
+| `SearchField` | `SearchField(prompt: "Search worktrees", text: $session.searchText, focus: $isSearchFocused)` | The search field. `TabSearchField` (Presentation `Shell/`) wraps it with the prompt of the tab, `ProjectSession.searchText` and ⌘F; each tab places `TabSearchField()` in its toolbar next to the list it filters |
 | `SearchablePicker` | `SearchablePicker(title: "Scheme", selection: $scheme, items: schemes) { _ in nil }` or `(title:selection:items:label:detail:)` | A picker with a search field in a popover. Arrows and Return select, Esc closes, 200 rows at most. `.trigger { AnyView(…) }` replaces the button label |
 | `NoticeBar` | `NoticeBar("Cannot read pull requests: …", actionTitle: "Retry") { … }` | A thin bar with an icon, a text and an optional button over a list that still shows old data |
 | `RemovableChip` | `RemovableChip("target: dev", systemImage: "arrow.triangle.branch", removeHint: "Remove this filter") { … }` | An active filter chip with an x |
@@ -48,12 +48,13 @@ new element. A new shared block goes into DevHubUI and into this table.
 | `FileDropView` | `FileDropView(accepts:onTarget:onDrop:onClick:)` added to `statusItem.button` | An AppKit view that takes file drops and passes mouse down to `onClick`; used on the menu bar icon (`panel-window`) |
 
 Feature views that look shared are not shared blocks: the usage bars (`Features/Usage/`), `ConfigActionBar` and
-`ConfigActionMenuItems` (`Features/ConfigActions/`), `LaunchPicker` (`Features/Build/`), `OperationSlot`,
+`ConfigActionMenuItems` (`Features/ConfigActions/`), `LaunchPicker` (`Features/Build/`), `OperationsTray`,
 `OperationCard` and `OperationsIndicator` (`Features/Operations/`). They live in DevHubPresentation because they read
 stores or Domain types.
 
-A place that runs commands for the user shows `OperationSlot(origin:)` under its controls instead of a busy title
-alone. The slot shows the newest operation of that origin: steps, the failure digest, Retry, Copy Error, Full Output.
+A place that runs commands for the user starts an operation (`ActionRunner` or `OperationLog.start`) instead of a busy
+title alone. Its card shows in the `OperationsTray` at the bottom of the tab (`RootView` overlay): steps, the failure
+digest, Retry, Copy Error, Full Output. Nothing is placed inline, so the content never jumps.
 
 ## Theme and Tint
 

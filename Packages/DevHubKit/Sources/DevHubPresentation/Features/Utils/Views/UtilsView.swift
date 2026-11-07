@@ -20,6 +20,7 @@ struct UtilsView: View {
                     .labelsHidden()
                     .fixedSize()
                     Spacer()
+                    TabSearchField()
                 }
             }
             Divider()

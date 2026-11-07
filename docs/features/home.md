@@ -20,13 +20,13 @@ The tab has seven parts, from top to bottom.
 6. **Scripts.** One row per action with the `home.scripts` placement. A row shows the icon, title, subtitle, file name, "ran 5 min ago" or "never run", the number of inputs and the config layer (`project`, `user` or `global`). The header shows the scripts folder of the first layer that exists. Favorite scripts come first, then the other scripts in the saved order; a new script joins the end of the list in config order.
 7. **Recent.** The last 8 events of the app (builds, test runs, request changes, commands, failures), newest first, with a coloured dot: green for success, red for failure, grey for info. An event with a place shows an arrow button that opens it (the run bar, the Worktrees tab, a request). "Show All" opens the Notifications screen with every event of the last 30 days ([Notifications](notifications.md)).
 
-The header search filters the tiles by title and subtitle, and the script rows by title, subtitle and file name.
+The search field next to the "Quick actions" title filters the tiles by title and subtitle, and the script rows by title, subtitle and file name.
 
 When no project is added yet, the panel shows "No project yet" and an Add Project button instead of Home.
 
 ## Actions
 
-An action below shows an operation card at its place: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry (when the action can run again), Copy Error and Full Output. See [Operations](output.md#operations).
+An action below shows an operation card in the tray at the bottom of the tab: the steps with their state and time while it runs, and after a failure the failed step, the lines that explain it, Retry (when the action can run again), Copy Error and Full Output. See [Operations](output.md#operations).
 
 ### Project card
 
