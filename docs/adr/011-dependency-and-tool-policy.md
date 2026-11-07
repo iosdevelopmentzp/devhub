@@ -34,3 +34,4 @@ The owner asked for a review of every third-party library and tool, with one goa
 
 | Commit | What |
 |---|---|
+| `27d9fd9` | D1 to D4: the rule, `check-dependencies.sh` with the allowlists in `build.sh` and CI, `docs/DEPENDENCIES.md`, `TelemetryOptOutPolicy` in `ShellRunner`, `UsageProviders.none`, `actions/checkout` pinned. |
