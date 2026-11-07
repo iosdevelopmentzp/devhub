@@ -581,6 +581,7 @@ import DevHubTestSupport
         #expect(harness.spies.ci.calls.contains(.cancel(workflowID: workflowID, project: ciProject)))
         #expect(harness.spies.ci.calls.contains(.approve(runID: "run-1", job: "approve-release", project: ciProject)))
         #expect(harness.activityTitles.contains("Cancelled build-and-test"))
+        #expect(harness.postCount("pullRequestsChanged") == 2)
     }
 
     @Test func aFailedCircleCIActionIsLoggedAndClearsTheBusyFlag() async throws {

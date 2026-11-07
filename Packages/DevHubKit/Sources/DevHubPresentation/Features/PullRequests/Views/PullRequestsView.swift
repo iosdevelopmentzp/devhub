@@ -6,6 +6,7 @@ struct PullRequestsView: View {
     @Environment(ProjectSession.self) private var session
     @Environment(PullRequestsStore.self) private var pullRequests
     @Environment(OpenPullRequestsStore.self) private var openPullRequests
+    @Environment(CIWatchStore.self) private var ciWatch
     @Environment(PullRequestDetailStore.self) private var detailStore
     @Environment(PullRequestPeopleStore.self) private var people
     @Environment(AITextStore.self) private var aiText
@@ -92,6 +93,7 @@ struct PullRequestsView: View {
             fileGroups: git.gitSettings.pullRequests.fileGroups,
             diffLayout: pullRequests.diffLayout,
             watchedIDs: openPullRequests.watchedIDs,
+            onHoldJobs: ciWatch.onHoldJobNames,
             people: people.people,
             busyPeopleIDs: people.busyIDs,
             explanations: aiText.explanations,

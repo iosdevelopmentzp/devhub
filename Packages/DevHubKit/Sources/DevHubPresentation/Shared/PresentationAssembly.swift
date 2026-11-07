@@ -37,6 +37,7 @@ package final class PresentationAssembly {
     let branchPullRequest: BranchPullRequestStore
     let pullRequests: PullRequestsStore
     let openPullRequests: OpenPullRequestsStore
+    let ciWatch: CIWatchStore
     let inbox: InboxStore
     let newPullRequest: NewPullRequestStore
     let pullRequestDetails: PullRequestDetailStore
@@ -152,6 +153,19 @@ package final class PresentationAssembly {
             events: events
         )
         openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
+        ciWatch = CIWatchStore(
+            repository: ports.codeHost,
+            ci: ports.ci,
+            projects: ciProjects,
+            remote: codeHostRemote,
+            openRequests: openPullRequests,
+            session: session,
+            activity: activity,
+            notifier: notifier,
+            events: events,
+            store: store,
+            pollInterval: .seconds(60)
+        )
         inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
         ciAutoRerun = CIAutoRerunStore(
             repository: ports.codeHost,

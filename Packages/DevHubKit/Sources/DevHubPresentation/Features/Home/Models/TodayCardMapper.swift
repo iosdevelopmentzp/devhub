@@ -9,6 +9,7 @@ enum TodayCardMapper {
         reviewCount: Int,
         openRequests: [PullRequestSummary],
         username: String?,
+        onHold: [Int: [String]],
         worktrees: [Worktree],
         simulators: [Simulator],
         words: CodeHostWords
@@ -16,6 +17,7 @@ enum TodayCardMapper {
         [
             reviewItem(reviewCount, words: words),
             failedItem(openRequests, username: username, words: words),
+            approvalItem(onHold, words: words),
             worktreesItem(worktrees),
             simulatorsItem(simulators),
         ].compactMap { $0 }
@@ -55,6 +57,30 @@ enum TodayCardMapper {
             tint: .red,
             title: "\(failed.count) of your \(words.requests): \(words.checks) failed",
             detail: failed.prefix(3).map { words.reference($0.iid) }.joined(separator: ", "),
+            target: .pullRequests(.mine)
+        )
+    }
+
+    private static func approvalItem(_ onHold: [Int: [String]], words: CodeHostWords) -> TodayItemModel? {
+        let waiting = onHold.filter { $0.value.isEmpty == false }.keys.sorted(by: >)
+        guard let first = waiting.first else { return nil }
+        if waiting.count == 1 {
+            let jobs = onHold[first] ?? []
+            return TodayItemModel(
+                id: "approval",
+                icon: "hand.raised.fill",
+                tint: .orange,
+                title: "\(jobs.joined(separator: ", ")) of \(words.reference(first)) \(jobs.count == 1 ? "waits" : "wait") for your approval",
+                detail: "Your \(words.request): CircleCI holds the workflow",
+                target: .pullRequest(first)
+            )
+        }
+        return TodayItemModel(
+            id: "approval",
+            icon: "hand.raised.fill",
+            tint: .orange,
+            title: "\(waiting.count) of your \(words.requests) wait for your approval",
+            detail: waiting.prefix(3).map { words.reference($0) }.joined(separator: ", "),
             target: .pullRequests(.mine)
         )
     }

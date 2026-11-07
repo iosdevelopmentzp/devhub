@@ -29,4 +29,12 @@ package enum CIPolicy {
         guard state.isLoggedIn else { return "circleci auth login" }
         return nil
     }
+
+    package static func workflowIDs(of jobs: [PipelineJob]) -> [String] {
+        var ids: [String] = []
+        for id in jobs.compactMap(\.ciWorkflowID) where ids.contains(id) == false {
+            ids.append(id)
+        }
+        return ids
+    }
 }

@@ -20,6 +20,7 @@ import Testing
             reviewCount: 2,
             openRequests: [failed(12, author: "alex"), failed(13, author: "sam")],
             username: "alex",
+            onHold: [:],
             worktrees: [WorktreeFixture.main, finished],
             simulators: [SimulatorFixture.iPhone, SimulatorFixture.iPad],
             words: .gitHub
@@ -36,19 +37,38 @@ import Testing
     }
 
     @Test func severalFailedRequestsOpenTheMineScope() {
-        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [failed(12, author: "alex"), failed(14, author: "alex")], username: "alex", worktrees: [], simulators: [], words: .gitLab)
+        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [failed(12, author: "alex"), failed(14, author: "alex")], username: "alex", onHold: [:], worktrees: [], simulators: [], words: .gitLab)
 
         #expect(items.map(\.target) == [.pullRequests(.mine)])
         #expect(items[0].title == "2 of your merge requests: pipeline failed")
         #expect(items[0].detail == "!14, !12")
     }
 
+    @Test func oneRequestOnHoldOpensThatRequest() {
+        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [], username: "alex", onHold: [7: ["approve-release"], 9: []], worktrees: [], simulators: [], words: .gitLab)
+
+        #expect(items.map(\.id) == ["approval"])
+        #expect(items[0].icon == "hand.raised.fill")
+        #expect(items[0].tint == .orange)
+        #expect(items[0].title == "approve-release of !7 waits for your approval")
+        #expect(items[0].detail == "Your merge request: CircleCI holds the workflow")
+        #expect(items[0].target == .pullRequest(7))
+    }
+
+    @Test func severalRequestsOnHoldOpenTheMineScope() {
+        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [], username: "alex", onHold: [7: ["approve-release"], 12: ["approve-release", "approve-deploy"]], worktrees: [], simulators: [], words: .gitHub)
+
+        #expect(items[0].title == "2 of your pull requests wait for your approval")
+        #expect(items[0].detail == "#12, #7")
+        #expect(items[0].target == .pullRequests(.mine))
+    }
+
     @Test func nothingToDoGivesNoItems() {
-        #expect(TodayCardMapper.items(reviewCount: 0, openRequests: [], username: nil, worktrees: [WorktreeFixture.main], simulators: [SimulatorFixture.iPad], words: .gitHub).isEmpty)
+        #expect(TodayCardMapper.items(reviewCount: 0, openRequests: [], username: nil, onHold: [:], worktrees: [WorktreeFixture.main], simulators: [SimulatorFixture.iPad], words: .gitHub).isEmpty)
     }
 
     @Test func aConnectedDeviceDoesNotCountAsABootedSimulator() {
-        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [], username: nil, worktrees: [], simulators: [SimulatorFixture.device, SimulatorFixture.iPad], words: .gitHub)
+        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [], username: nil, onHold: [:], worktrees: [], simulators: [SimulatorFixture.device, SimulatorFixture.iPad], words: .gitHub)
 
         #expect(items.isEmpty)
     }

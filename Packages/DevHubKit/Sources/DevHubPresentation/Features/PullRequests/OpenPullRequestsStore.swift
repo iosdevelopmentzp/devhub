@@ -4,7 +4,7 @@ import DevHubDomain
 
 @MainActor
 @Observable
-final class OpenPullRequestsStore {
+final class OpenPullRequestsStore: OpenRequestsLookup {
     private(set) var requestsByBranch: [String: PullRequestSummary] = [:]
     private(set) var reviewCount = 0
     private(set) var username: String?

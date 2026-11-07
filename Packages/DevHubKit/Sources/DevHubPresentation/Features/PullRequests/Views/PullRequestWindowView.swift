@@ -5,6 +5,7 @@ import DevHubUI
 struct PullRequestWindowView: View {
     @Environment(PullRequestsStore.self) private var pullRequests
     @Environment(OpenPullRequestsStore.self) private var openPullRequests
+    @Environment(CIWatchStore.self) private var ciWatch
     @Environment(PullRequestDetailStore.self) private var detailStore
     @Environment(PullRequestPeopleStore.self) private var people
     @Environment(AITextStore.self) private var aiText
@@ -106,6 +107,7 @@ struct PullRequestWindowView: View {
             fileGroups: git.gitSettings.pullRequests.fileGroups,
             diffLayout: pullRequests.diffLayout,
             watchedIDs: openPullRequests.watchedIDs,
+            onHoldJobs: ciWatch.onHoldJobNames,
             people: people.people,
             busyPeopleIDs: people.busyIDs,
             explanations: aiText.explanations,

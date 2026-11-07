@@ -642,6 +642,7 @@ final class PullRequestDetailStore {
                 activity.log(title, detail: "", outcome: .success)
                 ciBusyWorkflows.remove(workflowID)
                 await reload(id)
+                events.post(.pullRequestsChanged)
             } catch {
                 activity.log("\(title) failed", detail: error.localizedDescription, outcome: .failure)
                 ciBusyWorkflows.remove(workflowID)

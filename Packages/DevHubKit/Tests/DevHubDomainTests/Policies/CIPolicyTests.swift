@@ -34,4 +34,15 @@ import Testing
         #expect(CIPolicy.installCommand(for: CIToolState(isInstalled: true, version: nil, isLoggedIn: false)) == "circleci auth login")
         #expect(CIPolicy.installCommand(for: CIToolState(isInstalled: true, version: "1.13.0", isLoggedIn: true)) == nil)
     }
+
+    @Test func workflowIDsAreUniqueAndKeepTheirOrder() {
+        let jobs = [
+            PipelineJob(name: "ci/circleci: build", stage: nil, webURL: nil, id: nil, status: .success, ciWorkflowID: "w2"),
+            PipelineJob(name: "ci/circleci: test", stage: nil, webURL: nil, id: nil, status: .running, ciWorkflowID: "w1"),
+            PipelineJob(name: "ci/circleci: lint", stage: nil, webURL: nil, id: nil, status: .running, ciWorkflowID: "w2"),
+            PipelineJob(name: "other", stage: nil, webURL: nil, id: nil, status: .running, ciWorkflowID: nil),
+        ]
+
+        #expect(CIPolicy.workflowIDs(of: jobs) == ["w2", "w1"])
+    }
 }

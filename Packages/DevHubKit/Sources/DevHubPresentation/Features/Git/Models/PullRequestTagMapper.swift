@@ -67,6 +67,15 @@ enum PullRequestTagMapper {
         )
     }
 
+    static func onHoldTag(jobs: [String], words: CodeHostWords) -> TagModel {
+        TagModel(
+            "on hold · \(jobs.joined(separator: ", "))",
+            tint: .orange,
+            systemImage: "hand.raised",
+            hint: "CircleCI holds the workflow until you approve \(jobs.count == 1 ? "this job" : "these jobs"). The Approve button is in the \(words.checks) of this \(words.request)"
+        )
+    }
+
     static func behindTag(targetBranch: String, words: CodeHostWords) -> TagModel {
         TagModel(
             "behind \(targetBranch)",

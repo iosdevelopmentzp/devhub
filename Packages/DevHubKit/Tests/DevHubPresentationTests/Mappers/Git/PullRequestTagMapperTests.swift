@@ -65,4 +65,16 @@ import Testing
         #expect(tag.tint == .orange)
         #expect(tag.hint == "The source branch is behind dev. Rebase brings it up to date")
     }
+
+    @Test func onHoldNamesTheJobsThatWait() {
+        let one = PullRequestTagMapper.onHoldTag(jobs: ["approve-release"], words: .gitLab)
+        let two = PullRequestTagMapper.onHoldTag(jobs: ["approve-release", "approve-deploy"], words: .gitHub)
+
+        #expect(one.text == "on hold · approve-release")
+        #expect(one.tint == .orange)
+        #expect(one.systemImage == "hand.raised")
+        #expect(one.hint == "CircleCI holds the workflow until you approve this job. The Approve button is in the pipeline of this merge request")
+        #expect(two.text == "on hold · approve-release, approve-deploy")
+        #expect(two.hint == "CircleCI holds the workflow until you approve these jobs. The Approve button is in the checks of this pull request")
+    }
 }

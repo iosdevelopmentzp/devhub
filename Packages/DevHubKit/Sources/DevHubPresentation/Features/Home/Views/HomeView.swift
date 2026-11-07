@@ -8,6 +8,7 @@ struct HomeView: View {
     @Environment(WorktreesStore.self) private var worktrees
     @Environment(KeepAwakeStore.self) private var keepAwake
     @Environment(OpenPullRequestsStore.self) private var openPullRequests
+    @Environment(CIWatchStore.self) private var ciWatch
     @Environment(SimulatorsStore.self) private var simulators
     @Environment(AppActions.self) private var appActions
     @Environment(\.codeHostWords) private var words
@@ -85,6 +86,7 @@ struct HomeView: View {
             reviewCount: openPullRequests.reviewCount,
             openRequests: openPullRequests.requests,
             username: openPullRequests.username,
+            onHold: ciWatch.onHoldJobNames,
             worktrees: worktrees.worktrees,
             simulators: simulators.all,
             words: words

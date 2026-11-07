@@ -304,6 +304,16 @@ import DevHubTestSupport
         #expect(plain.tags.contains { $0.text == "watching" } == false)
     }
 
+    @Test func aJobOnHoldIsTaggedOnAnOpenRequest() {
+        let open = map(PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened), onHold: [7: ["approve-release"]])
+        let other = map(PullRequestSummaryFixture.request(iid: 8, source: "y", state: .opened), onHold: [7: ["approve-release"]])
+        let merged = map(PullRequestSummaryFixture.request(iid: 7, source: "x", state: .merged), onHold: [7: ["approve-release"]])
+
+        #expect(open.tags.contains(PullRequestTagMapper.onHoldTag(jobs: ["approve-release"], words: .gitLab)))
+        #expect(other.tags.contains { $0.text.hasPrefix("on hold") } == false)
+        #expect(merged.tags.contains { $0.text.hasPrefix("on hold") } == false)
+    }
+
     @Test func aClosedRequestCannotBeWatched() {
         let model = map(PullRequestSummaryFixture.request(iid: 7, source: "x", state: .merged), watched: [7])
 
@@ -321,11 +331,12 @@ import DevHubTestSupport
         isBusy: Bool = false,
         isExpanded: Bool = false,
         configActions: [ConfigActionItemModel] = [],
-        watched: Set<Int> = []
+        watched: Set<Int> = [],
+        onHold: [Int: [String]] = [:]
     ) -> PullRequestRowModel {
         PullRequestRowMapper.model(
             for: request,
-            context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}"), words: .gitLab, staleDays: 14, hiddenFiles: [], watchedIDs: watched),
+            context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}"), words: .gitLab, staleDays: 14, hiddenFiles: [], watchedIDs: watched, onHoldJobs: onHold),
             local: local,
             isBusy: isBusy,
             isExpanded: isExpanded,

@@ -105,7 +105,7 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
             guard projects.hasProvider(for: details.jobs) else { return }
             let project = projects.project(for: details.jobs)
             var workflows: [CIWorkflow] = []
-            for workflowID in Self.workflowIDs(of: details.jobs) {
+            for workflowID in CIPolicy.workflowIDs(of: details.jobs) {
                 workflows.append(try await ci.workflow(id: workflowID, project: project))
             }
             loggedErrors[iid] = nil
@@ -221,13 +221,5 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
     private static func loadPlans(from store: any KeyValueStore, projectID: String) -> [Int: CIAutoRerunPlan] {
         let plans = store.decode([CIAutoRerunPlan].self, forKey: PullRequestsPreferenceKeys.autoRerun(projectID: projectID)) ?? []
         return Dictionary(plans.map { ($0.iid, $0) }, uniquingKeysWith: { first, _ in first })
-    }
-
-    private static func workflowIDs(of jobs: [PipelineJob]) -> [String] {
-        var ids: [String] = []
-        for id in jobs.compactMap(\.ciWorkflowID) where ids.contains(id) == false {
-            ids.append(id)
-        }
-        return ids
     }
 }

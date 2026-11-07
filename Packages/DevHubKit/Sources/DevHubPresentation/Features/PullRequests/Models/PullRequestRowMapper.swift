@@ -68,6 +68,9 @@ enum PullRequestRowMapper {
         if isOpen, context.watchedIDs.contains(request.iid) {
             tags.append(TagModel("watching", tint: .teal, systemImage: "bell", hint: "DevHub reports approvals, requests for changes, failed \(context.words.checks), new comments and the merge of this \(context.words.request)"))
         }
+        if isOpen, let jobs = context.onHoldJobs[request.iid], jobs.isEmpty == false {
+            tags.append(PullRequestTagMapper.onHoldTag(jobs: jobs, words: context.words))
+        }
         if request.hasConflicts, isOpen {
             tags.append(PullRequestTagMapper.conflictsTag(targetBranch: request.targetBranch, words: context.words))
         }
