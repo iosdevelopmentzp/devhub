@@ -23,8 +23,9 @@ DevHubData/
                     GitRefDecorationParser, GitReflogParser, GitStashParser, LocalBranchParser, RemoteBranchParser,
                     ReflogVisitParser
     GitHub/         GhPullRequestRepository, GhClient, GhPullRequestParser, GhCheckParser, GhDiffParser,
-                    GhCreatedPullRequestParser, GhGraphQLQueries
-    CodeHost/       RoutingCodeHostRepository (picks gh or glab per remote; see `code-host`)
+                    GhCreatedPullRequestParser, GhGraphQLQueries, GhUserListParser, GhTeamListParser
+    CodeHost/       RoutingCodeHostRepository (picks gh or glab per remote; see `code-host`), JSONPages (the pages of
+                    `gh api --paginate --slurp` and `glab api --paginate`), JobLogTail
     CircleCI/       CircleCIRepository(client:downloadsFolder:), CircleCIClient (runs with CIRCLE_NO_INTERACTIVE,
                     CIRCLE_NO_UPDATE_CHECK, CIRCLE_SPINNER_DISABLED and NO_COLOR), CircleCIJSON, CircleCIWorkflowParser,
                     CircleCIWorkflowDetailsParser (API v2 through `circleci api`), CircleCIJobStepsParser, CircleCIArtifactParser,
@@ -38,7 +39,8 @@ DevHubData/
     Devices/        DevicectlDeviceRepository(shell:scratch:), DevicectlRunner (--json-output through a temporary file),
                     DevicectlListParser, DevicectlLaunchParser, DevicectlAppListParser (paired iPhones and iPads; see
                     `xcode-toolchain`, "Physical devices")
-    Build/          XcodeBuildRepository, BuildOutputParser, BuildStepThrottle, ProductLocator, XcodeContainer
+    Build/          XcodeBuildRepository, BuildOutputParser, BuildStepThrottle, ProductLocator, XcodeContainer,
+                    XcodeTestRepository, TestOutputParser, XcresultParser, XcresultAttachmentParser
     Logs/           SimctlAppLogRepository, AppLogParser, LogRedactor, LogCounter
     Claude/         AnthropicUsageRepository, ClaudeUsageParser, ClaudeCredentialsReader, ClaudeCredentialsParser,
                     ClaudeTranscriptSessionRepository(root:), ClaudeTranscriptParser, FileReviewPromptRepository(root:)

@@ -1,7 +1,6 @@
 import Foundation
 
 package enum ReviewQueuePolicy {
-
     package static func needsMyReview(_ request: PullRequestSummary, reviewer: ReviewerIdentity) -> Bool {
         let username = reviewer.username
         guard request.state == .opened,

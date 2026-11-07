@@ -25,7 +25,7 @@ A code host is the web service that keeps the repository and its review requests
 
 ## The port
 
-`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `people`, `updatePeople`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`, `fileContent`, `inbox`, `markInboxDone`.
+`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `people`, `teams`, `myTeams`, `updatePeople`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`, `fileContent`, `inbox`, `markInboxDone`.
 
 Every method takes `repository: CodeHost`. A `CodeHost` holds:
 
@@ -54,7 +54,7 @@ The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsS
 
 | Operation | GitHub (`gh`) | GitLab (`glab`) |
 |---|---|---|
-| `list`, `details` | `gh api graphql` (search API for the list, 50 per page) | `glab api graphql` (100 per page) |
+| `list`, `details` | `gh api graphql` (search API for the list, 50 per page). The list reads `reviewRequests` with `... on Team { combinedSlug }` into `requestedTeams`; the details read `viewer { login }`, `reviews(last: 50)` and `commits(last: 50)` into `myLastReview` and `commitDates` (a review made in the browser) | `glab api graphql` (100 per page) |
 | `status` of a branch | GraphQL: pull requests of the head branch and the check rollup of the branch | REST: merge requests of the source branch, then the last pipeline of the branch |
 | `diffs` | REST `pulls/<n>/files` | REST `merge_requests/<n>/diffs` |
 | `approve` | `gh pr review --approve` | REST `approve` |
@@ -66,7 +66,8 @@ The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsS
 | `retryPipeline`, `cancelPipeline` | `gh run rerun --failed`, `gh run cancel` | REST `retry`; GraphQL `pipelineCancel` |
 | `create` | REST `POST pulls`, then `POST issues/<n>/labels` | REST `POST merge_requests` |
 | `labels` | `gh label list --json name` | GraphQL `labels` |
-| `people`, `updatePeople` | REST `repos/<owner>/<name>/assignees` (`GhUserListParser`); `gh pr edit --add-reviewer\|--remove-reviewer\|--add-assignee\|--remove-assignee` | REST `projects/<project>/members/all` (`GlabMemberListParser`, active only); `glab mr update --reviewer=+a --reviewer=!b --repo <web address>` (`GlabClient.command`). `PullRequestPeopleStore` loads the people once per project and shows them in the "Reviewers" and "Assignees" menus of the details |
+| `people`, `updatePeople` | REST `repos/<owner>/<name>/assignees` (`GhUserListParser`); `gh pr edit --add-reviewer\|--remove-reviewer\|--add-assignee\|--remove-assignee` | REST `projects/<project>/members/all` (`GlabMemberListParser`, active only); `glab mr update --reviewer=+a --reviewer=!b --repo <web address>` (`GlabClient.command`). `PullRequestPeopleStore` loads the people once per project and shows them in the "Reviewers" and "Assignees" menus of the details. Both hosts read every page |
+| `teams`, `myTeams` | REST `repos/<owner>/<name>/teams` and `user/teams` (`GhTeamListParser`, only the teams of the repository owner), as `<org>/<slug>`. The teams show under the people in the Reviewers menu; `gh pr edit --add-reviewer <org>/<slug>` requests a team | empty: no teams on GitLab |
 | `resolveThread`, `reply` | GraphQL `resolveReviewThread`, `addPullRequestReviewThreadReply` | GraphQL `discussionToggleResolve`; REST discussion notes |
 | `comment` | `gh pr comment --body` | REST `POST merge_requests/<n>/notes` |
 | `requestChanges` | `gh pr review --request-changes --body` | throws; hidden by `canRequestChanges` |
@@ -91,6 +92,7 @@ Review and job facts in the values:
 
 - `GhClient` and `GlabClient` run the tool through `ShellRunner`, so every call appears in the command log and the Output panel. Never start `gh` or `glab` in another way.
 - `GhClient.graphql`, `rest`, `pr` and `command` add `--hostname` or `--repo`. A host other than `github.com` gets `--repo <host>/<path>`.
+- `GhClient.paged` runs `gh api --paginate --slurp <endpoint>` (one JSON array of pages); `GlabClient.paged` runs `glab api --paginate <endpoint>` (the pages one after another). `JSONPages.split` reads both shapes into one list.
 - `GhClient.Variable.text` becomes `-f name=value` (a string). `.typed` becomes `-F name=value` (a number or a boolean, for example `draft=true`).
 - `GlabClient.graphqlArguments` sends a variable with the value `true` or `false` as `-F name=value`, so GitLab gets a boolean. Every other GraphQL variable and every REST field uses `-f`.
 - The Output panel sorts `gh` and `glab` calls with one rule in `CommandKind`: a GraphQL query, a `GET` call or a `view`, `list`, `checks`, `diff` or `status` subcommand is a read; a mutation or a call that sends fields is an action. `gh auth token` is a secret. The `data-layer` skill has the details.
@@ -160,6 +162,7 @@ Other repository facts: `squashOnMerge` (GitHub `viewerDefaultMergeMethod` is `S
 | `git.host.kind` | `github` or `gitlab`; set it for GitHub Enterprise on a host without `github` in the name |
 | `git.host.name` | the value for `--hostname` |
 | `git.pullRequests.targets`, `template`, `staleDays`, `defaults.*` | the new request form and the `stale` tag (`PullRequestSettings`) |
+| `git.pullRequests.reviewQueue` | `open` (default: every open request that is not a draft, not mine and not approved by me) or `assigned` (only those where I or one of my teams from `myTeams` is a requested reviewer or I am an assignee); `ReviewQueuePolicy` with `ReviewerIdentity`, used by the To review scope, the Today card, the badge and the review reminder |
 | `git.pullRequests.hiddenFiles` | glob patterns of the files hidden from the details file list (`PullRequestSettings.hiddenFiles`, `HiddenFilePolicy`); the default is `[]`: nothing is hidden until the user or this list says so |
 | `git.pullRequests.fileGroups` | named groups of glob patterns (`PullRequestSettings.fileGroups`, `FileGroupPolicy`); the details show a chip per matched group that hides or shows it, `hidden: true` starts hidden |
 | `ai.reviewCommand` | "Fix threads with AI" |
@@ -221,3 +224,4 @@ Never write the name of the test account or the test repository in a test, a fix
 
 - Auto-merge on GitHub: a private repository on a free plan has no auto-merge, so the action stays hidden there.
 - The GitLab flows after the M4 rename: they need a GitLab host of the owner.
+- Teams, the `assigned` review queue and a review made in the browser (ADR 017): checked by tests and headless snapshots over the mock ports.

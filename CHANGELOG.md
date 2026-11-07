@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Infrastructure
+- Skills `code-host`, `data-layer`, `testing` and `xcode-toolchain` describe the ADR 017 code: teams and `myTeams`, `JSONPages` for paged answers, the `.xcresult` parsers and spies, `AttachDestination` and `--start-stopped`. ADR 017 is done; `docs/STATUS.md` has decision 77 and its gaps.
 - `docs/examples/circleci/config.yml`: a CircleCI config for a test project (a build with an artifact, unit tests with a JUnit file that fails on odd minutes, an approval job, a deploy). The owner provides a test CircleCI account later; until then the CI features are checked by tests and the mock ports. ADR 015.
 - The `circleci` CLI runs with `CIRCLE_NO_INTERACTIVE=1`, `CIRCLE_NO_UPDATE_CHECK=1`, `CIRCLE_SPINNER_DISABLED=1` and `NO_COLOR=1`; version 1.14.0 is the one checked (`docs/DEPENDENCIES.md`).
 - `build-and-run` skill: a headless snapshot starts the app with its absolute path, so the `pkill` of the example finds it; a relative path left copies running with their own menu bar icons.
