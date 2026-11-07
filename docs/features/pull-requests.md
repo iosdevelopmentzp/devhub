@@ -221,11 +221,17 @@ A GitHub project can run its checks on CircleCI. GitHub then shows one check per
 
 ### What it shows
 
-1. When the details load, DevHub checks the tool once per project (`circleci version --json`, `circleci setting list --json`), then reads every workflow that a check points at (`circleci workflow get <uuid> --json`). The check rows that point at the workflow are replaced by one group per workflow, named after it and marked "CircleCI": the jobs with their state, failed first; a job that waits for approval says "waiting for approval".
+1. When the details load, DevHub checks the tool once per project (`circleci version --json`, `circleci setting list --json`), then reads every workflow that a check points at (`circleci workflow get <uuid> --json`) and its job details (`circleci api api/v2/workflow/<uuid>` and `…/job`: the pipeline number, the job numbers and the times). The check rows that point at the workflow are replaced by one group per workflow, named after it and marked "CircleCI": the jobs with their state, failed first; a job that waits for approval says "waiting for approval". Each job shows how long it ran (a running job counts up) and the globe opens its page in CircleCI. A running or waiting workflow is read again every 30 seconds while the details are open; when it ends, the rows change, the failed tests load, Recent says "CircleCI: <workflow> passed" or "failed", and the request is read again. A 429 doubles the next wait once.
 2. A failed job has a folded "N failed tests" next to its state (`circleci testresult list <job> --json`, at most 5 jobs per workflow). A click opens the list: the test name (click to copy) and, behind its own chevron, its message. DevHub keeps what is open until the project changes. When at least one test failed, DevHub reads the flaky tests of the project once (`circleci api api/v2/insights/<slug>/flaky-tests`). A failed test that is in that list gets a "flaky · flaked N times" tag, and the job row gets a "flaky" tag, or "N of M flaky" when only some of the failed tests are flaky. The slug comes from `ci.project`, else from the CircleCI link of the check (`gh/<owner>/<repo>` or `circleci/<org id>/<project id>`), else from a GitHub remote (`gh/<owner>/<repo>`); without a slug there is no flaky list.
-3. The log button of a finished job shows the last 200 lines of its steps (`circleci job output list <job> --json`), each step under a `== <step name>` header with the exit code of a failed step.
+3. A failed job says which step failed next to its state: "Run tests failed (exit 65)" (`circleci job get <job> --json`, at most 5 jobs per workflow). The chevron opens the step list (state, name, duration, exit code), then the failed tests. The log button shows the failed steps first with their last 200 lines each, then the other steps with their last 20 lines (`circleci job output list <job> --json`), each step under a `== <step name> (exit <code>)` header.
+3a. A finished job that is not an approval has a paperclip. The first click reads the artifacts (`circleci job artifact <job> --json`) and lists them under the job with "Open in Browser"; "Download All" runs `circleci job artifact <job> -o "~/Downloads/DevHub Artifacts/<job name> <job number>"` and then offers "Show in Finder".
 4. The group header has "Re-run Failed" and "Re-run All" when the workflow is finished, and "Cancel" (inline confirmation) while it runs or waits. The retry button of a failed job runs the failed jobs of its workflow again. A job that waits for approval has an Approve button with an inline confirmation. After an action DevHub reads the request again; a re-run makes a new workflow, which shows when GitHub reports it.
 5. While the workflow is read, the GitHub rows say "Reading the CircleCI workflow…"; when the read fails, they say "CircleCI: <error>" and the failure is in Recent.
+6. The stethoscope menu next to "Auto re-run" has "Copy CI Diagnostics" and "Save CI Diagnostics…" (see CI diagnostics below).
+
+### Approvals outside the details
+
+DevHub watches your open requests whose checks still run or wait, every minute while DevHub runs and again after a change of the requests or of their checks: it reads the details and the CircleCI workflows (`circleci workflow get`) and finds the approval jobs on hold. Such a request gets an "on hold · <job>" tag in the list, the Today card gets a line "<job> of #12 waits for your approval" that opens the request, and a notification of the kind "Jobs of my pull requests waiting for approval" comes once per job (remembered per project under `gitlab.ciNotified.<project>` until the request leaves the open list). The Approve button is in the details.
 
 ### Previous runs
 
@@ -235,7 +241,9 @@ The runs are saved per project and request (`gitlab.ciHistory.<project>.<number>
 
 ### Auto re-run
 
-"Auto re-run" on the line of the checks title runs the failed jobs of a CircleCI workflow again each time the workflow fails. The menu sets the most re-runs: 3, 5, 10 or 20. The button then shows "Auto re-run 2 of 10"; a click stops it.
+"Auto re-run" on the line of the checks title runs the failed jobs of a CircleCI workflow again each time the workflow fails. The menu sets the most re-runs: 3, 5, 10 or 20, and has the check item "Only flaky failures". The button then shows "Auto re-run 2 of 10"; a click stops it.
+
+With "Only flaky failures" (on by default, saved per project as `gitlab.autoRerunOnlyFlaky.<project>` and copied into the plan when it starts) a failed workflow runs again only when every failed job has failed tests and every failed test is in the flaky list of CircleCI Insights (read once, again after 10 minutes). Otherwise the plan stops with the reason in Recent and in the notification: "No re-run: unit-tests failed on a test that is not flaky" or "No re-run: build failed without test results"; the failed run stays under "Previous CircleCI runs". Insights has no flaky list for a GitLab project or a project connected through the GitHub App, so turn the mode off there. Off: a re-run after every failure.
 
 1. DevHub checks the request at once and then every minute while DevHub runs (the checks of the request, then `circleci workflow get <uuid> --json` for each CircleCI workflow), also when the panel is closed. The plans are saved per project (`gitlab.autoRerun.<project>`), so they go on after DevHub starts again.
 2. A failed workflow is saved under "Previous CircleCI runs", then runs again with `circleci workflow rerun <uuid> --from-failed`. Each re-run of a workflow counts as one try. Recent and a notification say "Re-run 2 of 10: <workflow> of #N".
@@ -258,7 +266,16 @@ Every command runs in the main checkout, so the tool resolves the project from `
 | Cancel | `circleci workflow cancel <uuid> --force` |
 | Approve | `circleci run approve <run> --job <job name> --force --json` |
 
-The reads are `.read` in the Output panel; re-run, cancel and approve are actions. The fixtures of the parsers follow the CLI reference of October 2026 and still have to be checked on a live project (ADR 006).
+| Job details | `circleci api api/v2/workflow/<uuid>`, `circleci api api/v2/workflow/<uuid>/job` |
+| Steps of a failed job | `circleci job get <job> --json` |
+| Artifacts | `circleci job artifact <job> --json`; download: `circleci job artifact <job> -o <folder>` |
+| Runs of a branch (Git tab) | `circleci run list --branch <branch> --limit 1 --json`, `circleci workflow list <run> --json` |
+
+The reads are `.read` in the Output panel; re-run, cancel, approve and the artifact download are actions. Every command runs with `CIRCLE_NO_INTERACTIVE=1`, `CIRCLE_NO_UPDATE_CHECK=1`, `CIRCLE_SPINNER_DISABLED=1` and `NO_COLOR=1`. The fixtures of the parsers follow the CLI reference and the source of the CLI (October 2026) and still have to be checked on a live project (ADR 006, ADR 015); the owner provides a test CircleCI account later.
+
+### CI diagnostics
+
+For a bug report about CircleCI: "Copy CI Diagnostics" and "Save CI Diagnostics…" in the stethoscope menu of the checks header, or "CI Diagnostics…" in Settings → Doctor. The text has the DevHub version, the provider, the slug, the `ci` config, the branch and the base, the state of the `circleci` tool, the workflows of the request as DevHub parsed them, the latest runs of the branch and the base branch (from Settings), the recent CI failures of Recent and the last 40 `circleci` commands of the Output panel with cwd, exit code, duration and output (a long output keeps its first 40 and last 40 lines). Before the text leaves DevHub, the organisation and the repository of the remote become `<org>` and `<repo>`, the host `<host>`, the branches of the open requests, the current branch and the base `<branch-N>`, the logins `<user-N>`, the home folder `~`, and every word of `~/.devhub/anonymity-denylist.txt` `<redacted>` (one word per line, `re:` for a regular expression, `#` for a comment; the same file as `Scripts/check-anonymous.sh`). Test names, messages and step names stay as they are: read the file before you share it.
 
 ## Config
 
@@ -291,7 +308,9 @@ The reads are `.read` in the Output panel; re-run, cancel and approve are action
 | `gitlab.listFraction` | The width of the list in the side-by-side layout | 0.42 |
 | `gitlab.seenAt.<scope>` | The time of your last visit to each scope (the blue "new" dot) | — |
 | `gitlab.watched.<project>` | The requests you watch | none |
-| `gitlab.autoRerun.<project>` | The CircleCI auto re-run plans: request, most re-runs, re-runs done, workflows already run again | none |
+| `gitlab.autoRerun.<project>` | The CircleCI auto re-run plans: request, most re-runs, re-runs done, workflows already run again, the mode | none |
+| `gitlab.autoRerunOnlyFlaky.<project>` | The mode of new auto re-run plans: "Only flaky failures" on or off | on |
+| `gitlab.ciNotified.<project>` | The CircleCI approval jobs on hold that DevHub already reported | none |
 | `gitlab.ciHistory.<project>.<number>` | The earlier CircleCI workflows of a request with their failed tests | none |
 | `gitlab.hiddenFiles.<project>` | The file paths you hid in the details (eye-slash button or "Hide Them") | none |
 | `gitlab.reviews.<project>` | Your last review of each request: the time and a fingerprint of the diff of each file, and the Viewed marks with their fingerprints (200 requests at most) | none |

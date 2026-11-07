@@ -25,9 +25,12 @@ DevHubData/
     GitHub/         GhPullRequestRepository, GhClient, GhPullRequestParser, GhCheckParser, GhDiffParser,
                     GhCreatedPullRequestParser, GhGraphQLQueries
     CodeHost/       RoutingCodeHostRepository (picks gh or glab per remote; see `code-host`)
-    CircleCI/       CircleCIRepository(client:), CircleCIClient, CircleCIJSON, CircleCIWorkflowParser, CircleCIRunParser,
-                    CircleCIJobOutputParser, CircleCITestResultParser, CircleCIFlakyTestParser, CircleCIToolStateParser
-                    (the circleci CLI, ADR 006; see the pull-requests page)
+    CircleCI/       CircleCIRepository(client:downloadsFolder:), CircleCIClient (runs with CIRCLE_NO_INTERACTIVE,
+                    CIRCLE_NO_UPDATE_CHECK, CIRCLE_SPINNER_DISABLED and NO_COLOR), CircleCIJSON, CircleCIWorkflowParser,
+                    CircleCIWorkflowDetailsParser (API v2 through `circleci api`), CircleCIJobStepsParser, CircleCIArtifactParser,
+                    CircleCIWorkflowListParser, CircleCIRunParser, CircleCIJobOutputParser, CircleCITestResultParser,
+                    CircleCIFlakyTestParser, CircleCIToolStateParser (the circleci CLI, ADR 006 and 015; see the pull-requests page)
+    Redaction/      FileRedactionWordsRepository (the words of ~/.devhub/anonymity-denylist.txt for the CI diagnostics)
     Simulators/     SimctlSimulatorRepository, SimulatorAppLocation (Simulator.app or Xcode 27 Device Hub),
                     SimctlAppLaunchRepository, SimctlMessagingRepository, SimctlRunner,
                     SimctlListParser, ContainerLocator, ProfileDefaultsPlan, AppURLSchemeParser,

@@ -22,6 +22,9 @@ Every event that DevHub can also send as a macOS notification carries a kind. Ev
 | Pull Requests waiting for your review | the number of requests that wait for your review went up | the Pull Requests tab in the "To review" scope |
 | Reviews of my pull requests | someone approved your request or asked for changes | the request |
 | Checks of my pull requests | the checks or pipeline of your request turned to failed | the request |
+| Checks of my pull requests passed | the checks or pipeline of your request turned from running to passed | the request |
+| Jobs of my pull requests waiting for approval | a CircleCI approval job of your request waits for your approval | the request, where the Approve button is |
+| CI of the base branch | the latest CircleCI run of the base branch failed | the Git tab |
 | Comments on my pull requests | someone else commented on your request; your own comments are silent | the request |
 | My pull requests merged or closed | your request was merged, or closed without a merge | the request |
 | Watched pull requests | a request by someone else that you watch got an approval, a request for changes, failed checks, a new comment, or was merged or closed | the request |

@@ -45,6 +45,9 @@ Each section is explained under "Actions".
 | Pull Requests waiting for your review | The number of requests that wait for your review went up. A click opens that list |
 | Reviews of my pull requests | Someone approved your request or asked for changes. A click opens the request |
 | Checks of my pull requests | The checks or pipeline of your request turned to failed. A click opens the request |
+| Checks of my pull requests passed | The checks or pipeline of your request turned from running to passed. A click opens the request |
+| Jobs of my pull requests waiting for approval | A CircleCI approval job of your request waits for your approval. A click opens the request, where the Approve button is |
+| CI of the base branch | The latest CircleCI run of the base branch failed. A click opens the Git tab |
 | Comments on my pull requests | Someone else commented on your request ("sam commented on #12"). Your own comments are silent. A click opens the request |
 | My pull requests merged or closed | Your request was merged, or closed without a merge. A click opens the request |
 | Watched pull requests | A request you watch got an approval, a request for changes, failed checks, a new comment, or was merged or closed. A click opens the request. |
@@ -148,7 +151,8 @@ The Doctor section checks the tools that DevHub runs. It runs when the section a
 
 1. DevHub searches for each tool in `/opt/homebrew/bin`, `/usr/local/bin`, `~/.local/bin`, then in its own `PATH`.
 2. DevHub runs the version command with a 5 second limit and shows the first version number in the output.
-3. A found tool shows its version and path (click to copy). A missing tool shows "missing" in orange and **Copy Install Command**. A tool without a version also offers the install command. A tool with a minimum version (`circleci`: 1) shows "<version>, needs 1 or newer" in orange with the upgrade command.
+3. A found tool shows its version and path (click to copy). A missing tool shows "missing" in orange and **Copy Install Command**. A tool without a version also offers the install command. A tool with a minimum version (`circleci`: 1) shows "<version>, needs 1 or newer" in orange with the upgrade command. A tool that reports a newer version (`circleci version --json` with `outdated` and `latest`) shows "1.13.0, 1.14.0 available" in blue with the upgrade command; DevHub never updates a tool itself.
+4. **CI Diagnostics…** in the header saves the CI diagnostics text (see the CircleCI section of the pull-requests page) through a save panel; it includes the latest CircleCI runs of the current branch and the base branch from the Git tab.
 
 | Tool | Version command | Purpose | Install command |
 |---|---|---|---|
@@ -157,7 +161,7 @@ The Doctor section checks the tools that DevHub runs. It runs when the section a
 | `xcrun` | `xcrun simctl help` (shows "simctl") | Simulators, logs, launches | `sudo xcode-select -s /Applications/Xcode.app` |
 | `gh` | `gh --version` | GitHub pull requests | `brew install gh && gh auth login` |
 | `glab` | `glab --version` | GitLab merge requests | `brew install glab && glab auth login` |
-| `circleci` | `circleci version` | CircleCI workflows, jobs and flaky tests (version 1 or newer) | `brew install circleci && circleci auth login`; an old version: `brew upgrade circleci` |
+| `circleci` | `circleci version --json` | CircleCI workflows, jobs and flaky tests (version 1 or newer) | `brew install circleci && circleci auth login`; an old or outdated version: `brew upgrade circleci` |
 | `copilot` | `copilot --version` | Copilot CLI sessions | `npm install -g @github/copilot` |
 | `claude` | `claude --version` | Claude Code sessions and AI review | `npm install -g @anthropic-ai/claude-code` |
 | `python3` | `python3 --version` | Scripts of the example `.devhub` folder | `xcode-select --install` |
