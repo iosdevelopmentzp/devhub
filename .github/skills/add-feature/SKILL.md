@@ -250,8 +250,12 @@ Feature(id: .devices, title: "Devices", systemImage: "ipad.and.iphone", searchPr
 - The tab bar (⌘1 to ⌘9 for the first nine tabs), the search prompt of the tab (`TabSearchField`) and the ⌘K palette read
   `FeatureRegistry` through `TabItemMapper`. Nothing else to add.
 - `showsInTabBar: false` hides a tab from the bar (Settings uses it). `searchPrompt: nil` hides the search field.
-- Open the tab from code with `navigator.show(.devices)`. The selection is a `TabID` (`.feature(FeatureID)` or
-  `.custom(String)` for a `.devhub` tab) and is saved under `navigator.selection`.
+- Open the tab from code with `navigator.show(.devices)`. The selection is a `TabID` (`.feature(FeatureID)`,
+  `.utility(UtilityID)` for a tool of Utils, or `.custom(String)` for a `.devhub` tab) and is saved under
+  `navigator.selection`. The user can move the tab into Utils with a right-click (`TabLayout`, saved under
+  `tabs.layout`); `navigator.show` then opens Utils on it, so never set `navigator.selection` directly.
+- A small tool that needs no project belongs in Utils instead: a `UtilityID` case with a title, icon and search
+  prompt, one `case` in `UtilityContent`, and a line in `docs/features/utils.md`.
 - Debug: `DEVHUB_OPEN_PANEL=1 DEVHUB_TAB=devices` opens the panel on the new tab (`build-and-run`).
 
 ## 10. Tests

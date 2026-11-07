@@ -1,12 +1,23 @@
 # Utils tab
 
-The Utils tab holds small tools that do not belong to a project. A segmented control at the top chooses the tool; the choice is saved (`utils.selection`). The plan and the decisions are in ADR 009.
+The Utils tab holds the tools that do not belong to a project, the custom tabs of the `.devhub` folders, and every built-in tab the user moved out of the tab bar. A row of sub-tab buttons at the top chooses one; the choice is saved (`utils.selection`). The plan and the decisions of the tools are in ADR 009.
 
-Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Utils/`, `DevHubData/Video/`, `DevHubDomain/Policies/VideoCompressionPolicy.swift`, `DevHubDomain/Repositories/VideoCompressionRepository.swift`.
+Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Utils/`, `Shell/TabLayout.swift`, `Shell/TabPlacementMenu.swift`, `Shared/Navigator.swift`, `DevHubData/Video/`, `DevHubDomain/Policies/VideoCompressionPolicy.swift`, `DevHubDomain/Repositories/VideoCompressionRepository.swift`.
 
 | Tool | What it does |
 |---|---|
 | Compress Video | makes a screen recording or any video much smaller with ffmpeg, next to the original |
+| a custom tab | the sections of a `.devhub/tabs/<id>.json` file ([Custom tabs](custom-tabs.md)) |
+| a moved built-in tab | the same screen as in the tab bar, for example Logs or Network |
+
+## Tab layout
+
+- The tab bar holds Home, the built-in tabs, Utils, then the tabs placed in the bar. Utils holds the sub-tabs in the order: moved built-in tabs, the tools, custom tabs.
+- Right-click a tab button in the tab bar: **Move to Utils**. Right-click a sub-tab button in Utils: **Show in Tab Bar**. The moved tab stays on screen in its new place. Home and Utils do not move. The hint of a button names the action.
+- The choice is saved for the user, for every project, under `tabs.layout` (`tab.<id>` to `bar` or `utils`). It wins over the `placement` field of a custom tab file. A custom tab without `placement` starts in Utils.
+- ⌘1 to ⌘9 follow the positions in the tab bar, so a move changes the numbers of the tabs after it. Sub-tabs have no shortcut; the ⌘K palette lists every tab of both places and opens it where it is.
+- A notification, a palette entry or a row action that opens a moved tab (for example "Open the Logs tab") opens Utils on that sub-tab. The search field and its saved text follow the shown sub-tab.
+- `DEVHUB_TAB` takes a sub-tab too: `utility.compressVideo`, `tab.<id>`, or a built-in id. The Debug build opens Utils on it when the layout puts it there.
 
 ## Compress Video
 

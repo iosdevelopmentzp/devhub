@@ -11,6 +11,8 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - `docs/customization.md`: the map from a need to the `.devhub/` mechanism that covers it, a worked example of a chat command tab built from scripts, actions and a custom tab, and the schema gaps that such a tab still has. Linked from the README, `AGENTS.md`, the example folder and the `extensions` skill.
 
 ### Added
+- Utils holds the extra tabs: the tools, every custom tab of the `.devhub` folders, and any built-in tab you move there. A row of sub-tab buttons at the top chooses one. Right-click a tab in the tab bar for "Move to Utils", or a sub-tab in Utils for "Show in Tab Bar"; the moved tab stays on screen in its new place, and the choice is saved for every project. Home and Utils stay in the bar. A notification, a palette entry or a row action that opens a moved tab opens Utils on it. `DEVHUB_TAB` takes `utility.compressVideo` and a tab placed in Utils.
+- Custom tabs: a tab starts as a sub-tab of Utils. `"placement": "bar"` in the tab file puts it in the tab bar after the built-in tabs; a right-click wins over the file.
 - Custom tabs: `inputs` on a tab are shared by every row. They show in a bar under the toolbar, their values are saved per project and tab, and every action and source script of the tab gets them as `DEVHUB_INPUT_<KEY>` and `{key}`. A text or number input with `recent: true` keeps its last 12 values in a clock menu next to the field, with Forget. The example folder has a `chat` tab that uses them.
 - Actions: `run: {"copy": "…", "open": "…"}` puts the rendered text on the clipboard and opens a link or file, without a script. The prompt shows the text live under the inputs and the button says Copy. A custom tab ends with a Recent section: the last 30 copied texts of the project for that tab, with Resend, Remove and Clear.
 - Actions: an option of a `choice` input can carry `confirm`. When that option is chosen, its text is the confirmation and wins over the action's own `confirm`; an action without inputs asks too when a shared tab input has one. So a PROD environment asks and QA does not.
@@ -123,6 +125,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - The example `.devhub` folder marks its helper scripts (DerivedData clean, booted simulators, simulator status) with `placements = palette`, so Home does not list them next to the actions that run them.
 
 ### Changed
+- The tab bar no longer grows with every custom tab: a custom tab opens inside Utils unless its file says `"placement": "bar"` or you move it with a right-click. ⌘1 to ⌘9 follow the positions in the bar, so Utils keeps ⌘9 until you move a tab.
 - The search field moved from the header into the toolbar of each tab, next to the list it filters (Home: next to the "Quick actions" title; custom tabs: a new toolbar). ⌘F focuses it and Esc clears it as before, and the text per tab is kept. The "Showing only items that match" bar is gone: the field shows the text.
 - Operation cards no longer show inline under a header, a toolbar or a row; they show in the tray.
 - Simulators: the run bar options wrap to two rows when the panel is narrow, with the checkout badge first. The Git section bar shows its tip as a hint of the picker.

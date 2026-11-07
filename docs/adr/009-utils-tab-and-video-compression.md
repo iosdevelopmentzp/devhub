@@ -23,6 +23,7 @@ Facts checked on this Mac (2026-11-02):
 
 1. `FeatureID.utils`, after AI (⌘9), title "Utils". No search field.
 2. A segmented control under the run area selects the sub-tab (`UtilityID`). The choice is saved. The first sub-tab is "Compress Video". Later tools are new `UtilityID` cases.
+3. Later change (STATUS decision 71): the sub-tabs are buttons with a right-click menu, and Utils also holds the custom tabs and every built-in tab the user moved out of the tab bar. `UtilsStore` is gone; `Navigator` keeps the sub-selection under the same key.
 
 ### D2. The engine: ffmpeg
 

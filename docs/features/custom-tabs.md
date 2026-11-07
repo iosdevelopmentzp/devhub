@@ -1,14 +1,14 @@
 # Custom tabs
 
-A custom tab is a tab that you define in a JSON file in `.devhub/tabs/`. It has no Swift code of its own. It shows sections with action rows and sections that a script fills. Custom tabs come after the built-in tabs in the tab bar.
+A custom tab is a tab that you define in a JSON file in `.devhub/tabs/`. It has no Swift code of its own. It shows sections with action rows and sections that a script fills. A custom tab is a sub-tab of the Utils tab by default; `"placement": "bar"` or a right-click puts it in the tab bar after the built-in tabs ([Utils](utils.md#tab-layout)).
 
-Code: `Packages/DevHubKit/Sources/DevHubPresentation/Features/CustomTabs/`, `Features/ConfigActions/`, `DevHubDomain/Policies/CustomTabPolicy.swift`, `Shell/TabItemMapper.swift`.
+Code: `Packages/DevHubKit/Sources/DevHubPresentation/Features/CustomTabs/`, `Features/ConfigActions/`, `DevHubDomain/Policies/CustomTabPolicy.swift`, `Shell/TabItemMapper.swift`, `Shell/TabLayout.swift`.
 
 ## What it shows
 
 ### Tab bar and header
 
-- The tab button uses `title` and `icon` (default icon `square.grid.2x2`).
+- The tab button uses `title` and `icon` (default icon `square.grid.2x2`). It sits in the sub-tab row of Utils, or in the tab bar with `"placement": "bar"`. A right-click on the button moves it to the other place; the choice is saved for the user and wins over the file.
 - The search field in the toolbar uses `searchPrompt` (default "Search <title>").
 - A tab with `inputs` shows them in a bar under the toolbar, one field per input, with the same controls as action inputs. The values are saved per project and tab, and every action and source script of the tab gets them as `DEVHUB_INPUT_<KEY>` and `{key}`. An input marked `recent: true` has a clock menu with the last 12 values and "Forget" for each.
 
@@ -72,7 +72,7 @@ echo '@devhub {"view": {"rows": [{"id": "sim-1", "title": "iPhone 17", "subtitle
 
 ### Keys
 
-The tabs of the tab bar get ⌘1 to ⌘9 in order. There are 8 built-in tabs, so the first custom tab gets ⌘9.
+The tabs of the tab bar get ⌘1 to ⌘9 in order. There are 9 built-in tabs, so a custom tab in the bar has a shortcut only when a built-in tab was moved to Utils. Sub-tabs of Utils have no shortcut; the ⌘K palette opens every tab by name.
 
 ## Config
 
@@ -95,6 +95,7 @@ A tab file:
 |---|---|---|
 | `id` | The tab id, the `tab.<id>` placement, and the saved tab `tab.<id>` | [Custom tabs](../extensions.md#8-custom-tabs) |
 | `title`, `icon`, `searchPrompt` | The tab button and the search field | [Custom tabs](../extensions.md#8-custom-tabs) |
+| `placement` | `utils` (default) or `bar`: where the tab starts | [Custom tabs](../extensions.md#8-custom-tabs) |
 | `inputs` | The shared inputs in the bar under the toolbar | [Custom tabs](../extensions.md#8-custom-tabs), [Inputs](../extensions.md#32-inputs) |
 | `sections[].title` | The section header | [Custom tabs](../extensions.md#8-custom-tabs) |
 | `sections[].actions` | Action ids: config actions, `script:<name>`, `builtin.*` | [Custom tabs](../extensions.md#8-custom-tabs), [`project.json`](../extensions.md#2-projectjson) (the built-in ids) |
@@ -112,7 +113,9 @@ A custom tab has no store of its own (`docs/STATUS.md`, decision 31). It shares 
 
 | Key | What it keeps |
 |---|---|
-| `navigator.selection` | The selected tab. A custom tab is saved as `tab.<id>` |
+| `navigator.selection` | The selected tab of the tab bar. A custom tab is saved as `tab.<id>` |
+| `utils.selection` | The selected sub-tab of Utils, with the same `tab.<id>` form |
+| `tabs.layout` | The tabs the user moved with a right-click: `tab.<id>` to `bar` or `utils` |
 | `configActions.lastRun` | The last run time per project and action. A source section shows it as "read 5 min ago". Home shows the same time for the same script |
 | `configActions.inputs` | The remembered inputs (`remember: true`) per project and action |
 | `configActions.tabInputs` | The values of the shared inputs per project and tab |
@@ -123,8 +126,8 @@ The last `view` of a source section lives in memory. After a restart the section
 
 ## Limits
 
-- Only the first custom tab has a keyboard shortcut (⌘9). The others have none.
+- A custom tab has a keyboard shortcut only in the tab bar, and only while its position is ⌘9 or lower.
 - A source script is found by its base file name. A script outside a `scripts/` folder is "missing", even when `source.script` points to a real file.
 - The run state of a source script is shared with Home: a run from Home changes the "read …" time of the section.
 - A timed refresh runs only while the tab is on screen and the panel is open.
-- When the selected custom tab is removed from the config, the panel shows Home.
+- When the selected custom tab is removed from the config, the panel shows Home. When a selected sub-tab of Utils is removed, Utils shows its first sub-tab.

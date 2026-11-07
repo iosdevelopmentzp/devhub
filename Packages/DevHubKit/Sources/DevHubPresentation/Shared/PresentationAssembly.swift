@@ -58,7 +58,6 @@ package final class PresentationAssembly {
     let media: MediaStore
     let appData: AppDataStore
     let diskCleanup: DiskCleanupStore
-    let utils: UtilsStore
     let videoCompression: VideoCompressionStore
     let aiSessions: AISessionsStore
     let appActions: AppActions
@@ -77,7 +76,7 @@ package final class PresentationAssembly {
         events = AppEvents()
         session = ProjectSession(projects: projects, selectedProjectID: selectedProjectID, store: store, events: events, detector: ports.projectDetector)
         config = ConfigStore(repository: ports.config, session: session, events: events)
-        navigator = Navigator(store: store)
+        navigator = Navigator(store: store, customTabs: config)
         activity = ActivityLog(events: recentEvents, store: store)
         operations = OperationLog()
         toaster = Toaster(write: PasteboardWriter.write)
@@ -274,7 +273,6 @@ package final class PresentationAssembly {
         media = MediaStore(repository: ports.media, operations: operations, activity: activity)
         appData = AppDataStore(repository: ports.appData, operations: operations, activity: activity, events: events)
         diskCleanup = DiskCleanupStore(repository: ports.diskCleanup, operations: operations, activity: activity)
-        utils = UtilsStore(store: store)
         videoCompression = VideoCompressionStore(repository: ports.videoCompression, store: store, activity: activity, notifier: notifier, toaster: toaster, now: { .now })
         aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, worktrees: worktrees, store: store)
         appActions = AppActions(
@@ -294,7 +292,6 @@ package final class PresentationAssembly {
             session: session,
             config: config,
             workspace: workspace,
-            utils: utils,
             videoCompression: videoCompression,
             toaster: toaster
         )

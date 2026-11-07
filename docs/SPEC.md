@@ -84,7 +84,7 @@ Details: `docs/features/output.md` (Output panel) and `docs/features/palette.md`
 
 1. **Usage strip** (a switch in Settings). One row per AI provider that is logged in. Claude shows the session and week limits. Copilot shows the premium requests of the month. A click shows reset times and a Refresh button.
 2. **Header.** The project menu (switch project, Add Project), the current branch under the project name, the search field with a prompt per tab (⌘F), the palette button (⌘K), the pin button (panel mode only) and the settings button. ⌃⌘1 to ⌃⌘9 select the first nine projects.
-3. **Tab bar.** The built-in tabs, then the custom tabs. ⌘1 to ⌘9 select the first nine tabs. The selected tab has the accent colour. When the titles do not fit, the other tabs show only icons.
+3. **Tab bar.** The built-in tabs, then the tabs the user placed in the bar. ⌘1 to ⌘9 select the first nine tabs. The selected tab has the accent colour. When the titles do not fit, the other tabs show only icons. A right-click on a tab moves it into Utils; a right-click on a sub-tab of Utils brings it back. Home and Utils stay.
 4. **Search filter bar.** A thin bar with "Clear search" appears only when the current tab is filtered. Without it, a saved query could hide most of a list without a sign.
 5. **The view of the selected tab.**
 6. **Output panel** (⇧⌘O). Section 2.6.
@@ -260,7 +260,7 @@ The Network tab shows only the requests that pass through the DevHub mock server
 
 ### 3.10 Custom tabs
 
-- Each file in `.devhub/tabs/*.json` adds a tab after the built-in tabs. The first custom tab gets ⌘9. The others have no shortcut.
+- Each file in `.devhub/tabs/*.json` adds a sub-tab to Utils, or a tab after the built-in tabs with `"placement": "bar"`. A tab in the bar gets the next free ⌘ number up to ⌘9; a sub-tab has none.
 - A tab has sections. A section lists actions as rows with inputs and a Run button, or it shows the `view` output of a source script (rows with their own actions, key-value pairs or text).
 - A source script runs when the tab opens (`onOpen`, the default), on a button (`manual`) or every N seconds.
 - Config actions with the placement `tab.<id>` join the tab.
@@ -626,7 +626,7 @@ Run these checks by hand on a test repository with a remote and the example fold
 
 ### Custom tabs and Settings
 
-38. Add a file to `.devhub/tabs/`. A new tab appears after the built-in tabs and opens with ⌘9.
+38. Add a file to `.devhub/tabs/`. A new sub-tab appears in Utils; with `"placement": "bar"` it appears after the built-in tabs.
 39. A source script section shows rows from its `view` output, and a row action runs.
 40. Settings → Doctor lists every tool with a version or an install command, and the state of the Accessibility and Notifications permissions.
 41. Allow notifications. Start a build that fails, and close the panel before the build ends. A notification appears, and the menu bar icon shows a red dot until the panel opens.

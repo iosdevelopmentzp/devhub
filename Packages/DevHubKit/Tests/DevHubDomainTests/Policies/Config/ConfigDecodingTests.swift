@@ -114,6 +114,17 @@ import Testing
         #expect(tab.actionIDs == ["chat-coins"])
     }
 
+    @Test func aTabDecodesItsPlacement() throws {
+        let bar = try ConfigDecoding.decode(TabConfig.self, from: ConfigDecoding.parseJSON(#"{ "id": "qa", "title": "QA", "placement": "bar" }"#))
+        let plain = try ConfigDecoding.decode(TabConfig.self, from: ConfigDecoding.parseJSON(#"{ "id": "qa", "title": "QA" }"#))
+
+        #expect(bar.placement == .bar)
+        #expect(plain.placement == nil)
+        #expect(throws: ConfigError.self) {
+            try ConfigDecoding.decode(TabConfig.self, from: ConfigDecoding.parseJSON(#"{ "id": "qa", "title": "QA", "placement": "sidebar" }"#))
+        }
+    }
+
     @Test func invalidJSONIsAnIssueNotACrash() {
         #expect(throws: ConfigError.self) {
             try ConfigDecoding.parseJSON("{ nope")

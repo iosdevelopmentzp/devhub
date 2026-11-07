@@ -10,7 +10,7 @@ struct TabSearchField: View {
     @FocusState private var isFocused: Bool
 
     private var prompt: String? {
-        TabItemMapper.item(for: navigator.selection, customTabs: config.resolved.tabs, words: words).searchPrompt
+        TabItemMapper.item(for: navigator.currentTab, customTabs: config.resolved.tabs, words: words).searchPrompt
     }
 
     var body: some View {

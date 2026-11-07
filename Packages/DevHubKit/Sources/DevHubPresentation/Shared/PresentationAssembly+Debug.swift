@@ -19,7 +19,7 @@ package extension PresentationAssembly {
 
     func debugShowTab(_ rawValue: String) {
         guard let tab = TabID(rawValue: rawValue) else { return }
-        navigator.selection = tab
+        navigator.show(tab)
     }
 
     func debugOpenPalette(query: String) {

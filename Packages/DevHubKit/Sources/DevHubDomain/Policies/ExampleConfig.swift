@@ -274,6 +274,7 @@ echo "@devhub {\"view\": {\"keyValues\": [[\"Environment\", \"$ENVIRONMENT\"], [
   "title": "QA",
   "icon": "wrench.and.screwdriver",
   "searchPrompt": "Search QA tools",
+  "placement": "bar",
   "sections": [
     { "title": "Project", "actions": ["clean-derived-data", "open-ci", "script:regenerate-resources"] },
     { "title": "Booted simulators", "source": { "script": "scripts/list-devices.sh", "refresh": "onOpen" } }

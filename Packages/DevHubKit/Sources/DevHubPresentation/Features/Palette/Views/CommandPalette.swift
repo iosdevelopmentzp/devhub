@@ -86,7 +86,7 @@ struct CommandPalette: View {
     private var items: [PaletteItem] {
         PaletteMapper.items(
             from: PaletteSources(
-                tabs: TabItemMapper.items(customTabs: config.resolved.tabs, words: words),
+                tabs: TabItemMapper.allItems(layout: navigator.layout, customTabs: config.resolved.tabs, words: words),
                 actions: paletteActions,
                 simulators: simulators.all,
                 targetID: build.target?.id,
@@ -117,7 +117,7 @@ struct CommandPalette: View {
     private func perform(_ item: PaletteItem) {
         switch item.command {
         case .showTab(let id):
-            navigator.selection = id
+            navigator.show(id)
         case .runAction(let action):
             switch action {
             case .builtin(let builtin):

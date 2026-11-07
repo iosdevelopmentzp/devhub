@@ -15,4 +15,10 @@ enum UtilityID: String, CaseIterable, Hashable {
         case .compressVideo: "film"
         }
     }
+
+    var searchPrompt: String {
+        switch self {
+        case .compressVideo: "Filter videos"
+        }
+    }
 }

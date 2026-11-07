@@ -5,7 +5,7 @@ import DevHubUI
 
 @MainActor
 @Observable
-final class ConfigStore {
+final class ConfigStore: CustomTabLookup {
     private(set) var resolved: ResolvedConfig = .empty
     private(set) var isLoading = false
 
@@ -36,6 +36,10 @@ final class ConfigStore {
 
     var config: ProjectConfig {
         resolved.project
+    }
+
+    var customTabs: [TabConfig] {
+        resolved.tabs
     }
 
     var issues: [ConfigIssue] {

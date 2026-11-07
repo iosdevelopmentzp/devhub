@@ -219,7 +219,7 @@ Then open the picture.
 | Switch | Effect |
 |---|---|
 | `DEVHUB_OPEN_PANEL=1` | opens the panel 0.5 s after start. The switches below need it |
-| `DEVHUB_TAB=<id>` | selects a tab: `home`, `git`, `pullRequests`, `worktrees`, `simulators`, `logs`, `network`, `ai`, `settings`, or `tab.<id>` for a custom tab. The choice is saved |
+| `DEVHUB_TAB=<id>` | selects a tab: `home`, `git`, `pullRequests`, `worktrees`, `simulators`, `logs`, `network`, `ai`, `utils`, `settings`, `utility.compressVideo` for a tool of Utils, or `tab.<id>` for a custom tab. A tab placed in Utils opens Utils on it. The choice is saved |
 | `DEVHUB_SNAPSHOT=<png path>` | writes a picture of the panel |
 | `DEVHUB_SNAPSHOT_DELAY=<seconds>` | the wait between the open panel and the picture; default 1 |
 | `DEVHUB_PALETTE=<text>` | opens the command palette with this text |

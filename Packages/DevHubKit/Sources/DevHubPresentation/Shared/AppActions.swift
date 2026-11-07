@@ -22,7 +22,6 @@ final class AppActions {
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let workspace: WorkspaceActions
-    @ObservationIgnored private let utils: UtilsStore
     @ObservationIgnored private let videoCompression: VideoCompressionStore
     @ObservationIgnored private let toaster: Toaster
 
@@ -43,7 +42,6 @@ final class AppActions {
         session: ProjectSession,
         config: ConfigStore,
         workspace: WorkspaceActions,
-        utils: UtilsStore,
         videoCompression: VideoCompressionStore,
         toaster: Toaster
     ) {
@@ -63,7 +61,6 @@ final class AppActions {
         self.session = session
         self.config = config
         self.workspace = workspace
-        self.utils = utils
         self.videoCompression = videoCompression
         self.toaster = toaster
     }
@@ -240,8 +237,7 @@ final class AppActions {
     }
 
     func openUtility(_ id: UtilityID) {
-        utils.selection = id
-        navigator.show(.utils)
+        navigator.show(.utility(id))
     }
 
     func compressVideos(_ paths: [String]) {

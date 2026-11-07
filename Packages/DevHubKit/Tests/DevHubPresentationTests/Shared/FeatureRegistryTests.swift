@@ -25,7 +25,11 @@ import Testing
         for feature in FeatureRegistry.tabBarFeatures {
             #expect(feature.title.isEmpty == false)
             #expect(feature.systemImage.isEmpty == false)
-            #expect(feature.searchPrompt?.isEmpty == false)
+            #expect(feature.searchPrompt?.isEmpty == false || feature.id == .utils)
         }
+    }
+
+    @Test func utilsTakesItsSearchPromptFromTheSubTab() {
+        #expect(FeatureRegistry.feature(.utils).searchPrompt == nil)
     }
 }

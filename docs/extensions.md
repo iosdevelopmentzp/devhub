@@ -278,6 +278,7 @@ A tag has `text` and optional `tint`, `icon` (an SF Symbol name) and `hint`. Row
   "title": "QA",
   "icon": "wrench.and.screwdriver",
   "searchPrompt": "Search QA tools",
+  "placement": "bar",
   "inputs": [
     { "key": "env", "title": "Environment", "type": "choice", "options": [{ "value": "qa" }, { "value": "prod", "confirm": "Run against PROD?" }], "default": "qa" },
     { "key": "user", "title": "User ID", "type": "text", "recent": true }
@@ -291,8 +292,9 @@ A tag has `text` and optional `tint`, `icon` (an SF Symbol name) and `hint`. Row
 
 | Field | Effect |
 |---|---|
-| `id` | tab id; `tab.<id>` placement; the first custom tab gets ⌘9, the others have no shortcut |
-| `title`, `icon`, `searchPrompt` | tab bar and the search field of the tab |
+| `id` | tab id; `tab.<id>` placement; the saved tab `tab.<id>` |
+| `title`, `icon`, `searchPrompt` | the tab button and the search field of the tab |
+| `placement` | `utils` (default): the tab is a sub-tab of the Utils tab. `bar`: the tab sits in the tab bar after the built-in tabs and gets the next free ⌘ number up to ⌘9. A right-click on the tab ("Move to Utils", "Show in Tab Bar") saves the user's own choice under `tabs.layout`, which wins over this field |
 | `inputs` | inputs shared by every action and source script of the tab (section 3.2 shapes). They show in a bar under the toolbar, and their values are saved per project and tab. Every run of the tab gets them as `DEVHUB_INPUT_<KEY>` and `{key}`; an input of the action with the same key wins. A `confirm` on the chosen option asks before every action of the tab |
 | `sections[].actions` | action ids rendered as rows with their inputs and a Run button |
 | `sections[].source.script` | a script whose `view` directive renders the section; `refresh` is `onOpen` (default), `manual` (a refresh button) or a number of seconds |

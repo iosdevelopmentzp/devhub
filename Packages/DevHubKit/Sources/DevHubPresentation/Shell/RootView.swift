@@ -81,6 +81,8 @@ struct RootView: View {
         switch navigator.selection {
         case .feature(let id):
             FeatureRegistry.feature(id).makeView()
+        case .utility(let id):
+            UtilityTabView(id: id)
         case .custom(let id):
             if let tab = config.resolved.tabs.first(where: { $0.id == id }) {
                 CustomTabView(tab: tab)
@@ -92,9 +94,9 @@ struct RootView: View {
 
     private var featureView: some View {
         selectedView
-                .id(navigator.selection)
+                .id(navigator.currentTab)
                 .environment(\.panelOpenCount, layout.openCount)
-                .onChange(of: navigator.selection) { old, new in
+                .onChange(of: navigator.currentTab) { old, new in
                     session.switchSearch(from: old, to: new)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

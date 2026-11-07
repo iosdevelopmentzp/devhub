@@ -160,8 +160,8 @@ Tests: `StatusItemStateTests` and `StatusItemTitleTests` in `DevHubPresentationT
 
 ## Keys
 
-- ⌘K opens the command palette, ⌘F focuses the search field (both in `HeaderView`). ⌘1 to ⌘9 select a tab
-  (`TabButton`). ⇧⌘O shows the Output panel (`OutputToggle`). ⌘Q quits (`FooterView`).
+- ⌘K opens the command palette, ⌘F focuses the search field (both in `HeaderView`). ⌘1 to ⌘9 select a tab of the tab bar
+  (`TabButton`); a right-click on a tab moves it to Utils or back (`TabPlacementMenu`, `Navigator.move`). ⇧⌘O shows the Output panel (`OutputToggle`). ⌘Q quits (`FooterView`).
 - Esc in `SearchField` clears the search (`.onExitCommand`). Esc in the palette closes the palette.
 
 ## Appearance

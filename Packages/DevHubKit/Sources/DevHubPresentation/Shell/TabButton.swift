@@ -5,10 +5,12 @@ import DevHubUI
 struct TabButton: View {
     let item: TabItem
     let isSelected: Bool
-    let shortcutIndex: Int
+    let shortcutIndex: Int?
     let showsTitle: Bool
     let badge: Int?
+    let hintDetail: String?
     let action: () -> Void
+    var stretches = true
 
     @State private var isHovered = false
 
@@ -34,7 +36,7 @@ struct TabButton: View {
             .font(.callout.weight(isSelected ? .semibold : .regular))
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: stretches ? .infinity : nil)
             .background(
                 RoundedRectangle(cornerRadius: 7, style: .continuous)
                     .fill(backgroundColor)
@@ -46,12 +48,23 @@ struct TabButton: View {
         .buttonStyle(.plain)
         .keyboardShortcut(shortcut)
         .onHover { isHovered = $0 }
-        .hint(shortcutIndex <= 9 ? "\(item.title) (⌘\(shortcutIndex))" : item.title)
+        .hint(hint)
+    }
+
+    private var shortcutIndexWithinKeys: Int? {
+        guard let shortcutIndex, shortcutIndex <= 9 else { return nil }
+        return shortcutIndex
+    }
+
+    private var hint: String {
+        let title = shortcutIndexWithinKeys.map { "\(item.title) (⌘\($0))" } ?? item.title
+        guard let hintDetail else { return title }
+        return "\(title). \(hintDetail)"
     }
 
     private var shortcut: KeyboardShortcut? {
-        guard shortcutIndex <= 9 else { return nil }
-        return KeyboardShortcut(KeyEquivalent(Character(String(shortcutIndex))), modifiers: .command)
+        guard let index = shortcutIndexWithinKeys else { return nil }
+        return KeyboardShortcut(KeyEquivalent(Character(String(index))), modifiers: .command)
     }
 
     private var backgroundColor: Color {

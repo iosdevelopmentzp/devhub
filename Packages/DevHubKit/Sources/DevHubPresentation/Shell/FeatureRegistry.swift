@@ -14,7 +14,7 @@ enum FeatureRegistry {
         Feature(id: .logs, title: "Logs", systemImage: "text.alignleft", searchPrompt: "Search log lines") { LogsView() },
         Feature(id: .network, title: "Network", systemImage: "network", searchPrompt: "Filter requests") { NetworkView() },
         Feature(id: .ai, title: "AI", systemImage: "sparkles", searchPrompt: "Search sessions") { AISessionsView() },
-        Feature(id: .utils, title: "Utils", systemImage: "hammer", searchPrompt: "Filter videos") { UtilsView() },
+        Feature(id: .utils, title: "Utils", systemImage: "hammer", searchPrompt: nil) { UtilsView() },
         Feature(id: .notifications, title: "Notifications", systemImage: "bell", showsInTabBar: false, searchPrompt: "Search notifications") { NotificationsView() },
         Feature(id: .settings, title: "Settings", systemImage: "gearshape", showsInTabBar: false, searchPrompt: nil) { SettingsView() }
     ]
