@@ -25,6 +25,7 @@ extension View {
             .environment(assembly.videoCompression)
             .environment(assembly.tickets)
             .environment(assembly.pullRequestReviews)
+            .environment(assembly.flakyTests)
             .environment(assembly.output)
             .environment(assembly.layout)
             .environment(assembly.settings)

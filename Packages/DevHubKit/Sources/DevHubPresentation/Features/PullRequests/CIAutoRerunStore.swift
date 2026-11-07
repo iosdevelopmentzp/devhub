@@ -141,7 +141,7 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
             if plan.onlyFlaky, workflow.status == .failed, plan.handledWorkflowIDs.contains(workflow.id) == false {
                 let tests = await failedTests(of: workflow, project: project)
                 testsByWorkflow[workflow.id] = tests
-                failure = CIFailurePolicy.kind(of: workflow, failedTests: tests, flaky: await flakyTests(project: project))
+                failure = CIFailurePolicy.kind(of: workflow, failedTests: tests, flaky: FlakyTrackingPolicy.merged(insights: await flakyTests(project: project), ledger: history.flakyTests))
             }
             decisions.append(CIAutoRerunPolicy.decision(for: workflow, plan: plan, failure: failure, now: .now))
         }

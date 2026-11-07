@@ -174,7 +174,7 @@ final class PullRequestDetailStore {
             ciWorkflows: ciWorkflows,
             ciWorkflowErrors: ciWorkflowErrors,
             ciFailedTests: ciFailedTests,
-            ciFlakyTests: ciFlakyTests,
+            ciFlakyTests: FlakyTrackingPolicy.merged(insights: ciFlakyTests, ledger: history.flakyTests),
             ciBusyWorkflows: ciBusyWorkflows,
             ciWorkflowDetails: ciWorkflowDetails,
             ciJobSteps: ciJobSteps,

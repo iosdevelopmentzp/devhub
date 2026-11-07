@@ -140,7 +140,8 @@ final class StoreHarness {
 
     lazy var ciProjects = CIProjectResolver(config: config, worktrees: worktrees, remote: codeHostRemote, tools: ports.tools, events: events)
 
-    lazy var ciHistory = CIWorkflowHistory(session: session, events: events, store: store)
+    lazy var flakyTests = FlakyTestLedger(session: session, events: events, store: store)
+    lazy var ciHistory = CIWorkflowHistory(session: session, ledger: flakyTests, events: events, store: store)
 
     lazy var ciBranchRuns = CIBranchRunsStore(ci: ports.ci, projects: ciProjects, checkout: git, activity: activity, operations: operations, notifier: notifier, events: events, basePollInterval: .milliseconds(5))
 

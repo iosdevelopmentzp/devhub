@@ -83,6 +83,7 @@ The title follows the code host: "Pull Requests" for GitHub, "Merge Requests" fo
 |---|---|
 | Show the number of requests waiting for your review in the menu bar | Shows a count next to the menu bar icon, for example "3 PR" on GitHub or "3 MR" on GitLab. It counts open requests by other people, not drafts, that you have not approved. DevHub checks every 5 minutes |
 | Remember what I reviewed | On by default. DevHub saves a fingerprint of the diff of each file when you approve, comment, ask for changes or mark every file as viewed, and shows the files that changed since in the details. Viewed marks stay until a file changes. Off removes everything it saved. See [Pull Requests](pull-requests.md#changed-since-your-review) |
+| Forget Flaky Tests | The flaky tests DevHub found itself in this project (a test that failed in a CircleCI run and passed when the same commit ran again) with their count. The button removes them; the CircleCI Insights list stays |
 
 ### Projects
 

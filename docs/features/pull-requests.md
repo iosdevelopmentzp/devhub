@@ -240,6 +240,8 @@ DevHub keeps every finished CircleCI workflow it reads for a request: the workfl
 
 The runs are saved per project and request (`gitlab.ciHistory.<project>.<number>`), at most 20 per request, at most 50 tests per job and 4000 characters per message. DevHub saves a run only when it reads it: when the details are open, or when the auto re-run below runs it again.
 
+DevHub also finds flaky tests itself. When it saves a new run of the same commit (the same CircleCI pipeline) and a test that failed in an earlier run of it now passes (the whole workflow passed, or the job of that test passed), the test flaked once. The counts are saved per project (`gitlab.flakyTests.<project>`, the class, the name, the job, the workflow, the count and the last date, at most 500 tests) and join the flaky list of CircleCI Insights: a failed test row says "flaky · flaked 2 times (DevHub)" when the DevHub count is the higher one. The flaky tag of a job and "Only flaky failures" of the auto re-run use the joined list too. "Forget" of a request leaves the counts; Settings → Pull Requests → "Forget Flaky Tests" removes them.
+
 ### Auto re-run
 
 "Auto re-run" on the line of the checks title runs the failed jobs of a CircleCI workflow again each time the workflow fails. The menu sets the most re-runs: 3, 5, 10 or 20, and has the check item "Only flaky failures". The button then shows "Auto re-run 2 of 10"; a click stops it.

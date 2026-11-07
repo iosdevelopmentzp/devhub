@@ -335,4 +335,12 @@ import Testing
         #expect(failed.downloadTitle == "Download All")
         #expect(failed.downloadFailure == "disk full")
     }
+
+    @Test func aFlakyTestFoundByDevHubSaysSo() {
+        let devhub = CIFlakyTest(className: "A", name: "b", jobName: nil, workflowName: nil, timesFlaked: 2, source: .devhub)
+        let insights = CIFlakyTest(className: "A", name: "b", jobName: nil, workflowName: nil, timesFlaked: 1)
+
+        #expect(PipelineJobRowMapper.flakyText(devhub) == "flaky · flaked 2 times (DevHub)")
+        #expect(PipelineJobRowMapper.flakyText(insights) == "flaky · flaked 1 time")
+    }
 }

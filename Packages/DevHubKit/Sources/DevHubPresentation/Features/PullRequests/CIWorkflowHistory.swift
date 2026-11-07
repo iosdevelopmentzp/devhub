@@ -9,16 +9,22 @@ final class CIWorkflowHistory {
 
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let store: any KeyValueStore
+    @ObservationIgnored private let ledger: FlakyTestLedger
     @ObservationIgnored private var subscription: SubscriptionToken?
 
-    init(session: ProjectSession, events: AppEvents, store: any KeyValueStore) {
+    init(session: ProjectSession, ledger: FlakyTestLedger, events: AppEvents, store: any KeyValueStore) {
         self.session = session
+        self.ledger = ledger
         self.store = store
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             guard case .projectChanged = event else { return }
             records = [:]
         }
+    }
+
+    var flakyTests: [CIFlakyTest] {
+        ledger.tests
     }
 
     func records(for iid: Int) -> [CIWorkflowRecord] {
@@ -37,6 +43,9 @@ final class CIWorkflowHistory {
         let current = records(for: iid)
         let kept = CIHistoryPolicy.remember(record, in: current)
         guard kept != current else { return }
+        if current.contains(where: { $0.id == record.id }) == false {
+            ledger.record(FlakyTrackingPolicy.flakes(new: record, earlier: current), at: record.recordedAt)
+        }
         records[iid] = kept
         store.encode(kept, forKey: key(iid))
     }

@@ -30,6 +30,7 @@ package final class PresentationAssembly {
     let history: CommitHistoryStore
     let codeHostRemote: CodeHostRemote
     let ciProjects: CIProjectResolver
+    let flakyTests: FlakyTestLedger
     let ciHistory: CIWorkflowHistory
     let ciAutoRerun: CIAutoRerunStore
     let pullRequestHiddenFiles: PullRequestHiddenFiles
@@ -139,7 +140,8 @@ package final class PresentationAssembly {
         branchPullRequest = BranchPullRequestStore(repository: ports.codeHost, checkout: git, events: events)
         codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
         ciProjects = CIProjectResolver(config: config, worktrees: worktrees, remote: codeHostRemote, tools: ports.tools, events: events)
-        ciHistory = CIWorkflowHistory(session: session, events: events, store: store)
+        flakyTests = FlakyTestLedger(session: session, events: events, store: store)
+        ciHistory = CIWorkflowHistory(session: session, ledger: flakyTests, events: events, store: store)
         ciBranchRuns = CIBranchRunsStore(ci: ports.ci, projects: ciProjects, checkout: git, activity: activity, operations: operations, notifier: notifier, events: events, basePollInterval: .seconds(300))
         pullRequestHiddenFiles = PullRequestHiddenFiles(session: session, events: events, store: store)
         pullRequestReviews = PullRequestReviewMemory(session: session, settings: settings, events: events, store: store, now: { .now })

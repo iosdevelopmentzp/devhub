@@ -173,9 +173,14 @@ enum PipelineJobRowMapper {
             id: id,
             title: test.className.isEmpty ? test.name : "\(test.className).\(test.name)",
             message: test.message,
-            flakyText: FlakyTestPolicy.timesFlaked(test, in: flaky).map { "flaky · flaked \(CountText.count($0, "time", "times"))" },
+            flakyText: FlakyTestPolicy.match(test, in: flaky).map(flakyText),
             isMessageOpen: openMessages.contains(id)
         )
+    }
+
+    static func flakyText(_ flaky: CIFlakyTest) -> String {
+        let text = "flaky · flaked \(CountText.count(flaky.timesFlaked, "time", "times"))"
+        return flaky.source == .devhub ? "\(text) (DevHub)" : text
     }
 
     static func flakyTag(flakyCount: Int, failedCount: Int) -> TagModel? {
