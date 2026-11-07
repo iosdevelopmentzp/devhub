@@ -62,7 +62,7 @@ struct HistorySection: View {
 
     private func expansion(row: String, hash: String) -> CommitRowMapper.Expansion? {
         guard history.expandedRow == row else { return nil }
-        return CommitRowMapper.Expansion(files: history.files[hash], error: history.fileErrors[hash], expandedFiles: history.expandedFiles, diffs: history.diffs)
+        return CommitRowMapper.Expansion(files: history.files[hash], error: history.fileErrors[hash], expandedFiles: history.expandedFiles, diffs: history.diffs, containing: history.containingBranches[hash])
     }
 
     private var note: String? {

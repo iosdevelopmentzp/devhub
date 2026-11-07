@@ -6,6 +6,9 @@ package protocol GitChangesRepository: Sendable {
     func branchCommits(base: String, remote: String, in path: String) async throws -> [GitCommit]
     func commitFiles(hash: String, in path: String) async throws -> [GitCommitFile]
     func commitDiff(hash: String, file: GitCommitFile, in path: String) async throws -> GitDiff
+    func stashFiles(hash: String, in path: String) async throws -> [GitCommitFile]
+    func stashDiff(hash: String, file: GitCommitFile, in path: String) async throws -> GitDiff
+    func branchesContaining(hash: String, in path: String) async throws -> [GitCommitRef]
     func reflog(in path: String) async throws -> [GitReflogEntry]
     func patch(_ scope: GitPatchScope, in path: String) async throws -> String
 }

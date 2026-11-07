@@ -33,6 +33,8 @@ enum GitCommandEncoder {
             return ["stash", "apply", stashRef(index)]
         case .stashDrop(let index):
             return ["stash", "drop", stashRef(index)]
+        case .stashBranch(let name, let index):
+            return ["stash", "branch", name, stashRef(index)]
         case .switchBranch(let branch):
             return ["switch", branch]
         case .createTrackingBranch(let local, let remote):

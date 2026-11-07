@@ -54,12 +54,43 @@ import DevHubTestSupport
         harness.spies.changes.commitFilesResult = .success([file])
 
         store.toggleRow("a1b2c3", hash: "a1b2c3")
-        try await waitUntil { store.files["a1b2c3"] == [file] }
+        try await waitUntil { store.files["a1b2c3"] == [file] && store.containingBranches["a1b2c3"] != nil }
         store.toggleRow("a1b2c3", hash: "a1b2c3")
         store.toggleRow("a1b2c3", hash: "a1b2c3")
 
         #expect(store.expandedRow == "a1b2c3")
-        #expect(harness.spies.changes.calls == [.commitFiles(hash: "a1b2c3", path: path)])
+        #expect(Set(harness.spies.changes.calls) == [.commitFiles(hash: "a1b2c3", path: path), .branchesContaining(hash: "a1b2c3", path: path)])
+        #expect(harness.spies.changes.calls.count == 2)
+    }
+
+    @Test func expandingACommitReadsTheBranchesThatContainItOnce() async throws {
+        let refs = [GitCommitRef(kind: .localBranch, name: "main"), GitCommitRef(kind: .remoteBranch, name: "origin/dev")]
+        harness.spies.changes.branchesContainingResult = .success(refs)
+
+        store.toggleRow("a1b2c3", hash: "a1b2c3")
+        try await waitUntil { store.containingBranches["a1b2c3"] == refs }
+
+        harness.events.post(.branchesChanged)
+        #expect(store.containingBranches.isEmpty)
+    }
+
+    @Test func expandingAStashReadsItsFilesAndDiffsWithTheStashCommands() async throws {
+        let stash = GitStash(index: 0, hash: "s1s1s1", branch: "dev", message: "wip", date: nil)
+        let untracked = GitCommitFile(path: "App/New.swift", originalPath: nil, kind: .untracked)
+        let diff = GitDiff(lines: ["+new"], droppedLines: 0, isBinary: false)
+        harness.spies.changes.stashFilesResult = .success([file, untracked])
+        harness.spies.changes.stashDiffResult = .success(diff)
+        let key = CommitFileKey(hash: "s1s1s1", path: untracked.path)
+
+        store.toggleStash(stash)
+        try await waitUntil { store.files["s1s1s1"] == [file, untracked] }
+        store.toggleFile(untracked, of: "s1s1s1")
+        try await waitUntil { store.diffs[key] == diff }
+        store.toggleStash(stash)
+
+        #expect(store.expandedRow == nil)
+        #expect(CommitHistoryStore.stashRowID(stash) == "stash:s1s1s1")
+        #expect(harness.spies.changes.calls == [.stashFiles(hash: "s1s1s1", path: path), .stashDiff(hash: "s1s1s1", file: untracked, path: path)])
     }
 
     @Test func expandingAnotherCommitClosesTheFirst() {
@@ -73,11 +104,12 @@ import DevHubTestSupport
         harness.spies.changes.commitFilesResult = .success([file])
 
         store.toggleRow("HEAD@{0}", hash: "a1b2c3")
-        try await waitUntil { store.files["a1b2c3"] == [file] }
+        try await waitUntil { store.files["a1b2c3"] == [file] && store.containingBranches["a1b2c3"] != nil }
         store.toggleRow("HEAD@{1}", hash: "a1b2c3")
 
         #expect(store.expandedRow == "HEAD@{1}")
-        #expect(harness.spies.changes.calls == [.commitFiles(hash: "a1b2c3", path: path)])
+        #expect(harness.spies.changes.calls.filter { $0 == .commitFiles(hash: "a1b2c3", path: path) }.count == 1)
+        #expect(harness.spies.changes.calls.count == 2)
     }
 
     @Test func reflogIsReadFromTheCheckout() async {

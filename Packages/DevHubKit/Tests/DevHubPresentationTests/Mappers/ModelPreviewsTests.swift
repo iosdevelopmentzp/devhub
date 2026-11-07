@@ -34,6 +34,8 @@ import Testing
     @Test func gitPreviewsBuild() {
         #expect(CommitBoxModel.preview.canCommit)
         #expect(CommitRowModel.preview.shortHash == "a1b2c3d")
+        #expect(CommitRowModel.preview.containingTags?.count == 2)
+        #expect(StashRowModel.preview.isExpanded)
         #expect(DiffLineModel.preview.tint == .green)
         #expect(DiffModel.preview != .loading)
         #expect(FileChangeGroupModel.preview.changes.count == 1)

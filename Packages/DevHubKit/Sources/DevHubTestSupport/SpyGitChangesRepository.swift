@@ -8,6 +8,9 @@ package final class SpyGitChangesRepository: GitChangesRepository, @unchecked Se
         case branchCommits(base: String, path: String)
         case commitFiles(hash: String, path: String)
         case commitDiff(hash: String, file: GitCommitFile, path: String)
+        case stashFiles(hash: String, path: String)
+        case stashDiff(hash: String, file: GitCommitFile, path: String)
+        case branchesContaining(hash: String, path: String)
         case reflog(path: String)
         case patch(GitPatchScope, path: String)
     }
@@ -21,6 +24,9 @@ package final class SpyGitChangesRepository: GitChangesRepository, @unchecked Se
     private var _reflogResult: Result<[GitReflogEntry], any Error> = .success([])
     private var _commitDiffResult: Result<GitDiff, any Error> = .success(GitDiff(lines: [], droppedLines: 0, isBinary: false))
     private var _patchResult: Result<String, any Error> = .success("")
+    private var _stashFilesResult: Result<[GitCommitFile], any Error> = .success([])
+    private var _stashDiffResult: Result<GitDiff, any Error> = .success(GitDiff(lines: [], droppedLines: 0, isBinary: false))
+    private var _branchesContainingResult: Result<[GitCommitRef], any Error> = .success([])
 
     package init() {}
 
@@ -89,6 +95,33 @@ package final class SpyGitChangesRepository: GitChangesRepository, @unchecked Se
 
     package func commitDiff(hash: String, file: GitCommitFile, in path: String) async throws -> GitDiff {
         try record(.commitDiff(hash: hash, file: file, path: path)) { try _commitDiffResult.get() }
+    }
+
+    package var stashFilesResult: Result<[GitCommitFile], any Error> {
+        get { lock.withLock { _stashFilesResult } }
+        set { lock.withLock { _stashFilesResult = newValue } }
+    }
+
+    package var stashDiffResult: Result<GitDiff, any Error> {
+        get { lock.withLock { _stashDiffResult } }
+        set { lock.withLock { _stashDiffResult = newValue } }
+    }
+
+    package var branchesContainingResult: Result<[GitCommitRef], any Error> {
+        get { lock.withLock { _branchesContainingResult } }
+        set { lock.withLock { _branchesContainingResult = newValue } }
+    }
+
+    package func stashFiles(hash: String, in path: String) async throws -> [GitCommitFile] {
+        try record(.stashFiles(hash: hash, path: path)) { try _stashFilesResult.get() }
+    }
+
+    package func stashDiff(hash: String, file: GitCommitFile, in path: String) async throws -> GitDiff {
+        try record(.stashDiff(hash: hash, file: file, path: path)) { try _stashDiffResult.get() }
+    }
+
+    package func branchesContaining(hash: String, in path: String) async throws -> [GitCommitRef] {
+        try record(.branchesContaining(hash: hash, path: path)) { try _branchesContainingResult.get() }
     }
 
     private func record<Value>(_ call: Call, _ value: () throws -> Value) rethrows -> Value {

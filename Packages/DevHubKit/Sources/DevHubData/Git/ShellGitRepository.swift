@@ -122,7 +122,7 @@ struct ShellGitRepository: GitRepository {
     }
 
     private func stashes(in path: String) async -> [GitStash] {
-        let format = ["%gd", "%ct", "%gs"].joined(separator: "%x09")
+        let format = ["%gd", "%H", "%ct", "%gs"].joined(separator: "%x09")
         guard let output = try? await git.run(["stash", "list", "--format=\(format)"], in: path) else { return [] }
         return GitStashParser.parse(output)
     }

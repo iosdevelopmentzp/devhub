@@ -34,7 +34,7 @@ A segmented control selects one section. The choice is saved.
 | History | Scope "All": the last 150 commits of HEAD. Scope "This branch": the commits in `<base>..HEAD`. Each row shows the hash, the refs (HEAD, branches, tags), the subject, the author, the date and the tags `merge` and `not pushed` |
 | Reflog | The last 200 moves of HEAD |
 | Changes N | The commit box, then the files in groups: Conflicts, Staged, Changes, New files |
-| Stash N | Only when the stash is not empty. Each entry shows the message, `stash@{n}`, the branch and the date |
+| Stash N | Only when the stash is not empty. Each entry shows the message, `stash@{n}`, the branch and the date. A click lists the files of the stash, untracked ones with `?`; a click on a file shows its diff |
 
 A click on a commit or a reflog row lists its files. A click on a file shows its diff. A click on a changed file shows its diff. Inside a changed pair of lines the words that differ get a stronger background. A diff shows at most 4,000 lines.
 
@@ -109,7 +109,7 @@ When a stash pop after a switch fails, the changes stay in the stash and a red R
 
 | Action | Command |
 |---|---|
-| Show Files (click) | `git show --first-parent --name-status -z --format= <hash>` |
+| Show Files (click) | `git show --first-parent --name-status -z --format= <hash>`; the "In …" line above the files lists the branches that contain the commit: `git branch -a --contains <hash> --format=%(refname)` |
 | File diff (click on a file) | `git show --first-parent --no-color --format= <hash> -- <path>` |
 | Copy Hash, Copy Subject, Copy Selector (menu) | — |
 | Open commit on the web (History menu) | GitHub `<web>/commit/<hash>`, GitLab `<web>/-/commit/<hash>` |
@@ -135,8 +135,12 @@ The commit box starts with the ticket prefix of the branch (for example `ABC-123
 
 | Action | Command |
 |---|---|
+| Show Files (click) | `git show --first-parent --name-status -z --format= <hash>` for the tracked changes, then `git show --name-status -z --format= <hash>^3` for the untracked files (skipped when the stash has none) |
+| File diff (click on a file) | `git show --first-parent --no-color --format= <hash> -- <path>`; an untracked file: `git show --no-color --format= <hash>^3 -- <path>` |
 | Apply | `git stash apply stash@{n}` |
 | Pop | `git stash pop stash@{n}` |
+| Create Branch from Stash… (menu) | A name field opens under the row. Creates the branch from the commit the stash was made on, applies the stash there and drops it | `git stash branch <name> stash@{n}` |
+| Copy Hash, Copy Message (menu) | — |
 | Drop… (asks first) | `git stash drop stash@{n}` |
 
 ### Reads
@@ -149,7 +153,7 @@ Each refresh reads the checkout with these commands:
 - `git branch --merged <base> --format=%(refname:short)`
 - `git reflog show --format=%gs%x09%ct -n 3000 HEAD` (the "visited" times)
 - `git log -n 150 --decorate=full …` and `git rev-list -n 150 HEAD --not --remotes=<remote>`
-- `git stash list …`, `git remote get-url <remote>`
+- `git stash list --format=%gd%x09%H%x09%ct%x09%gs`, `git remote get-url <remote>`
 - `git status --porcelain=v1 -z --untracked-files=all` for the Changes section
 
 When the panel opens on the Git tab, DevHub reads the repository. When "Auto fetch" in Settings is above 0 minutes and the last fetch is older, it also runs Fetch.

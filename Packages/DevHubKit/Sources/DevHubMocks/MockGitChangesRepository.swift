@@ -45,6 +45,21 @@ struct MockGitChangesRepository: GitChangesRepository {
         try await diff(for: GitFileChange(path: file.path, originalPath: nil, area: .staged, kind: file.kind), in: path)
     }
 
+    func stashFiles(hash: String, in path: String) async throws -> [GitCommitFile] {
+        [
+            GitCommitFile(path: "ExampleApp/Features/Call/CallPromptView.swift", originalPath: nil, kind: .modified),
+            GitCommitFile(path: "ExampleApp/Features/Call/PaymentSheet.swift", originalPath: nil, kind: .untracked)
+        ]
+    }
+
+    func stashDiff(hash: String, file: GitCommitFile, in path: String) async throws -> GitDiff {
+        try await commitDiff(hash: hash, file: file, in: path)
+    }
+
+    func branchesContaining(hash: String, in path: String) async throws -> [GitCommitRef] {
+        [GitCommitRef(kind: .localBranch, name: "ABC-2489-leaderboardFollowStatusReset"), GitCommitRef(kind: .remoteBranch, name: "origin/dev")]
+    }
+
     func patch(_ scope: GitPatchScope, in path: String) async throws -> String {
         "diff --git a/ExampleApp/Features/Call/GiftValue.swift b/ExampleApp/Features/Call/GiftValue.swift\n+struct GiftValue {\n+    let coins: Int\n+}"
     }

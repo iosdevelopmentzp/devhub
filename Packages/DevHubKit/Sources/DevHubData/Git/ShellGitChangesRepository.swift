@@ -40,6 +40,23 @@ struct ShellGitChangesRepository: GitChangesRepository {
         return cap(try await git.run(["show", "--first-parent", "--no-color", "--format=", hash, "--"] + paths, in: path))
     }
 
+    func stashFiles(hash: String, in path: String) async throws -> [GitCommitFile] {
+        let tracked = GitCommitFilesParser.parse(try await git.run(["show", "--first-parent", "--name-status", "-z", "--format=", hash], in: path))
+        let untrackedOutput = (try? await git.run(["show", "--name-status", "-z", "--format=", "\(hash)^3"], in: path)) ?? ""
+        let untracked = GitCommitFilesParser.parse(untrackedOutput).map { GitCommitFile(path: $0.path, originalPath: nil, kind: .untracked) }
+        return tracked + untracked
+    }
+
+    func stashDiff(hash: String, file: GitCommitFile, in path: String) async throws -> GitDiff {
+        guard file.kind == .untracked else { return try await commitDiff(hash: hash, file: file, in: path) }
+        return cap(try await git.run(["show", "--no-color", "--format=", "\(hash)^3", "--", file.path], in: path))
+    }
+
+    func branchesContaining(hash: String, in path: String) async throws -> [GitCommitRef] {
+        let output = try await git.run(["branch", "-a", "--contains", hash, "--format=%(refname)"], in: path)
+        return GitContainingBranchesParser.parse(output)
+    }
+
     func reflog(in path: String) async throws -> [GitReflogEntry] {
         let output = try await git.run(["reflog", "-n", "200", "--date=unix", "--format=\(GitReflogParser.format)"], in: path)
         return GitReflogParser.parse(output)

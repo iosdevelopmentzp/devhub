@@ -14,6 +14,7 @@ package enum GitCommand: Hashable, Sendable {
     case stashPop(index: Int?)
     case stashApply(index: Int)
     case stashDrop(index: Int)
+    case stashBranch(name: String, index: Int)
     case switchBranch(String)
     case createTrackingBranch(local: String, remote: String)
     case deleteBranch(String, force: Bool)

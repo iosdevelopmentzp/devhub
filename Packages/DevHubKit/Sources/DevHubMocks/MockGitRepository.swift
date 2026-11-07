@@ -39,7 +39,7 @@ struct MockGitRepository: GitRepository {
                 GitCommit(hash: "cf17ab4f1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", shortHash: "cf17ab4f1", author: "GitLab", date: now.addingTimeInterval(-90_000), subject: "Merge branch 'ABC-1881-neverCarriedSettled' into 'dev'", isPushed: true, refs: [GitCommitRef(kind: .remoteBranch, name: "origin/dev"), GitCommitRef(kind: .tag, name: "v4.12")], isMerge: true)
             ],
             stashes: [
-                GitStash(index: 0, branch: "ABC-2489-leaderboardFollowStatusReset", message: "half done: follow button state", date: now.addingTimeInterval(-3_600))
+                GitStash(index: 0, hash: "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a", branch: "ABC-2489-leaderboardFollowStatusReset", message: "half done: follow button state", date: now.addingTimeInterval(-3_600))
             ]
         )
     }

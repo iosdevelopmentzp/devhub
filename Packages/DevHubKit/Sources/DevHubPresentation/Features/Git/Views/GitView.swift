@@ -114,7 +114,7 @@ struct GitView: View {
     private var stashRows: [StashRowModel] {
         git.stashes
             .filter { session.matchesSearch($0.message, $0.branch ?? "") }
-            .map { StashRowMapper.model(for: $0, isBusy: git.isBusy) }
+            .map { StashRowMapper.model(for: $0, isBusy: git.isBusy, expansion: stashExpansion($0)) }
     }
 
     private var cleanupCandidates: [GitBranch] {
@@ -309,10 +309,21 @@ struct GitView: View {
     private func stashRow(_ model: StashRowModel) -> some View {
         StashRow(
             model: model,
+            onToggle: { stash(model.id).map(history.toggleStash) },
+            onToggleFile: { path in
+                guard let file = history.files[model.hash]?.first(where: { $0.path == path }) else { return }
+                history.toggleFile(file, of: model.hash)
+            },
             onApply: { stash(model.id).map(git.apply) },
             onPop: { stash(model.id).map(git.pop) },
-            onDrop: { stash(model.id).map(git.drop) }
+            onDrop: { stash(model.id).map(git.drop) },
+            onBranch: { name in stash(model.id).map { git.branch(from: $0, name: name) } }
         )
+    }
+
+    private func stashExpansion(_ stash: GitStash) -> CommitRowMapper.Expansion? {
+        guard history.expandedRow == CommitHistoryStore.stashRowID(stash) else { return nil }
+        return CommitRowMapper.Expansion(files: history.files[stash.hash], error: history.fileErrors[stash.hash], expandedFiles: history.expandedFiles, diffs: history.diffs)
     }
 
     private func stash(_ id: GitStash.ID) -> GitStash? {

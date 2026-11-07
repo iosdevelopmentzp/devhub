@@ -27,6 +27,8 @@ final class CommitHistoryStore {
     private(set) var fileErrors: [String: String] = [:]
     private(set) var expandedFiles: Set<CommitFileKey> = []
     private(set) var diffs: [CommitFileKey: GitDiff] = [:]
+    private(set) var containingBranches: [String: [GitCommitRef]] = [:]
+    private(set) var stashHashes: Set<String> = []
 
     @ObservationIgnored private let repository: any GitChangesRepository
     @ObservationIgnored private let checkout: any CheckoutContext
@@ -59,7 +61,10 @@ final class CommitHistoryStore {
                 fileErrors = [:]
                 expandedFiles = []
                 diffs = [:]
+                containingBranches = [:]
+                stashHashes = []
             case .branchesChanged:
+                containingBranches = [:]
                 if hasLoadedBranch, scope == .branch {
                     Task { await self.refreshBranchCommits() }
                 }
@@ -114,16 +119,45 @@ final class CommitHistoryStore {
             return
         }
         expandedRow = rowID
+        if containingBranches[hash] == nil {
+            Task { await loadContainingBranches(hash) }
+        }
         guard files[hash] == nil else { return }
         Task { await loadFiles(hash) }
+    }
+
+    func toggleStash(_ stash: GitStash) {
+        let rowID = Self.stashRowID(stash)
+        guard expandedRow != rowID else {
+            expandedRow = nil
+            return
+        }
+        expandedRow = rowID
+        stashHashes.insert(stash.hash)
+        guard files[stash.hash] == nil else { return }
+        Task { await loadFiles(stash.hash) }
+    }
+
+    static func stashRowID(_ stash: GitStash) -> String {
+        "stash:\(stash.hash)"
     }
 
     func loadFiles(_ hash: String) async {
         fileErrors[hash] = nil
         do {
-            files[hash] = try await repository.commitFiles(hash: hash, in: checkout.checkoutPath)
+            files[hash] = stashHashes.contains(hash)
+                ? try await repository.stashFiles(hash: hash, in: checkout.checkoutPath)
+                : try await repository.commitFiles(hash: hash, in: checkout.checkoutPath)
         } catch {
             fileErrors[hash] = error.localizedDescription
+        }
+    }
+
+    private func loadContainingBranches(_ hash: String) async {
+        do {
+            containingBranches[hash] = try await repository.branchesContaining(hash: hash, in: checkout.checkoutPath)
+        } catch {
+            activity.log("Cannot read the branches of \(hash.prefix(9))", detail: error.localizedDescription, outcome: .failure)
         }
     }
 
@@ -140,7 +174,9 @@ final class CommitHistoryStore {
 
     private func loadDiff(_ file: GitCommitFile, key: CommitFileKey) async {
         do {
-            diffs[key] = try await repository.commitDiff(hash: key.hash, file: file, in: checkout.checkoutPath)
+            diffs[key] = stashHashes.contains(key.hash)
+                ? try await repository.stashDiff(hash: key.hash, file: file, in: checkout.checkoutPath)
+                : try await repository.commitDiff(hash: key.hash, file: file, in: checkout.checkoutPath)
         } catch {
             expandedFiles.remove(key)
             activity.log("Cannot read the diff of \(file.fileName)", detail: error.localizedDescription, outcome: .failure)

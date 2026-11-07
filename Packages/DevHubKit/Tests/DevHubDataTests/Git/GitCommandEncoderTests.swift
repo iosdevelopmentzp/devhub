@@ -23,6 +23,7 @@ import Testing
         (.stashPop(index: 3), ["stash", "pop", "stash@{3}"]),
         (.stashApply(index: 0), ["stash", "apply", "stash@{0}"]),
         (.stashDrop(index: 12), ["stash", "drop", "stash@{12}"]),
+        (.stashBranch(name: "feature/ABC-123-short-title", index: 2), ["stash", "branch", "feature/ABC-123-short-title", "stash@{2}"]),
         (.switchBranch("main"), ["switch", "main"]),
         (.createTrackingBranch(local: "feature", remote: "origin/feature"), ["switch", "--track", "-c", "feature", "origin/feature"]),
         (.deleteBranch("old", force: false), ["branch", "-d", "old"]),
@@ -59,6 +60,6 @@ import Testing
 
     @Test func tableCoversEveryCase() {
         let names = Set(Self.table.map { String(describing: $0.0).prefix { $0 != "(" } })
-        #expect(names.count == 24)
+        #expect(names.count == 25)
     }
 }

@@ -4,14 +4,15 @@ import DevHubDomain
 enum GitStashParser {
     static func parse(_ output: String) -> [GitStash] {
         output.split(separator: "\n").compactMap { line -> GitStash? in
-            let fields = line.split(separator: "\t", maxSplits: 2, omittingEmptySubsequences: false).map(String.init)
-            guard fields.count == 3, let index = index(fields[0]) else { return nil }
-            let (branch, message) = subject(fields[2])
+            let fields = line.split(separator: "\t", maxSplits: 3, omittingEmptySubsequences: false).map(String.init)
+            guard fields.count == 4, let index = index(fields[0]) else { return nil }
+            let (branch, message) = subject(fields[3])
             return GitStash(
                 index: index,
+                hash: fields[1],
                 branch: branch,
                 message: message,
-                date: TimeInterval(fields[1]).map { Date(timeIntervalSince1970: $0) }
+                date: TimeInterval(fields[2]).map { Date(timeIntervalSince1970: $0) }
             )
         }
     }

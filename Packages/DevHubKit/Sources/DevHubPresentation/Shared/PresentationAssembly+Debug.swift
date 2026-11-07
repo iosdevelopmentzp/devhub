@@ -37,6 +37,33 @@ package extension PresentationAssembly {
         pullRequests.diffLayout = layout
     }
 
+    func debugExpandGitRow(_ value: String) async {
+        for _ in 0..<50 where git.state == nil {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        if value.hasPrefix("stash:"), let index = Int(value.dropFirst(6)), let stash = git.stashes.first(where: { $0.index == index }) {
+            history.toggleStash(stash)
+            await debugExpandFirstFile(of: stash.hash)
+        } else if value.hasPrefix("commit:") {
+            let hash = String(value.dropFirst(7))
+            history.toggleRow(hash, hash: hash)
+            await debugExpandFirstFile(of: hash)
+        }
+    }
+
+    private func debugExpandFirstFile(of hash: String) async {
+        for _ in 0..<50 where history.files[hash] == nil {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        guard let file = history.files[hash]?.first else { return }
+        history.toggleFile(file, of: hash)
+    }
+
+    func debugShowGitSection(_ rawValue: String) {
+        guard let section = GitStore.Section(rawValue: rawValue) else { return }
+        git.section = section
+    }
+
     func debugShowTab(_ rawValue: String) {
         guard let tab = TabID(rawValue: rawValue) else { return }
         navigator.show(tab)

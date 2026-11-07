@@ -25,4 +25,10 @@ extension GitStore {
     func drop(_ stash: GitStash) {
         run("Drop stash@{\(stash.index)}", .stashDrop(index: stash.index))
     }
+
+    func branch(from stash: GitStash, name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isEmpty == false else { return }
+        run("Branch \(trimmed) from stash@{\(stash.index)}", .stashBranch(name: trimmed, index: stash.index))
+    }
 }

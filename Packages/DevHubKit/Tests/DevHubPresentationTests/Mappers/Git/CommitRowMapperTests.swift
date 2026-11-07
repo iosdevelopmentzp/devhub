@@ -22,6 +22,16 @@ import Testing
         #expect(model.isExpanded == false)
     }
 
+    @Test func anExpandedCommitListsTheBranchesThatContainIt() {
+        let loading = CommitRowMapper.Expansion(files: nil, error: nil, expandedFiles: [], diffs: [:])
+        let loaded = CommitRowMapper.Expansion(files: [], error: nil, expandedFiles: [], diffs: [:], containing: [GitCommitRef(kind: .localBranch, name: "main"), GitCommitRef(kind: .remoteBranch, name: "origin/dev")])
+        let none = CommitRowMapper.Expansion(files: [], error: nil, expandedFiles: [], diffs: [:], containing: [])
+
+        #expect(CommitRowMapper.model(for: GitBranchFixture.commit, webBase: base, hostKind: nil, expansion: loading).containingTags == nil)
+        #expect(CommitRowMapper.model(for: GitBranchFixture.commit, webBase: base, hostKind: nil, expansion: loaded).containingTags?.map(\.text) == ["main", "origin/dev"])
+        #expect(CommitRowMapper.model(for: GitBranchFixture.commit, webBase: base, hostKind: nil, expansion: none).containingTags == [])
+    }
+
     @Test func unpushedCommitWithDateHasNoWebLink() {
         var commit = GitBranchFixture.commit
         commit.isPushed = false

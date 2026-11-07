@@ -19,6 +19,9 @@ struct CommitRow: View {
                     .onTapGesture(perform: onToggle)
             }
             .contextMenu { menu }
+            if let containingTags = model.containingTags {
+                containing(containingTags)
+            }
             if let files = model.files {
                 CommitFilesList(files: files, onToggleFile: onToggleFile)
                     .padding(.leading, 18)
@@ -59,6 +62,23 @@ struct CommitRow: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+
+    private func containing(_ tags: [TagModel]) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(tags.isEmpty ? "In no branch" : "In")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            FlowLayout(spacing: 4) {
+                ForEach(tags, id: \.self) { tag in
+                    ModelTag(model: tag)
+                }
+            }
+        }
+        .padding(.leading, 32)
+        .padding(.trailing, 14)
+        .padding(.bottom, 6)
+        .hint("The branches that contain this commit (git branch -a --contains)")
     }
 
     @ViewBuilder

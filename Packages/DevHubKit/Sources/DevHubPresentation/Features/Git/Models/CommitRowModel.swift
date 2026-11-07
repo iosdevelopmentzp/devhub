@@ -19,6 +19,7 @@ struct CommitRowModel: Identifiable, Equatable {
     var dateText: String?
     var webURL: URL?
     var files: Files?
+    var containingTags: [TagModel]?
 
     var isExpanded: Bool {
         files != nil
@@ -34,6 +35,7 @@ struct CommitRowModel: Identifiable, Equatable {
         author: "alex",
         dateText: "1 hr. ago",
         webURL: URL(string: "https://gitlab.com/example/app/-/commit/a1b2c3d4e5f6"),
-        files: .loaded([.preview])
+        files: .loaded([.preview]),
+        containingTags: [TagModel("ABC-2324-paidCall", tint: .indigo, systemImage: "arrow.triangle.branch"), TagModel("origin/dev", tint: .teal, systemImage: "cloud")]
     )
 }

@@ -384,7 +384,7 @@ import DevHubTestSupport
     }
 
     @Test func stashEntriesCanBeAppliedPoppedAndDropped() async throws {
-        let stash = GitStash(index: 2, branch: "dev", message: "x", date: nil)
+        let stash = GitStash(index: 2, hash: "abc", branch: "dev", message: "x", date: nil)
 
         try await finish { store.apply(stash) }
         try await finish { store.pop(stash) }
@@ -398,9 +398,19 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.title == "Drop stash@{2}")
     }
 
+    @Test func aBranchFromAStashTrimsTheNameAndSkipsAnEmptyOne() async throws {
+        let stash = GitStash(index: 1, hash: "abc", branch: "dev", message: "x", date: nil)
+
+        store.branch(from: stash, name: "   ")
+        try await finish { store.branch(from: stash, name: " feature/ABC-123-short-title ") }
+
+        #expect(performed == [.perform(.stashBranch(name: "feature/ABC-123-short-title", index: 1), path: path)])
+        #expect(harness.lastActivity?.title == "Branch feature/ABC-123-short-title from stash@{1}")
+    }
+
     @Test func stashesComeFromTheState() async {
         var state = GitStateSample.state
-        state.stashes = [GitStash(index: 0, branch: "dev", message: "x", date: nil)]
+        state.stashes = [GitStash(index: 0, hash: "abc", branch: "dev", message: "x", date: nil)]
 
         await load(state)
 

@@ -48,6 +48,14 @@ enum DebugLaunch {
         if let tab = environment["DEVHUB_TAB"] {
             assembly.debugShowTab(tab)
         }
+        if let section = environment["DEVHUB_GIT_SECTION"] {
+            assembly.debugShowGitSection(section)
+        }
+        if let row = environment["DEVHUB_GIT_EXPAND"] {
+            Task {
+                await assembly.debugExpandGitRow(row)
+            }
+        }
         if let layout = environment["DEVHUB_DIFF_LAYOUT"] {
             assembly.debugSetDiffLayout(layout)
         }
