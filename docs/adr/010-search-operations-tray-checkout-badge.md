@@ -36,3 +36,4 @@ Why a tray and not the Output panel: the panel is the transcript of every comman
 
 | Commit | What |
 |---|---|
+| `77915ad` | D1 to D3: `TabSearchField` in every tab toolbar, `OperationsTray` and `OperationsTrayMapper` in place of `OperationSlot`, `CheckoutBadge` with `CheckoutBadgeMapper` in the run bar and the Git header, "Remove Apps from All" as an operation, docs and skills. |
