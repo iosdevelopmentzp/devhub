@@ -7,6 +7,7 @@ import Testing
         #expect(CIError.oldVersion(found: "0.1.3").errorDescription?.contains("0.1.3") == true)
         #expect(CIError.oldVersion(found: "0.1.3").errorDescription?.contains("brew upgrade circleci") == true)
         #expect(CIError.notLoggedIn.errorDescription?.contains("circleci auth login") == true)
+        #expect(CIError.rateLimited.errorDescription?.contains("429") == true)
         #expect(CIError.command("boom").errorDescription == "boom")
     }
 }

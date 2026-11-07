@@ -9,6 +9,17 @@ import Testing
         #expect(DoctorPolicy.version(from: []) == nil)
     }
 
+    @Test func theLatestVersionShowsOnlyWhenTheToolIsOutdated() {
+        let outdated = ["{", "  \"version\": \"1.13.0\",", "  \"latest\": \"1.14.0\",", "  \"outdated\": true", "}"]
+        let current = ["{\"version\":\"1.14.0\",\"latest\":\"1.14.0\",\"outdated\":false}"]
+
+        #expect(DoctorPolicy.latestVersion(from: outdated) == "1.14.0")
+        #expect(DoctorPolicy.version(from: outdated) == "1.13.0")
+        #expect(DoctorPolicy.latestVersion(from: current) == nil)
+        #expect(DoctorPolicy.latestVersion(from: ["git version 2.50.1"]) == nil)
+        #expect(DoctorPolicy.tools.first { $0.name == "circleci" }?.versionArguments == ["version", "--json"])
+    }
+
     @Test func everyToolHasAnInstallCommand() {
         #expect(DoctorPolicy.tools.map(\.name) == ["git", "xcodebuild", "xcrun", "gh", "glab", "circleci", "copilot", "claude", "python3", "ffmpeg"])
         #expect(DoctorPolicy.tools.allSatisfy { $0.installCommand.isEmpty == false })

@@ -14,17 +14,17 @@ import Testing
     }
 
     @Test func aFailedWorkflowRunsAgainWhileAttemptsAreLeft() {
-        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: plan(attempts: 2), now: now) == .rerun)
-        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: plan(attempts: 3), now: now) == .exhausted)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: plan(attempts: 2), failure: nil, now: now) == .rerun)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: plan(attempts: 3), failure: nil, now: now) == .exhausted)
     }
 
     @Test func theStateOfAWorkflowDecides() {
-        #expect(CIAutoRerunPolicy.decision(for: workflow(.success), plan: plan(), now: now) == .succeeded)
-        #expect(CIAutoRerunPolicy.decision(for: workflow(.skipped), plan: plan(), now: now) == .succeeded)
-        #expect(CIAutoRerunPolicy.decision(for: workflow(.canceled), plan: plan(), now: now) == .cancelled)
-        #expect(CIAutoRerunPolicy.decision(for: workflow(.running), plan: plan(), now: now) == .wait)
-        #expect(CIAutoRerunPolicy.decision(for: workflow(.manual), plan: plan(), now: now) == .wait)
-        #expect(CIAutoRerunPolicy.decision(for: workflow(.other("unknown")), plan: plan(), now: now) == .wait)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.success), plan: plan(), failure: nil, now: now) == .succeeded)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.skipped), plan: plan(), failure: nil, now: now) == .succeeded)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.canceled), plan: plan(), failure: nil, now: now) == .cancelled)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.running), plan: plan(), failure: nil, now: now) == .wait)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.manual), plan: plan(), failure: nil, now: now) == .wait)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.other("unknown")), plan: plan(), failure: nil, now: now) == .wait)
     }
 
     @Test func aWorkflowThatRanAgainWaitsForItsNewRunThenIsIgnored() {
@@ -32,9 +32,9 @@ import Testing
         let old = plan(handled: ["w1"], lastRerunAt: now.addingTimeInterval(-CIAutoRerunPolicy.newWorkflowGrace))
         let unknownTime = plan(handled: ["w1"], lastRerunAt: nil)
 
-        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: recent, now: now) == .wait)
-        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: old, now: now) == .handled)
-        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: unknownTime, now: now) == .handled)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: recent, failure: nil, now: now) == .wait)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: old, failure: nil, now: now) == .handled)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: unknownTime, failure: nil, now: now) == .handled)
     }
 
     @Test func theOutcomeTakesTheStrongestDecision() {
@@ -52,5 +52,21 @@ import Testing
 
     @Test func theChoicesHoldTheDefault() {
         #expect(CIAutoRerunPolicy.attemptChoices.contains(CIAutoRerunPolicy.defaultMaxAttempts))
+    }
+
+    @Test func withTheFlakyModeOnlyAFlakyFailureRunsAgain() {
+        let flakyOnly = plan()
+        let any = CIAutoRerunPlan(iid: 7, maxAttempts: 3, attempts: 0, handledWorkflowIDs: [], lastRerunAt: nil, onlyFlaky: false)
+
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: flakyOnly, failure: .allFlaky(testCount: 2), now: now) == .rerun)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: flakyOnly, failure: .realTests(job: "unit-tests", count: 1), now: now) == .stopped("unit-tests failed on a test that is not flaky"))
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: flakyOnly, failure: .noTests(job: "build"), now: now) == .stopped("build failed without test results"))
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: any, failure: .noTests(job: "build"), now: now) == .rerun)
+        #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: plan(attempts: 3), failure: .noTests(job: "build"), now: now) == .exhausted)
+    }
+
+    @Test func aStopBeatsARerunButNotTheLastAttempt() {
+        #expect(CIAutoRerunPolicy.outcome(of: [.rerun, .stopped("build failed without test results"), .cancelled]) == .stopped("build failed without test results"))
+        #expect(CIAutoRerunPolicy.outcome(of: [.stopped("x"), .exhausted]) == .exhausted)
     }
 }

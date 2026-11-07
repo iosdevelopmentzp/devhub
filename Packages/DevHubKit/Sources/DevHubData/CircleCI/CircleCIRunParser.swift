@@ -6,9 +6,15 @@ enum CircleCIRunParser {
         let id: String?
         let phase: String?
         let outcome: String?
+        let currentOutcome: String?
         let branch: String?
         let revision: String?
+        let commit: Commit?
         let createdAt: String?
+    }
+
+    private struct Commit: Decodable {
+        let subject: String?
     }
 
     private struct Page: Decodable {
@@ -31,9 +37,10 @@ enum CircleCIRunParser {
         guard let id = dto.id, id.isEmpty == false else { return nil }
         return CIRun(
             id: id,
-            status: CircleCIStatusMapper.status(phase: dto.phase, outcome: dto.outcome),
+            status: CircleCIStatusMapper.status(phase: dto.phase, outcome: dto.outcome, currentOutcome: dto.currentOutcome),
             branch: dto.branch,
             revision: dto.revision,
+            subject: dto.commit?.subject.flatMap { $0.isEmpty ? nil : $0 },
             createdAt: dto.createdAt.flatMap(ISO8601.date(from:))
         )
     }

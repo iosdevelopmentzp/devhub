@@ -8,6 +8,7 @@ enum CircleCIWorkflowParser {
             let name: String?
             let phase: String?
             let outcome: String?
+            let currentOutcome: String?
             let status: String?
             let type: String?
         }
@@ -16,6 +17,7 @@ enum CircleCIWorkflowParser {
         let name: String?
         let phase: String?
         let outcome: String?
+        let currentOutcome: String?
         let runId: String?
         let jobs: [Job]?
     }
@@ -25,18 +27,19 @@ enum CircleCIWorkflowParser {
         return CIWorkflow(
             id: dto.id ?? fallbackID,
             name: dto.name ?? "",
-            status: CircleCIStatusMapper.status(phase: dto.phase, outcome: dto.outcome),
+            status: CircleCIStatusMapper.status(phase: dto.phase, outcome: dto.outcome, currentOutcome: dto.currentOutcome),
             runID: dto.runId,
             jobs: (dto.jobs ?? []).map(job)
         )
     }
 
     private static func job(_ dto: Workflow.Job) -> CIJob {
-        CIJob(
+        let isApproval = dto.type == "approval"
+        return CIJob(
             id: dto.id ?? "",
             name: dto.name ?? "",
-            status: CircleCIStatusMapper.status(phase: dto.phase ?? dto.status, outcome: dto.outcome),
-            isApproval: dto.type == "approval"
+            status: CircleCIStatusMapper.jobStatus(phase: dto.phase ?? dto.status, outcome: dto.outcome, currentOutcome: dto.currentOutcome, isApproval: isApproval),
+            isApproval: isApproval
         )
     }
 }

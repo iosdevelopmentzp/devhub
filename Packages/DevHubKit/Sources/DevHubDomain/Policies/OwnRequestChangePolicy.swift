@@ -24,6 +24,9 @@ package enum OwnRequestChangePolicy {
             if request.pipeline?.status == .failed, old.pipeline?.status != .failed {
                 changes.append(.checksFailed(request))
             }
+            if request.pipeline?.status == .success, let previous = old.pipeline?.status, previous != .success {
+                changes.append(.checksPassed(request))
+            }
             if let comments = newComments(of: request, since: old, username: username) {
                 changes.append(comments)
             }

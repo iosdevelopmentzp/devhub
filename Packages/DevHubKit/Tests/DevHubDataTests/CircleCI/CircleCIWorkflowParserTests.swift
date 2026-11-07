@@ -37,4 +37,12 @@ import Testing
             try CircleCIWorkflowParser.workflow(from: Data("not json".utf8), id: "x")
         }
     }
+
+    @Test func theV3PhasesGiveTheRunningStateAndTheApprovalOnHold() throws {
+        let workflow = try CircleCIWorkflowParser.workflow(from: CircleCIFixture.workflowV3, id: "x")
+
+        #expect(workflow.status == .running)
+        #expect(workflow.jobs.map(\.status) == [.success, .failed, .manual, .pending])
+        #expect(workflow.jobs.map(\.isApproval) == [false, false, true, false])
+    }
 }

@@ -44,4 +44,15 @@ import Testing
         #expect(current.stateTint == .green)
         #expect(current.installCommand == nil)
     }
+
+    @Test func aToolWithANewerVersionOffersTheUpgrade() {
+        let circleci = DoctorPolicy.tools[5]
+
+        let model = DoctorRowMapper.model(for: ToolStatus(tool: circleci, path: "/opt/homebrew/bin/circleci", version: "1.13.0", latestVersion: "1.14.0"))
+
+        #expect(model.stateText == "1.13.0, 1.14.0 available")
+        #expect(model.stateTint == .blue)
+        #expect(model.icon == "arrow.down.circle.fill")
+        #expect(model.installCommand == "brew upgrade circleci")
+    }
 }

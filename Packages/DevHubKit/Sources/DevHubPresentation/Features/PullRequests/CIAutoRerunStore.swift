@@ -119,7 +119,7 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
     private func act(on workflows: [CIWorkflow], of iid: Int, project: CIProject) async {
         guard let plan = plans[iid] else { return }
         let reference = words.reference(iid)
-        let decisions = workflows.map { CIAutoRerunPolicy.decision(for: $0, plan: plan, now: .now) }
+        let decisions = workflows.map { CIAutoRerunPolicy.decision(for: $0, plan: plan, failure: nil, now: .now) }
         switch CIAutoRerunPolicy.outcome(of: decisions) {
         case .wait:
             break
@@ -132,6 +132,8 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
             finish(iid, title: "Auto re-run of \(reference) stopped", body: "A CircleCI workflow was cancelled", outcome: .info)
         case .exhausted:
             finish(iid, title: "Auto re-run of \(reference) gave up", body: "The \(words.checks) failed again after \(CountText.count(plan.maxAttempts, "re-run", "re-runs"))", outcome: .failure)
+        case .stopped(let reason):
+            finish(iid, title: "Auto re-run of \(reference) stopped", body: "No re-run: \(reason)", outcome: .failure)
         }
     }
 

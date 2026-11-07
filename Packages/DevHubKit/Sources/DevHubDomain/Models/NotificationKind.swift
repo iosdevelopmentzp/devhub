@@ -6,6 +6,9 @@ package enum NotificationKind: String, CaseIterable, Hashable, Codable, Sendable
     case reviewRequests
     case requestReviews
     case requestChecks
+    case requestChecksPassed
+    case requestApprovals
+    case baseBranchChecks
     case requestComments
     case requestClosed
     case watched

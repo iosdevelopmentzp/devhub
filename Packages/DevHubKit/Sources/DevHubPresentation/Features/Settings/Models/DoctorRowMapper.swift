@@ -21,6 +21,18 @@ enum DoctorRowMapper {
                 installCommand: tool.upgradeCommand ?? tool.installCommand
             )
         }
+        if let version = status.version, let latest = status.latestVersion {
+            return DoctorRowModel(
+                id: tool.name,
+                name: tool.name,
+                purpose: tool.purpose,
+                stateText: "\(version), \(latest) available",
+                stateTint: .blue,
+                icon: "arrow.down.circle.fill",
+                path: ProjectPath(path).abbreviated,
+                installCommand: tool.upgradeCommand ?? tool.installCommand
+            )
+        }
         return DoctorRowModel(
             id: tool.name,
             name: tool.name,

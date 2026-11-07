@@ -7,6 +7,6 @@ import Testing
     }
 
     @Test func rawValuesAreStable() {
-        #expect(NotificationKind.allCases.map(\.rawValue) == ["build", "tests", "reviewRequests", "requestReviews", "requestChecks", "requestComments", "requestClosed", "watched", "inbox", "crashes", "scripts", "utilities"])
+        #expect(NotificationKind.allCases.map(\.rawValue) == ["build", "tests", "reviewRequests", "requestReviews", "requestChecks", "requestChecksPassed", "requestApprovals", "baseBranchChecks", "requestComments", "requestClosed", "watched", "inbox", "crashes", "scripts", "utilities"])
     }
 }

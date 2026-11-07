@@ -35,6 +35,6 @@ package struct CheckToolsUseCase: Sendable {
             return ToolStatus(tool: tool, path: path, version: nil)
         }
         let version = tool.name == "xcrun" ? "simctl" : DoctorPolicy.version(from: lines)
-        return ToolStatus(tool: tool, path: path, version: version)
+        return ToolStatus(tool: tool, path: path, version: version, latestVersion: DoctorPolicy.latestVersion(from: lines))
     }
 }

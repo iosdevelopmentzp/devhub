@@ -42,7 +42,8 @@ extension Ports {
             diskCleanup: MockDiskCleanupRepository(),
             media: MockMediaRepository(),
             videoCompression: MockVideoCompressionRepository(),
-            updates: MockUpdateRepository()
+            updates: MockUpdateRepository(),
+            redactionWords: MockRedactionWordsRepository()
         )
     }
 }

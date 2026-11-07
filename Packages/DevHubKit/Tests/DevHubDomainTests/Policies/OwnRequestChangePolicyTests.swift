@@ -122,4 +122,15 @@ import Testing
         #expect(OwnRequestChangePolicy.changes(from: [theirs], to: [], username: username, watched: [2]) == [.gone(theirs)])
         #expect(OwnRequestChangePolicy.changes(from: [theirs], to: [after], username: username, watched: [3]).isEmpty)
     }
+
+    @Test func checksAreReportedWhenTheyPassAfterARunOrAFailure() {
+        let running = request(1, pipeline: .running)
+        let failed = request(1, pipeline: .failed)
+        let passed = request(1, pipeline: .success)
+
+        #expect(OwnRequestChangePolicy.changes(from: [running], to: [passed], username: username) == [.checksPassed(passed)])
+        #expect(OwnRequestChangePolicy.changes(from: [failed], to: [passed], username: username) == [.checksPassed(passed)])
+        #expect(OwnRequestChangePolicy.changes(from: [passed], to: [passed], username: username).isEmpty)
+        #expect(OwnRequestChangePolicy.changes(from: [request(1, pipeline: nil)], to: [passed], username: username).isEmpty)
+    }
 }

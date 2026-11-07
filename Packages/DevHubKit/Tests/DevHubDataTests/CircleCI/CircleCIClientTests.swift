@@ -12,6 +12,28 @@ import Testing
         #expect(CircleCIClient.runListArguments(branch: "main", limit: 10, slug: nil) == ["run", "list", "--branch", "main", "--limit", "10", "--json"])
         #expect(CircleCIClient.jobOutputArguments(jobID: "j1") == ["job", "output", "list", "j1", "--json"])
         #expect(CircleCIClient.testResultArguments(jobID: "j1") == ["testresult", "list", "j1", "--json"])
+        #expect(CircleCIClient.jobArguments(id: "j1") == ["job", "get", "j1", "--json"])
+        #expect(CircleCIClient.workflowListArguments(runID: "r1") == ["workflow", "list", "r1", "--json"])
+        #expect(CircleCIClient.artifactListArguments(jobID: "j1") == ["job", "artifact", "j1", "--json"])
+    }
+
+    @Test func theJobDetailsComeFromTheAPIv2() {
+        #expect(CircleCIClient.workflowDetailArguments(id: "w1") == ["api", "api/v2/workflow/w1"])
+        #expect(CircleCIClient.workflowJobsArguments(id: "w1") == ["api", "api/v2/workflow/w1/job"])
+    }
+
+    @Test func aDownloadNamesItsFolder() {
+        #expect(CircleCIClient.artifactDownloadArguments(jobID: "j1", folder: "/tmp/out") == ["job", "artifact", "j1", "-o", "/tmp/out"])
+    }
+
+    @Test func everyCommandRunsWithoutPromptsSpinnersColoursAndUpdateChecks() {
+        #expect(CircleCIClient.environment == ["CIRCLE_NO_INTERACTIVE": "1", "CIRCLE_NO_UPDATE_CHECK": "1", "CIRCLE_SPINNER_DISABLED": "1", "NO_COLOR": "1"])
+    }
+
+    @Test func aRateLimitIsItsOwnError() {
+        #expect(CircleCIClient.error(exitCode: 4, message: "API error: 429 Too Many Requests") == .rateLimited)
+        #expect(CircleCIClient.error(exitCode: 4, message: "Rate limit exceeded") == .rateLimited)
+        #expect(CircleCIClient.error(exitCode: 4, message: "401 unauthorized") == .notLoggedIn)
     }
 
     @Test func theFlakyTestsComeFromTheInsightsAPI() {

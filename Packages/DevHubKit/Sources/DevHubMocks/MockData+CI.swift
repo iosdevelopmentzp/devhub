@@ -21,8 +21,39 @@ extension MockData {
     )
 
     package static let ciRuns: [CIRun] = [
-        CIRun(id: ciRunID, status: .failed, branch: "feature/ABC-123-short-title", revision: "aaa111bbb222", createdAt: ago(minutes: 40)),
-        CIRun(id: "ffffffff-1111-2222-3333-444444444444", status: .success, branch: "main", revision: "ccc333ddd444", createdAt: ago(hours: 5)),
+        CIRun(id: ciRunID, status: .failed, branch: "feature/ABC-123-short-title", revision: "aaa111bbb222", subject: "ABC-123: Retry the login after a timeout", createdAt: ago(minutes: 40)),
+        CIRun(id: "ffffffff-1111-2222-3333-444444444444", status: .success, branch: "main", revision: "ccc333ddd444", subject: "Merge pull request #1840", createdAt: ago(hours: 5)),
+    ]
+
+    package static let ciRunWorkflows: [CIWorkflow] = [
+        CIWorkflow(id: ciWorkflowID, name: "build-and-test", status: .failed, runID: ciRunID, jobs: []),
+        CIWorkflow(id: "77777777-8888-9999-aaaa-bbbbbbbbbbbb", name: "nightly", status: .success, runID: ciRunID, jobs: []),
+    ]
+
+    package static let ciWorkflowDetails = CIWorkflowDetails(
+        id: ciWorkflowID,
+        pipelineNumber: 42,
+        projectSlug: "gh/example/app",
+        createdAt: ago(minutes: 40),
+        stoppedAt: ago(minutes: 28),
+        jobs: [
+            CIJobDetails(id: "job-build", number: 101, startedAt: ago(minutes: 40), stoppedAt: ago(minutes: 36), approvalRequestID: nil),
+            CIJobDetails(id: "job-unit-tests", number: 102, startedAt: ago(minutes: 36), stoppedAt: ago(minutes: 28), approvalRequestID: nil),
+            CIJobDetails(id: "job-ui-tests", number: 103, startedAt: nil, stoppedAt: nil, approvalRequestID: nil),
+            CIJobDetails(id: "job-approve-release", number: 104, startedAt: nil, stoppedAt: nil, approvalRequestID: "approval-1"),
+        ]
+    )
+
+    package static let ciJobSteps: [CIJobStep] = [
+        CIJobStep(index: 0, name: "Spin up environment", status: .success, duration: 3, exitCode: 0),
+        CIJobStep(index: 1, name: "Checkout code", status: .success, duration: 8, exitCode: 0),
+        CIJobStep(index: 2, name: "Run tests", status: .failed, duration: 452, exitCode: 65),
+        CIJobStep(index: 3, name: "Upload test results", status: .success, duration: 2, exitCode: 0),
+    ]
+
+    package static let ciArtifacts: [CIArtifact] = [
+        CIArtifact(path: "test-results/junit.xml", url: URL(string: "https://app.circleci.example.com/artifacts/0/test-results/junit.xml")),
+        CIArtifact(path: "screenshots/LoginTests-testRetryAfterTimeout.png", url: URL(string: "https://app.circleci.example.com/artifacts/0/screenshots/LoginTests-testRetryAfterTimeout.png")),
     ]
 
     package static let ciFailedTests: [CITestResult] = [

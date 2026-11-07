@@ -133,6 +133,10 @@ import Testing
         #expect(CommandKind.classify("circleci", ["version", "--json"]) == .read)
         #expect(CommandKind.classify("circleci", ["auth", "me", "--json"]) == .read)
         #expect(CommandKind.classify("circleci", ["api", "api/v2/insights/gh/example/app/flaky-tests"]) == .read)
+        #expect(CommandKind.classify("circleci", ["api", "api/v2/workflow/w1/job"]) == .read)
+        #expect(CommandKind.classify("circleci", ["api", "api/v2/project/x/pipeline", "-X", "GET", "-f", "branch=main"]) == .read)
+        #expect(CommandKind.classify("circleci", ["job", "get", "j1", "--json"]) == .read)
+        #expect(CommandKind.classify("circleci", ["job", "artifact", "j1", "--json"]) == .read)
     }
 
     @Test func circleCIChangesAreActions() {
@@ -142,6 +146,8 @@ import Testing
         #expect(CommandKind.classify("circleci", ["api", "api/v2/project/x/pipeline", "-X", "POST"]) == .action)
         #expect(CommandKind.classify("circleci", ["api", "api/v2/x", "-f", "branch=main"]) == .action)
         #expect(CommandKind.classify("circleci", ["auth", "login"]) == .action)
+        #expect(CommandKind.classify("circleci", ["job", "artifact", "j1", "-o", "/tmp/out"]) == .action)
+        #expect(CommandKind.classify("circleci", ["api", "api/v2/workflow/w1/rerun", "--method", "POST"]) == .action)
         #expect(CommandKind.classify("circleci", []) == .action)
     }
 

@@ -14,22 +14,22 @@ enum CircleCIJobOutputParser {
     }
 
     static func log(from data: Data) throws -> String {
+        CIJobLogPolicy.text(steps: try steps(from: data))
+    }
+
+    static func steps(from data: Data) throws -> [CIJobLogStep] {
         let steps: [Step]
         if let list = try? CircleCIJSON.decode([Step].self, from: data) {
             steps = list
         } else {
             steps = try CircleCIJSON.decode(Output.self, from: data).steps ?? []
         }
-        let text = steps.map(block).joined(separator: "\n\n")
-        return JobLogTail.text(from: Data(text.utf8))
-    }
-
-    private static func block(_ step: Step) -> String {
-        var header = "== \(step.name ?? "Step \(step.num ?? 0)")"
-        if let code = step.exitCode, code != 0 {
-            header += " (exit \(code))"
+        return steps.map { step in
+            CIJobLogStep(
+                name: step.name ?? "Step \(step.num ?? 0)",
+                exitCode: step.exitCode,
+                output: JobLogTail.cleaned(step.output ?? "")
+            )
         }
-        let output = (step.output ?? "").trimmingCharacters(in: .newlines)
-        return output.isEmpty ? header : header + "\n" + output
     }
 }

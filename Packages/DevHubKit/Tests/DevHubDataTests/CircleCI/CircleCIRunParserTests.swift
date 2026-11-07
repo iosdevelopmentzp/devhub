@@ -25,4 +25,11 @@ import Testing
     @Test func anEmptyListIsEmpty() throws {
         #expect(try CircleCIRunParser.runs(from: Data("[]".utf8)).isEmpty)
     }
+
+    @Test func theV3PhasesAndTheCommitSubjectAreRead() throws {
+        let runs = try CircleCIRunParser.runs(from: CircleCIFixture.runsV3)
+
+        #expect(runs.map(\.status) == [.failed])
+        #expect(runs.first?.subject == "ABC-123: Retry the login")
+    }
 }

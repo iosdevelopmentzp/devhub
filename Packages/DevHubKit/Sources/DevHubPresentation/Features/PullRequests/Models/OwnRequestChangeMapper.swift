@@ -19,6 +19,8 @@ enum OwnRequestChangeMapper {
             return Report(title: "Changes requested on \(reference) by \(names(reviewers))", body: request.title, outcome: .info, kind: .requestReviews)
         case .checksFailed(let request):
             return Report(title: "\(words.checksTitle) failed on \(reference)", body: request.title, outcome: .failure, kind: .requestChecks)
+        case .checksPassed(let request):
+            return Report(title: "\(words.checksTitle) passed on \(reference)", body: request.title, outcome: .success, kind: .requestChecksPassed)
         case .newComments(let request, let count, let authors):
             return Report(title: commentsTitle(count: count, authors: authors, reference: reference), body: request.title, outcome: .info, kind: .requestComments)
         case .gone:

@@ -54,4 +54,12 @@ import Testing
         #expect(merged == OwnRequestChangeMapper.Report(title: "#21 merged", body: "ABC-5: Login", outcome: .success, kind: .requestClosed))
         #expect(closed == OwnRequestChangeMapper.Report(title: "!21 closed without a merge", body: "ABC-5: Login", outcome: .info, kind: .requestClosed))
     }
+
+    @Test func passedChecksAreASuccessOfTheirOwnKind() throws {
+        let gitHub = try #require(OwnRequestChangeMapper.report(for: .checksPassed(request), words: .gitHub))
+        let gitLab = try #require(OwnRequestChangeMapper.report(for: .checksPassed(request), words: .gitLab))
+
+        #expect(gitHub == OwnRequestChangeMapper.Report(title: "Checks passed on #21", body: "ABC-5: Login", outcome: .success, kind: .requestChecksPassed))
+        #expect(gitLab.title == "Pipeline passed on !21")
+    }
 }

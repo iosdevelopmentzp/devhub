@@ -15,6 +15,16 @@ import Testing
         #expect(try await repository.failedTests(jobID: "x", project: project) == MockData.ciFailedTests)
         #expect(try await repository.flakyTests(project: project) == MockData.ciFlakyTests)
         #expect(try await repository.jobLog(jobID: "x", project: project).isEmpty == false)
+        #expect(try await repository.workflowDetails(id: "x", project: project) == MockData.ciWorkflowDetails)
+        #expect(try await repository.workflows(runID: "x", project: project) == MockData.ciRunWorkflows)
+        #expect(try await repository.jobSteps(jobID: "x", project: project) == MockData.ciJobSteps)
+        #expect(try await repository.artifacts(jobID: "x", project: project) == MockData.ciArtifacts)
+        #expect(try await repository.downloadArtifacts(jobID: "x", folderName: "unit-tests 102", project: project) == "~/Downloads/DevHub Artifacts/unit-tests 102")
+    }
+
+    @Test func theMockDetailsCoverTheJobsOfTheMockWorkflow() {
+        #expect(Set(MockData.ciWorkflowDetails.jobs.map(\.id)) == Set(MockData.ciWorkflow.jobs.map(\.id)))
+        #expect(MockData.ciJobSteps.contains { $0.isFailed })
     }
 
     @Test func theMockWorkflowHasAFailedJobAndAnApproval() {

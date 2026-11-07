@@ -32,7 +32,7 @@ extension Ports {
                 gitHub: GhPullRequestRepository(client: GhClient(shell: shell)),
                 gitLab: GlabPullRequestRepository(client: GlabClient(shell: shell))
             ),
-            ci: CircleCIRepository(client: CircleCIClient(shell: shell)),
+            ci: CircleCIRepository(client: CircleCIClient(shell: shell), downloadsFolder: home.appendingPathComponent("Downloads", isDirectory: true)),
             aiSessions: CompositeAISessionRepository(repositories: [
                 ClaudeTranscriptSessionRepository(root: home.appendingPathComponent(".claude/projects", isDirectory: true)),
                 CopilotSessionRepository(root: home.appendingPathComponent(".copilot/session-state", isDirectory: true))
@@ -64,7 +64,8 @@ extension Ports {
                 chromeRoot: URL(fileURLWithPath: "/Library/Developer/DeviceKit/Chrome")
             )),
             videoCompression: FFmpegVideoCompressionRepository(shell: shell, tools: tools),
-            updates: FileUpdateRepository(shell: shell, supportFolder: home.appendingPathComponent("Library/Application Support/DevHub Generic", isDirectory: true))
+            updates: FileUpdateRepository(shell: shell, supportFolder: home.appendingPathComponent("Library/Application Support/DevHub Generic", isDirectory: true)),
+            redactionWords: FileRedactionWordsRepository(file: home.appendingPathComponent(".devhub/anonymity-denylist.txt"))
         )
     }
 }

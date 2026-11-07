@@ -17,7 +17,7 @@ package enum CommandKind: Sendable {
     private static let simctlReads: Set<String> = ["list", "get_app_container", "listapps", "bootstatus"]
     private static let plainReads: Set<String> = ["du", "ps", "grep", "plutil", "pgrep", "mdfind", "xcode-select", "ffprobe"]
     private static let codeHostReads: Set<String> = ["view", "list", "checks", "diff", "status"]
-    private static let circleCIReads: Set<String> = ["run list", "run get", "workflow get", "workflow list", "job get", "job output", "testresult list", "setting list", "version", "auth me"]
+    private static let circleCIReads: Set<String> = ["run list", "run get", "workflow get", "workflow list", "job get", "job output", "job artifact", "testresult list", "setting list", "version", "auth me"]
 
     package static func classify(_ executable: String, _ arguments: [String]) -> CommandKind {
         let name = (executable as NSString).lastPathComponent
@@ -63,11 +63,21 @@ package enum CommandKind: Sendable {
     private static func circleCIKind(_ arguments: [String]) -> CommandKind {
         let words = arguments.filter { $0.hasPrefix("-") == false }
         if words.first == "api" {
-            let writes = arguments.contains { ["-X", "--method", "-f", "--field", "-d", "--data"].contains($0) }
-            return writes ? .action : .read
+            return circleCIAPIKind(arguments)
         }
         let pair = words.prefix(2).joined(separator: " ")
+        if pair == "job artifact" {
+            return arguments.contains { ["-o", "--output"].contains($0) } ? .action : .read
+        }
         return circleCIReads.contains(pair) || circleCIReads.contains(words.first ?? "") ? .read : .action
+    }
+
+    private static func circleCIAPIKind(_ arguments: [String]) -> CommandKind {
+        if let index = arguments.firstIndex(where: { ["-X", "--method"].contains($0) }) {
+            return arguments.dropFirst(index + 1).first?.uppercased() == "GET" ? .read : .action
+        }
+        let writes = arguments.contains { ["-f", "--field", "-d", "--data"].contains($0) }
+        return writes ? .action : .read
     }
 
     private static func codeHostKind(_ arguments: [String]) -> CommandKind {
