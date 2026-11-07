@@ -6,6 +6,7 @@ struct DiffView<Accessory: View>: View {
     @Environment(\.diffScrollProxy) private var scrollProxy
 
     let model: DiffModel
+    let layout: DiffLayout
     let scrollScope: String?
     let highlightedLineID: Int?
     let onOpenLine: ((_ line: Int) -> Void)?
@@ -15,6 +16,7 @@ struct DiffView<Accessory: View>: View {
 
     init(
         model: DiffModel,
+        layout: DiffLayout = .unified,
         scrollScope: String?,
         highlightedLineID: Int?,
         onOpenLine: ((_ line: Int) -> Void)?,
@@ -23,6 +25,7 @@ struct DiffView<Accessory: View>: View {
         @ViewBuilder accessory: @escaping (_ lineID: Int) -> Accessory
     ) {
         self.model = model
+        self.layout = layout
         self.scrollScope = scrollScope
         self.highlightedLineID = highlightedLineID
         self.onOpenLine = onOpenLine
@@ -43,10 +46,20 @@ struct DiffView<Accessory: View>: View {
                 note(text)
             case .lines(let lines, let droppedNote):
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(lines) { line in
-                        DiffLine(model: line, isHighlighted: line.id == highlightedLineID, onOpen: openAction(for: line), onOpenOnWeb: webAction(for: line), onComment: commentAction(for: line))
-                            .id(scrollID(line.id))
-                        accessory(line.id)
+                    if layout == .sideBySide {
+                        ForEach(SplitDiffMapper.rows(from: lines)) { row in
+                            SplitDiffRow(model: row, highlightedLineID: highlightedLineID, onOpenLine: onOpenLine, onOpenLineOnWeb: onOpenLineOnWeb, onCommentLine: onCommentLine)
+                                .id(scrollID(scrollTarget(of: row)))
+                            ForEach(row.lineIDs, id: \.self) { lineID in
+                                accessory(lineID)
+                            }
+                        }
+                    } else {
+                        ForEach(lines) { line in
+                            DiffLine(model: line, isHighlighted: line.id == highlightedLineID, onOpen: openAction(for: line), onOpenOnWeb: webAction(for: line), onComment: commentAction(for: line))
+                                .id(scrollID(line.id))
+                            accessory(line.id)
+                        }
                     }
                     if let droppedNote {
                         note(droppedNote)
@@ -67,6 +80,11 @@ struct DiffView<Accessory: View>: View {
 
     private func scrollID(_ line: Int) -> String {
         "diff-line:\(scrollScope ?? "")#\(line)"
+    }
+
+    private func scrollTarget(of row: SplitDiffRowModel) -> Int {
+        guard let highlightedLineID, row.lineIDs.contains(highlightedLineID) else { return row.id }
+        return highlightedLineID
     }
 
     private func openAction(for line: DiffLineModel) -> (() -> Void)? {

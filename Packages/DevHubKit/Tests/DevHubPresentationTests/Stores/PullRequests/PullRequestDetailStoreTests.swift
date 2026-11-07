@@ -122,6 +122,14 @@ import DevHubTestSupport
         #expect(store.expandedFiles(of: 7).isEmpty)
     }
 
+    @Test func revealFileOpensTheFileAndFocusesItWithoutALine() {
+        store.revealFile("a.swift", of: 7)
+
+        #expect(store.expandedFiles(of: 7) == ["a.swift"])
+        #expect(store.focus(of: 7) == DiffFocus(requestID: 7, path: "a.swift", line: 0, isOld: false))
+        #expect(store.focus(of: 8) == nil)
+    }
+
     @Test func showInDiffOpensTheFileAndFocusesTheLine() async {
         script()
         await store.load(7)

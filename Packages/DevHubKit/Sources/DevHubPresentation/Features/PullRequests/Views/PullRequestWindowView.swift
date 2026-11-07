@@ -19,45 +19,56 @@ struct PullRequestWindowView: View {
     let summary: PullRequestSummary
 
     @State private var isPickingLaunch = false
+    @State private var selectedFileID: String?
+    @State private var fileQuery = ""
+
+    static let sidebarWidth: CGFloat = 280
 
     var body: some View {
+        let details = details
         ScrollViewReader { proxy in
-            ScrollView {
-                PullRequestRow(
-                    model: PullRequestRowMapper.model(
-                        for: summary,
-                        context: context,
-                        local: PullRequestLocalStateMapper.state(for: summary.sourceBranch, checkout: git, worktrees: worktrees),
-                        isBusy: pullRequests.isBusy(summary.id),
-                        isExpanded: true,
-                        configActions: []
-                    ),
-                    details: details,
-                    isSelected: false,
-                    isNarrow: false,
-                    isPickingLaunch: isPickingLaunch,
-                    detailActions: PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, aiText: aiText, autoRerun: autoRerun, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: nil),
-                    onToggle: {},
-                    onRequestLaunch: { isPickingLaunch = true },
-                    onCancelLaunch: { isPickingLaunch = false },
-                    onAction: { pullRequests.perform($0, on: summary.id) },
-                    onMerge: { pullRequests.merge(summary.id, kind: $0, squash: $1, removeSourceBranch: $2) },
-                    onLabel: nil
-                )
-                .padding(.vertical, 8)
-            }
-            .overlay(alignment: .bottom) {
-                OperationsTray(origin: .pullRequest(summary.id), maxHeight: 320)
+            HStack(spacing: 0) {
+                PullRequestFileSidebar(model: sidebar(details), selectedID: selectedFileID, query: $fileQuery, actions: detailActions) { id in
+                    selectedFileID = id
+                    detailStore.revealFile(id, of: summary.id)
+                }
+                .frame(width: Self.sidebarWidth)
+                Divider()
+                ScrollView {
+                    PullRequestRow(
+                        model: PullRequestRowMapper.model(
+                            for: summary,
+                            context: context,
+                            local: PullRequestLocalStateMapper.state(for: summary.sourceBranch, checkout: git, worktrees: worktrees),
+                            isBusy: pullRequests.isBusy(summary.id),
+                            isExpanded: true,
+                            configActions: []
+                        ),
+                        details: details,
+                        isSelected: false,
+                        isNarrow: false,
+                        isPickingLaunch: isPickingLaunch,
+                        detailActions: detailActions,
+                        onToggle: {},
+                        onRequestLaunch: { isPickingLaunch = true },
+                        onCancelLaunch: { isPickingLaunch = false },
+                        onAction: { pullRequests.perform($0, on: summary.id) },
+                        onMerge: { pullRequests.merge(summary.id, kind: $0, squash: $1, removeSourceBranch: $2) },
+                        onLabel: nil
+                    )
+                    .padding(.vertical, 8)
+                }
+                .overlay(alignment: .bottom) {
+                    OperationsTray(origin: .pullRequest(summary.id), maxHeight: 320)
+                }
             }
             .environment(\.diffScrollProxy, proxy)
             .onChange(of: detailStore.focus(of: summary.id)) { _, focus in
                 guard let focus else { return }
-                withAnimation(.snappy(duration: 0.25)) {
-                    proxy.scrollTo(PullRequestFileRowModel.scrollID(focus.path), anchor: .top)
-                }
+                selectedFileID = focus.path
             }
         }
-        .frame(minWidth: 640, minHeight: 400)
+        .frame(minWidth: 1_000, minHeight: 560)
         .background(Theme.surface)
         .task {
             await detailStore.load(summary.id)
@@ -77,6 +88,7 @@ struct PullRequestWindowView: View {
             staleDays: git.gitSettings.pullRequests.staleDays,
             hiddenFiles: git.gitSettings.pullRequests.hiddenFiles,
             fileGroups: git.gitSettings.pullRequests.fileGroups,
+            diffLayout: pullRequests.diffLayout,
             watchedIDs: openPullRequests.watchedIDs,
             people: people.people,
             busyPeopleIDs: people.busyIDs,
@@ -84,6 +96,15 @@ struct PullRequestWindowView: View {
             explainingIDs: aiText.explainingIDs,
             aiProvider: aiText.defaultProvider
         )
+    }
+
+    private var detailActions: PullRequestDetailActions {
+        PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, aiText: aiText, autoRerun: autoRerun, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: nil)
+    }
+
+    private func sidebar(_ details: PullRequestDetailsModel) -> PullRequestFileSidebarModel? {
+        guard case .loaded(let loaded) = details.content else { return nil }
+        return PullRequestFileSidebarMapper.model(for: loaded, query: fileQuery)
     }
 
     private var details: PullRequestDetailsModel {
@@ -119,5 +140,5 @@ struct PullRequestWindowView: View {
         )
     )
     .previewEnvironment()
-    .frame(width: 820, height: 700)
+    .frame(width: 1_120, height: 760)
 }

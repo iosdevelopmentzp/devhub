@@ -48,8 +48,23 @@ enum DebugLaunch {
         if let tab = environment["DEVHUB_TAB"] {
             assembly.debugShowTab(tab)
         }
+        if let layout = environment["DEVHUB_DIFF_LAYOUT"] {
+            assembly.debugSetDiffLayout(layout)
+        }
         if let iid = environment["DEVHUB_PULL_REQUEST"] {
-            assembly.debugShowPullRequest(iid)
+            if environment["DEVHUB_PULL_REQUEST_WINDOW"] == "1" {
+                Task {
+                    guard let summary = await assembly.debugPullRequest(iid) else { return }
+                    windows.showPullRequestWindow(summary)
+                }
+            } else {
+                assembly.debugShowPullRequest(iid)
+            }
+            if let path = environment["DEVHUB_REVEAL_FILE"] {
+                Task {
+                    await assembly.debugRevealFile(path, in: iid)
+                }
+            }
         }
         if let query = environment["DEVHUB_PALETTE"] {
             assembly.debugOpenPalette(query: query)
@@ -59,7 +74,9 @@ enum DebugLaunch {
         }
         let delay = Double(environment["DEVHUB_SNAPSHOT_DELAY"] ?? "") ?? 1.0
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            windows.debugShowPanel()
+            if environment["DEVHUB_PULL_REQUEST_WINDOW"] != "1" {
+                windows.debugShowPanel()
+            }
             guard let path = environment["DEVHUB_SNAPSHOT"] else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 windows.debugSnapshot(to: path)

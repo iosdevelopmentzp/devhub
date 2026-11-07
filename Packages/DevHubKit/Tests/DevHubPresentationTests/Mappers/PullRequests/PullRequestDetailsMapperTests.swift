@@ -67,6 +67,7 @@ import DevHubTestSupport
         #expect(loaded.hasThreadsInDiff == false)
         #expect(loaded.showsThreadsInDiff)
         #expect(loaded.files.map(\.isExpanded) == [true, false])
+        #expect(loaded.diffLayout == .unified)
         #expect(loaded.files[0].diff != nil)
         #expect(loaded.files[1].diff == nil)
     }

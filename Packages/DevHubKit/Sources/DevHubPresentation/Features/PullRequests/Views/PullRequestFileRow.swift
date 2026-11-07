@@ -2,14 +2,20 @@ import SwiftUI
 import DevHubUI
 
 struct PullRequestFileRow: View {
+    @Environment(\.diffScrollProxy) private var scrollProxy
+
     let model: PullRequestFileRowModel
     let actions: PullRequestDetailActions
+    var layout = DiffLayout.unified
+
+    private static let layoutSettleDelay: Duration = .milliseconds(100)
 
     var body: some View {
         Section {
             if let diff = model.diff {
                 DiffView(
                     model: diff,
+                    layout: layout,
                     scrollScope: model.id,
                     highlightedLineID: model.highlightedLineID,
                     onOpenLine: { actions.openFile(model.path, $0) },
@@ -58,6 +64,7 @@ struct PullRequestFileRow: View {
                     .font(.callout.weight(.medium))
                     .foregroundStyle(model.isViewed ? .secondary : .primary)
                     .lineLimit(1)
+                    .layoutPriority(1)
                 Text(model.detail)
                     .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
@@ -117,6 +124,13 @@ struct PullRequestFileRow: View {
         }
         .padding(.vertical, 4)
         .background(Theme.base)
+        .task(id: model.isFocused) {
+            guard model.isFocused else { return }
+            try? await Task.sleep(for: Self.layoutSettleDelay)
+            withAnimation(.snappy(duration: 0.25)) {
+                scrollProxy?.scrollTo(PullRequestFileRowModel.scrollID(model.id), anchor: .top)
+            }
+        }
     }
 }
 

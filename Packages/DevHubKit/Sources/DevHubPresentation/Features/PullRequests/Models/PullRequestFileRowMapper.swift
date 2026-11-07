@@ -24,6 +24,7 @@ enum PullRequestFileRowMapper {
             isViewed: review.viewedFiles.contains(file.id),
             diff: isExpanded ? diff(file, words: words) : nil,
             highlightedLineID: isExpanded ? highlightedLineID(file, focus: review.focus) : nil,
+            isFocused: review.focus?.path == file.path,
             threadCountText: fileThreads.isEmpty ? nil : "\(fileThreads.count)",
             diffThreads: isExpanded && review.showsThreadsInDiff ? diffThreads(fileThreads, in: file, open: review.openDiffThreads) : [:],
             oldPath: file.oldPath,

@@ -15,6 +15,7 @@ struct PullRequestFileRowModel: Identifiable, Equatable {
     var isViewed: Bool
     var diff: DiffModel?
     var highlightedLineID: Int?
+    var isFocused = false
     var threadCountText: String?
     var diffThreads: [Int: [DiffThreadModel]]
     var oldPath: String

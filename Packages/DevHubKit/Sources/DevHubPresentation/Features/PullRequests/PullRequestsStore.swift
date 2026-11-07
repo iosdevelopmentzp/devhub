@@ -48,6 +48,12 @@ final class PullRequestsStore {
             store.encode(listFraction, forKey: PullRequestsPreferenceKeys.listFraction)
         }
     }
+    var diffLayout: DiffLayout {
+        didSet {
+            guard diffLayout != oldValue else { return }
+            store.set(diffLayout.rawValue, forKey: PullRequestsPreferenceKeys.diffLayout)
+        }
+    }
 
     @ObservationIgnored private let repository: CodeHostRepository
     @ObservationIgnored private let remote: any CodeHostLookup
@@ -79,6 +85,7 @@ final class PullRequestsStore {
         filter = store.decode(PullRequestFilter.self, forKey: PullRequestsPreferenceKeys.filter) ?? PullRequestFilter()
         listStyle = store.string(forKey: PullRequestsPreferenceKeys.listStyle).flatMap(PullRequestListStyle.init(rawValue:)) ?? .detailed
         listFraction = store.decode(Double.self, forKey: PullRequestsPreferenceKeys.listFraction) ?? Double(PullRequestsLayout.defaultListFraction)
+        diffLayout = store.string(forKey: PullRequestsPreferenceKeys.diffLayout).flatMap(DiffLayout.init(rawValue:)) ?? .unified
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             switch event {

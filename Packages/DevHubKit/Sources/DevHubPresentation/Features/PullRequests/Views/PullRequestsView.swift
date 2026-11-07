@@ -90,6 +90,7 @@ struct PullRequestsView: View {
             staleDays: git.gitSettings.pullRequests.staleDays,
             hiddenFiles: git.gitSettings.pullRequests.hiddenFiles,
             fileGroups: git.gitSettings.pullRequests.fileGroups,
+            diffLayout: pullRequests.diffLayout,
             watchedIDs: openPullRequests.watchedIDs,
             people: people.people,
             busyPeopleIDs: people.busyIDs,

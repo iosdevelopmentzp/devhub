@@ -17,6 +17,26 @@ package extension PresentationAssembly {
         appActions.showPullRequest(iid: iid)
     }
 
+    func debugPullRequest(_ value: String) async -> PullRequestSummary? {
+        guard let iid = Int(value) else { return nil }
+        await pullRequests.reveal(iid)
+        return pullRequests.requests.first { $0.id == iid }
+    }
+
+    func debugRevealFile(_ path: String, in value: String) async {
+        guard let iid = Int(value) else { return }
+        for _ in 0..<50 where pullRequestDetails.isLoaded(iid) == false {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        try? await Task.sleep(for: .milliseconds(500))
+        pullRequestDetails.revealFile(path, of: iid)
+    }
+
+    func debugSetDiffLayout(_ rawValue: String) {
+        guard let layout = DiffLayout(rawValue: rawValue) else { return }
+        pullRequests.diffLayout = layout
+    }
+
     func debugShowTab(_ rawValue: String) {
         guard let tab = TabID(rawValue: rawValue) else { return }
         navigator.show(tab)

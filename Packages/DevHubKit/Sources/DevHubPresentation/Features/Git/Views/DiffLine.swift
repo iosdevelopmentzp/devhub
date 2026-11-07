@@ -4,6 +4,7 @@ import DevHubUI
 
 struct DiffLine: View {
     let model: DiffLineModel
+    let side: DiffSide?
     let isHighlighted: Bool
     let onOpen: (() -> Void)?
     let onOpenOnWeb: (() -> Void)?
@@ -11,10 +12,23 @@ struct DiffLine: View {
 
     @State private var isHovered = false
 
+    init(model: DiffLineModel, side: DiffSide? = nil, isHighlighted: Bool, onOpen: (() -> Void)?, onOpenOnWeb: (() -> Void)?, onComment: (() -> Void)?) {
+        self.model = model
+        self.side = side
+        self.isHighlighted = isHighlighted
+        self.onOpen = onOpen
+        self.onOpenOnWeb = onOpenOnWeb
+        self.onComment = onComment
+    }
+
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 0) {
-            number(model.oldNumber)
-            number(model.newNumber)
+            if side != .new {
+                number(model.oldNumber)
+            }
+            if side != .old {
+                number(model.newNumber)
+            }
             Text(emphasizedText)
                 .foregroundStyle(foreground)
                 .fixedSize(horizontal: false, vertical: true)

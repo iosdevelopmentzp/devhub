@@ -60,6 +60,7 @@ enum PullRequestDetailsMapper {
                     people: PullRequestPeopleMapper.model(summary: summary, context: context),
                     explain: PullRequestExplainMapper.model(summary: summary, review: review, context: context),
                     showsHiddenFiles: review.showsHiddenFiles,
+                    diffLayout: context.diffLayout,
                     canExpandAllFiles: visible.count - viewedCount > expandedCount,
                     canCollapseAllFiles: expandedCount > 0,
                     hasThreadsInDiff: threadRows.contains { $0.canShowInDiff },

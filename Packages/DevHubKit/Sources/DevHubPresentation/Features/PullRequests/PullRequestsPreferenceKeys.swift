@@ -7,6 +7,7 @@ enum PullRequestsPreferenceKeys {
     static let filter = "gitlab.filter"
     static let listStyle = "gitlab.listStyle"
     static let listFraction = "gitlab.listFraction"
+    static let diffLayout = "gitlab.diffLayout"
 
     static func seenAt(_ scope: PullRequestScope) -> String {
         "gitlab.seenAt.\(scope.rawValue)"

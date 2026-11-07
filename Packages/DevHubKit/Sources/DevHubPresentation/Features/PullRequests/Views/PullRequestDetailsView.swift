@@ -9,6 +9,9 @@ struct PullRequestDetailsView: View {
     let actions: PullRequestDetailActions
 
     @State private var confirmingCancelWorkflowID: String?
+    @State private var width: CGFloat = 0
+
+    static let sideBySideMinimumWidth: CGFloat = 600
 
     var body: some View {
         Group {
@@ -34,6 +37,15 @@ struct PullRequestDetailsView: View {
         }
         .padding(10)
         .background(Theme.base, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+    }
+
+    private var isWide: Bool {
+        width >= Self.sideBySideMinimumWidth
+    }
+
+    private func diffLayout(_ loaded: PullRequestDetailsModel.Loaded) -> DiffLayout {
+        loaded.diffLayout == .sideBySide && isWide ? .sideBySide : .unified
     }
 
     private func loadedContent(_ loaded: PullRequestDetailsModel.Loaded) -> some View {
@@ -127,10 +139,12 @@ struct PullRequestDetailsView: View {
                 if let suggestion = loaded.hideSuggestion {
                     hideSuggestionLine(suggestion)
                 }
-                LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+                VStack(alignment: .leading, spacing: 0) {
                     ForEach(loaded.files) { file in
-                        PullRequestFileRow(model: file, actions: actions)
-                        .id(PullRequestFileRowModel.scrollID(file.id))
+                        Color.clear
+                            .frame(height: 0)
+                            .id(PullRequestFileRowModel.scrollID(file.id))
+                        PullRequestFileRow(model: file, actions: actions, layout: diffLayout(loaded))
                     }
                 }
             }
@@ -446,6 +460,7 @@ struct PullRequestDetailsView: View {
                 .fixedSize()
                 .hint("Threads show under their line in the diff, folded to one line. Hide them all, or open or fold them all.")
             }
+            diffLayoutPicker(loaded)
             Button("Expand All", systemImage: "rectangle.expand.vertical") {
                 actions.expandAllFiles(Set(loaded.files.map(\.id)))
             }
@@ -457,6 +472,21 @@ struct PullRequestDetailsView: View {
         }
         .buttonStyle(LinkButtonStyle(.accent))
         .font(.caption)
+    }
+
+    private func diffLayoutPicker(_ loaded: PullRequestDetailsModel.Loaded) -> some View {
+        Picker("Diff layout", selection: Binding(get: { loaded.diffLayout }, set: { actions.setDiffLayout($0) })) {
+            ForEach(DiffLayout.allCases) { layout in
+                Image(systemName: layout.icon)
+                    .tag(layout)
+            }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .controlSize(.small)
+        .fixedSize()
+        .disabled(isWide == false)
+        .hint(isWide ? "\(DiffLayout.unified.hint). \(DiffLayout.sideBySide.hint). Saved." : "Side by side needs \(Int(Self.sideBySideMinimumWidth)) points of width. Open the \(words.request) in its window or widen the panel.")
     }
 
     private func section<Content: View>(_ title: String, fixThreads: Bool, @ViewBuilder content: () -> Content) -> some View {

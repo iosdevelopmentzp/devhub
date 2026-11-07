@@ -74,6 +74,7 @@ struct PullRequestDetailsModel: Equatable {
         var people: PullRequestPeopleModel?
         var explain: PullRequestExplainModel
         var showsHiddenFiles: Bool
+        var diffLayout: DiffLayout
         var canExpandAllFiles: Bool
         var canCollapseAllFiles: Bool
         var hasThreadsInDiff: Bool
@@ -116,6 +117,7 @@ struct PullRequestDetailsModel: Equatable {
                 people: .preview,
                 explain: .preview,
                 showsHiddenFiles: false,
+                diffLayout: .unified,
                 canExpandAllFiles: false,
                 canCollapseAllFiles: true,
                 hasThreadsInDiff: true,

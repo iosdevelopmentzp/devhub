@@ -33,6 +33,15 @@ import DevHubTestSupport
         #expect(restored.filter == PullRequestFilter(labels: ["tech"], onlyConflicts: true))
     }
 
+    @Test func diffLayoutStartsUnifiedAndIsRemembered() {
+        #expect(store.diffLayout == .unified)
+
+        store.diffLayout = .sideBySide
+
+        #expect(harness.store.string(forKey: "gitlab.diffLayout") == "sideBySide")
+        #expect(StoreHarness(store: harness.store).pullRequests.diffLayout == .sideBySide)
+    }
+
     @Test func listStyleStartsDetailedAndIsRemembered() {
         #expect(store.listStyle == .detailed)
 

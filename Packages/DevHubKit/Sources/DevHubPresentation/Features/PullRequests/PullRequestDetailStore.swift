@@ -232,6 +232,11 @@ final class PullRequestDetailStore {
         }
     }
 
+    func revealFile(_ fileID: PullRequestFileDiff.ID, of id: PullRequestSummary.ID) {
+        expandedFiles[id, default: []].insert(fileID)
+        focus = DiffFocus(requestID: id, path: fileID, line: 0, isOld: false)
+    }
+
     func toggleFileGroup(_ name: String, of id: PullRequestSummary.ID) {
         var toggled = toggledGroups[id] ?? []
         if toggled.remove(name) == nil {

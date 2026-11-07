@@ -29,6 +29,10 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         mode == .window ? mainWindow?.contentView : panel.contentView
     }
 
+    var visiblePullRequestContentView: NSView? {
+        pullRequestWindows.values.first(where: \.isVisible)?.contentView
+    }
+
     private var mode: WindowMode {
         assembly.settings.values.windowMode
     }
@@ -202,7 +206,7 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         }
     }
 
-    func showPullRequestWindow(_ summary: PullRequestSummary) {
+    package func showPullRequestWindow(_ summary: PullRequestSummary) {
         closePanel()
         let window: NSWindow
         if let existing = pullRequestWindows[summary.id], existing.isVisible {
@@ -433,7 +437,7 @@ package final class AppWindows: NSObject, NSWindowDelegate {
 
     private func makePullRequestWindow(_ summary: PullRequestSummary) -> NSWindow {
         let window = NSWindow(
-            contentRect: NSRect(origin: .zero, size: NSSize(width: 860, height: 720)),
+            contentRect: NSRect(origin: .zero, size: NSSize(width: 1_120, height: 760)),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
@@ -441,7 +445,7 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         window.title = "\(assembly.codeHostRemote.words.reference(summary.iid)) \(summary.title)"
         window.isReleasedWhenClosed = false
         window.appearance = NSAppearance(named: .aqua)
-        window.contentMinSize = NSSize(width: 640, height: 400)
+        window.contentMinSize = NSSize(width: 1_000, height: 560)
         window.collectionBehavior.insert(.moveToActiveSpace)
         let root = PullRequestWindowView(summary: summary)
             .inject(assembly)
