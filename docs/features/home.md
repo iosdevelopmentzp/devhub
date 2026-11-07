@@ -8,6 +8,8 @@ Code: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Home/`, `Features/
 
 The tab has seven parts, from top to bottom.
 
+When DevHub crashed since the last look (macOS writes `~/Library/Logs/DiagnosticReports/DevHub-<date>.ips`; DevHub reads its own process name and bundle id, crashes of the last 3 days at the first launch), a red bar over the cards says "DevHub crashed 10 min. ago: <exception> · <top frame>" and a red Recent row says "DevHub crashed". **Copy for a Bug Report** copies the report (process, date, exception, messages, 40 frames) with the home folder and user name replaced; × hides it and saves its date (`app.crashSeenAt`), so only a newer crash shows again.
+
 1. **Project card.**
    - The project name and the project path. A click on the path copies it.
    - A blue tag with the branch of the main checkout. A click copies the branch name.

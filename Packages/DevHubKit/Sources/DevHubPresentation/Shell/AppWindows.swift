@@ -92,6 +92,9 @@ package final class AppWindows: NSObject, NSWindowDelegate {
             await assembly.mockSets.load()
             assembly.mockServer.restoreServers()
         }
+        Task { [assembly] in
+            await assembly.appCrash.check()
+        }
         resignObserver = NotificationCenter.default.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 self?.closePanel()

@@ -7,10 +7,21 @@ struct FileCrashReportRepository: CrashReportRepository {
     let root: URL
 
     func reports(since: Date) async throws -> [CrashReport] {
+        read(since: since) { $0.simulatorID != nil }
+    }
+
+    func ownReports(processName: String, bundleID: String?, since: Date) async throws -> [CrashReport] {
+        read(since: since) { report in
+            report.simulatorID == nil && report.processName == processName && (bundleID == nil || report.bundleID == nil || report.bundleID == bundleID)
+        }
+    }
+
+    private func read(since: Date, keeping: (CrashReport) -> Bool) -> [CrashReport] {
         let files = (try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: [.contentModificationDateKey], options: [.skipsHiddenFiles])) ?? []
         return files
             .filter { $0.pathExtension == "ips" }
             .compactMap { report(at: $0, since: since) }
+            .filter(keeping)
             .sorted { $0.date > $1.date }
     }
 
@@ -34,8 +45,7 @@ struct FileCrashReportRepository: CrashReportRepository {
         let modified = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
         guard modified >= since, let text = try? String(contentsOf: url, encoding: .utf8) else { return nil }
         guard IPSCrashReportParser.header(text)?["bug_type"] as? String == Self.crashBugType else { return nil }
-        guard let report = IPSCrashReportParser.parse(text, path: url.path, fallbackDate: modified), report.simulatorID != nil else { return nil }
-        return report
+        return IPSCrashReportParser.parse(text, path: url.path, fallbackDate: modified)
     }
 }
 

@@ -1,12 +1,48 @@
 import Foundation
 
-package enum CIRedactionPolicy {
+package enum RedactionPolicy {
     package static let redacted = "<redacted>"
 
-    package static func redact(_ text: String, subjects: CIRedactionSubjects, words: [RedactionWord]) -> String {
+    package static let secret = "<secret>"
+    package static let url = "<url>"
+    package static let email = "<email>"
+    package static let ip = "<ip>"
+
+    private static let secretPatterns = [
+        #"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}"#,
+        #"\bgithub_pat_[A-Za-z0-9_]{20,}"#,
+        #"\bglpat-[A-Za-z0-9_\-]{20,}"#,
+        #"(?<![A-Fa-f0-9])[a-f0-9]{40}(?![A-Fa-f0-9])"#,
+    ]
+    private static let emailPattern = #"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}"#
+    private static let urlPattern = #"[A-Za-z][A-Za-z0-9+.\-]*://[^\s"'<>()\[\]]*[^\s"'<>()\[\].,;:!?]"#
+    private static let ipPattern = #"(?<![0-9.])(?:25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])(?:\.(?:25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])){3}(?![0-9.])"#
+
+    package static func redact(_ text: String, subjects: RedactionSubjects, words: [RedactionWord]) -> String {
         var result = text
+        for pattern in secretPatterns {
+            result = replace(pattern: pattern, caseInsensitive: false, with: secret, in: result)
+        }
+        result = replace(pattern: urlPattern, caseInsensitive: false, with: url, in: result)
+        result = replace(pattern: emailPattern, caseInsensitive: false, with: email, in: result)
+        result = replace(pattern: ipPattern, caseInsensitive: false, with: ip, in: result)
+        if let folder = subjects.projectFolder, folder.isEmpty == false {
+            result = result.replacingOccurrences(of: folder, with: "<project>")
+        }
         if let home = subjects.homeFolder, home.isEmpty == false {
             result = result.replacingOccurrences(of: home, with: "~")
+        }
+        if let user = subjects.userName {
+            result = replaceWord(user, with: "<user>", in: result)
+        }
+        for (_, bundle) in ranked(subjects.bundleIDs) {
+            result = replaceWord(bundle, with: "<bundle>", in: result)
+        }
+        for (_, scheme) in ranked(subjects.schemes) {
+            result = replaceWord(scheme, with: "<scheme>", in: result)
+        }
+        for (_, name) in ranked(subjects.projectNames) {
+            result = replaceWord(name, with: "<project>", in: result)
         }
         for (offset, branch) in ranked(subjects.branches) {
             result = replaceWord(branch, with: "<branch-\(offset + 1)>", in: result)

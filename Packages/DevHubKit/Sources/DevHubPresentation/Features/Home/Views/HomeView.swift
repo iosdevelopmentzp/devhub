@@ -12,11 +12,16 @@ struct HomeView: View {
     @Environment(CIBranchRunsStore.self) private var ciRuns
     @Environment(SimulatorsStore.self) private var simulators
     @Environment(AppActions.self) private var appActions
+    @Environment(AppCrashStore.self) private var appCrash
     @Environment(\.codeHostWords) private var words
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
+                if let notice = appCrash.notice {
+                    AppCrashNotice(text: notice, onCopy: { Task { await appCrash.copy() } }, onDismiss: { appCrash.dismiss() })
+                }
+
                 ProjectCard(model: projectCard)
 
                 TodayCard(items: todayItems) { appActions.open($0) }

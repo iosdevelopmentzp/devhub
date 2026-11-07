@@ -285,6 +285,34 @@ final class StoreHarness {
         )
     }
 
+    let appIdentity = AppIdentity(version: "1.0", systemVersion: "Version 26.4", processName: "DevHub", bundleID: "com.example.app", home: "/Users/alex")
+
+    lazy var supportBundle = SupportBundleStore(
+        settings: settings,
+        session: session,
+        config: config,
+        checkTools: useCases.checkTools,
+        ci: ports.ci,
+        projects: ciProjects,
+        crashes: ports.crashes,
+        words: ports.redactionWords,
+        files: ports.textFiles,
+        commandLog: commandLog,
+        checkout: git,
+        openRequests: openPullRequests,
+        activity: activity,
+        toaster: toaster,
+        app: appIdentity,
+        now: { Date(timeIntervalSince1970: 1_800_000_000) },
+        chooseFile: { [weak self] name in
+            guard let self else { return nil }
+            requestedFileNames.append(name)
+            return saveTarget
+        }
+    )
+
+    lazy var appCrash = AppCrashStore(crashes: ports.crashes, words: ports.redactionWords, activity: activity, toaster: toaster, store: store, app: appIdentity, now: { Date(timeIntervalSince1970: 1_800_000_000) })
+
     lazy var testRuns = TestRunsStore(runTests: useCases.runTests, tests: ports.testRuns, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events, prompts: ports.reviewPrompts)
 
     lazy var logs = LogsStore(repository: ports.logs, session: session, config: config, simulators: simulators, identity: identity, activity: activity, store: store)

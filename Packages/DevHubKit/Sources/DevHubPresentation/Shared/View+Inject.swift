@@ -26,6 +26,8 @@ extension View {
             .environment(assembly.tickets)
             .environment(assembly.pullRequestReviews)
             .environment(assembly.flakyTests)
+            .environment(assembly.supportBundle)
+            .environment(assembly.appCrash)
             .environment(assembly.output)
             .environment(assembly.layout)
             .environment(assembly.settings)

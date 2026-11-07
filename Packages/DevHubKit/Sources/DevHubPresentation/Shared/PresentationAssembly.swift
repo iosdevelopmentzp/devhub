@@ -41,6 +41,8 @@ package final class PresentationAssembly {
     let openPullRequests: OpenPullRequestsStore
     let ciWatch: CIWatchStore
     let ciDiagnostics: CIDiagnosticsStore
+    let supportBundle: SupportBundleStore
+    let appCrash: AppCrashStore
     let inbox: InboxStore
     let newPullRequest: NewPullRequestStore
     let pullRequestDetails: PullRequestDetailStore
@@ -188,6 +190,33 @@ package final class PresentationAssembly {
             now: { .now },
             chooseFile: { FolderPicker.saveFile(suggestedName: $0, prompt: "Save", message: "A text file for a bug report. Project names, branches and logins are replaced.") }
         )
+        let appIdentity = AppIdentity(
+            version: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "",
+            systemVersion: ProcessInfo.processInfo.operatingSystemVersionString,
+            processName: ProcessInfo.processInfo.processName,
+            bundleID: Bundle.main.bundleIdentifier,
+            home: FileManager.default.homeDirectoryForCurrentUser.path
+        )
+        supportBundle = SupportBundleStore(
+            settings: settings,
+            session: session,
+            config: config,
+            checkTools: useCases.checkTools,
+            ci: ports.ci,
+            projects: ciProjects,
+            crashes: ports.crashes,
+            words: ports.redactionWords,
+            files: ports.textFiles,
+            commandLog: commandLog,
+            checkout: git,
+            openRequests: openPullRequests,
+            activity: activity,
+            toaster: toaster,
+            app: appIdentity,
+            now: { .now },
+            chooseFile: { FolderPicker.saveFile(suggestedName: $0, prompt: "Save", message: "A text file for a bug report. Links, e-mails, tokens, paths and project names are replaced.") }
+        )
+        appCrash = AppCrashStore(crashes: ports.crashes, words: ports.redactionWords, activity: activity, toaster: toaster, store: store, app: appIdentity, now: { .now })
         inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
         ciAutoRerun = CIAutoRerunStore(
             repository: ports.codeHost,

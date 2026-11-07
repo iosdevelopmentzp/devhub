@@ -7,6 +7,7 @@ struct DoctorSection: View {
     @Environment(Notifier.self) private var notifier
     @Environment(CIDiagnosticsStore.self) private var ciDiagnostics
     @Environment(CIBranchRunsStore.self) private var ciRuns
+    @Environment(SupportBundleStore.self) private var supportBundle
 
     var body: some View {
         Section {
@@ -23,6 +24,26 @@ struct DoctorSection: View {
                 }
             }
             DoctorRow(model: DoctorRowMapper.notifications(notifier.permission)) {}
+            LabeledContent {
+                HStack(spacing: 8) {
+                    Button("Copy") {
+                        Task { await supportBundle.copy() }
+                    }
+                    Button("Save…") {
+                        Task { await supportBundle.save() }
+                    }
+                }
+                .controlSize(.small)
+                .fixedSize()
+                .disabled(supportBundle.isBusy)
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Support bundle")
+                    Text("One text for a bug report: the version, settings, tools, config problems, the last 100 commands, Recent and the last crash of DevHub. Links, e-mails, IP addresses, tokens, your user name, paths, project, scheme and bundle names, branches and logins are replaced.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
         } header: {
             HStack {
                 Text("Doctor")

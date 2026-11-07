@@ -112,7 +112,7 @@ final class CIDiagnosticsStore {
         } catch {
             activity.log("Cannot read the redaction words", detail: error.localizedDescription, outcome: .failure)
         }
-        let subjects = CIDiagnosticsSubjectsMapper.subjects(
+        let subjects = RedactionSubjectsMapper.subjects(
             host: host,
             currentBranch: checkout.currentBranch,
             baseName: checkout.baseName,
@@ -120,7 +120,7 @@ final class CIDiagnosticsStore {
             username: openRequests.username,
             home: home
         )
-        return CIRedactionPolicy.redact(CIDiagnosticsBuilder.text(facts), subjects: subjects, words: redactionWords)
+        return RedactionPolicy.redact(CIDiagnosticsBuilder.text(facts), subjects: subjects, words: redactionWords)
     }
 
     private static func detail(of text: String) -> String {
