@@ -45,6 +45,7 @@ new element. A new shared block goes into DevHubUI and into this table.
 | `ToastView` | in `RootView` | Shows `Toaster.text` at the bottom of the tab |
 | `FolderPicker` | `FolderPicker.chooseFolder(directory:prompt:message:)`, `chooseFile(…)`, `chooseFiles(directory:prompt:message:extensions:)` (several files of the given extensions, `[URL]`), `saveFile(suggestedName:prompt:message:)` | `NSOpenPanel` or `NSSavePanel` that returns a `URL?` |
 | `WindowAppearance`, `HostWindowReader` | `.background(WindowAppearance(name: .aqua))` | Window appearance and window access from the view tree (`panel-window`) |
+| `FileImage` | `FileImage(path: attachment.path, maxHeight: 120)` | An image file from disk, fitted, with a hairline border; "Image not found" when the file cannot be read. Used for the test attachments |
 | `FileDropView` | `FileDropView(accepts:onTarget:onDrop:onClick:)` added to `statusItem.button` | An AppKit view that takes file drops and passes mouse down to `onClick`; used on the menu bar icon (`panel-window`) |
 
 Feature views that look shared are not shared blocks: the usage bars (`Features/Usage/`), `ConfigActionBar` and

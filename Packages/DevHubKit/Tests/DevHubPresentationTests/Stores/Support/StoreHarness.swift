@@ -284,7 +284,7 @@ final class StoreHarness {
         )
     }
 
-    lazy var testRuns = TestRunsStore(runTests: useCases.runTests, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events, prompts: ports.reviewPrompts)
+    lazy var testRuns = TestRunsStore(runTests: useCases.runTests, tests: ports.testRuns, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events, prompts: ports.reviewPrompts)
 
     lazy var logs = LogsStore(repository: ports.logs, session: session, config: config, simulators: simulators, identity: identity, activity: activity, store: store)
 

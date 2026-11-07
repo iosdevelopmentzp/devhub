@@ -10,10 +10,13 @@ struct TestRunPanelModel: Equatable {
     var step: String?
     var failuresTitle: String?
     var failures: [TestFailureRowModel]
+    var slowestTitle: String?
+    var slowest: [TestSlowRowModel] = []
     var issuesTitle: String?
     var issues: [BuildIssueRowModel]
     var resultBundlePath: String?
     var canRunAgain: Bool
+    var runFailedTitle: String?
     var canFix: Bool
 
     static let preview = TestRunPanelModel(
@@ -25,10 +28,13 @@ struct TestRunPanelModel: Equatable {
         step: nil,
         failuresTitle: "1 failed test",
         failures: [.preview],
+        slowestTitle: "Slowest tests",
+        slowest: [.preview],
         issuesTitle: nil,
         issues: [],
         resultBundlePath: "/tmp/DevHub-tests/ExampleApp.xcresult",
         canRunAgain: true,
+        runFailedTitle: "Run 1 Failed Again",
         canFix: true
     )
 }

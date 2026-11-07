@@ -18,6 +18,9 @@ struct TestRun: Equatable {
     var failures: [TestFailure] = []
     var issues: [BuildIssue] = []
     var resultBundlePath: String?
+    var cases: [TestResultCase] = []
+    var attachments: [TestAttachment] = []
+    var onlyTests: [String] = []
 
     var isRunning: Bool {
         if case .running = phase { return true }

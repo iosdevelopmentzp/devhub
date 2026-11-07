@@ -77,6 +77,7 @@ struct WorktreesView: View {
                                 },
                                 onCancelLaunch: { launchID = nil },
                                 onRunTests: { testRuns.run(worktreeID: model.id) },
+                                onRunFailedTests: { testRuns.runFailedAgain(worktreeID: model.id) },
                                 onCancelTests: { testRuns.cancel(worktreeID: model.id) },
                                 onDismissTests: { testRuns.dismiss(worktreeID: model.id) },
                                 onFixTests: { appActions.fixTests(with: $0, worktreeID: model.id) },

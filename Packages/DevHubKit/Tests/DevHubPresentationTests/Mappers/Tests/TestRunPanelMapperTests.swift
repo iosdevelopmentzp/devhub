@@ -95,4 +95,32 @@ import Testing
     @Test func noTestsRanIsSaidPlainly() {
         #expect(TestRunPanelMapper.model(for: run(.finished(.passed, started))).detail == "No tests ran · 0 ms · iPhone 17")
     }
+
+    @Test func aFinishedRunWithBundleResultsShowsAttachmentsSlowestTestsAndRunFailedAgain() {
+        var run = run(.finished(.failed, started.addingTimeInterval(3)))
+        run.cases = [
+            TestResultCase(identifier: "LoginTests/testLogin()", target: "AppTests", suite: "LoginTests", name: "testLogin()", status: .failed, duration: 0.4, failureMessage: "boom"),
+            TestResultCase(identifier: "FeedTests/testFeed()", target: "AppTests", suite: "FeedTests", name: "testFeed()", status: .passed, duration: 2.5),
+        ]
+        run.failures = TestResultsPolicy.failures(run.cases)
+        run.attachments = [TestAttachment(testIdentifier: "LoginTests/testLogin()", name: "Diff", path: "/tmp/a/diff.png", isAssociatedWithFailure: true)]
+
+        let model = TestRunPanelMapper.model(for: run)
+
+        #expect(model.failures.first?.attachments == [TestAttachmentRowModel(id: "/tmp/a/diff.png", name: "Diff", path: "/tmp/a/diff.png", isImage: true, hint: "Open Diff in Preview")])
+        #expect(model.slowestTitle == "Slowest tests")
+        #expect(model.slowest.map(\.title) == ["FeedTests.testFeed()", "LoginTests.testLogin()"])
+        #expect(model.runFailedTitle == "Run 1 Failed Test Again")
+    }
+
+    @Test func aRunOfFailedTestsSaysSo() {
+        var run = run(.running(step: "Running tests"))
+        run.onlyTests = ["AppTests/LoginTests/testLogin", "AppTests/FeedTests/testFeed"]
+
+        let model = TestRunPanelMapper.model(for: run)
+
+        #expect(model.title == "Running 2 failed tests of App again…")
+        #expect(model.slowestTitle == nil)
+        #expect(model.runFailedTitle == nil)
+    }
 }

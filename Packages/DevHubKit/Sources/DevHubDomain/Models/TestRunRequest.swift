@@ -7,6 +7,7 @@ package struct TestRunRequest: Hashable, Sendable {
     package var configuration: String
     package var simulatorUDID: String
     package var simulatorName: String
+    package var onlyTests: [String] = []
 
     package init(
         projectPath: String,
@@ -14,7 +15,8 @@ package struct TestRunRequest: Hashable, Sendable {
         scheme: String,
         configuration: String,
         simulatorUDID: String,
-        simulatorName: String
+        simulatorName: String,
+        onlyTests: [String] = []
     ) {
         self.projectPath = projectPath
         self.container = container
@@ -22,5 +24,6 @@ package struct TestRunRequest: Hashable, Sendable {
         self.configuration = configuration
         self.simulatorUDID = simulatorUDID
         self.simulatorName = simulatorName
+        self.onlyTests = onlyTests
     }
 }

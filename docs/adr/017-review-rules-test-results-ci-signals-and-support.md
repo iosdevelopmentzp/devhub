@@ -69,3 +69,4 @@ GitHub: a request where a team of the owner is a requested reviewer must show in
 | Commit | Step |
 |---|---|
 | `3dd5552` | Step 2: `git.pullRequests.reviewQueue` (`open`, `assigned`) with `ReviewerIdentity` and `ReviewQueuePolicy`; the port reads my teams and the repository teams; GitHub review requests carry `requestedTeams`; every page of people on both hosts (`JSONPages` for `glab api --paginate`); teams in the Reviewers menu and in "Waiting for" |
+| `c64b39f` | Step 3: the review reminder (`ReviewReminderPolicy`, `ReviewWait`, `gitlab.reviewSince.<project>`), the app setting `reviewReminderHours` (default 4) with its picker under the new notification kind `reviewReminders` |

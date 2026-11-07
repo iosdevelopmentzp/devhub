@@ -254,7 +254,7 @@ package final class PresentationAssembly {
             prompts: ports.reviewPrompts
         )
         identity.use(build: build)
-        testRuns = TestRunsStore(runTests: useCases.runTests, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events, prompts: ports.reviewPrompts)
+        testRuns = TestRunsStore(runTests: useCases.runTests, tests: ports.testRuns, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events, prompts: ports.reviewPrompts)
         simulatorStatuses = SimulatorStatusStore(
             readStatus: useCases.readSimulatorStatus,
             config: config,
