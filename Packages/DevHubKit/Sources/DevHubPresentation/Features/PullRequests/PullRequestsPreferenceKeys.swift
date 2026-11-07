@@ -37,6 +37,10 @@ enum PullRequestsPreferenceKeys {
         "gitlab.hiddenFiles.\(projectID)"
     }
 
+    static func reviewSince(projectID: String) -> String {
+        "gitlab.reviewSince.\(projectID)"
+    }
+
     static func reviews(projectID: String) -> String {
         "gitlab.reviews.\(projectID)"
     }

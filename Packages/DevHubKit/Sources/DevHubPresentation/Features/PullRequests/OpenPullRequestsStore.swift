@@ -15,6 +15,8 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
     @ObservationIgnored private let remote: any CodeHostLookup
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let checkout: any CheckoutContext
+    @ObservationIgnored private let settings: SettingsStore
+    @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let notifier: Notifier
     @ObservationIgnored private let store: any KeyValueStore
@@ -37,11 +39,24 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
         remote.words
     }
 
-    init(repository: CodeHostRepository, remote: any CodeHostLookup, session: ProjectSession, checkout: any CheckoutContext, activity: ActivityLog, notifier: Notifier, events: AppEvents, store: any KeyValueStore) {
+    init(
+        repository: CodeHostRepository,
+        remote: any CodeHostLookup,
+        session: ProjectSession,
+        checkout: any CheckoutContext,
+        settings: SettingsStore,
+        activity: ActivityLog,
+        notifier: Notifier,
+        events: AppEvents,
+        store: any KeyValueStore,
+        now: @escaping () -> Date
+    ) {
         self.repository = repository
         self.remote = remote
         self.session = session
         self.checkout = checkout
+        self.settings = settings
+        self.now = now
         self.activity = activity
         self.notifier = notifier
         self.store = store
@@ -236,7 +251,8 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
             username = loaded.username
         }
         let rule = reviewQueue
-        let count = ReviewQueuePolicy.count(in: loaded.requests, reviewer: ReviewerIdentity(username: loaded.username, teams: reviewTeams, rule: rule))
+        let reviewer = ReviewerIdentity(username: loaded.username, teams: reviewTeams, rule: rule)
+        let count = ReviewQueuePolicy.count(in: loaded.requests, reviewer: reviewer)
         let isSameRule = countedRule == rule
         countedRule = rule
         if count != reviewCount {
@@ -247,6 +263,7 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
             }
             reviewCount = count
         }
+        remind(loaded.requests.filter { ReviewQueuePolicy.needsMyReview($0, reviewer: reviewer) })
         loadedAt = .now
         loggedError = nil
         if loaded.totalCount > loaded.requests.count, hasReportedCap == false {
@@ -256,6 +273,22 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
                 detail: "Branch tags and the review count can miss the rest",
                 outcome: .info
             )
+        }
+    }
+
+    private func remind(_ queue: [PullRequestSummary]) {
+        let key = PullRequestsPreferenceKeys.reviewSince(projectID: session.selectedProjectID)
+        let date = now()
+        let saved = store.decode([ReviewWait].self, forKey: key) ?? []
+        let step = ReviewReminderPolicy.step(saved, queue: queue.map(\.iid), hours: settings.values.reviewReminderHours, now: date)
+        if step.waits != saved {
+            store.encode(step.waits, forKey: key)
+        }
+        for wait in step.due {
+            guard let request = queue.first(where: { $0.iid == wait.iid }) else { continue }
+            let title = "\(words.reference(request.iid)) waits for your review for \(ReviewReminderPolicy.waitedHours(wait, now: date)) h"
+            activity.log(title, detail: request.title, outcome: .info, kind: .reviewReminders, target: .pullRequest(iid: request.iid))
+            notifier.notify(.reviewReminders, title: title, body: request.title, target: .pullRequest(iid: request.iid))
         }
     }
 

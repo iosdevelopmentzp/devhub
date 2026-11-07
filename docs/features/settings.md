@@ -43,6 +43,7 @@ Each section is explained under "Actions".
 | Builds | A build or a launch finished, or the build failed. A click on the notification opens the run bar in the Simulators tab |
 | Test runs | The tests of a worktree finished or did not run. A click opens the Worktrees tab |
 | Pull Requests waiting for your review | The number of requests that wait for your review went up. A click opens that list |
+| Reviews waiting for me for too long | A request waits for your review longer than "Remind me of a review after" (the picker under this switch: Never, 1, 2, 4, 8 hours or 1 day; default 4 hours). One reminder per request until it leaves your queue |
 | Reviews of my pull requests | Someone approved your request or asked for changes. A click opens the request |
 | Checks of my pull requests | The checks or pipeline of your request turned to failed. A click opens the request |
 | Checks of my pull requests passed | The checks or pipeline of your request turned from running to passed. A click opens the request |

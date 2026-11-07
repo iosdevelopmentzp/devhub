@@ -174,7 +174,7 @@ final class StoreHarness {
         events: events
     )
 
-    lazy var openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, checkout: git, activity: activity, notifier: notifier, events: events, store: store)
+    lazy var openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, checkout: git, settings: settings, activity: activity, notifier: notifier, events: events, store: store, now: { .now })
 
     lazy var ciWatch = CIWatchStore(
         repository: ports.codeHost,

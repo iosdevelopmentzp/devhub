@@ -20,6 +20,7 @@ Every event that DevHub can also send as a macOS notification carries a kind. Ev
 | Builds | a build or a launch finished, or the build failed | the run bar in the Simulators tab |
 | Test runs | the tests of a worktree finished, did not run or were cancelled | the Worktrees tab |
 | Pull Requests waiting for your review | the number of requests that wait for your review went up | the Pull Requests tab in the "To review" scope |
+| Reviews waiting for me for too long | a request stayed in your review queue longer than "Remind me of a review after" (Settings, default 4 hours, Never turns it off): "#12 waits for your review for 5 h", once per request until it leaves the queue | the request |
 | Reviews of my pull requests | someone approved your request or asked for changes | the request |
 | Checks of my pull requests | the checks or pipeline of your request turned to failed | the request |
 | Checks of my pull requests passed | the checks or pipeline of your request turned from running to passed | the request |

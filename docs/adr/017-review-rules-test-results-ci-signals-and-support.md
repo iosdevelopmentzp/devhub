@@ -68,3 +68,4 @@ GitHub: a request where a team of the owner is a requested reviewer must show in
 
 | Commit | Step |
 |---|---|
+| `3dd5552` | Step 2: `git.pullRequests.reviewQueue` (`open`, `assigned`) with `ReviewerIdentity` and `ReviewQueuePolicy`; the port reads my teams and the repository teams; GitHub review requests carry `requestedTeams`; every page of people on both hosts (`JSONPages` for `glab api --paginate`); teams in the Reviewers menu and in "Waiting for" |

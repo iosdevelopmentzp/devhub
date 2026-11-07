@@ -359,4 +359,43 @@ import DevHubTestSupport
         try await waitUntil { store.reviewCount == 2 }
         #expect(harness.spies.notifications.posted.isEmpty)
     }
+
+    @Test func aRequestThatWaitsTooLongForMyReviewIsRemindedOnce() async throws {
+        let key = "gitlab.reviewSince.\(harness.session.selectedProjectID)"
+        harness.store.encode([ReviewWait(iid: 21, since: Date(timeIntervalSinceNow: -5 * 3_600), isReminded: false)], forKey: key)
+        script([PullRequestSummaryFixture.open, PullRequestSummaryFixture.request(iid: 22, source: "b", state: .opened)])
+
+        await store.refresh()
+        await store.refresh()
+
+        let reminder = SpyUserNotificationRepository.Call.post(title: "!21 waits for your review for 5 h", body: "ABC-5: Login", target: .pullRequest(iid: 21))
+        try await waitUntil { harness.spies.notifications.posted.contains(reminder) }
+        #expect(harness.spies.notifications.posted.filter { $0 == reminder }.count == 1)
+        #expect(harness.activityTitles.filter { $0.hasSuffix("waits for your review for 5 h") } == ["!21 waits for your review for 5 h"])
+        let waits = try #require(harness.store.decode([ReviewWait].self, forKey: key))
+        #expect(waits.map(\.iid) == [21, 22])
+        #expect(waits.map(\.isReminded) == [true, false])
+    }
+
+    @Test func aRequestThatLeavesTheQueueForgetsItsWait() async throws {
+        let key = "gitlab.reviewSince.\(harness.session.selectedProjectID)"
+        script([PullRequestSummaryFixture.open])
+        await store.refresh()
+        #expect(harness.store.decode([ReviewWait].self, forKey: key)?.map(\.iid) == [21])
+
+        script([])
+        await store.refresh()
+
+        #expect(harness.store.decode([ReviewWait].self, forKey: key) == [])
+    }
+
+    @Test func noReminderWhenTheSettingIsOff() async {
+        harness.settings.values.reviewReminderHours = 0
+        harness.store.encode([ReviewWait(iid: 21, since: Date(timeIntervalSinceNow: -50 * 3_600), isReminded: false)], forKey: "gitlab.reviewSince.\(harness.session.selectedProjectID)")
+        script([PullRequestSummaryFixture.open])
+
+        await store.refresh()
+
+        #expect(harness.activityTitles.contains { $0.contains("waits for your review for") } == false)
+    }
 }

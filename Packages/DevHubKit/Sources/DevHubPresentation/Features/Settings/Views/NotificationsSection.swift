@@ -28,6 +28,9 @@ struct NotificationsSection: View {
                     }
                 }
                 .disabled(settings.values.notifyWhenPanelClosed == false && kind.showsWhilePanelIsOpen == false)
+                if kind == .reviewReminders {
+                    reminderPicker
+                }
             }
             LabeledContent("Permission") {
                 HStack(spacing: 8) {
@@ -51,6 +54,32 @@ struct NotificationsSection: View {
             await notifier.refreshPermission()
         }
     }
+
+    private var reminderPicker: some View {
+        @Bindable var settings = settings
+        return Picker(selection: $settings.values.reviewReminderHours) {
+            ForEach(Self.reminderChoices, id: \.hours) { choice in
+                Text(choice.title).tag(choice.hours)
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Remind me of a review after")
+                Text("How long a \(words.request) waits in your review queue before the reminder above. DevHub counts from the moment it first saw the \(words.request) there.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .disabled(settings.values.notifies(.reviewReminders) == false)
+    }
+
+    private static let reminderChoices: [(hours: Int, title: String)] = [
+        (0, "Never"),
+        (1, "1 hour"),
+        (2, "2 hours"),
+        (4, "4 hours"),
+        (8, "8 hours"),
+        (24, "1 day"),
+    ]
 
     private func binding(for kind: NotificationKind) -> Binding<Bool> {
         Binding(

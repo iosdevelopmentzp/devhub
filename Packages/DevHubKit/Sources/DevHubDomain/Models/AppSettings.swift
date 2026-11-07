@@ -6,6 +6,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
     package var showUsageInMenuBar = true
     package var usageProviders = UsageProviders.all
     package var showReviewCountInMenuBar = true
+    package var reviewReminderHours = 4
     package var remembersReviews = true
     package var aiTextProvider = AIProvider.claude
     package var globalShortcut = GlobalShortcut.optionCommandD
@@ -24,6 +25,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         showUsageInMenuBar: Bool = true,
         usageProviders: UsageProviders = UsageProviders.all,
         showReviewCountInMenuBar: Bool = true,
+        reviewReminderHours: Int = 4,
         remembersReviews: Bool = true,
         aiTextProvider: AIProvider = AIProvider.claude,
         globalShortcut: GlobalShortcut = GlobalShortcut.optionCommandD,
@@ -41,6 +43,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         self.showUsageInMenuBar = showUsageInMenuBar
         self.usageProviders = usageProviders
         self.showReviewCountInMenuBar = showReviewCountInMenuBar
+        self.reviewReminderHours = reviewReminderHours
         self.remembersReviews = remembersReviews
         self.aiTextProvider = aiTextProvider
         self.globalShortcut = globalShortcut
@@ -65,6 +68,7 @@ extension AppSettings {
             showUsageInMenuBar: try container.decodeIfPresent(Bool.self, forKey: .showUsageInMenuBar) ?? defaults.showUsageInMenuBar,
             usageProviders: (try? container.decodeIfPresent(UsageProviders.self, forKey: .usageProviders)) ?? defaults.usageProviders,
             showReviewCountInMenuBar: try container.decodeIfPresent(Bool.self, forKey: .showReviewCountInMenuBar) ?? defaults.showReviewCountInMenuBar,
+            reviewReminderHours: try container.decodeIfPresent(Int.self, forKey: .reviewReminderHours) ?? defaults.reviewReminderHours,
             remembersReviews: try container.decodeIfPresent(Bool.self, forKey: .remembersReviews) ?? defaults.remembersReviews,
             aiTextProvider: (try? container.decodeIfPresent(AIProvider.self, forKey: .aiTextProvider)) ?? defaults.aiTextProvider,
             globalShortcut: try container.decodeIfPresent(GlobalShortcut.self, forKey: .globalShortcut) ?? defaults.globalShortcut,
