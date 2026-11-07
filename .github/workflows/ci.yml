@@ -14,7 +14,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Toolchain
         run: |
@@ -26,6 +26,9 @@ jobs:
 
       - name: Anonymity check
         run: Scripts/check-anonymous.sh
+
+      - name: Dependency check
+        run: Scripts/check-dependencies.sh
 
       - name: Build
         run: SKIP_LAYER_CHECK=1 Scripts/build.sh Debug

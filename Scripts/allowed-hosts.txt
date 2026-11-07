@@ -1,0 +1,7 @@
+# Hosts the app itself connects to from DevHubData, one per line. Scripts/check-dependencies.sh
+# fails on any other host in that module. A new host needs the owner's consent and a row in
+# docs/DEPENDENCIES.md (.claude/rules/dependencies.md).
+api.anthropic.com
+api.github.com
+127.0.0.1
+localhost

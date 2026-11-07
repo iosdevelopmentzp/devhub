@@ -10,6 +10,7 @@ A macOS menu bar panel for daily development work: git, worktrees, pull and merg
 | `docs/customization.md` | what a project can change without code: a map from a need to the config mechanism, with a worked example |
 | `docs/extensions.md` | the `.devhub/` config schema |
 | `docs/examples/devhub/` | a complete `.devhub` folder that uses every field |
+| `docs/DEPENDENCIES.md` | every tool and host DevHub uses, what each sends where, and the consent rule for a new one |
 | `docs/STATUS.md` | where the project stands, decisions, known gaps |
 | `docs/ARCHITECTURE.md` | the module contract |
 | `docs/testing.md` | how to run and write tests |

@@ -7,6 +7,7 @@ enum UsageProvidersText {
         case .all: "Claude and Copilot"
         case .claude: "Claude only"
         case .copilot: "Copilot only"
+        case .none: "Off"
         }
     }
 }

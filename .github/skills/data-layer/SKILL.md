@@ -303,3 +303,10 @@ app-wide ones). Never change a key name: saved data would be lost.
 
 Run `Scripts/test.sh --filter DevHubDataTests`, or `Scripts/test.sh --skip integration` to leave out the process
 suites.
+
+## Adding an executable or a host
+
+A new executable that DevHub starts, or a new host it connects to itself, needs the owner's consent after a risk
+analysis (`.claude/rules/dependencies.md`), a line in `Scripts/allowed-tools.txt` or `Scripts/allowed-hosts.txt`, and
+a row in `docs/DEPENDENCIES.md`. `Scripts/check-dependencies.sh` fails the build otherwise. `ShellRunner` sets
+`TelemetryOptOutPolicy.environment` for every child process; add the opt-out variable of a new tool there.

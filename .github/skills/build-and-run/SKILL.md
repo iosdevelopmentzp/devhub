@@ -9,7 +9,7 @@ description: "Build, test, smoke-run and install DevHub from the command line: S
 
 | Command | Result |
 |---|---|
-| `Scripts/build.sh [Debug\|Release]` | `check-layers.sh` (`layers: ok`), `check-anonymous.sh` (`anonymous: ok`), then `xcodebuild -quiet` into `DerivedData/` (or `DEVHUB_DERIVED_DATA`) for the arch of this Mac; prints the `.app` path. `SKIP_LAYER_CHECK=1` skips the layer check while you iterate |
+| `Scripts/build.sh [Debug\|Release]` | `check-layers.sh` (`layers: ok`), `check-anonymous.sh` (`anonymous: ok`), `check-dependencies.sh` (`dependencies: ok`), then `xcodebuild -quiet` into `DerivedData/` (or `DEVHUB_DERIVED_DATA`) for the arch of this Mac; prints the `.app` path. `SKIP_LAYER_CHECK=1` skips the layer check while you iterate |
 | `Scripts/test.sh [args]` | `swift test -q` on `Packages/DevHubKit`, one summary line. `--skip integration` skips the process suites, `--filter <Suite>` runs one suite |
 | `Scripts/smoke.sh` | starts the Debug build for 3 s and prints `alive` or `dead` |
 | `.github/workflows/ci.yml` | GitHub Actions (`macos-26`): the same checks on a clean machine for each push of `main` and each pull request. The anonymity check runs with the built-in patterns only |

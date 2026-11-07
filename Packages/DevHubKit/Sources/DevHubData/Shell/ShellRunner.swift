@@ -115,7 +115,7 @@ package actor ShellRunner {
     }
 
     nonisolated static func environment(for executable: String, base: [String: String], extra: [String: String], developerDir: String?) -> [String: String] {
-        var environment = base
+        var environment = base.merging(TelemetryOptOutPolicy.environment) { _, optOut in optOut }
         let path = environment["PATH"] ?? "/usr/bin:/bin:/usr/sbin:/sbin"
         environment["PATH"] = (extraPath + [path]).joined(separator: ":")
         if let developerDir, DeveloperDirPolicy.applies(to: executable) {

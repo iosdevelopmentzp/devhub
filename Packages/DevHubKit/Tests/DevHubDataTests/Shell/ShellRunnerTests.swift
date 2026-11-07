@@ -21,6 +21,18 @@ import Testing
         #expect(ShellRunner.environment(for: "xcodebuild", base: base, extra: [:], developerDir: nil)["DEVELOPER_DIR"] == nil)
     }
 
+    @Test func everyChildProcessOptsOutOfTelemetry() {
+        let environment = ShellRunner.environment(for: "gh", base: base.merging(["GH_TELEMETRY": "true"]) { $1 }, extra: [:], developerDir: nil)
+
+        #expect(environment["GH_TELEMETRY"] == "false")
+        #expect(environment["GH_NO_UPDATE_NOTIFIER"] == "1")
+        #expect(environment["DO_NOT_TRACK"] == "1")
+        #expect(environment["HOMEBREW_NO_ANALYTICS"] == "1")
+        #expect(environment["CIRCLE_NO_TELEMETRY"] == "1")
+        #expect(environment["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] == "1")
+        #expect(ShellRunner.environment(for: "gh", base: base, extra: ["DO_NOT_TRACK": "0"], developerDir: nil)["DO_NOT_TRACK"] == "0")
+    }
+
     @Test func theExtraEnvironmentWins() {
         let environment = ShellRunner.environment(for: "xcrun", base: base, extra: ["DEVELOPER_DIR": "/Other"], developerDir: developerDir)
 

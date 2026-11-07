@@ -7,9 +7,12 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Infrastructure
+- Dependency policy (ADR 011): `.claude/rules/dependencies.md` (consent and a risk analysis before any package, executable, GitHub Action, host or version change; a vendored copy first), the inventory `docs/DEPENDENCIES.md`, and `Scripts/check-dependencies.sh` with `Scripts/allowed-tools.txt` and `Scripts/allowed-hosts.txt` in `build.sh` and CI. `actions/checkout` is pinned to its commit SHA.
 - `docs/customization.md`: the map from a need to the `.devhub/` mechanism that covers it, a worked example of a chat command tab built from scripts, actions and a custom tab, and the schema gaps that such a tab still has. Linked from the README, `AGENTS.md`, the example folder and the `extensions` skill.
 
 ### Added
+- Settings → AI usage → Show usage for: "Off". With Off, DevHub reads no token and calls neither api.anthropic.com nor api.github.com; the usage strip and the menu bar percent stay empty.
+- Every tool DevHub starts gets the telemetry and update-check opt-out variables of its maker: `DO_NOT_TRACK`, `HOMEBREW_NO_ANALYTICS`, `GH_TELEMETRY=false`, `GH_NO_UPDATE_NOTIFIER`, `CIRCLE_NO_TELEMETRY`, `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`.
 - Operations tray: every running or failed action shows as a card at the bottom of the tab, over the list and above the Output panel, with its steps, the last output line, the progress of a script, Stop, Retry, Copy Error and Full Output. Several actions at once are several cards. The tray floats, so the list no longer jumps when a card appears or grows. A pull request window has its own tray.
 - Simulators → Remove Apps from All…: runs as an operation with "3/10 · iPhone 16", a bar and Stop in its card, instead of a progress line that grew the toolbar.
 - Simulators and Git: a checkout badge. Gray "Main checkout · <branch>" for the main checkout; orange "Worktree · <name>" or "Branch · <name>" when the build or the Git actions use another checkout. A click opens the menu as before.

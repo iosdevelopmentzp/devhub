@@ -9,6 +9,7 @@ if [ "${SKIP_LAYER_CHECK:-0}" != "1" ]; then
     "$ROOT/Scripts/check-layers.sh"
 fi
 "$ROOT/Scripts/check-anonymous.sh"
+"$ROOT/Scripts/check-dependencies.sh"
 
 xcodebuild \
     -project "$ROOT/DevHub.xcodeproj" \

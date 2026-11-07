@@ -10,23 +10,24 @@ Read first, in this order: this file, `docs/STATUS.md` (where the project stands
 - Local package `Packages/DevHubKit` (tools 6.2, Swift 6) with the modules `DevHubDomain`, `DevHubData`, `DevHubMocks`, `DevHubUI`, `DevHubPresentation`, `DevHubComposition`, `DevHubTestSupport` and four test targets. `project.pbxproj` holds the package reference.
 - No App Sandbox. Ad-hoc signing ("Sign to Run Locally"). `INFOPLIST_KEY_LSUIElement = YES`: no Dock icon by default. Keep it this way: a sandbox would block `git`, `xcrun` and `xcodebuild`.
 - `DevHub/` is an Xcode synchronized folder. Edit `project.pbxproj` only for build settings, never for file lists. New code goes into the package.
-- No third-party packages.
+- No third-party packages. No new executable, GitHub Action, host or version change without the owner's consent and a risk analysis first: `.claude/rules/dependencies.md`. The inventory is `docs/DEPENDENCIES.md`; `Scripts/check-dependencies.sh` enforces `Scripts/allowed-tools.txt` and `Scripts/allowed-hosts.txt`.
 - The remote `origin` is a public GitHub repository. Push `main` after a commit when build, tests, the anonymity check and the smoke check are green. Never force-push. Everything pushed is public, so the anonymity rules apply to every file and every commit message. A separate playground repository on the same account tests the pull request features.
 
 ## Build and test
 
 | Command | What it does |
 |---|---|
-| `Scripts/build.sh [Debug\|Release]` | Runs `Scripts/check-layers.sh` and `Scripts/check-anonymous.sh`, then `xcodebuild -quiet` into `DerivedData/`, prints the `.app` path. `SKIP_LAYER_CHECK=1` skips the layer check |
+| `Scripts/build.sh [Debug\|Release]` | Runs `Scripts/check-layers.sh`, `Scripts/check-anonymous.sh` and `Scripts/check-dependencies.sh`, then `xcodebuild -quiet` into `DerivedData/`, prints the `.app` path. `SKIP_LAYER_CHECK=1` skips the layer check |
 | `Scripts/test.sh [args]` | `swift test -q` on the package, one summary line, exit code forwarded. `--skip integration` skips the process suites, `--filter <Suite>` runs one suite |
 | `Scripts/smoke.sh` | Starts the Debug build headless for 3 s and prints `alive` or `dead` |
 | `Scripts/run.sh` | Debug build, quits a running copy of this build, opens the new one |
 | `Scripts/install.sh` | Release build into `/Applications/DevHub Generic.app`, so it runs next to the main DevHub in `/Applications/DevHub.app` |
 | `Scripts/install-hooks.sh` | Once per clone: git hooks that run `Scripts/auto-install.sh` after a commit or merge on `main`. It installs a new build in the background (log in `.git/devhub-install.log`) |
 | `Scripts/check-anonymous.sh` | Fails on a name of the owner's projects (from `~/.devhub/anonymity-denylist.txt`, outside the repository), a bundle ID, plist suite or host that is not a sample value, in any file or in the last commit message |
-| `.github/workflows/ci.yml` | GitHub Actions on a `macos-26` runner for each push of `main` and each pull request: layer check, anonymity check (built-in patterns only), Debug build, smoke check, every test in a serial run (`--no-parallel`) |
+| `Scripts/check-dependencies.sh` | Fails on a package dependency, a package manager file, a GitHub Action without a commit SHA, an executable the Swift sources start that is not in `Scripts/allowed-tools.txt`, or a host in `DevHubData` that is not in `Scripts/allowed-hosts.txt` |
+| `.github/workflows/ci.yml` | GitHub Actions on a `macos-26` runner for each push of `main` and each pull request: layer check, anonymity check (built-in patterns only), dependency check, Debug build, smoke check, every test in a serial run (`--no-parallel`) |
 
-Every change: `Scripts/build.sh` prints `layers: ok`, `anonymous: ok` and the app path; anything else is a failure. `Scripts/test.sh` prints one `Test run with … passed` line. A missing test for new logic counts as a failure. Before a commit that changes a view, look at the screen: `Scripts/run.sh`, or a headless snapshot (`DEVHUB_OPEN_PANEL=1 DEVHUB_TAB=git DEVHUB_SNAPSHOT=<path>.png`, see the `build-and-run` skill).
+Every change: `Scripts/build.sh` prints `layers: ok`, `anonymous: ok`, `dependencies: ok` and the app path; anything else is a failure. `Scripts/test.sh` prints one `Test run with … passed` line. A missing test for new logic counts as a failure. Before a commit that changes a view, look at the screen: `Scripts/run.sh`, or a headless snapshot (`DEVHUB_OPEN_PANEL=1 DEVHUB_TAB=git DEVHUB_SNAPSHOT=<path>.png`, see the `build-and-run` skill).
 
 The scripts stop only the build of this repository (by its path). Another app called DevHub on the same machine keeps running.
 

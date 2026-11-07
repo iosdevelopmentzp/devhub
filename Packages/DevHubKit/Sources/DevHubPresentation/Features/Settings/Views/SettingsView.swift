@@ -46,7 +46,7 @@ struct SettingsView: View {
                         Text(UsageProvidersText.title(for: providers)).tag(providers)
                     }
                 }
-                .hint("Which plan limits the usage strip and the menu bar show. DevHub reads only the chosen providers.")
+                .hint("Which plan limits the usage strip and the menu bar show. DevHub reads only the chosen providers. Off: DevHub reads no token and calls neither api.anthropic.com nor api.github.com.")
                 Toggle("Show usage strip at the top", isOn: $settings.values.showUsageStrip)
                 Toggle("Show session usage in the menu bar", isOn: $settings.values.showUsageInMenuBar)
                     .hint("The used percent of the first limit of the first chosen provider, next to the menu bar icon")

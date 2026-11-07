@@ -66,7 +66,7 @@ Rules of the notifications:
 
 | Control | What it does |
 |---|---|
-| Show usage for | "Claude and Copilot" (the default), "Claude only" or "Copilot only". The usage strip and the menu bar show only the chosen providers, and DevHub reads only their usage |
+| Show usage for | "Claude and Copilot" (the default), "Claude only", "Copilot only" or "Off". The usage strip and the menu bar show only the chosen providers, and DevHub reads only their usage. With Off, DevHub reads no token and calls neither api.anthropic.com nor api.github.com |
 | Show usage strip at the top | Shows the usage strip above the panel header ([AI](ai.md#usage-strip)) |
 | Show session usage in the menu bar | Shows the used percent of the first limit of the first chosen provider next to the menu bar icon |
 | Write with AI and Explain use | Claude Code (the default) or Copilot CLI: the tool of "Write with AI" in the commit box and the new request form, and of "Explain" in the request details. The arrow next to each button picks the other tool for one run. `ai.textCommands` in `project.json` changes the command ([Pull Requests](pull-requests.md#write-with-ai-and-explain)) |

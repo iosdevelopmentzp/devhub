@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-11-07 (ADR 010: the search field in the tab, the operations tray, the checkout badge)
+Last updated: 2026-11-07 (ADR 011: the dependency and tool policy)
 
 ## Stage
 
@@ -114,6 +114,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 66. **The search field in the tab (ADR 010 D1).** `TabSearchField` (`Shell/`) sits in the toolbar of each tab, next to the list it filters, not in the header. One text per tab in `ProjectSession`, ⌘F focuses it, Esc clears it. Why: the header was far from the list, and on Simulators the run bar stood between them.
 67. **The operations tray (ADR 010 D2).** Operation cards show in `OperationsTray`, an overlay at the bottom of the tab over the list and above the Output panel, one card per operation that is not dismissed, newest at the bottom. Nothing is placed inline, so the content never jumps; several operations at once are several cards. A request window has a tray for its request. Why: inline cards pushed the content down when a command started.
 68. **The checkout badge (ADR 010 D3).** The run bar and the Git header show the checkout as a badge from `CheckoutBadgeMapper`: gray "Main checkout · <branch>" for the main checkout, orange "Worktree · <name>" or "Branch · <name>" for anything else. A click opens the menu as before. Why: a build or a Git action in a worktree looked the same as one in the main checkout.
+69. **Dependency and tool policy (ADR 011).** No library at all; a copy in `Packages/Vendor/` would be the first choice if one is ever needed. Any new package, executable, GitHub Action, host or version change needs the owner's consent after a risk analysis (`.claude/rules/dependencies.md`). `Scripts/check-dependencies.sh` enforces `Scripts/allowed-tools.txt` and `Scripts/allowed-hosts.txt` and a commit SHA on every Action; `docs/DEPENDENCIES.md` says what each tool sends where. `TelemetryOptOutPolicy` turns the telemetry of the tools off for every child process. "Show usage for: Off" stops the only network calls DevHub makes itself. Why: no data may leave the Mac for a service the owner did not choose.
 
 ## Next steps
 

@@ -117,6 +117,7 @@ git commit
 
 - `git diff HEAD~1 -- CHANGELOG.md` shows the new lines.
 - `docs/STATUS.md` has today's date.
+- `docs/DEPENDENCIES.md`, `Scripts/allowed-tools.txt` and `Scripts/allowed-hosts.txt` when the session added or changed an executable, a host, a GitHub Action or a version (`.claude/rules/dependencies.md`).
 - The step log has a row for every commit before the last one.
 - Nothing in `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/extensions.md`, `docs/features/` or the skills contradicts
   the code.

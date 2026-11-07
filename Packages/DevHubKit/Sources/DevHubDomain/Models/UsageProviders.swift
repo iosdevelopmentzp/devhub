@@ -4,12 +4,13 @@ package enum UsageProviders: String, Codable, CaseIterable, Sendable {
     case all
     case claude
     case copilot
+    case none
 
     package var includesClaude: Bool {
-        self != .copilot
+        self == .all || self == .claude
     }
 
     package var includesCopilot: Bool {
-        self != .claude
+        self == .all || self == .copilot
     }
 }

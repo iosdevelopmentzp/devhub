@@ -1,0 +1,39 @@
+# Executables DevHub may start, one per line. Scripts/check-dependencies.sh fails on any other
+# name in the Swift sources. A new name needs the owner's consent and a row in docs/DEPENDENCIES.md
+# (.claude/rules/dependencies.md).
+# macOS and Xcode
+git
+xcodebuild
+xcrun
+xcode-select
+xed
+open
+osascript
+security
+defaults
+ditto
+du
+ps
+pgrep
+mdfind
+grep
+plutil
+rm
+sh
+zsh
+python3
+# code hosts and CI, with the user's own login
+gh
+glab
+circleci
+# AI tools, with the user's own login
+claude
+copilot
+# editors chosen in Settings
+code
+cursor
+zed
+# video
+ffmpeg
+ffprobe
+brew
