@@ -5,6 +5,8 @@ import DevHubUI
 struct DoctorSection: View {
     @Environment(DoctorStore.self) private var doctor
     @Environment(Notifier.self) private var notifier
+    @Environment(CIDiagnosticsStore.self) private var ciDiagnostics
+    @Environment(CIBranchRunsStore.self) private var ciRuns
 
     var body: some View {
         Section {
@@ -29,6 +31,12 @@ struct DoctorSection: View {
                     ProgressView()
                         .controlSize(.small)
                 }
+                Button("CI Diagnostics…") {
+                    Task { await ciDiagnostics.save(CIDiagnosticsSnapshot(branchRun: ciRuns.run, branchWorkflows: ciRuns.workflows, baseRun: ciRuns.baseRun, baseWorkflows: ciRuns.baseWorkflows)) }
+                }
+                .controlSize(.small)
+                .disabled(ciDiagnostics.isBusy)
+                .hint(PullRequestDetailsMapper.ciDiagnosticsHint)
                 Button("Check Again") {
                     Task { await doctor.check() }
                 }

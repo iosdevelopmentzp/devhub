@@ -47,6 +47,8 @@ struct PullRequestDetailActions {
     let startAutoRerun: (_ maxAttempts: Int) -> Void
     let stopAutoRerun: () -> Void
     let setAutoRerunOnlyFlaky: (_ enabled: Bool) -> Void
+    let copyCIDiagnostics: () -> Void
+    let saveCIDiagnostics: () -> Void
     let toggleCIHistory: () -> Void
     let clearCIHistory: () -> Void
     let cancelPipeline: () -> Void
@@ -101,6 +103,8 @@ struct PullRequestDetailActions {
         startAutoRerun: { _ in },
         stopAutoRerun: {},
         setAutoRerunOnlyFlaky: { _ in },
+        copyCIDiagnostics: {},
+        saveCIDiagnostics: {},
         toggleCIHistory: {},
         clearCIHistory: {},
         cancelPipeline: {},
@@ -157,6 +161,8 @@ struct PullRequestDetailActions {
             startAutoRerun: startAutoRerun,
             stopAutoRerun: stopAutoRerun,
             setAutoRerunOnlyFlaky: setAutoRerunOnlyFlaky,
+            copyCIDiagnostics: copyCIDiagnostics,
+            saveCIDiagnostics: saveCIDiagnostics,
             toggleCIHistory: toggleCIHistory,
             clearCIHistory: clearCIHistory,
             cancelPipeline: cancelPipeline,
@@ -176,6 +182,7 @@ extension PullRequestDetailActions {
         people: PullRequestPeopleStore,
         aiText: AITextStore,
         autoRerun: CIAutoRerunStore,
+        diagnostics: CIDiagnosticsStore,
         pullRequests: PullRequestsStore,
         appActions: AppActions,
         configActions: ConfigActionsStore,
@@ -232,6 +239,8 @@ extension PullRequestDetailActions {
             startAutoRerun: { autoRerun.start(id, maxAttempts: $0) },
             stopAutoRerun: { autoRerun.stop(id) },
             setAutoRerunOnlyFlaky: { autoRerun.setOnlyFlaky($0) },
+            copyCIDiagnostics: { Task { await diagnostics.copy(detailStore.ciDiagnosticsSnapshot(of: id, reference: detailStore.words.reference(id))) } },
+            saveCIDiagnostics: { Task { await diagnostics.save(detailStore.ciDiagnosticsSnapshot(of: id, reference: detailStore.words.reference(id))) } },
             toggleCIHistory: { detailStore.toggleCIHistory(of: id) },
             clearCIHistory: { detailStore.clearCIHistory(of: id) },
             cancelPipeline: { pullRequests.perform(.cancelPipeline, on: id) },

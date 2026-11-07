@@ -586,6 +586,14 @@ final class PullRequestDetailStore {
         projects.checkoutPath
     }
 
+    func ciDiagnosticsSnapshot(of id: PullRequestSummary.ID, reference: String) -> CIDiagnosticsSnapshot {
+        CIDiagnosticsSnapshot(
+            requestReference: reference,
+            requestWorkflows: (details[id]?.jobs.compactMap(\.ciWorkflowID) ?? []).compactMap { ciWorkflows[$0] },
+            requestWorkflowErrors: ciWorkflowErrors
+        )
+    }
+
     var ciProvider: CIProvider? {
         projects.provider
     }

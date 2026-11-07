@@ -161,6 +161,18 @@ struct PullRequestDetailsView: View {
                 if let autoRerun = loaded.autoRerun {
                     autoRerunControl(autoRerun)
                 }
+                if let hint = loaded.ciDiagnosticsHint {
+                    Menu {
+                        Button("Copy CI Diagnostics", systemImage: "doc.on.clipboard", action: actions.copyCIDiagnostics)
+                        Button("Save CI Diagnostics…", systemImage: "square.and.arrow.down", action: actions.saveCIDiagnostics)
+                    } label: {
+                        Image(systemName: "stethoscope")
+                    }
+                    .menuStyle(.borderlessButton)
+                    .menuIndicator(.hidden)
+                    .fixedSize()
+                    .hint(hint)
+                }
             }
             ForEach(loaded.jobGroups) { group in
                 VStack(alignment: .leading, spacing: 4) {

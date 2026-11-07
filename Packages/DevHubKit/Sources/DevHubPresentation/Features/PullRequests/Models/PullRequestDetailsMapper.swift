@@ -42,6 +42,7 @@ enum PullRequestDetailsMapper {
                     jobsTitle: PipelineJobRowMapper.title(for: details.jobs, words: words),
                     jobGroups: PipelineJobRowMapper.groups(for: details.jobs, review: review, words: words, now: context.now),
                     autoRerun: autoRerun(review: review),
+                    ciDiagnosticsHint: review.hasCIProvider ? ciDiagnosticsHint : nil,
                     ciHistoryTitle: review.ciHistory.isEmpty ? nil : "Previous CircleCI runs \(review.ciHistory.count)",
                     showsCIHistory: review.showsCIHistory,
                     ciHistory: review.ciHistory.map { CIHistoryRowMapper.model(for: $0, flaky: review.ciFlakyTests, isOpen: review.openCIHistoryRuns.contains($0.id), openTestMessages: review.openTestMessages, words: words) },
@@ -103,6 +104,8 @@ enum PullRequestDetailsMapper {
             onlyFlakyHint: onlyFlakyHint
         )
     }
+
+    static let ciDiagnosticsHint = "CI diagnostics for a bug report: the CircleCI commands DevHub ran with their output, the workflow states, the tool state and the recent CI failures. Project names, branches, logins, the home folder and the words of the anonymity list are replaced before the text leaves DevHub"
 
     static let onlyFlakyHint = "On: a re-run only when every failed test is in the flaky list of CircleCI Insights; a failure on another test or without test results stops the plan. Off: a re-run after every failure. Insights has no flaky list for a GitLab project or a GitHub App project, so turn it off there"
 

@@ -14,6 +14,8 @@ final class StoreHarness {
     let session: ProjectSession
     private(set) var posted: [AppEvent] = []
     private(set) var copied: [String] = []
+    private(set) var requestedFileNames: [String] = []
+    var saveTarget: URL? = URL(fileURLWithPath: "/tmp/DevHubTests/ci-diagnostics.txt")
     private var recording: SubscriptionToken?
 
     init(projects: [Project], store: InMemoryKeyValueStore) {
@@ -186,6 +188,29 @@ final class StoreHarness {
         events: events,
         store: store,
         pollInterval: .milliseconds(5)
+    )
+
+    lazy var commandLog = CommandLog()
+
+    lazy var ciDiagnostics = CIDiagnosticsStore(
+        ci: ports.ci,
+        words: ports.redactionWords,
+        files: ports.textFiles,
+        commandLog: commandLog,
+        config: config,
+        projects: ciProjects,
+        checkout: git,
+        openRequests: openPullRequests,
+        activity: activity,
+        toaster: toaster,
+        home: "/Users/alex",
+        appVersion: "1.0",
+        now: { Date(timeIntervalSince1970: 1_800_000_000) },
+        chooseFile: { [weak self] name in
+            guard let self else { return nil }
+            requestedFileNames.append(name)
+            return saveTarget
+        }
     )
 
     lazy var inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)

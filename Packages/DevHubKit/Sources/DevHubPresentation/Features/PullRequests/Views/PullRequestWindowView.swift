@@ -10,6 +10,7 @@ struct PullRequestWindowView: View {
     @Environment(PullRequestPeopleStore.self) private var people
     @Environment(AITextStore.self) private var aiText
     @Environment(CIAutoRerunStore.self) private var autoRerun
+    @Environment(CIDiagnosticsStore.self) private var ciDiagnostics
     @Environment(AppActions.self) private var appActions
     @Environment(GitStore.self) private var git
     @Environment(WorktreesStore.self) private var worktrees
@@ -85,7 +86,7 @@ struct PullRequestWindowView: View {
     }
 
     private var detailActions: PullRequestDetailActions {
-        PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, aiText: aiText, autoRerun: autoRerun, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: nil)
+        PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, aiText: aiText, autoRerun: autoRerun, diagnostics: ciDiagnostics, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: nil)
     }
 
     private func sidebar(_ details: PullRequestDetailsModel) -> PullRequestFileSidebarModel? {

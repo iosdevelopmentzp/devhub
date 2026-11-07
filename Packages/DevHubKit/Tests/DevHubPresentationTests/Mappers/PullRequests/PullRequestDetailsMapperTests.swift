@@ -350,6 +350,7 @@ import DevHubTestSupport
         #expect(any.hint.hasPrefix("Run the failed CircleCI jobs again each time a workflow fails"))
 
         review.hasCIProvider = false
+        #expect(PullRequestDetailsMapper.autoRerun(review: review) == nil)
         review.autoRerunPlan = CIAutoRerunPlan(iid: 7, maxAttempts: 10, attempts: 9, handledWorkflowIDs: [], lastRerunAt: nil)
         let on = try #require(PullRequestDetailsMapper.autoRerun(review: review))
         #expect(on.isOn)

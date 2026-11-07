@@ -39,6 +39,7 @@ package final class PresentationAssembly {
     let pullRequests: PullRequestsStore
     let openPullRequests: OpenPullRequestsStore
     let ciWatch: CIWatchStore
+    let ciDiagnostics: CIDiagnosticsStore
     let inbox: InboxStore
     let newPullRequest: NewPullRequestStore
     let pullRequestDetails: PullRequestDetailStore
@@ -167,6 +168,22 @@ package final class PresentationAssembly {
             events: events,
             store: store,
             pollInterval: .seconds(60)
+        )
+        ciDiagnostics = CIDiagnosticsStore(
+            ci: ports.ci,
+            words: ports.redactionWords,
+            files: ports.textFiles,
+            commandLog: commandLog,
+            config: config,
+            projects: ciProjects,
+            checkout: git,
+            openRequests: openPullRequests,
+            activity: activity,
+            toaster: toaster,
+            home: FileManager.default.homeDirectoryForCurrentUser.path,
+            appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "",
+            now: { .now },
+            chooseFile: { FolderPicker.saveFile(suggestedName: $0, prompt: "Save", message: "A text file for a bug report. Project names, branches and logins are replaced.") }
         )
         inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
         ciAutoRerun = CIAutoRerunStore(

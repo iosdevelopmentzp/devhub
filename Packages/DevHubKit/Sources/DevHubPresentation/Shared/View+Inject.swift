@@ -39,6 +39,7 @@ extension View {
             .environment(assembly.pullRequests)
             .environment(assembly.openPullRequests)
             .environment(assembly.ciWatch)
+            .environment(assembly.ciDiagnostics)
             .environment(assembly.inbox)
             .environment(assembly.newPullRequest)
             .environment(assembly.aiText)

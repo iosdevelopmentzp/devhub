@@ -59,6 +59,7 @@ struct PullRequestDetailsModel: Equatable {
         var jobsTitle: String
         var jobGroups: [PipelineJobGroupModel]
         var autoRerun: AutoRerun?
+        var ciDiagnosticsHint: String?
         var ciHistoryTitle: String?
         var showsCIHistory: Bool
         var ciHistory: [CIHistoryRowModel]
@@ -99,6 +100,7 @@ struct PullRequestDetailsModel: Equatable {
                 jobsTitle: "Pipeline 1 · 1 failed",
                 jobGroups: [.preview, .previewCircleCI],
                 autoRerun: AutoRerun(isOn: true, title: "Auto re-run 2 of 10", icon: "repeat.circle.fill", hint: "DevHub runs the failed CircleCI jobs again each time a workflow fails. 8 re-runs left. Click to stop.", choices: [], onlyFlaky: true, onlyFlakyHint: ""),
+                ciDiagnosticsHint: PullRequestDetailsMapper.ciDiagnosticsHint,
                 ciHistoryTitle: "Previous CircleCI runs 1",
                 showsCIHistory: true,
                 ciHistory: [.preview],
