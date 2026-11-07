@@ -25,6 +25,11 @@ struct PullRequestReviewState: Equatable {
     var ciFailedTests: [String: [CITestResult]] = [:]
     var ciFlakyTests: [CIFlakyTest] = []
     var ciBusyWorkflows: Set<String> = []
+    var ciWorkflowDetails: [String: CIWorkflowDetails] = [:]
+    var ciJobSteps: [String: [CIJobStep]] = [:]
+    var ciArtifacts: [String: CIArtifactsState] = [:]
+    var openJobArtifacts: Set<String> = []
+    var ciDownloads: [String: CIDownloadState] = [:]
     var ciHistory: [CIWorkflowRecord] = []
     var showsCIHistory = false
     var autoRerunPlan: CIAutoRerunPlan?

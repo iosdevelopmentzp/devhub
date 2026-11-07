@@ -177,6 +177,7 @@ package final class PresentationAssembly {
             reviews: pullRequestReviews,
             activity: activity,
             operations: operations,
+            ciPollInterval: .seconds(30),
             events: events
         )
         newPullRequest = NewPullRequestStore(

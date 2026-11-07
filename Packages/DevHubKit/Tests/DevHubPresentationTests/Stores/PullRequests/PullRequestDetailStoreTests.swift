@@ -485,11 +485,14 @@ import DevHubTestSupport
         #expect(store.ciToolState?.isLoggedIn == true)
         #expect(store.ciWorkflows[workflowID]?.name == "build-and-test")
         #expect(store.ciFailedTests["job-unit"]?.map(\.name) == ["testRetry"])
+        try await waitUntil { store.ciJobSteps["job-unit"] != nil }
         #expect(harness.spies.ci.calls == [
             .toolState(project: ciProject),
             .workflow(id: workflowID, project: ciProject),
+            .workflowDetails(id: workflowID, project: ciProject),
             .failedTests(jobID: "job-unit", project: ciProject),
             .flakyTests(project: ciProject),
+            .jobSteps(jobID: "job-unit", project: ciProject),
         ])
         #expect(store.review(of: 7).hasCIProvider)
     }
@@ -792,5 +795,80 @@ import DevHubTestSupport
         #expect(harness.pullRequestReviews.snapshots.isEmpty)
         #expect(store.review(of: 7).viewedFiles == ["a.swift"])
         #expect(store.review(of: 7).reviewedAt == nil)
+    }
+
+    @Test func aRunningWorkflowIsReadAgainUntilItEndsAndTheRequestReloads() async throws {
+        scriptCI()
+        let running = CIWorkflow(id: workflowID, name: "build-and-test", status: .running, runID: "run-1", jobs: [CIJob(id: "job-unit", name: "unit-tests", status: .running, isApproval: false)])
+        harness.spies.ci.workflowResultQueue = [.success(running), .success(running)]
+
+        await store.load(7)
+        try await waitUntil { harness.postedLabels.contains("pullRequestChecksChanged(7)") }
+        try await waitUntil { store.ciWorkflows[workflowID]?.status == .failed && store.isLoaded(7) }
+
+        #expect(harness.activityTitles.contains("CircleCI: build-and-test failed"))
+        #expect(harness.spies.ci.calls.filter { if case .workflow = $0 { true } else { false } }.count >= 3)
+        #expect(harness.spies.ci.calls.contains(.jobSteps(jobID: "job-unit", project: ciProject)))
+    }
+
+    @Test func aFailureToReadTheJobDetailsIsLoggedAndTheWorkflowStays() async throws {
+        scriptCI()
+        harness.spies.ci.workflowDetailsResult = .failure(CIError.command("no details"))
+
+        await store.load(7)
+        try await waitUntil { harness.activityTitles.contains("Cannot read the job details of the CircleCI workflow") }
+
+        #expect(store.ciWorkflows[workflowID] != nil)
+        #expect(store.ciWorkflowDetails[workflowID] == nil)
+    }
+
+    @Test func theStepsAreReadForTheFailedJobsOnly() async throws {
+        scriptCI()
+        harness.spies.ci.jobStepsResult = .success([CIJobStep(index: 0, name: "Run tests", status: .failed, duration: 3, exitCode: 65)])
+
+        await store.load(7)
+        try await waitUntil { store.ciJobSteps["job-unit"]?.count == 1 }
+        await harness.settle()
+
+        #expect(harness.spies.ci.calls.filter { if case .jobSteps = $0 { true } else { false } } == [.jobSteps(jobID: "job-unit", project: ciProject)])
+    }
+
+    @Test func artifactsAreReadOnTheFirstOpenAndDownloadedIntoAFolderNamedAfterTheJob() async throws {
+        scriptCI()
+        harness.spies.ci.workflowDetailsResult = .success(CIWorkflowDetails(id: workflowID, pipelineNumber: 42, projectSlug: nil, createdAt: nil, stoppedAt: nil, jobs: [
+            CIJobDetails(id: "job-unit", number: 102, startedAt: nil, stoppedAt: nil, approvalRequestID: nil),
+        ]))
+        harness.spies.ci.artifactsResult = .success([CIArtifact(path: "a.txt", url: nil)])
+        harness.spies.ci.downloadResult = .success("/tmp/Downloads/DevHub Artifacts/unit-tests 102")
+        await store.load(7)
+        try await waitUntil { store.ciWorkflowDetails[workflowID] != nil }
+
+        store.toggleJobArtifacts("job-unit", of: 7)
+        try await waitUntil { store.ciArtifacts["job-unit"] == .loaded([CIArtifact(path: "a.txt", url: nil)]) }
+        store.toggleJobArtifacts("job-unit", of: 7)
+        store.toggleJobArtifacts("job-unit", of: 7)
+        store.downloadArtifacts("job-unit", named: "unit-tests", of: 7)
+        try await waitUntil { store.ciDownloads["job-unit"] == .done(folder: "/tmp/Downloads/DevHub Artifacts/unit-tests 102") }
+
+        #expect(store.openJobArtifacts == ["job-unit"])
+        #expect(harness.spies.ci.calls.filter { if case .artifacts = $0 { true } else { false } }.count == 1)
+        #expect(harness.spies.ci.calls.contains(.downloadArtifacts(jobID: "job-unit", folderName: "unit-tests 102", project: ciProject)))
+        #expect(harness.activityTitles.contains("Downloaded the artifacts of unit-tests"))
+    }
+
+    @Test func aFailedArtifactReadAndDownloadAreLogged() async throws {
+        scriptCI()
+        harness.spies.ci.artifactsResult = .failure(CIError.command("no artifacts"))
+        harness.spies.ci.downloadResult = .failure(CIError.command("disk full"))
+        await store.load(7)
+        try await waitUntil { store.ciWorkflows[workflowID] != nil }
+
+        store.toggleJobArtifacts("job-unit", of: 7)
+        try await waitUntil { store.ciArtifacts["job-unit"] == .failure("no artifacts") }
+        store.downloadArtifacts("job-unit", named: "unit-tests", of: 7)
+        try await waitUntil { store.ciDownloads["job-unit"] == .failure("disk full") }
+
+        #expect(harness.activityTitles.contains("Cannot read the artifacts of the job"))
+        #expect(harness.activityTitles.contains("Cannot download the artifacts of unit-tests"))
     }
 }

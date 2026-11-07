@@ -12,6 +12,8 @@ struct PipelineJobRow: View {
     let onApprove: () -> Void
     let onToggleDetails: () -> Void
     let onToggleTestMessage: (_ testID: String) -> Void
+    let onToggleArtifacts: () -> Void
+    let onDownloadArtifacts: () -> Void
 
     @State private var isConfirmingApprove = false
 
@@ -58,8 +60,13 @@ struct PipelineJobRow: View {
                     }
                     .disabled(model.isBusy || isConfirmingApprove)
                 }
+                if model.canShowArtifacts {
+                    IconButton(systemImage: model.isArtifactsOpen ? "paperclip.circle.fill" : "paperclip", help: model.isArtifactsOpen ? "Hide the artifacts" : "Show the artifacts of this job (circleci job artifact)") {
+                        onToggleArtifacts()
+                    }
+                }
                 if model.canShowLog {
-                    IconButton(systemImage: model.isLogOpen ? "doc.text.fill" : "doc.text", help: model.isLogOpen ? "Hide the log" : "Show the end of the log") {
+                    IconButton(systemImage: model.isLogOpen ? "doc.text.fill" : "doc.text", help: model.isLogOpen ? "Hide the log" : model.logHint) {
                         onToggleLog()
                     }
                 }
@@ -70,7 +77,7 @@ struct PipelineJobRow: View {
                     .disabled(model.isBusy)
                 }
                 if model.url != nil {
-                    IconButton(systemImage: "globe", help: "Open in \(words.name)") {
+                    IconButton(systemImage: "globe", help: "Open this \(words.job) in the browser") {
                         appActions.open(model.url)
                     }
                 }
@@ -105,6 +112,10 @@ struct PipelineJobRow: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.leading, 24)
                 }
+                ForEach(model.steps) { step in
+                    stepLine(step)
+                        .padding(.leading, 24)
+                }
                 ForEach(model.failedTests) { test in
                     FailedTestLine(model: test) {
                         onToggleTestMessage(test.id)
@@ -112,12 +123,16 @@ struct PipelineJobRow: View {
                     .padding(.leading, 24)
                 }
             }
+            if model.isArtifactsOpen, let artifacts = model.artifacts {
+                artifactsView(artifacts)
+            }
             if model.isLogOpen, let log = model.log {
                 logView(log)
             }
         }
         .animation(.snappy(duration: 0.18), value: isConfirmingApprove)
         .animation(.snappy(duration: 0.18), value: model.isDetailsOpen)
+        .animation(.snappy(duration: 0.18), value: model.isArtifactsOpen)
     }
 
     private func detailsToggle(_ title: String) -> some View {
@@ -134,6 +149,107 @@ struct PipelineJobRow: View {
         .buttonStyle(.plain)
         .fixedSize()
         .hint(model.detailsHint)
+    }
+
+    private func stepLine(_ step: PipelineJobRowModel.Step) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: step.icon)
+                .font(.caption2)
+                .foregroundStyle(step.tint.color)
+                .frame(width: 12)
+            Text(step.title)
+                .font(.caption2)
+                .lineLimit(1)
+                .hintWhenTruncated(step.title)
+            if let exitText = step.exitText {
+                Text(exitText)
+                    .font(.caption2.monospaced())
+                    .foregroundStyle(.red)
+            }
+            Spacer(minLength: 4)
+            if let durationText = step.durationText {
+                Text(durationText)
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func artifactsView(_ artifacts: PipelineJobRowModel.Artifacts) -> some View {
+        switch artifacts {
+        case .loading:
+            ProgressView("Reading the artifacts…")
+                .controlSize(.small)
+                .padding(.leading, 24)
+        case .failure(let message):
+            Text(message)
+                .font(.caption)
+                .foregroundStyle(.red)
+                .padding(.leading, 24)
+        case .loaded(let rows):
+            VStack(alignment: .leading, spacing: 3) {
+                if rows.isEmpty {
+                    Text("This job stored no artifacts")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                ForEach(rows) { row in
+                    HStack(spacing: 6) {
+                        Image(systemName: "doc")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 12)
+                        Text(row.path)
+                            .font(.caption2.monospaced())
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .hintWhenTruncated(row.path)
+                            .copyOnClick(row.path, label: "Artifact path")
+                        Spacer(minLength: 4)
+                        if row.url != nil {
+                            IconButton(systemImage: "globe", help: "Open this artifact in the browser") {
+                                appActions.open(row.url)
+                            }
+                        }
+                    }
+                }
+                if rows.isEmpty == false {
+                    downloadLine
+                }
+            }
+            .padding(.leading, 24)
+        }
+    }
+
+    @ViewBuilder
+    private var downloadLine: some View {
+        HStack(spacing: 10) {
+            if let downloadTitle = model.downloadTitle {
+                Button(downloadTitle, systemImage: "arrow.down.circle") {
+                    onDownloadArtifacts()
+                }
+                .buttonStyle(LinkButtonStyle(.accent))
+                .disabled(downloadTitle != "Download All")
+                .hint("Download every artifact of this job into ~/Downloads/DevHub Artifacts (circleci job artifact -o)")
+            }
+            if let downloadFolder = model.downloadFolder {
+                Button("Show in Finder", systemImage: "folder") {
+                    appActions.openInFinder(path: downloadFolder)
+                }
+                .buttonStyle(LinkButtonStyle(.accent))
+                .hint(downloadFolder)
+            }
+            if let downloadFailure = model.downloadFailure {
+                Text(downloadFailure)
+                    .font(.caption2)
+                    .foregroundStyle(.red)
+                    .lineLimit(1)
+                    .hintWhenTruncated(downloadFailure)
+            }
+        }
+        .font(.caption)
     }
 
     @ViewBuilder
@@ -173,8 +289,8 @@ struct PipelineJobRow: View {
 
 #Preview {
     VStack(alignment: .leading, spacing: 12) {
-        PipelineJobRow(model: .preview, onToggleLog: {}, onRetry: {}, onApprove: {}, onToggleDetails: {}, onToggleTestMessage: { _ in })
-        PipelineJobRow(model: .previewCircleCI, onToggleLog: {}, onRetry: {}, onApprove: {}, onToggleDetails: {}, onToggleTestMessage: { _ in })
+        PipelineJobRow(model: .preview, onToggleLog: {}, onRetry: {}, onApprove: {}, onToggleDetails: {}, onToggleTestMessage: { _ in }, onToggleArtifacts: {}, onDownloadArtifacts: {})
+        PipelineJobRow(model: .previewCircleCI, onToggleLog: {}, onRetry: {}, onApprove: {}, onToggleDetails: {}, onToggleTestMessage: { _ in }, onToggleArtifacts: {}, onDownloadArtifacts: {})
     }
     .previewEnvironment()
     .padding()

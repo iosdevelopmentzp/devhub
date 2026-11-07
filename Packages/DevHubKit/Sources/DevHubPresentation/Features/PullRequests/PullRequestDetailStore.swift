@@ -31,6 +31,11 @@ final class PullRequestDetailStore {
     private(set) var ciFailedTests: [String: [CITestResult]] = [:]
     private(set) var ciFlakyTests: [CIFlakyTest] = []
     private(set) var ciBusyWorkflows: Set<String> = []
+    private(set) var ciWorkflowDetails: [String: CIWorkflowDetails] = [:]
+    private(set) var ciJobSteps: [String: [CIJobStep]] = [:]
+    private(set) var ciArtifacts: [String: CIArtifactsState] = [:]
+    private(set) var openJobArtifacts: Set<String> = []
+    private(set) var ciDownloads: [String: CIDownloadState] = [:]
     private(set) var shownCIHistory: Set<PullRequestSummary.ID> = []
     private(set) var openJobDetails: Set<String> = []
     private(set) var openTestMessages: Set<String> = []
@@ -53,6 +58,10 @@ final class PullRequestDetailStore {
     @ObservationIgnored private let reviews: PullRequestReviewMemory
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let operations: OperationLog
+    @ObservationIgnored private let events: AppEvents
+    @ObservationIgnored private let ciPollInterval: Duration
+    @ObservationIgnored private var ciPolls: [String: Task<Void, Never>] = [:]
+    @ObservationIgnored private var ciPollErrors: [String: String] = [:]
     @ObservationIgnored private var loading: Set<PullRequestSummary.ID> = []
     @ObservationIgnored private var fingerprints: [PullRequestSummary.ID: [String: String]] = [:]
     @ObservationIgnored private var ciLoading: Set<String> = []
@@ -77,6 +86,7 @@ final class PullRequestDetailStore {
         reviews: PullRequestReviewMemory,
         activity: ActivityLog,
         operations: OperationLog,
+        ciPollInterval: Duration,
         events: AppEvents
     ) {
         self.repository = repository
@@ -90,6 +100,8 @@ final class PullRequestDetailStore {
         self.reviews = reviews
         self.activity = activity
         self.operations = operations
+        self.events = events
+        self.ciPollInterval = ciPollInterval
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             switch event {
@@ -164,6 +176,11 @@ final class PullRequestDetailStore {
             ciFailedTests: ciFailedTests,
             ciFlakyTests: ciFlakyTests,
             ciBusyWorkflows: ciBusyWorkflows,
+            ciWorkflowDetails: ciWorkflowDetails,
+            ciJobSteps: ciJobSteps,
+            ciArtifacts: ciArtifacts,
+            openJobArtifacts: openJobArtifacts,
+            ciDownloads: ciDownloads,
             ciHistory: CIHistoryPolicy.previous(in: history.records(for: id), current: Set(details[id]?.jobs.compactMap(\.ciWorkflowID) ?? [])),
             showsCIHistory: shownCIHistory.contains(id),
             autoRerunPlan: autoRerun.plan(for: id),
@@ -675,11 +692,127 @@ final class PullRequestDetailStore {
             let workflow = try await ci.workflow(id: workflowID, project: project)
             ciWorkflows[workflowID] = workflow
             ciWorkflowErrors[workflowID] = nil
+            await loadCIWorkflowDetails(workflowID, project: project)
             await loadCIFailedTests(of: workflow, project: project)
+            await loadCIJobSteps(of: workflow, project: project)
             history.remember(workflow, failedTests: ciFailedTests, for: id)
+            pollCIWorkflow(workflow, project: project, of: id)
         } catch {
             ciWorkflowErrors[workflowID] = error.localizedDescription
             activity.log("Cannot read the CircleCI workflow", detail: error.localizedDescription, outcome: .failure)
+        }
+    }
+
+    private func loadCIWorkflowDetails(_ workflowID: String, project: CIProject) async {
+        do {
+            ciWorkflowDetails[workflowID] = try await ci.workflowDetails(id: workflowID, project: project)
+        } catch {
+            activity.log("Cannot read the job details of the CircleCI workflow", detail: error.localizedDescription, outcome: .failure)
+        }
+    }
+
+    private func loadCIJobSteps(of workflow: CIWorkflow, project: CIProject) async {
+        for job in workflow.jobs.filter({ $0.status == .failed && ciJobSteps[$0.id] == nil }).prefix(Self.failedTestJobLimit) {
+            do {
+                ciJobSteps[job.id] = try await ci.jobSteps(jobID: job.id, project: project)
+            } catch {
+                ciJobSteps[job.id] = []
+                activity.log("Cannot read the steps of \(job.name)", detail: error.localizedDescription, outcome: .failure)
+            }
+        }
+    }
+
+    static func pollsWorkflow(_ status: CheckStatus) -> Bool {
+        PipelineStatePolicy.isActive(status) || status == .manual
+    }
+
+    private func pollCIWorkflow(_ workflow: CIWorkflow, project: CIProject, of id: PullRequestSummary.ID) {
+        guard Self.pollsWorkflow(workflow.status), ciPolls[workflow.id] == nil else { return }
+        ciPolls[workflow.id] = Task { [weak self] in
+            var interval = self?.ciPollInterval ?? .seconds(30)
+            while Task.isCancelled == false {
+                try? await Task.sleep(for: interval)
+                guard Task.isCancelled == false, let self else { return }
+                do {
+                    let latest = try await ci.workflow(id: workflow.id, project: project)
+                    ciPollErrors[workflow.id] = nil
+                    interval = ciPollInterval
+                    if latest != ciWorkflows[workflow.id] {
+                        ciWorkflows[workflow.id] = latest
+                    }
+                    if ciWorkflowDetails[workflow.id] != nil {
+                        await loadCIWorkflowDetails(workflow.id, project: project)
+                    }
+                    guard Self.pollsWorkflow(latest.status) == false else { continue }
+                    await loadCIFailedTests(of: latest, project: project)
+                    await loadCIJobSteps(of: latest, project: project)
+                    history.remember(latest, failedTests: ciFailedTests, for: id)
+                    ciPolls[workflow.id] = nil
+                    activity.log("CircleCI: \(latest.name.isEmpty ? "the workflow" : latest.name) \(Self.endWord(latest.status))", detail: "", outcome: latest.status == .failed ? .failure : .success)
+                    events.post(.pullRequestChecksChanged(iid: id))
+                    return
+                } catch CIError.rateLimited {
+                    interval = ciPollInterval * 2
+                    reportPollError(CIError.rateLimited.localizedDescription, of: workflow.id)
+                } catch is CancellationError {
+                    return
+                } catch {
+                    reportPollError(error.localizedDescription, of: workflow.id)
+                }
+            }
+        }
+    }
+
+    private func reportPollError(_ message: String, of workflowID: String) {
+        guard ciPollErrors[workflowID] != message else { return }
+        ciPollErrors[workflowID] = message
+        activity.log("Cannot read the CircleCI workflow again", detail: message, outcome: .failure)
+    }
+
+    private static func endWord(_ status: CheckStatus) -> String {
+        switch status {
+        case .success: "passed"
+        case .failed: "failed"
+        case .canceled: "was cancelled"
+        default: status.name
+        }
+    }
+
+    func toggleJobArtifacts(_ jobID: String, of id: PullRequestSummary.ID) {
+        guard openJobArtifacts.remove(jobID) == nil else { return }
+        openJobArtifacts.insert(jobID)
+        if case .loaded = ciArtifacts[jobID] { return }
+        ciArtifacts[jobID] = .loading
+        let project = projects.project(for: details[id]?.jobs ?? [])
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                ciArtifacts[jobID] = .loaded(try await ci.artifacts(jobID: jobID, project: project))
+            } catch {
+                ciArtifacts[jobID] = .failure(error.localizedDescription)
+                activity.log("Cannot read the artifacts of the job", detail: error.localizedDescription, outcome: .failure)
+            }
+        }
+    }
+
+    func downloadArtifacts(_ jobID: String, named name: String, of id: PullRequestSummary.ID) {
+        guard ciDownloads[jobID] != .downloading else { return }
+        ciDownloads[jobID] = .downloading
+        let number = ciWorkflowDetails.values.lazy.compactMap { $0.job(jobID)?.number }.first
+        let folderName = number.map { "\(name) \($0)" } ?? name
+        let project = projects.project(for: details[id]?.jobs ?? [])
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let folder = try await operations.perform("Download the artifacts of \(name)", at: .pullRequest(id), retry: nil) { [ci] in
+                    try await ci.downloadArtifacts(jobID: jobID, folderName: folderName, project: project)
+                }
+                ciDownloads[jobID] = .done(folder: folder)
+                activity.log("Downloaded the artifacts of \(name)", detail: folder, outcome: .success)
+            } catch {
+                ciDownloads[jobID] = .failure(error.localizedDescription)
+                activity.log("Cannot download the artifacts of \(name)", detail: error.localizedDescription, outcome: .failure)
+            }
         }
     }
 
@@ -708,15 +841,33 @@ final class PullRequestDetailStore {
         for workflowID in details[id]?.jobs.compactMap(\.ciWorkflowID) ?? [] {
             for job in ciWorkflows[workflowID]?.jobs ?? [] {
                 ciFailedTests[job.id] = nil
+                ciJobSteps[job.id] = nil
+                ciArtifacts[job.id] = nil
+                ciDownloads[job.id] = nil
+                openJobArtifacts.remove(job.id)
                 jobLogs[job.id] = nil
                 openJobLogs.remove(job.id)
             }
+            ciPolls[workflowID]?.cancel()
+            ciPolls[workflowID] = nil
+            ciPollErrors[workflowID] = nil
             ciWorkflows[workflowID] = nil
+            ciWorkflowDetails[workflowID] = nil
             ciWorkflowErrors[workflowID] = nil
         }
     }
 
     private func resetCI() {
+        for poll in ciPolls.values {
+            poll.cancel()
+        }
+        ciPolls = [:]
+        ciPollErrors = [:]
+        ciWorkflowDetails = [:]
+        ciJobSteps = [:]
+        ciArtifacts = [:]
+        openJobArtifacts = []
+        ciDownloads = [:]
         ciToolState = nil
         ciWorkflows = [:]
         ciWorkflowErrors = [:]

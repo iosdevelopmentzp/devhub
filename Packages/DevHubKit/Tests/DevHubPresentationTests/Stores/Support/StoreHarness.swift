@@ -186,6 +186,7 @@ final class StoreHarness {
         reviews: pullRequestReviews,
         activity: activity,
         operations: operations,
+        ciPollInterval: .milliseconds(5),
         events: events
     )
 

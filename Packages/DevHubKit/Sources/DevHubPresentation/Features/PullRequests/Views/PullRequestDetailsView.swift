@@ -187,7 +187,9 @@ struct PullRequestDetailsView: View {
                             onRetry: { job.jobID.map { actions.retryJob($0, job.title) } },
                             onApprove: { job.jobID.map { actions.approveJob($0, job.title) } },
                             onToggleDetails: { actions.toggleJobDetails(job.id) },
-                            onToggleTestMessage: actions.toggleTestMessage
+                            onToggleTestMessage: actions.toggleTestMessage,
+                            onToggleArtifacts: { job.jobID.map(actions.toggleJobArtifacts) },
+                            onDownloadArtifacts: { job.jobID.map { actions.downloadArtifacts($0, job.title) } }
                         )
                         .padding(.leading, group.title == nil ? 0 : 12)
                     }

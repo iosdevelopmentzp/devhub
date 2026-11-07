@@ -40,7 +40,7 @@ enum PullRequestDetailsMapper {
                     ciNotice: ciNotice(review: review),
                     failedJobs: details.jobs.isEmpty ? details.failedJobs.map { PullRequestDetailsModel.JobLink(title: jobTitle($0), url: $0.webURL) } : [],
                     jobsTitle: PipelineJobRowMapper.title(for: details.jobs, words: words),
-                    jobGroups: PipelineJobRowMapper.groups(for: details.jobs, review: review, words: words),
+                    jobGroups: PipelineJobRowMapper.groups(for: details.jobs, review: review, words: words, now: context.now),
                     autoRerun: autoRerun(review: review),
                     ciHistoryTitle: review.ciHistory.isEmpty ? nil : "Previous CircleCI runs \(review.ciHistory.count)",
                     showsCIHistory: review.showsCIHistory,

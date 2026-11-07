@@ -24,6 +24,7 @@ package final class SpyCIRepository: CIRepository, @unchecked Sendable {
     private var _toolStateResult: Result<CIToolState, any Error> = .success(CIToolState(isInstalled: true, version: "1.13.0", isLoggedIn: true))
     private var _workflowResult: Result<CIWorkflow, any Error> = .success(CIWorkflow(id: "", name: "", status: .pending, runID: nil, jobs: []))
     private var _workflowResults: [String: Result<CIWorkflow, any Error>] = [:]
+    private var _workflowResultQueue: [Result<CIWorkflow, any Error>] = []
     private var _workflowDetailsResult: Result<CIWorkflowDetails, any Error> = .success(CIWorkflowDetails(id: "", pipelineNumber: nil, projectSlug: nil, createdAt: nil, stoppedAt: nil, jobs: []))
     private var _runWorkflowsResult: Result<[CIWorkflow], any Error> = .success([])
     private var _branchRunsResult: Result<[CIRun], any Error> = .success([])
@@ -54,6 +55,11 @@ package final class SpyCIRepository: CIRepository, @unchecked Sendable {
     package var workflowResults: [String: Result<CIWorkflow, any Error>] {
         get { lock.withLock { _workflowResults } }
         set { lock.withLock { _workflowResults = newValue } }
+    }
+
+    package var workflowResultQueue: [Result<CIWorkflow, any Error>] {
+        get { lock.withLock { _workflowResultQueue } }
+        set { lock.withLock { _workflowResultQueue = newValue } }
     }
 
     package var workflowDetailsResult: Result<CIWorkflowDetails, any Error> {
@@ -111,7 +117,10 @@ package final class SpyCIRepository: CIRepository, @unchecked Sendable {
     }
 
     package func workflow(id: String, project: CIProject) async throws -> CIWorkflow {
-        try record(.workflow(id: id, project: project)) { try (_workflowResults[id] ?? _workflowResult).get() }
+        try record(.workflow(id: id, project: project)) {
+            guard _workflowResultQueue.isEmpty else { return try _workflowResultQueue.removeFirst().get() }
+            return try (_workflowResults[id] ?? _workflowResult).get()
+        }
     }
 
     package func workflowDetails(id: String, project: CIProject) async throws -> CIWorkflowDetails {

@@ -41,6 +41,8 @@ struct PullRequestDetailActions {
     let approveJob: (_ jobID: String, _ name: String) -> Void
     let rerunWorkflow: (_ workflowID: String, _ fromFailed: Bool) -> Void
     let cancelWorkflow: (_ workflowID: String) -> Void
+    let toggleJobArtifacts: (_ jobID: String) -> Void
+    let downloadArtifacts: (_ jobID: String, _ name: String) -> Void
     let runCISetup: (_ command: String) -> Void
     let startAutoRerun: (_ maxAttempts: Int) -> Void
     let stopAutoRerun: () -> Void
@@ -92,6 +94,8 @@ struct PullRequestDetailActions {
         approveJob: { _, _ in },
         rerunWorkflow: { _, _ in },
         cancelWorkflow: { _ in },
+        toggleJobArtifacts: { _ in },
+        downloadArtifacts: { _, _ in },
         runCISetup: { _ in },
         startAutoRerun: { _ in },
         stopAutoRerun: {},
@@ -145,6 +149,8 @@ struct PullRequestDetailActions {
             approveJob: approveJob,
             rerunWorkflow: rerunWorkflow,
             cancelWorkflow: cancelWorkflow,
+            toggleJobArtifacts: toggleJobArtifacts,
+            downloadArtifacts: downloadArtifacts,
             runCISetup: runCISetup,
             startAutoRerun: startAutoRerun,
             stopAutoRerun: stopAutoRerun,
@@ -217,6 +223,8 @@ extension PullRequestDetailActions {
             approveJob: { detailStore.approveJob($0, named: $1, of: id) },
             rerunWorkflow: { detailStore.rerunWorkflow($0, fromFailed: $1, of: id) },
             cancelWorkflow: { detailStore.cancelWorkflow($0, of: id) },
+            toggleJobArtifacts: { detailStore.toggleJobArtifacts($0, of: id) },
+            downloadArtifacts: { detailStore.downloadArtifacts($0, named: $1, of: id) },
             runCISetup: { appActions.runInTerminal($0, at: detailStore.ciCheckoutPath, title: "Started the CircleCI setup in Terminal") },
             startAutoRerun: { autoRerun.start(id, maxAttempts: $0) },
             stopAutoRerun: { autoRerun.stop(id) },

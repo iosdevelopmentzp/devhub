@@ -9,14 +9,19 @@ enum PipelineJobRowMapper {
     }
 
     private static let unfinishedStatuses: [CheckStatus] = [.running, .pending, .created, .preparing, .waitingForResource, .scheduled]
+    static let circleCILogHint = "Show the log: the failed steps first, then the others"
 
-    static func groups(for jobs: [PipelineJob], review: PullRequestReviewState, words: CodeHostWords) -> [PipelineJobGroupModel] {
+    static func groups(for jobs: [PipelineJob], review: PullRequestReviewState, words: CodeHostWords, now: Date) -> [PipelineJobGroupModel] {
         var order: [Unit] = []
         var members: [String: [(offset: Int, job: PipelineJob)]] = [:]
+        var links: [String: CIWorkflowLink.Link] = [:]
         for (offset, job) in jobs.enumerated() {
             if let workflowID = job.ciWorkflowID, review.ciWorkflows[workflowID] != nil {
                 if order.contains(.workflow(workflowID)) == false {
                     order.append(.workflow(workflowID))
+                }
+                if links[workflowID] == nil, let link = CIWorkflowLink.parse(job.webURL?.absoluteString) {
+                    links[workflowID] = link
                 }
                 continue
             }
@@ -32,7 +37,7 @@ enum PipelineJobRowMapper {
             switch unit {
             case .workflow(let workflowID):
                 guard let workflow = review.ciWorkflows[workflowID] else { continue }
-                groups.append(group(for: workflow, review: review, words: words))
+                groups.append(group(for: workflow, link: links[workflowID], review: review, words: words, now: now))
             case .stage(let key):
                 let group = members[key] ?? []
                 let rows = group
@@ -87,10 +92,10 @@ enum PipelineJobRowMapper {
         )
     }
 
-    static func group(for workflow: CIWorkflow, review: PullRequestReviewState, words: CodeHostWords) -> PipelineJobGroupModel {
+    static func group(for workflow: CIWorkflow, link: CIWorkflowLink.Link?, review: PullRequestReviewState, words: CodeHostWords, now: Date) -> PipelineJobGroupModel {
         let rows = workflow.jobs.enumerated()
             .sorted { (rank($0.element.status), $0.offset) < (rank($1.element.status), $1.offset) }
-            .map { model(for: $0.element, of: workflow, review: review, words: words) }
+            .map { model(for: $0.element, of: workflow, link: link, review: review, words: words, now: now) }
         let isActive = PipelineStatePolicy.isActive(workflow.status) || workflow.status == .manual
         let isBusy = review.ciBusyWorkflows.contains(workflow.id)
         let failed = workflow.jobs.filter { $0.status == .failed }.count
@@ -114,13 +119,18 @@ enum PipelineJobRowMapper {
         )
     }
 
-    static func model(for job: CIJob, of workflow: CIWorkflow, review: PullRequestReviewState, words: CodeHostWords) -> PipelineJobRowModel {
+    static func model(for job: CIJob, of workflow: CIWorkflow, link: CIWorkflowLink.Link?, review: PullRequestReviewState, words: CodeHostWords, now: Date) -> PipelineJobRowModel {
         let failedTests = review.ciFailedTests[job.id] ?? []
         let isDetailsOpen = review.openJobDetails.contains(job.id)
         let flakyCount = FlakyTestPolicy.flakyCount(of: failedTests, in: review.ciFlakyTests)
         let isBusy = review.ciBusyWorkflows.contains(workflow.id)
         let waitsForApproval = job.isApproval && job.status == .manual
         let isFinished = unfinishedStatuses.contains(job.status) == false && job.status != .manual
+        let details = review.ciWorkflowDetails[workflow.id]
+        let jobDetails = details?.job(job.id)
+        let steps = review.ciJobSteps[job.id] ?? []
+        let failedStep = steps.first(where: \.isFailed)
+        let download = review.ciDownloads[job.id]
         return PipelineJobRowModel(
             id: job.id,
             jobID: job.id,
@@ -128,13 +138,14 @@ enum PipelineJobRowMapper {
             icon: PullRequestTagMapper.pipelineIcon(job.status),
             tint: PullRequestTagMapper.pipelineTint(job.status),
             statusText: waitsForApproval ? "waiting for approval" : ciStatusText(job.status, words: words),
-            durationText: nil,
+            durationText: jobDetails?.duration(now: now).map { DurationFormat.text($0) },
             allowedToFailText: nil,
-            failureText: nil,
-            url: nil,
+            failureText: failedStep.map(stepFailureText),
+            url: CIJobLink.url(base: link?.base, slug: details?.projectSlug ?? link?.slug, pipelineNumber: details?.pipelineNumber, workflowID: workflow.id, jobNumber: jobDetails?.number),
             canShowLog: isFinished && job.status != .skipped && job.isApproval == false,
             isLogOpen: review.openJobLogs.contains(job.id),
             log: review.jobLogs[job.id],
+            logHint: circleCILogHint,
             canRetry: job.status == .failed && isBusy == false && PipelineStatePolicy.isActive(workflow.status) == false,
             retryHint: "Run the failed jobs of \(workflow.name) again (circleci workflow rerun --from-failed)",
             isBusy: isBusy,
@@ -143,9 +154,16 @@ enum PipelineJobRowMapper {
             noteText: nil,
             flakyTag: flakyTag(flakyCount: flakyCount, failedCount: failedTests.count),
             failedTests: failedTests.map { failedTest($0, jobID: job.id, flaky: review.ciFlakyTests, openMessages: review.openTestMessages) },
-            detailsTitle: failedTests.isEmpty ? nil : CountText.count(failedTests.count, "failed test", "failed tests"),
-            detailsHint: isDetailsOpen ? "Hide the failed tests" : "Show the failed tests of this job",
-            isDetailsOpen: isDetailsOpen
+            detailsTitle: detailsTitle(failedTests: failedTests.count, failedStep: failedStep, steps: steps),
+            detailsHint: detailsHint(isOpen: isDetailsOpen, failedTests: failedTests.count, hasSteps: steps.isEmpty == false),
+            isDetailsOpen: isDetailsOpen,
+            steps: steps.map(stepModel),
+            canShowArtifacts: isFinished && job.status != .skipped && job.isApproval == false,
+            isArtifactsOpen: review.openJobArtifacts.contains(job.id),
+            artifacts: review.ciArtifacts[job.id].map(artifactsModel),
+            downloadTitle: downloadTitle(download),
+            downloadFolder: downloadFolder(download),
+            downloadFailure: downloadFailure(download)
         )
     }
 
@@ -168,6 +186,62 @@ enum PipelineJobRowMapper {
             ? (failedCount == 1 ? "The failed test is flaky: it passed on a re-run before (CircleCI Insights)" : "All \(failedCount) failed tests are flaky: they passed on a re-run before (CircleCI Insights)")
             : "\(flakyCount) of \(failedCount) failed tests are flaky: they passed on a re-run before (CircleCI Insights)"
         return TagModel(text, tint: .orange, systemImage: "shuffle", hint: hint)
+    }
+
+    static func stepFailureText(_ step: CIJobStep) -> String {
+        guard let code = step.exitCode, code != 0 else { return "\(step.name) failed" }
+        return "\(step.name) failed (exit \(code))"
+    }
+
+    static func stepModel(_ step: CIJobStep) -> PipelineJobRowModel.Step {
+        PipelineJobRowModel.Step(
+            id: step.index,
+            title: step.name,
+            icon: PullRequestTagMapper.pipelineIcon(step.status),
+            tint: PullRequestTagMapper.pipelineTint(step.status),
+            durationText: step.duration.map { DurationFormat.text($0) },
+            exitText: step.exitCode.flatMap { $0 == 0 ? nil : "exit \($0)" }
+        )
+    }
+
+    static func artifactsModel(_ state: CIArtifactsState) -> PipelineJobRowModel.Artifacts {
+        switch state {
+        case .loading: .loading
+        case .failure(let message): .failure(message)
+        case .loaded(let artifacts): .loaded(artifacts.map { PipelineJobRowModel.ArtifactRow(id: $0.id, path: $0.path, url: $0.url) })
+        }
+    }
+
+    private static func detailsTitle(failedTests: Int, failedStep: CIJobStep?, steps: [CIJobStep]) -> String? {
+        if failedTests > 0 { return CountText.count(failedTests, "failed test", "failed tests") }
+        if failedStep != nil { return "reason" }
+        return steps.isEmpty ? nil : "steps"
+    }
+
+    private static func detailsHint(isOpen: Bool, failedTests: Int, hasSteps: Bool) -> String {
+        switch (failedTests > 0, hasSteps) {
+        case (true, true): isOpen ? "Hide the steps and the failed tests" : "Show the failed step, the steps of this job and its failed tests"
+        case (true, false): isOpen ? "Hide the failed tests" : "Show the failed tests of this job"
+        default: isOpen ? "Hide the steps" : "Show the steps of this job and the one that failed"
+        }
+    }
+
+    private static func downloadTitle(_ state: CIDownloadState?) -> String? {
+        switch state {
+        case nil, .failure: "Download All"
+        case .downloading: "Downloading…"
+        case .done: nil
+        }
+    }
+
+    private static func downloadFolder(_ state: CIDownloadState?) -> String? {
+        guard case .done(let folder) = state else { return nil }
+        return folder
+    }
+
+    private static func downloadFailure(_ state: CIDownloadState?) -> String? {
+        guard case .failure(let message) = state else { return nil }
+        return message
     }
 
     private static func ciNote(for job: PipelineJob, review: PullRequestReviewState) -> String? {
