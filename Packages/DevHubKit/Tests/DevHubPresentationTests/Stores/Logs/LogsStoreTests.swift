@@ -184,4 +184,14 @@ import DevHubTestSupport
         #expect(stream?.pending.isEmpty == true)
         #expect(stream?.dropped == 0)
     }
+
+    @Test func availableSimulatorsSkipPhysicalDevices() {
+        harness.simulators.groups = [SimulatorGroup(runtime: SimulatorGroup.devicesTitle, simulators: [SimulatorSample.device])] + SimulatorSample.groups
+
+        #expect(store.availableSimulators.map(\.id) == [udid])
+
+        store.stream(on: SimulatorSample.device.id)
+
+        #expect(store.streams.isEmpty)
+    }
 }

@@ -19,7 +19,7 @@ import Testing
         )
 
         #expect(await repository.schemes(projectPath: "~/App", container: nil).first == "ExampleApp")
-        #expect(repository.lastBuiltAppPath(projectPath: "~/App", container: nil, scheme: "App", configuration: "Debug") == nil)
+        #expect(repository.lastBuiltAppPath(projectPath: "~/App", container: nil, scheme: "App", configuration: "Debug", isPhysicalDevice: false) == nil)
         let product = try await repository.locateProduct(request, hints: [])
         #expect(product.appPath.hasSuffix("Debug-iphonesimulator/App.app"))
         #expect(product.bundleID == "com.example.app")

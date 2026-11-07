@@ -70,6 +70,9 @@ struct SimulatorRow<Panels: View>: View {
                     .font(.callout.weight(.semibold))
                     .lineLimit(1)
                 ModelTag(model: model.runtimeTag)
+                if let deviceTag = model.deviceTag {
+                    ModelTag(model: deviceTag)
+                }
                 if let targetTag = model.targetTag {
                     ModelTag(model: targetTag)
                 }
@@ -99,13 +102,15 @@ struct SimulatorRow<Panels: View>: View {
                     onToggleIdentity()
                 }
             }
-            IconButton(systemImage: "paperplane", help: "Open a deep link or send a push to the app", tint: .teal) {
-                onToggleMessaging()
+            if model.showsSimulatorActions {
+                IconButton(systemImage: "paperplane", help: "Open a deep link or send a push to the app", tint: .teal) {
+                    onToggleMessaging()
+                }
+                IconButton(systemImage: "slider.horizontal.3", help: "QA settings: appearance, text size, status bar, location, language, permissions, screenshot", tint: .purple) {
+                    onToggleQA()
+                }
             }
-            IconButton(systemImage: "slider.horizontal.3", help: "QA settings: appearance, text size, status bar, location, language, permissions, screenshot", tint: .purple) {
-                onToggleQA()
-            }
-            IconButton(systemImage: "play.fill", help: "Build & Run on this simulator", tint: .green) {
+            IconButton(systemImage: "play.fill", help: model.showsSimulatorActions ? "Build & Run on this simulator" : "Build & Run on this device", tint: .green) {
                 appActions.buildAndRun(on: model.id)
             }
             .disabled(model.canBuildAndRun == false)
@@ -113,37 +118,41 @@ struct SimulatorRow<Panels: View>: View {
                 ProgressView()
                     .controlSize(.mini)
                     .frame(width: 24, height: 24)
-            } else {
+            } else if model.showsSimulatorActions {
                 IconButton(systemImage: "xmark.app", help: "Remove all installed apps (keeps settings)", tint: .red) {
                     onRemoveApps()
                 }
                 .disabled(model.canRemoveApps == false)
             }
-            IconButton(systemImage: "power", help: model.powerHint) {
-                onTogglePower()
+            if model.showsSimulatorActions {
+                IconButton(systemImage: "power", help: model.powerHint) {
+                    onTogglePower()
+                }
+                .disabled(model.canTogglePower == false)
             }
-            .disabled(model.canTogglePower == false)
             overflowMenu
         }
     }
 
     private var overflowMenu: some View {
         OverflowMenu {
-            Button(model.openAppTitle, systemImage: "macwindow") {
-                onOpenInSimulator()
+            if model.showsSimulatorActions {
+                Button(model.openAppTitle, systemImage: "macwindow") {
+                    onOpenInSimulator()
+                }
+                Button("Stream App Logs", systemImage: "text.alignleft") {
+                    appActions.streamLogs(simulatorID: model.id)
+                }
+                .disabled(model.canStreamLogs == false)
+                Button("App Data…", systemImage: "externaldrive") {
+                    onToggleAppData()
+                }
+                .disabled(model.canShowAppData == false)
             }
-            Button("Stream App Logs", systemImage: "text.alignleft") {
-                appActions.streamLogs(simulatorID: model.id)
-            }
-            .disabled(model.canStreamLogs == false)
-            Button("App Data…", systemImage: "externaldrive") {
-                onToggleAppData()
-            }
-            .disabled(model.canShowAppData == false)
             Button(model.favoriteMenuTitle, systemImage: "star") {
                 onToggleFavorite()
             }
-            if model.hasIdentityConfig {
+            if model.hasIdentityConfig, model.showsSimulatorActions {
                 Button("Launch & Attach Xcode", systemImage: "ladybug") {
                     onLaunchAndAttach()
                 }
@@ -153,19 +162,23 @@ struct SimulatorRow<Panels: View>: View {
                 onUninstall()
             }
             .disabled(model.canUninstallFromMenu == false)
-            Button("Remove All Installed Apps", systemImage: "xmark.app.fill") {
-                onRemoveApps()
+            if model.showsSimulatorActions {
+                Button("Remove All Installed Apps", systemImage: "xmark.app.fill") {
+                    onRemoveApps()
+                }
+                .disabled(model.canUninstallFromMenu == false)
             }
-            .disabled(model.canUninstallFromMenu == false)
             Button("Copy UDID", systemImage: "doc.on.doc") {
                 toaster.copy(model.id, label: model.copyUDIDLabel)
             }
             ConfigActionMenuItems(items: model.configActions, onRun: onConfigAction)
-            Divider()
-            Button("Erase Content and Settings…", systemImage: "trash", role: .destructive) {
-                onRequestErase()
+            if model.showsSimulatorActions {
+                Divider()
+                Button("Erase Content and Settings…", systemImage: "trash", role: .destructive) {
+                    onRequestErase()
+                }
+                .disabled(model.canErase == false)
             }
-            .disabled(model.canErase == false)
         }
     }
 }

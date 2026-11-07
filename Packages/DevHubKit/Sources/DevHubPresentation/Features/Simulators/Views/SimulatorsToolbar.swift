@@ -17,7 +17,7 @@ struct SimulatorsToolbar: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Text(CountText.invariant(simulators.all.count, "simulators"))
+                Text(SimulatorsToolbarText.count(simulators: simulators.all))
                     .font(.callout)
                     .foregroundStyle(.secondary)
                 if simulators.withApps.isEmpty == false {

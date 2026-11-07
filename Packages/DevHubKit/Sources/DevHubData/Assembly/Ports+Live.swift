@@ -17,6 +17,7 @@ extension Ports {
             usage: AnthropicUsageRepository(credentialsReader: ClaudeCredentialsReader(shell: shell)),
             copilotUsage: GitHubCopilotUsageRepository(tokenReader: CopilotTokenReader(shell: shell, tools: tools)),
             simulators: simulators,
+            devices: DevicectlDeviceRepository(shell: shell, scratch: FileManager.default.temporaryDirectory.appendingPathComponent("DevHub-devicectl", isDirectory: true)),
             build: build,
             testRuns: XcodeTestRepository(shell: shell, resultsFolder: FileManager.default.temporaryDirectory.appendingPathComponent("DevHub-tests", isDirectory: true)),
             worktrees: worktrees,

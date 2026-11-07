@@ -15,16 +15,16 @@ enum SimulatorSectionsMapper {
         let favorites = groups
             .flatMap { group in
                 group.simulators
-                    .filter { $0.isFavorite && matches($0, group.runtime) }
-                    .map { (simulator: $0, runtime: group.runtime) }
+                    .filter { $0.isFavorite && matches($0, $0.runtime ?? group.runtime) }
+                    .map { (simulator: $0, runtime: $0.runtime ?? group.runtime) }
             }
             .enumerated()
             .sorted { (FavoriteOrder.rank(of: $0.element.simulator.id, in: favoriteOrder), $0.offset) < (FavoriteOrder.rank(of: $1.element.simulator.id, in: favoriteOrder), $1.offset) }
             .map { row($0.element.simulator, $0.element.runtime) }
         let runtimes = groups.compactMap { group -> SimulatorSectionModel? in
             let rows = group.simulators
-                .filter { $0.isFavorite == false && matches($0, group.runtime) }
-                .map { row($0, group.runtime) }
+                .filter { $0.isFavorite == false && matches($0, $0.runtime ?? group.runtime) }
+                .map { row($0, $0.runtime ?? group.runtime) }
             guard rows.isEmpty == false else { return nil }
             return SimulatorSectionModel(
                 id: "runtime:\(group.runtime)",

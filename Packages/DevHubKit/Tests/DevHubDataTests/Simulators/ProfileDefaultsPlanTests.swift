@@ -24,4 +24,11 @@ import Testing
         #expect(ProfileDefaultsPlan.containerKind(suite: "group.com.example.app") == "group.com.example.app")
         #expect(ProfileDefaultsPlan.containerKind(suite: "com.example.app") == "data")
     }
+
+    @Test func localWriteArgumentsTargetAPlistInTheFolderWithoutTheExtension() {
+        let item = ProfileDefault(suite: "group.com.example.app", key: "environment", value: "staging")
+
+        #expect(ProfileDefaultsPlan.localWriteArguments(item, folder: "/tmp/prefs") == ["write", "/tmp/prefs/group.com.example.app", "environment", "-string", "staging"])
+        #expect(ProfileDefaultsPlan.preferencesPath(suite: "group.com.example.app") == "Library/Preferences/group.com.example.app.plist")
+    }
 }

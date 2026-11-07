@@ -4,12 +4,14 @@ import DevHubDomain
 struct SimctlAppLaunchRepository: AppLaunchRepository {
     let shell: ShellRunner
     let simctl: SimctlRunner
+    let markers: AppBundleMarkers
 
     private static let appCache = URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Caches/DevHub/Apps")
 
     init(shell: ShellRunner) {
         self.shell = shell
         simctl = SimctlRunner(shell: shell)
+        markers = AppBundleMarkers(shell: shell)
     }
 
     func inspect(udid: String, bundleID: String, identity: LaunchIdentityConfig?, storage: ProfileStorage?) async -> InstalledApp {
@@ -19,8 +21,8 @@ struct SimctlAppLaunchRepository: AppLaunchRepository {
         return InstalledApp(
             isInstalled: true,
             version: info?["CFBundleShortVersionString"] as? String,
-            hasIdentityHook: await contains(identity?.marker, appPath: appPath, executable: executable),
-            keepsIdentity: await contains(identity?.keptVariable, appPath: appPath, executable: executable),
+            hasIdentityHook: await markers.contains(identity?.marker, appPath: appPath, executable: executable),
+            keepsIdentity: await markers.contains(identity?.keptVariable, appPath: appPath, executable: executable),
             storedProfileID: await storedProfile(udid: udid, bundleID: bundleID, storage: storage)
         )
     }
@@ -77,17 +79,5 @@ struct SimctlAppLaunchRepository: AppLaunchRepository {
         let plist = URL(fileURLWithPath: folder).appendingPathComponent("Library/Preferences/\(storage.suite).plist")
         guard let value = PlistReader.dictionary(at: plist)?[storage.key] else { return nil }
         return "\(value)"
-    }
-
-    private func contains(_ marker: String?, appPath: String, executable: String?) async -> Bool {
-        guard let marker, marker.isEmpty == false else { return false }
-        let app = URL(fileURLWithPath: appPath)
-        let files = (try? FileManager.default.contentsOfDirectory(atPath: appPath)) ?? []
-        let candidates = files.filter { $0.hasSuffix(".debug.dylib") } + [executable].compactMap { $0 }
-        for name in candidates {
-            let result = try? await shell.run("grep", ["-q", "-a", "-F", marker, app.appendingPathComponent(name).path], cwd: nil)
-            if result?.exitCode == 0 { return true }
-        }
-        return false
     }
 }

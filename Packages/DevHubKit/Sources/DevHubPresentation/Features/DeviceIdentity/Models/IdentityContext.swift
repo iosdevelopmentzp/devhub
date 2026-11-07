@@ -11,6 +11,7 @@ struct IdentityContext: Equatable {
     var savedDeviceIDs: [String]
     var aliases: [String: String]
     var isApplying: Bool
+    var isPhysicalDevice = false
 
     var isInstalled: Bool {
         app?.isInstalled == true

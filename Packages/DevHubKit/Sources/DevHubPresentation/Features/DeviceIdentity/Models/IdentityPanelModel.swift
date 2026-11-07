@@ -21,6 +21,7 @@ struct IdentityPanelModel: Equatable {
     var launchTitle: String
     var launchTint: Tint?
     var canLaunch: Bool
+    var canAttach: Bool
 
     static let preview = IdentityPanelMapper.model(context: .preview, bundleID: "com.example.app", buildIsRunning: false, cleanInstallIsOn: false)
 }

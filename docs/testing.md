@@ -81,6 +81,7 @@ Every spy follows the same shape:
 | `usage` | `SpyClaudeUsageRepository` | `ClaudeUsageRepository` |
 | `copilotUsage` | `SpyCopilotUsageRepository` | `CopilotUsageRepository` |
 | `simulators` | `SpySimulatorRepository` | `SimulatorRepository` |
+| `devices` | `SpyDeviceRepository` | `DeviceRepository` |
 | `build` | `SpyBuildRepository` | `BuildRepository` |
 | `worktrees` | `SpyWorktreeRepository` | `WorktreeRepository` |
 | `launcher` | `SpyAppLaunchRepository` | `AppLaunchRepository` |

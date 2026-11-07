@@ -4,6 +4,7 @@ enum SimulatorSample {
     static let booted = Simulator(id: "sim-booted", name: "iPhone 17", kind: .phone, state: .booted, isFavorite: false)
     static let shutdown = Simulator(id: "sim-off", name: "iPhone 16e", kind: .phone, state: .shutdown, isFavorite: false)
     static let pad = Simulator(id: "sim-pad", name: "iPad Air", kind: .pad, state: .shutdown, isFavorite: false)
+    static let device = Simulator(id: "00008110-000000000000001B", name: "Sam's iPhone", kind: .phone, state: .booted, isFavorite: false, isPhysical: true, runtime: "iOS 26.1")
 
     static let groups = [
         SimulatorGroup(runtime: "iOS 26.0", simulators: [booted, shutdown]),

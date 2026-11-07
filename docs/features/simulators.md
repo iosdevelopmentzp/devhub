@@ -22,8 +22,8 @@ The tab has three parts, from top to bottom.
    - the device ID and alias controls and the clean install note, when `launch.identity` is set;
    - while a build runs: the step text and a progress bar;
    - after a build: a green "Launched on … · <time>" line or the red error, with **Show log**.
-2. **The toolbar.** It shows the number of simulators, a "with apps" tag (simulators with installed apps) and **Remove Apps from All…**.
-3. **The list.** A "Favorites" section comes first, in your own order: drag a favorite row onto another favorite row to move it there. A new favorite goes to the end. Then one section per iOS runtime, newest runtime first. Each row shows:
+2. **The toolbar.** It shows the number of simulators and of devices ("7 simulators · 1 devices"), a "with apps" tag (simulators with installed apps) and **Remove Apps from All…**.
+3. **The list.** A "Favorites" section comes first, in your own order: drag a favorite row onto another favorite row to move it there. A new favorite goes to the end. Then a "Devices" section with the paired iPhones and iPads (see "Physical devices" below), then one section per iOS runtime, newest runtime first. Each row shows:
    - a state dot (green booted, orange booting or shutting down, gray shut down);
    - the name, the runtime tag, a blue `target` tag on the target row, a star for a favorite;
    - the state and the number of installed apps, for example "Booted · 3 apps installed";
@@ -32,14 +32,14 @@ The tab has three parts, from top to bottom.
 
 The header search filters rows by simulator name, runtime and UDID.
 
-The list comes from `xcrun simctl list devices available -j`. Only iOS runtimes are listed. The app count is the number of folders in `~/Library/Developer/CoreSimulator/Devices/<udid>/data/Containers/Bundle/Application`.
+The list comes from `xcrun simctl list devices available -j`. Only iOS runtimes are listed. The app count is the number of folders in `~/Library/Developer/CoreSimulator/Devices/<udid>/data/Containers/Bundle/Application`. The devices come from `xcrun devicectl list devices`; when that command fails (an old Xcode), the simulators still show and the failure is logged once.
 
 ### The target
 
 The target is the simulator that Build & Run uses.
 
 1. A click on a row makes it the target.
-2. Without a saved target, the target is the first booted simulator, else the first simulator in the list.
+2. Without a saved target, the target is the first booted simulator, else the first simulator, else the first connected device.
 3. Build & Run from a row also makes that row the target.
 
 ## Actions
@@ -119,6 +119,22 @@ These steps are shared by both project kinds (`AppInstallStep`).
 5. **Mock server.** When the Network tab runs a mock server for this simulator, DevHub moves it to the upstream of the profile and adds `network.baseURLVariable` to the environment ([Network](network.md)).
 6. **Simulator window:** the simulator app of the Xcode in use, see "Simulator app" below.
 7. **Launch:** `xcrun simctl launch --terminate-running-process <udid> <bundle ID> <arguments>`. The environment of the profile and of `launch.identity` goes to the app as `SIMCTL_CHILD_<NAME>` variables. The arguments are `launch.identity.args`, then the `args` of the profile.
+
+On a physical device the steps are: clean install (`devicectl device uninstall app`, when the app is installed), `devicectl device install app`, the profile defaults, then `devicectl device process launch --terminate-existing` with the same environment and arguments. No boot, no keychain reset, no mock server. See "Physical devices".
+
+### Physical devices
+
+An iPhone or iPad that is paired with this Mac, in Developer Mode and reachable by cable or Wi-Fi shows in the "Devices" section: its name, its iOS version as the runtime tag, a `device` tag and "Connected" or "Not connected". `xcrun devicectl list devices` is the source; the row id is the hardware UDID. A device that is paired but switched off or away stays in the list as "Not connected".
+
+What works on a device, through `xcrun devicectl`:
+
+- **Target and Build & Run.** A click makes the device the target. The build runs `xcodebuild -destination id=<udid> -allowProvisioningUpdates` with the signing of the project (automatic signing with the team, Xcode logged in; DevHub manages no certificates). Then `devicectl device install app --device <udid> <App.app>` and `devicectl device process launch --device <udid> --terminate-existing --environment-variables <JSON> <bundle ID> <arguments>`. The app opens on the device.
+- **Launch profiles and the device ID.** `env`, `args` and the ID go into the launch; `defaults` are written into `Library/Preferences/<suite>.plist` of the app on the device (`devicectl device copy from`, `defaults write` on the Mac, `devicectl device copy to`). A `group.` suite is read and written in the app data container too.
+- **Clean install** removes the app (`devicectl device uninstall app`) and installs the last build again. The keychain of the device stays.
+- **The identity panel** reads the installed version with `devicectl device info apps`, the stored profile from the copied preferences plist, and the identity hook from the last product that DevHub built on this Mac ([Device identity](device-identity.md)).
+- **Uninstall**, **Favorites**, **Copy UDID**, config actions of the row (`DEVHUB_SIMULATOR_KIND=device`) and the status script (with empty container variables).
+
+Not available on a device, and hidden in its row: boot and shutdown, erase, remove all apps, logs, app data, QA settings, deep links, push, the mock server, and Run & Attach (the run bar disables it for a device target). Build & Run on a device that is "Not connected" is disabled.
 
 ### Simulator app
 
@@ -285,7 +301,7 @@ The run options belong to the simulator. A click on another row loads the scheme
 
 ## Limits
 
-1. Only iOS simulators are listed. Real devices, watchOS, tvOS and visionOS runtimes are not shown.
+1. Only iOS simulators and paired iPhones and iPads are listed. watchOS, tvOS and visionOS are not shown.
 2. `xcrun simctl boot` on a booted simulator shows a red row in the Output panel (exit code 149). The run goes on.
 3. Run & Attach is off for `kind: command` projects.
 4. Run & Attach needs the Accessibility permission. It clicks Xcode menus by name, so a changed Xcode menu breaks it.
@@ -295,3 +311,5 @@ The run options belong to the simulator. A click on another row loads the scheme
 8. The build log keeps the last 20,000 lines of one run.
 9. The profile picker of the run bar does not mark a `production` profile in red. Only the profile tag of the identity panel is red, and the mock server refuses such a profile.
 10. The app data panel needs a booted simulator, and a running app reads a changed key only after a relaunch.
+11. A device without Developer Mode shows as connected; the install fails with the message of `devicectl`. A device build needs Xcode logged in to the team account for `-allowProvisioningUpdates`. The device must be unlocked for the launch.
+12. On a device the identity hook is read from the last product DevHub built on this Mac, so a build installed by Xcode shows "no … hook" until DevHub builds once.

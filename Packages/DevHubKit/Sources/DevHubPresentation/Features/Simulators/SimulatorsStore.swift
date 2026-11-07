@@ -10,12 +10,14 @@ final class SimulatorsStore: SimulatorLookup {
     var installedAppCounts: [Simulator.ID: Int] = [:]
     private(set) var isLoading = false
     private(set) var error: String?
+    private(set) var deviceError: String?
     private(set) var uninstallingIDs: Set<Simulator.ID> = []
     private(set) var bulkUninstall: BulkProgress?
     private(set) var favoriteOrder: [Simulator.ID]
     private(set) var app = SimulatorApp.simulator
 
     @ObservationIgnored private let repository: SimulatorRepository
+    @ObservationIgnored private let devices: any DeviceRepository
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let runner: ActionRunner
     @ObservationIgnored private let events: AppEvents
@@ -26,8 +28,9 @@ final class SimulatorsStore: SimulatorLookup {
 
     private static let favoritesKey = "simulators.favorites"
 
-    init(repository: SimulatorRepository, activity: ActivityLog, operations: OperationLog, events: AppEvents, store: any KeyValueStore) {
+    init(repository: SimulatorRepository, devices: any DeviceRepository, activity: ActivityLog, operations: OperationLog, events: AppEvents, store: any KeyValueStore) {
         self.repository = repository
+        self.devices = devices
         self.activity = activity
         runner = ActionRunner(activity: activity, operations: operations, origin: .simulators)
         self.events = events
@@ -57,7 +60,11 @@ final class SimulatorsStore: SimulatorLookup {
     }
 
     func runtime(for id: Simulator.ID) -> String? {
-        groups.first { group in group.simulators.contains { $0.id == id } }?.runtime
+        for group in groups {
+            guard let simulator = group.simulators.first(where: { $0.id == id }) else { continue }
+            return simulator.runtime ?? group.runtime
+        }
+        return nil
     }
 
     func isUninstalling(_ id: Simulator.ID) -> Bool {
@@ -76,8 +83,13 @@ final class SimulatorsStore: SimulatorLookup {
                 }
             }
             do {
+                async let physical = loadDevices()
                 var loaded = try await repository.list()
+                let devices = await physical
                 try Task.checkCancellation()
+                if devices.isEmpty == false {
+                    loaded.insert(SimulatorGroup(runtime: SimulatorGroup.devicesTitle, simulators: devices), at: 0)
+                }
                 for groupIndex in loaded.indices {
                     for index in loaded[groupIndex].simulators.indices {
                         loaded[groupIndex].simulators[index].isFavorite = favoriteOrder.contains(loaded[groupIndex].simulators[index].id)
@@ -85,7 +97,7 @@ final class SimulatorsStore: SimulatorLookup {
                 }
                 groups = loaded
                 error = nil
-                let counts = await repository.installedAppCounts(udids: all.map(\.id))
+                let counts = await repository.installedAppCounts(udids: all.filter { $0.isPhysical == false }.map(\.id))
                 try Task.checkCancellation()
                 installedAppCounts = counts
                 let app = await repository.simulatorApp()
@@ -100,10 +112,24 @@ final class SimulatorsStore: SimulatorLookup {
         }
     }
 
+    private func loadDevices() async -> [Simulator] {
+        do {
+            let devices = try await devices.list()
+            deviceError = nil
+            return devices
+        } catch {
+            if deviceError != error.localizedDescription {
+                activity.log("Device list failed", detail: error.localizedDescription, outcome: .failure)
+            }
+            deviceError = error.localizedDescription
+            return []
+        }
+    }
+
     // MARK: Power
 
     func togglePower(id: Simulator.ID) {
-        guard let simulator = simulator(id: id) else { return }
+        guard let simulator = simulator(id: id), simulator.isPhysical == false else { return }
         switch simulator.state {
         case .booted:
             update(id: id) { $0.state = .shuttingDown }
@@ -121,7 +147,7 @@ final class SimulatorsStore: SimulatorLookup {
     }
 
     func erase(id: Simulator.ID) {
-        guard let simulator = simulator(id: id) else { return }
+        guard let simulator = simulator(id: id), simulator.isPhysical == false else { return }
         update(id: id) { $0.state = .shuttingDown }
         perform("Erased", simulator) { [repository] in
             try await repository.erase(udid: id)
@@ -129,7 +155,7 @@ final class SimulatorsStore: SimulatorLookup {
     }
 
     func openInSimulatorApp(id: Simulator.ID) {
-        guard let simulator = simulator(id: id) else { return }
+        guard let simulator = simulator(id: id), simulator.isPhysical == false else { return }
         perform("Opened in \(SimulatorRowMapper.appName(app))", simulator) { [repository] in
             try await repository.openInSimulatorApp(udid: id)
         }
@@ -155,7 +181,7 @@ final class SimulatorsStore: SimulatorLookup {
     // MARK: Apps
 
     func uninstallUserApps(id: Simulator.ID) {
-        guard let simulator = simulator(id: id) else { return }
+        guard let simulator = simulator(id: id), simulator.isPhysical == false else { return }
         let wasBooted = simulator.state == .booted
         uninstallingIDs.insert(id)
         Task { [weak self] in
@@ -179,7 +205,11 @@ final class SimulatorsStore: SimulatorLookup {
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await repository.uninstall(udid: id, bundleID: bundleID, wasBooted: wasBooted)
+                if simulator.isPhysical {
+                    try await devices.uninstall(udid: id, bundleID: bundleID)
+                } else {
+                    try await repository.uninstall(udid: id, bundleID: bundleID, wasBooted: wasBooted)
+                }
                 activity.log("Uninstalled \(bundleID)", detail: simulator.name, outcome: .success)
             } catch {
                 activity.log("Uninstall failed: \(simulator.name)", detail: error.localizedDescription, outcome: .failure)

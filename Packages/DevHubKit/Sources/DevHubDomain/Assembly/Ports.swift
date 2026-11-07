@@ -4,6 +4,7 @@ package struct Ports: Sendable {
     package let usage: any ClaudeUsageRepository
     package let copilotUsage: any CopilotUsageRepository
     package let simulators: any SimulatorRepository
+    package let devices: any DeviceRepository
     package let build: any BuildRepository
     package let testRuns: any TestRunRepository
     package let worktrees: any WorktreeRepository
@@ -42,6 +43,7 @@ package struct Ports: Sendable {
         usage: any ClaudeUsageRepository,
         copilotUsage: any CopilotUsageRepository,
         simulators: any SimulatorRepository,
+        devices: any DeviceRepository,
         build: any BuildRepository,
         testRuns: any TestRunRepository,
         worktrees: any WorktreeRepository,
@@ -79,6 +81,7 @@ package struct Ports: Sendable {
         self.usage = usage
         self.copilotUsage = copilotUsage
         self.simulators = simulators
+        self.devices = devices
         self.build = build
         self.testRuns = testRuns
         self.worktrees = worktrees

@@ -62,7 +62,7 @@ struct NetworkToolbar: View {
 
     private var model: NetworkToolbarModel {
         NetworkToolbarMapper.model(
-            simulators: simulators.all,
+            simulators: simulators.all.filter { $0.isPhysical == false },
             runtime: simulators.runtime(for:),
             isPaused: network.isPaused,
             pendingCount: network.pendingCount,

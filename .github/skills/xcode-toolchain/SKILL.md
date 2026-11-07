@@ -122,6 +122,24 @@ also under the sibling `.xcodeproj` folders. Sorted with `localizedStandardCompa
 | Push | `simctl push <udid> <bundleID> <file.apns>`, a temporary file with the JSON payload |
 | Disk cleanup | `XcodeDiskCleanupRepository`: `simctl list devices unavailable -j` (`SimctlUnavailableDeviceParser`, the size is the sum of `dataPathSize`) and `simctl runtime list -j` (`SimctlRuntimeListParser`, only `deletable` runtimes, `sizeBytes`, `lastUsedAt`); delete with `simctl delete unavailable` and `simctl runtime delete <identifier>`. The folders (DerivedData by `WorkspacePath`, Archives, `<platform> DeviceSupport`, SwiftPM and CocoaPods caches) come from `DiskFolderScanner`, are measured with `du -sck` and deleted with `rm -rf --` after `DiskCleanupPolicy.isRemovable` |
 
+## Physical devices
+
+A paired iPhone or iPad is a `Simulator` value with `isPhysical == true` and its OS in `runtime`; its `id` is the hardware UDID (`00008110-…`), which `xcodebuild -destination id=` and `devicectl --device` both accept. Everything runs through `xcrun devicectl` (`DevHubData/Devices/`, `DevicectlDeviceRepository`, `DevicectlRunner`). `devicectl` prints human text; a script reads its result only through `--json-output <file>` (`DevicectlRunner.json` writes a temporary file and deletes it).
+
+| Need | Command and code |
+|---|---|
+| List | `xcrun devicectl list devices --json-output <file>` (`DevicectlListParser`): `hardwareProperties.udid`, `deviceProperties.name`, `osVersionNumber`, `deviceType` iPhone or iPad, `platform` iOS; `connectionProperties.tunnelState == connected` is "connected" (`state == .booted`), anything else "not connected". Watches, `reality: virtual` and records without hardware are dropped |
+| Build | the same `xcodebuild` as a simulator with `-destination id=<udid>` plus `-allowProvisioningUpdates`; the project signs itself (automatic signing with a team, Xcode logged in). The product lands in `Debug-iphoneos` |
+| Install | `devicectl device install app --device <udid> <App.app>` |
+| Uninstall | `devicectl device info apps --device <udid> --bundle-id <id> --json-output <file>` first; when the app is listed, `devicectl device uninstall app --device <udid> <bundle ID>` |
+| Launch | `devicectl device process launch --device <udid> --terminate-existing --environment-variables '<JSON>' --json-output <file> <bundle ID> <args>`. The environment is a JSON dictionary with sorted keys (`DevicectlDeviceRepository.launchArguments`); no `SIMCTL_CHILD_` prefix. The pid is `result.process.processIdentifier` (`DevicectlLaunchParser`). The app opens in the foreground. Error 10004 ("process identifier could not be determined") was seen once right after a terminate |
+| Installed app facts | `devicectl device info apps --bundle-id` gives the version (`DevicectlAppListParser`). The identity markers are read with `AppBundleMarkers` from the last built product on the Mac (`BuildLookup.lastBuiltAppPath()`), only when its `Info.plist` has the same bundle ID; the device binary cannot be read |
+| Profile defaults and stored profile | `devicectl device copy from --domain-type appDataContainer --domain-identifier <bundle ID> --source Library/Preferences/<suite>.plist --destination <local>`, `defaults write <local folder>/<suite> <key> -string\|-bool\|-integer\|-float <value>` on the Mac, then `copy to` with the same paths (`ProfileDefaultsPlan.localWriteArguments`, `preferencesPath`). Checked on an iPhone: the copied key survived a relaunch of the app. The plist of a `group.` suite is read from the app data container too: `appGroupDataContainer` listing failed on that phone (CoreDevice error 3), and the app kept its group suite plist under its own `Library/Preferences` |
+| Clean install | `uninstall` then `install` of the last built product. No keychain reset on a device |
+| Not available | `log stream` (no devicectl command; `idevicesyslog` or `pymobiledevice3` would be a new tool), the mock server (listens on 127.0.0.1 only), Run & Attach (`AccessibilityXcodeAttacher` clicks a simulator destination), `openurl`, `push`, erase, app data, QA settings. The row hides those actions |
+
+Facts of the paired devices (name, serial, ECID, UDID) are personal: `DevicectlListFixture` uses sample values.
+
 ## Logs
 
 ```

@@ -102,7 +102,8 @@ struct RunBar: View {
             identity: target.flatMap { identityStore.context(for: $0.id) },
             mockState: target.flatMap { mockServerStore.states[$0.id] },
             hasLog: build.hasLog,
-            isLoadingSimulators: simulators.isLoading
+            isLoadingSimulators: simulators.isLoading,
+            isCommandProject: build.isCommandProject
         )
     }
 
@@ -145,7 +146,7 @@ struct RunBar: View {
                 .disabled(build.isCommandProject)
             Toggle("Clean install", isOn: Binding(get: { build.state.cleanInstall }, set: { build.setCleanInstall($0) }))
                 .toggleStyle(.checkbox)
-                .hint("Cold install: delete the app and reset the simulator keychain before installing")
+                .hint("Cold install: delete the app before installing. A simulator also gets its keychain reset")
             Spacer()
             IconButton(systemImage: "arrow.clockwise", help: "Refresh simulators") {
                 Task { await simulators.refresh() }
@@ -231,8 +232,8 @@ struct RunBar: View {
                     Label("Run & Attach", systemImage: "ladybug.fill")
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
-                .hint(build.isCommandProject ? "Run & Attach needs an Xcode project. This project builds with its commands." : "Build, launch frozen with --wait-for-debugger and attach Xcode (⇧⌘R). Xcode's console stays empty for an attached process.")
-                .disabled(model.canRun == false || build.isCommandProject)
+                .hint(model.attachHint)
+                .disabled(model.canAttach == false)
                 Button {
                     appActions.buildAndRun()
                 } label: {
@@ -240,7 +241,7 @@ struct RunBar: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut("r")
-                .hint("Build and launch on the target simulator (⌘R)")
+                .hint(model.runHint)
                 .disabled(model.canRun == false)
             }
         }

@@ -31,6 +31,9 @@ struct RunBarModel: Equatable {
     var outcome: Outcome?
     var isRunning: Bool
     var canRun: Bool
+    var canAttach: Bool
+    var runHint: String
+    var attachHint: String
     var canShowLog: Bool
     var canRefreshSimulators: Bool
 
@@ -51,6 +54,9 @@ struct RunBarModel: Equatable {
         outcome: Outcome(tint: .green, text: "Launched on iPhone 16 Pro · 2 min ago"),
         isRunning: false,
         canRun: true,
+        canAttach: true,
+        runHint: "Build and launch on the target simulator (⌘R)",
+        attachHint: "Build, launch frozen with --wait-for-debugger and attach Xcode (⇧⌘R). Xcode's console stays empty for an attached process.",
         canShowLog: true,
         canRefreshSimulators: true
     )

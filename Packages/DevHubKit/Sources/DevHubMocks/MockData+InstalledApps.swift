@@ -3,7 +3,8 @@ import DevHubDomain
 
 extension MockData {
     package static let installedApps: [Simulator.ID: InstalledApp] = [
-        "sim-17pro": InstalledApp(isInstalled: true, version: "1.5.2", hasIdentityHook: true, keepsIdentity: false, storedProfileID: "staging")
+        "sim-17pro": InstalledApp(isInstalled: true, version: "1.5.2", hasIdentityHook: true, keepsIdentity: false, storedProfileID: "staging"),
+        "device-sam": InstalledApp(isInstalled: true, version: "1.5.1", hasIdentityHook: true, keepsIdentity: true, storedProfileID: "production")
     ]
 
     package static let appReports: [Simulator.ID: AppStateReport] = [

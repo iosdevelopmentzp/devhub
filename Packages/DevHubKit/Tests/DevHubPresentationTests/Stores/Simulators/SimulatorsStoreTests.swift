@@ -309,4 +309,60 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.detail == "0 apps")
         #expect(harness.spies.simulators.calls.contains { if case .uninstallUserApps = $0 { true } else { false } } == false)
     }
+
+    // MARK: Devices
+
+    @Test func refreshPutsPairedDevicesInAFirstSectionWithoutAppCounts() async {
+        harness.spies.simulators.listResult = .success(SimulatorSample.groups)
+        harness.spies.devices.listResult = .success([SimulatorSample.device])
+
+        await store.refresh()
+
+        #expect(store.groups.first?.runtime == SimulatorGroup.devicesTitle)
+        #expect(store.groups.first?.simulators == [SimulatorSample.device])
+        #expect(store.runtime(for: SimulatorSample.device.id) == "iOS 26.1")
+        #expect(store.runtime(for: booted.id) == "iOS 26.0")
+        #expect(store.deviceError == nil)
+        #expect(harness.spies.simulators.calls.contains(.installedAppCounts(udids: [booted.id, shutdown.id, SimulatorSample.pad.id])))
+    }
+
+    @Test func aFailedDeviceListKeepsTheSimulatorsAndLogsOnce() async {
+        harness.spies.simulators.listResult = .success(SimulatorSample.groups)
+        harness.spies.devices.listResult = .failure(failure)
+
+        await store.refresh()
+        await store.refresh()
+
+        #expect(store.groups == SimulatorSample.groups)
+        #expect(store.error == nil)
+        #expect(store.deviceError == failure.localizedDescription)
+        #expect(harness.activityTitles == ["Device list failed"])
+    }
+
+    @Test func uninstallOnADeviceUsesDevicectl() async throws {
+        harness.spies.simulators.listResult = .success(SimulatorSample.groups)
+        harness.spies.devices.listResult = .success([SimulatorSample.device])
+        await store.refresh()
+
+        store.uninstall(bundleID: "com.example.a", from: SimulatorSample.device.id)
+
+        try await waitUntil { listCalls == 2 }
+        #expect(harness.spies.devices.calls.contains(.uninstall(udid: SimulatorSample.device.id, bundleID: "com.example.a")))
+        #expect(harness.spies.simulators.calls.contains { if case .uninstall = $0 { true } else { false } } == false)
+        #expect(harness.lastActivity?.title == "Uninstalled com.example.a")
+    }
+
+    @Test func powerEraseAndRemoveAppsIgnoreADevice() async {
+        harness.spies.devices.listResult = .success([SimulatorSample.device])
+        await store.refresh()
+
+        store.togglePower(id: SimulatorSample.device.id)
+        store.erase(id: SimulatorSample.device.id)
+        store.openInSimulatorApp(id: SimulatorSample.device.id)
+        store.uninstallUserApps(id: SimulatorSample.device.id)
+        await harness.settle()
+
+        #expect(harness.spies.simulators.calls.filter { $0 != .list && $0 != .simulatorApp && $0 != .installedAppCounts(udids: []) }.isEmpty)
+        #expect(store.simulator(id: SimulatorSample.device.id)?.state == .booted)
+    }
 }

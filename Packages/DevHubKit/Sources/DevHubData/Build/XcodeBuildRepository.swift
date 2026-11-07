@@ -23,9 +23,9 @@ struct XcodeBuildRepository: BuildRepository {
         return XcodeListParser.names(from: result.stdout)
     }
 
-    func lastBuiltAppPath(projectPath: String, container: String?, scheme: String, configuration: String) -> String? {
+    func lastBuiltAppPath(projectPath: String, container: String?, scheme: String, configuration: String, isPhysicalDevice: Bool) -> String? {
         guard let container = try? XcodeContainer.locate(in: projectPath, preferred: container) else { return nil }
-        return productLocator.appPath(hints: [], container: container, scheme: scheme, configuration: configuration)
+        return productLocator.appPath(hints: [], container: container, scheme: scheme, configuration: configuration, isPhysicalDevice: isPhysicalDevice)
     }
 
     func product(atAppPath path: String) throws -> BuildProduct {
@@ -47,7 +47,7 @@ struct XcodeBuildRepository: BuildRepository {
     func locateProduct(_ request: BuildRequest, hints: [String]) async throws -> BuildProduct {
         let invocation = try Invocation(request)
         let appPath: String
-        if let located = productLocator.appPath(hints: hints, container: invocation.container, scheme: request.scheme, configuration: request.configuration) {
+        if let located = productLocator.appPath(hints: hints, container: invocation.container, scheme: request.scheme, configuration: request.configuration, isPhysicalDevice: request.isPhysicalDevice) {
             appPath = located
         } else {
             appPath = try await appPathFromBuildSettings(invocation.common, cwd: invocation.cwd)
@@ -114,7 +114,7 @@ private nonisolated struct Invocation {
             "-scheme", request.scheme,
             "-configuration", request.configuration,
             "-destination", "id=\(request.simulatorUDID)"
-        ]
+        ] + (request.isPhysicalDevice ? ["-allowProvisioningUpdates"] : [])
     }
 }
 

@@ -73,7 +73,7 @@ enum TodayCardMapper {
     }
 
     private static func simulatorsItem(_ simulators: [Simulator]) -> TodayItemModel? {
-        let booted = simulators.filter { $0.state == .booted }
+        let booted = simulators.filter { $0.state == .booted && $0.isPhysical == false }
         guard booted.isEmpty == false else { return nil }
         return TodayItemModel(
             id: "simulators",

@@ -30,6 +30,7 @@ package enum CommandKind: Sendable {
         case "git":
             return gitKind(arguments)
         case "xcrun":
+            if arguments.first == "devicectl" { return devicectlKind(Array(arguments.dropFirst())) }
             guard arguments.first == "simctl", arguments.count > 1 else { return .action }
             if simctlReads.contains(arguments[1]) { return .read }
             if arguments[1] == "spawn", arguments.contains("read") { return .read }
@@ -48,6 +49,15 @@ package enum CommandKind: Sendable {
         default:
             return plainReads.contains(name) ? .read : .action
         }
+    }
+
+    private static func devicectlKind(_ arguments: [String]) -> CommandKind {
+        let words = arguments.filter { $0.hasPrefix("-") == false }
+        if words.first == "list" { return .read }
+        guard words.first == "device" else { return .action }
+        if words.dropFirst().first == "info" { return .read }
+        if words.dropFirst().prefix(2) == ["copy", "from"] { return .read }
+        return .action
     }
 
     private static func circleCIKind(_ arguments: [String]) -> CommandKind {

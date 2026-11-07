@@ -131,7 +131,7 @@ final class SimulatorStatusStore {
             effective: effective,
             simulatorUDID: simulator.id,
             simulatorName: simulator.name,
-            appPath: build.lastBuiltAppPath() ?? "",
+            appPath: build.lastBuiltAppPath(isPhysicalDevice: simulator.isPhysical) ?? "",
             configDir: "",
             item: ActionItemContext(simulatorUDID: simulator.id, simulatorName: simulator.name, rowID: simulator.id),
             inputs: [:],
@@ -139,7 +139,8 @@ final class SimulatorStatusStore {
             profileID: build.profile(for: simulator.id)?.id ?? "",
             hostKind: codeHosts.kind,
             containers: containers,
-            simulatorState: simulator.state
+            simulatorState: simulator.state,
+            isPhysicalDevice: simulator.isPhysical
         )).environment
     }
 }

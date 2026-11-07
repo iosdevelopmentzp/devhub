@@ -74,7 +74,7 @@ enum PaletteMapper {
 
     private static func simulatorItems(_ sources: PaletteSources) -> [PaletteItem] {
         sources.simulators.flatMap { simulator -> [PaletteItem] in
-            let state = simulator.state == .booted ? "booted" : "shut down"
+            let state = simulator.isPhysical ? (simulator.state == .booted ? "connected device" : "device, not connected") : (simulator.state == .booted ? "booted" : "shut down")
             var items = [
                 PaletteItem(id: "run:\(simulator.id)", title: "Build & Run on \(simulator.name)", subtitle: state, systemImage: "play.fill", section: "Simulators", command: .buildAndRun(on: simulator.id))
             ]

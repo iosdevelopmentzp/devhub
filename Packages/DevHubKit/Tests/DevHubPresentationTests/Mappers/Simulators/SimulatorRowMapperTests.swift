@@ -92,6 +92,41 @@ import Testing
         #expect(model.isEditingIdentity == false)
         #expect(model.isMessaging == false)
         #expect(model.pinsActions == false)
+        #expect(model.deviceTag == nil)
+        #expect(model.showsSimulatorActions)
+    }
+
+    @Test func aPhysicalDeviceHidesTheSimulatorActions() {
+        var flags = Flags()
+        flags.isTarget = true
+        flags.installedApps = 3
+
+        let model = row(SimulatorFixture.device, flags: flags)
+
+        #expect(model.deviceTag == SimulatorRowMapper.deviceTag)
+        #expect(model.stateText == "Connected")
+        #expect(model.stateTint == .green)
+        #expect(model.detailText == "Connected")
+        #expect(model.targetTag?.hint == "Build & Run and the run bar above use this device. Click a row to change it.")
+        #expect(model.showsSimulatorActions == false)
+        #expect(model.canBuildAndRun)
+        #expect(model.canUninstallFromMenu)
+        #expect(model.canRemoveApps == false)
+        #expect(model.canTogglePower == false)
+        #expect(model.canStreamLogs == false)
+        #expect(model.canLaunchAndAttach == false)
+        #expect(model.canShowAppData == false)
+        #expect(model.canErase == false)
+    }
+
+    @Test func aDisconnectedDeviceCannotBuildOrUninstall() {
+        let model = row(SimulatorFixture.offlineDevice, flags: Flags())
+
+        #expect(model.stateText == "Not connected")
+        #expect(model.stateTint == .secondary)
+        #expect(model.stateDotOpacity == 0.35)
+        #expect(model.canBuildAndRun == false)
+        #expect(model.canUninstallFromMenu == false)
     }
 
     @Test func installedAppsAreCountedInTheDetail() {

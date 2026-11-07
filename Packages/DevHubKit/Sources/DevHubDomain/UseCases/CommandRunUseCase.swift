@@ -29,9 +29,11 @@ package struct CommandRunUseCase: Sendable {
 
     private func pipeline(_ request: CommandRunRequest, continuation: AsyncThrowingStream<BuildEvent, Error>.Continuation) async throws {
         let target = request.target
-        continuation.yield(.step("Booting \(target.simulatorName)", progress: nil))
-        try await simulators.boot(udid: target.simulatorUDID)
-        try Task.checkCancellation()
+        if target.isPhysicalDevice == false {
+            continuation.yield(.step("Booting \(target.simulatorName)", progress: nil))
+            try await simulators.boot(udid: target.simulatorUDID)
+            try Task.checkCancellation()
+        }
 
         var appPath: String?
         for (key, command) in commands(of: request) {

@@ -55,7 +55,7 @@ that queue: about 3 s on 14 cores, about 10 s on the 3-core CI runner, which is 
 ## Spies (`Sources/DevHubTestSupport/`)
 
 One `Spy<Port>` per port: `SpyGitRepository`, `SpyGitChangesRepository`, `SpyWorktreeRepository`,
-`SpyCodeHostRepository`, `SpySimulatorRepository`, `SpySimulatorMessagingRepository`, `SpyBuildRepository`,
+`SpyCodeHostRepository`, `SpySimulatorRepository`, `SpyDeviceRepository`, `SpySimulatorMessagingRepository`, `SpyBuildRepository`,
 `SpyAppLaunchRepository`, `SpyDerivedDataRepository`, `SpyAppLogRepository`, `SpyMockServerRepository` (`emit(_:udid:)` calls the saved `onExchange`), `SpyMockSetRepository` (`savedSets`), `SpyAISessionRepository`, `SpyCopilotUsageRepository`,
 `SpyClaudeUsageRepository`, `SpyWorkspaceOpener`, `SpyXcodeAttacher`, `SpyProjectDetector`,
 `SpyReviewPromptRepository`, `SpyConfigRepository`, `SpyScriptRunner`, `SpyToolLocator`,

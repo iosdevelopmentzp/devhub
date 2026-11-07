@@ -42,7 +42,8 @@ extension BuildStore {
             configDir: "",
             item: .none,
             inputs: [:],
-            version: ""
+            version: "",
+            isPhysicalDevice: simulator.isPhysical
         ))
         return commandRun.run(CommandRunRequest(
             buildCommand: project.build?.command,

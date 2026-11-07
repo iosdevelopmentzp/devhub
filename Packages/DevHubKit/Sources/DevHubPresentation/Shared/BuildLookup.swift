@@ -9,5 +9,6 @@ protocol BuildLookup: AnyObject {
     var selectedConfiguration: String { get }
     var target: Simulator? { get }
     func lastBuiltAppPath() -> String?
+    func lastBuiltAppPath(isPhysicalDevice: Bool) -> String?
     func profile(for id: Simulator.ID) -> LaunchProfile?
 }

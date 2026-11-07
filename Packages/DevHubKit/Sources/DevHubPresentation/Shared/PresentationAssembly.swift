@@ -188,9 +188,10 @@ package final class PresentationAssembly {
             activity: activity,
             events: events
         )
-        simulators = SimulatorsStore(repository: ports.simulators, activity: activity, operations: operations, events: events, store: store)
+        simulators = SimulatorsStore(repository: ports.simulators, devices: ports.devices, activity: activity, operations: operations, events: events, store: store)
         identity = IdentityStore(
             repository: ports.launcher,
+            devices: ports.devices,
             launchInstalledApp: useCases.launchInstalledApp,
             session: session,
             config: config,
@@ -217,6 +218,7 @@ package final class PresentationAssembly {
             store: store,
             prompts: ports.reviewPrompts
         )
+        identity.use(build: build)
         testRuns = TestRunsStore(runTests: useCases.runTests, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events, prompts: ports.reviewPrompts)
         simulatorStatuses = SimulatorStatusStore(
             readStatus: useCases.readSimulatorStatus,

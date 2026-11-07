@@ -54,6 +54,7 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
     private var _buildError: (any Error)? = nil
     private var _locateProductResult: Result<BuildProduct, any Error> = .success(BuildProduct(appPath: "", bundleID: ""))
     private var _lastBuiltAppPathResult: String? = nil
+    private var _lastBuiltAppPathPlatforms: [Bool] = []
 
     package init() {}
 
@@ -135,8 +136,13 @@ package final class SpyBuildRepository: BuildRepository, @unchecked Sendable {
         try record(.product(appPath: path)) { try _locateProductResult.get() }
     }
 
-    package func lastBuiltAppPath(projectPath: String, container: String?, scheme: String, configuration: String) -> String? {
-        record(.lastBuiltAppPath(projectPath: projectPath, scheme: scheme, configuration: configuration)) { _lastBuiltAppPathResult }
+    package func lastBuiltAppPath(projectPath: String, container: String?, scheme: String, configuration: String, isPhysicalDevice: Bool) -> String? {
+        lock.withLock { _lastBuiltAppPathPlatforms.append(isPhysicalDevice) }
+        return record(.lastBuiltAppPath(projectPath: projectPath, scheme: scheme, configuration: configuration)) { _lastBuiltAppPathResult }
+    }
+
+    package var lastBuiltAppPathPlatforms: [Bool] {
+        lock.withLock { _lastBuiltAppPathPlatforms }
     }
 
     private func record<Value>(_ call: Call, _ value: () throws -> Value) rethrows -> Value {

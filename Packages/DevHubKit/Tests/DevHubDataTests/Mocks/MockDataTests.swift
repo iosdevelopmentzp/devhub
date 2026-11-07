@@ -21,7 +21,7 @@ import Testing
     }
 
     @Test func identitiesPointAtMockSimulators() {
-        let simulatorIDs = Set(MockData.simulatorGroups.flatMap(\.simulators).map(\.id))
+        let simulatorIDs = Set(MockData.simulatorGroups.flatMap(\.simulators).map(\.id) + MockData.devices.map(\.id))
 
         #expect(Set(MockData.installedApps.keys).isSubset(of: simulatorIDs))
     }

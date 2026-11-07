@@ -43,7 +43,7 @@ The core is generic. Swift code never names a project, a path, a bundle ID, a ho
 
 ### 1.4 Non-goals
 
-- Physical devices (`devicectl`).
+- Physical devices beyond build, install and launch (`devicectl`): logs, mocks, Run & Attach, deep links, push, erase and app data stay simulator only.
 - App Store distribution, notarization or the App Sandbox. The app uses ad-hoc signing. A sandbox would block `git`, `xcrun` and `xcodebuild`.
 - Chat integrations. A project that needs one adds an action with a script.
 - An AI chat inside the app. The AI tab lists sessions, resumes them and shows quotas.

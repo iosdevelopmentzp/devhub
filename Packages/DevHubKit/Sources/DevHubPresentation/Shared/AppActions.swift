@@ -159,7 +159,7 @@ final class AppActions {
             attachDebugger: attachDebugger,
             forceCleanInstall: build.state.cleanInstall,
             projectPath: build.sourcePath,
-            fallbackAppPath: build.lastBuiltAppPath()
+            fallbackAppPath: build.lastBuiltAppPath(isPhysicalDevice: simulator.isPhysical)
         )
     }
 

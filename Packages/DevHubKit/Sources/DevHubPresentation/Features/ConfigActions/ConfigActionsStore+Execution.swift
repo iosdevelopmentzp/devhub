@@ -44,7 +44,8 @@ extension ConfigActionsStore {
             profileID: target.flatMap { build.profile(for: $0.id) }?.id ?? "",
             hostKind: codeHosts.kind,
             containers: await launcher.containers(udid: udid, bundleID: item.bundleID ?? effective.bundleID ?? ""),
-            simulatorState: simulators.simulator(id: udid)?.state
+            simulatorState: simulators.simulator(id: udid)?.state,
+            isPhysicalDevice: simulators.simulator(id: udid)?.isPhysical == true
         ))
     }
 

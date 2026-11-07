@@ -1,6 +1,8 @@
 import Foundation
 
 package struct SimulatorGroup: Identifiable, Hashable, Sendable {
+    package static let devicesTitle = "Devices"
+
     package var id: String { runtime }
     package var runtime: String
     package var simulators: [Simulator]

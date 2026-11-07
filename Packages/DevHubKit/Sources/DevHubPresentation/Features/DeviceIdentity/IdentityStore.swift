@@ -20,6 +20,8 @@ final class IdentityStore: IdentityLookup {
     private(set) var applyingIDs: Set<Simulator.ID> = []
 
     @ObservationIgnored private let repository: AppLaunchRepository
+    @ObservationIgnored private let devices: any DeviceRepository
+    @ObservationIgnored private weak var build: (any BuildLookup)?
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let launchInstalledApp: LaunchInstalledAppUseCase
@@ -36,6 +38,7 @@ final class IdentityStore: IdentityLookup {
 
     init(
         repository: AppLaunchRepository,
+        devices: any DeviceRepository,
         launchInstalledApp: LaunchInstalledAppUseCase,
         session: ProjectSession,
         config: ConfigStore,
@@ -46,6 +49,7 @@ final class IdentityStore: IdentityLookup {
         store: any KeyValueStore
     ) {
         self.repository = repository
+        self.devices = devices
         self.launchInstalledApp = launchInstalledApp
         self.session = session
         self.config = config
@@ -117,8 +121,13 @@ final class IdentityStore: IdentityLookup {
             settings: settings(for: id),
             savedDeviceIDs: savedDeviceIDs,
             aliases: deviceIDAliases,
-            isApplying: applyingIDs.contains(id)
+            isApplying: applyingIDs.contains(id),
+            isPhysicalDevice: simulators.simulator(id: id)?.isPhysical == true
         )
+    }
+
+    func use(build: any BuildLookup) {
+        self.build = build
     }
 
     func isApplying(_ id: Simulator.ID) -> Bool {
@@ -137,9 +146,16 @@ final class IdentityStore: IdentityLookup {
 
     func refresh(id: Simulator.ID) async {
         guard let identityConfig else { return }
-        let app = await repository.inspect(udid: id, bundleID: bundleID(for: id), identity: identityConfig, storage: storage)
+        let app = await inspect(id: id, bundleID: bundleID(for: id), identity: identityConfig, storage: storage)
         guard apps[id] != app else { return }
         apps[id] = app
+    }
+
+    private func inspect(id: Simulator.ID, bundleID: String, identity: LaunchIdentityConfig, storage: ProfileStorage?) async -> InstalledApp {
+        guard simulators.simulator(id: id)?.isPhysical == true else {
+            return await repository.inspect(udid: id, bundleID: bundleID, identity: identity, storage: storage)
+        }
+        return await devices.inspect(udid: id, bundleID: bundleID, identity: identity, storage: storage, localAppPath: build?.lastBuiltAppPath(isPhysicalDevice: true))
     }
 
     private var storage: ProfileStorage? {
@@ -151,11 +167,15 @@ final class IdentityStore: IdentityLookup {
         let storage = storage
         let targets = simulators.all
             .filter { $0.state == .booted || $0.isFavorite || (simulators.installedAppCounts[$0.id] ?? 0) > 0 }
-            .map { (id: $0.id, bundleID: bundleID(for: $0.id)) }
+            .map { (id: $0.id, bundleID: bundleID(for: $0.id), isPhysical: $0.isPhysical) }
+        let localAppPath = build?.lastBuiltAppPath(isPhysicalDevice: true)
         await withTaskGroup(of: (Simulator.ID, InstalledApp).self) { group in
-            for (id, bundleID) in targets {
-                group.addTask { [repository] in
-                    (id, await repository.inspect(udid: id, bundleID: bundleID, identity: identityConfig, storage: storage))
+            for (id, bundleID, isPhysical) in targets {
+                group.addTask { [repository, devices] in
+                    guard isPhysical else {
+                        return (id, await repository.inspect(udid: id, bundleID: bundleID, identity: identityConfig, storage: storage))
+                    }
+                    return (id, await devices.inspect(udid: id, bundleID: bundleID, identity: identityConfig, storage: storage, localAppPath: localAppPath))
                 }
             }
             for await (id, app) in group {

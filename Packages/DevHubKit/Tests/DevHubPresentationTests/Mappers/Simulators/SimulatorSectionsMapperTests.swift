@@ -102,4 +102,21 @@ import Testing
             )
         }
     }
+
+    @Test func aDeviceRowShowsItsOwnRuntimeInsideTheDevicesSection() {
+        let groups = [
+            SimulatorGroup(runtime: SimulatorGroup.devicesTitle, simulators: [SimulatorFixture.device]),
+            SimulatorGroup(runtime: "iOS 18.2", simulators: [phone])
+        ]
+        var seen: [String] = []
+
+        let sections = map(groups, matches: { _, runtime in
+            seen.append(runtime)
+            return true
+        })
+
+        #expect(sections.map(\.title) == ["Devices", "iOS 18.2"])
+        #expect(sections[0].rows.map(\.runtimeTag) == [TagModel("iOS 26.1")])
+        #expect(seen.contains("iOS 26.1"))
+    }
 }

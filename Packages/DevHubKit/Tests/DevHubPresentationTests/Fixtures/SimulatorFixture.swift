@@ -16,4 +16,24 @@ enum SimulatorFixture {
         state: .shutdown,
         isFavorite: false
     )
+
+    static let device = Simulator(
+        id: "00008110-000000000000001B",
+        name: "Sam's iPhone",
+        kind: .phone,
+        state: .booted,
+        isFavorite: false,
+        isPhysical: true,
+        runtime: "iOS 26.1"
+    )
+
+    static let offlineDevice = Simulator(
+        id: "00008110-000000000000001A",
+        name: "Alex's iPhone",
+        kind: .phone,
+        state: .shutdown,
+        isFavorite: false,
+        isPhysical: true,
+        runtime: "iOS 18.6"
+    )
 }

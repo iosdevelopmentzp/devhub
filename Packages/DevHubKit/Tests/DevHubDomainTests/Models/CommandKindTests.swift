@@ -160,4 +160,17 @@ import Testing
         #expect(CommandKind.classify("/usr/bin/git", ["status"]) == .read)
         #expect(CommandKind.classify("/usr/bin/security", ["find-generic-password"]) == .secret)
     }
+
+    @Test func devicectlListInfoAndCopyFromAreReads() {
+        #expect(CommandKind.classify("xcrun", ["devicectl", "list", "devices", "--json-output", "/tmp/x.json"]) == .read)
+        #expect(CommandKind.classify("xcrun", ["devicectl", "device", "info", "apps", "--device", "D1"]) == .read)
+        #expect(CommandKind.classify("xcrun", ["devicectl", "device", "copy", "from", "--device", "D1", "--source", "a", "--destination", "b"]) == .read)
+    }
+
+    @Test func devicectlInstallLaunchAndCopyToAreActions() {
+        #expect(CommandKind.classify("xcrun", ["devicectl", "device", "install", "app", "--device", "D1", "/tmp/App.app"]) == .action)
+        #expect(CommandKind.classify("xcrun", ["devicectl", "device", "process", "launch", "--device", "D1", "com.example.app"]) == .action)
+        #expect(CommandKind.classify("xcrun", ["devicectl", "device", "copy", "to", "--device", "D1"]) == .action)
+        #expect(CommandKind.classify("xcrun", ["devicectl"]) == .action)
+    }
 }

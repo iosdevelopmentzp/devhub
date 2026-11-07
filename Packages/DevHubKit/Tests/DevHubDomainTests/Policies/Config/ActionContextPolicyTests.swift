@@ -125,4 +125,15 @@ import Testing
         #expect(context.environment["DEVHUB_BRANCH"] == "feature/ABC-1")
         #expect(ActionContextPolicy.make(inputs()).environment["DEVHUB_PR_NUMBER"] == "")
     }
+
+    @Test func theSimulatorKindSaysSimulatorOrDevice() {
+        var device = inputs()
+        device.isPhysicalDevice = true
+        var none = inputs()
+        none.simulatorUDID = ""
+
+        #expect(ActionContextPolicy.make(inputs()).environment["DEVHUB_SIMULATOR_KIND"] == "simulator")
+        #expect(ActionContextPolicy.make(device).environment["DEVHUB_SIMULATOR_KIND"] == "device")
+        #expect(ActionContextPolicy.make(none).environment["DEVHUB_SIMULATOR_KIND"] == "")
+    }
 }

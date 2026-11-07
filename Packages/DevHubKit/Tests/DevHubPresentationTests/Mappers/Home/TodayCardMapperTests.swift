@@ -46,4 +46,10 @@ import Testing
     @Test func nothingToDoGivesNoItems() {
         #expect(TodayCardMapper.items(reviewCount: 0, openRequests: [], username: nil, worktrees: [WorktreeFixture.main], simulators: [SimulatorFixture.iPad], words: .gitHub).isEmpty)
     }
+
+    @Test func aConnectedDeviceDoesNotCountAsABootedSimulator() {
+        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [], username: nil, worktrees: [], simulators: [SimulatorFixture.device, SimulatorFixture.iPad], words: .gitHub)
+
+        #expect(items.isEmpty)
+    }
 }

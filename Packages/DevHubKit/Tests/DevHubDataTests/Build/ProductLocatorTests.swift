@@ -37,6 +37,18 @@ import Testing
         #expect(path == debug)
     }
 
+    @Test func aPhysicalDeviceTakesTheIphoneosHint() throws {
+        let simulator = try makeApp("Debug-iphonesimulator/App.app", bundleID: "com.example.app")
+        let device = try makeApp("Debug-iphoneos/App.app", bundleID: "com.example.app")
+        let container = XcodeContainer(kind: .project, url: directory.url.appendingPathComponent("App.xcodeproj"))
+
+        let path = locator.appPath(hints: [simulator, device], container: container, scheme: "App", configuration: "Debug", isPhysicalDevice: true)
+
+        #expect(path == device)
+        #expect(ProductLocator.productsFolder(configuration: "Release", isPhysicalDevice: true) == "Release-iphoneos")
+        #expect(ProductLocator.productsFolder(configuration: "Debug", isPhysicalDevice: false) == "Debug-iphonesimulator")
+    }
+
     @Test func returnsNilWhenNoHintMatchesAndDerivedDataHasNoFolder() throws {
         let release = try makeApp("Release-iphonesimulator/App.app", bundleID: "com.example.app")
         let container = XcodeContainer(kind: .project, url: directory.url.appendingPathComponent("App.xcodeproj"))

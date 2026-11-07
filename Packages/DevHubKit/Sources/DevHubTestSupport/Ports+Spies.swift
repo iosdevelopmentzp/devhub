@@ -7,6 +7,7 @@ package extension Ports {
             usage: spies.usage,
             copilotUsage: spies.copilotUsage,
             simulators: spies.simulators,
+            devices: spies.devices,
             build: spies.build,
             testRuns: spies.testRuns,
             worktrees: spies.worktrees,

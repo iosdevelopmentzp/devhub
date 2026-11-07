@@ -26,7 +26,8 @@ enum IdentityPanelMapper {
             cleanInstallNote: cleanInstallNote(context: context, cleanInstallIsOn: cleanInstallIsOn),
             launchTitle: willCleanInstall ? "Reinstall & Launch" : "Launch",
             launchTint: willCleanInstall ? .orange : nil,
-            canLaunch: context.isApplying == false && buildIsRunning == false && context.isInstalled
+            canLaunch: context.isApplying == false && buildIsRunning == false && context.isInstalled,
+            canAttach: context.isPhysicalDevice == false
         )
     }
 
@@ -156,8 +157,14 @@ enum IdentityPanelMapper {
     }
 
     private static func cleanInstallText(context: IdentityContext, cleanInstallIsOn: Bool) -> String {
+        if context.isPhysicalDevice, context.needsCleanInstall {
+            return "The app on this device has another ID: the next launch deletes the app and installs the last build again. The keychain of the device stays. The session is lost."
+        }
         if context.needsCleanInstall {
             return "The app on this simulator has another ID: the next launch deletes the app, resets the simulator keychain and installs it again. The session is lost."
+        }
+        if context.isPhysicalDevice, cleanInstallIsOn {
+            return "Clean install is on: the next launch deletes the app and installs the last build again. The keychain of the device stays."
         }
         if cleanInstallIsOn {
             return "Clean install is on: the next launch deletes the app and resets the simulator keychain first."

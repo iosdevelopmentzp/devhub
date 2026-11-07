@@ -241,6 +241,10 @@ final class BuildStore: BuildLookup {
             activity.log("Run & Attach needs an Xcode project", detail: "This project builds with build.command and run.command.", outcome: .failure)
             return
         }
+        guard target?.isPhysical != true else {
+            activity.log("Run & Attach is not available on a physical device yet", detail: "Use Build & Run, then attach Xcode by hand.", outcome: .failure)
+            return
+        }
         guard ensureAccessibility() else { return }
         run(goal: .runAndAttach)
     }
@@ -303,7 +307,8 @@ final class BuildStore: BuildLookup {
                     cleanInstall: cleanInstall,
                     launch: launch,
                     attachDebugger: goal.attachesDebugger,
-                    launchesApp: goal.launchesApp
+                    launchesApp: goal.launchesApp,
+                    isPhysicalDevice: simulator.isPhysical
                 )
                 for try await event in events(for: request, prepared: prepared, simulator: simulator) {
                     if case .launched(let record) = event {

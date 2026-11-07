@@ -391,6 +391,7 @@ import DevHubTestSupport
 
         #expect(store.lastBuiltAppPath() == product.appPath)
         #expect(harness.spies.build.calls == [.lastBuiltAppPath(projectPath: ProjectSample.path, scheme: "App", configuration: "Debug")])
+        #expect(harness.spies.build.lastBuiltAppPathPlatforms == [false])
     }
 
     @Test func theProjectConfigChoosesTheSchemesTheConfigurationAndTheContainer() async throws {
@@ -559,5 +560,41 @@ import DevHubTestSupport
 
         #expect(store.schemeSuggestions == [])
         #expect(harness.lastActivity?.outcome == .failure)
+    }
+
+    @Test func runOnADeviceMarksTheRequestAsPhysical() async throws {
+        harness.simulators.groups = [SimulatorGroup(runtime: SimulatorGroup.devicesTitle, simulators: [SimulatorSample.device])]
+
+        store.run(on: SimulatorSample.device.id)
+
+        try await waitUntil { hasFinished }
+        var expected = request(path: ProjectSample.path, attachDebugger: false)
+        expected.simulatorUDID = SimulatorSample.device.id
+        expected.simulatorName = SimulatorSample.device.name
+        expected.isPhysicalDevice = true
+        #expect(harness.spies.build.calls.first == .build(expected))
+        #expect(harness.spies.devices.calls.contains { if case .install = $0 { true } else { false } })
+        #expect(harness.spies.simulators.calls.contains { if case .boot = $0 { true } else { false } } == false)
+    }
+
+    @Test func runAndAttachOnADeviceLogsAndDoesNotBuild() {
+        harness.simulators.groups = [SimulatorGroup(runtime: SimulatorGroup.devicesTitle, simulators: [SimulatorSample.device])]
+        store.selectTarget(id: SimulatorSample.device.id)
+
+        store.runAndAttach()
+
+        #expect(store.isRunning == false)
+        #expect(harness.lastActivity?.title == "Run & Attach is not available on a physical device yet")
+        #expect(harness.spies.build.calls.isEmpty)
+    }
+
+    @Test func lastBuiltAppPathFollowsTheTargetPlatform() {
+        harness.simulators.groups = [SimulatorGroup(runtime: SimulatorGroup.devicesTitle, simulators: [SimulatorSample.device])]
+        store.selectTarget(id: SimulatorSample.device.id)
+
+        _ = store.lastBuiltAppPath()
+        _ = store.lastBuiltAppPath(isPhysicalDevice: false)
+
+        #expect(harness.spies.build.lastBuiltAppPathPlatforms == [true, false])
     }
 }

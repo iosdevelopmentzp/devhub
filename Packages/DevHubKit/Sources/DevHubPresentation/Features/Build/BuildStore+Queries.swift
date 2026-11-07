@@ -44,7 +44,7 @@ extension BuildStore {
         if let id = state.targetSimulatorID, let simulator = simulators.simulator(id: id) {
             return simulator
         }
-        return simulators.all.first { $0.state == .booted } ?? simulators.all.first
+        return TargetFallbackPolicy.target(among: simulators.all)
     }
 
     func isTarget(_ id: Simulator.ID) -> Bool {
@@ -102,7 +102,11 @@ extension BuildStore {
     }
 
     func lastBuiltAppPath() -> String? {
-        repository.lastBuiltAppPath(projectPath: sourcePath, container: container, scheme: state.scheme, configuration: state.configuration)
+        lastBuiltAppPath(isPhysicalDevice: target?.isPhysical == true)
+    }
+
+    func lastBuiltAppPath(isPhysicalDevice: Bool) -> String? {
+        repository.lastBuiltAppPath(projectPath: sourcePath, container: container, scheme: state.scheme, configuration: state.configuration, isPhysicalDevice: isPhysicalDevice)
     }
 
     var sourceResolution: BuildSourceResolver.BuildSourceResolution {

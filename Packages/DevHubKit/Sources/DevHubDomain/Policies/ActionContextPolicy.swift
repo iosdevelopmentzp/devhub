@@ -15,6 +15,7 @@ package enum ActionContextPolicy {
         context.simulatorUDID = inputs.item.simulatorUDID ?? inputs.simulatorUDID
         context.simulatorName = inputs.item.simulatorName ?? inputs.simulatorName
         context.simulatorState = stateText(inputs.simulatorState)
+        context.simulatorKind = inputs.simulatorUDID.isEmpty && inputs.item.simulatorUDID == nil ? "" : (inputs.isPhysicalDevice ? "device" : "simulator")
         context.appPath = inputs.appPath
         context.worktreePath = inputs.item.worktreePath ?? ""
         context.configDir = inputs.configDir

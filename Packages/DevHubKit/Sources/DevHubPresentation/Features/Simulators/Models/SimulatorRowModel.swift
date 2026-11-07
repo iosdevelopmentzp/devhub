@@ -6,6 +6,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
     let id: Simulator.ID
     var name: String
     var runtimeTag: TagModel
+    var deviceTag: TagModel?
     var kindIcon: String
     var stateTint: Tint
     var stateDotOpacity: Double
@@ -38,6 +39,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
     var isEditingIdentity: Bool
     var isMessaging: Bool
     var pinsActions: Bool
+    var showsSimulatorActions: Bool
     var configActions: [ConfigActionItemModel]
 
     func showsActions(isHovered: Bool) -> Bool {
@@ -48,6 +50,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
         id: "8C2F6A1E-5B3D-4E7A-9F10-2D4C6B8A0E13",
         name: "iPhone 16 Pro",
         runtimeTag: TagModel("iOS 18.2"),
+        deviceTag: nil,
         kindIcon: "iphone",
         stateTint: .green,
         stateDotOpacity: 1,
@@ -80,6 +83,7 @@ struct SimulatorRowModel: Identifiable, Equatable {
         isEditingIdentity: false,
         isMessaging: false,
         pinsActions: true,
+        showsSimulatorActions: true,
         configActions: [.preview]
     )
 }

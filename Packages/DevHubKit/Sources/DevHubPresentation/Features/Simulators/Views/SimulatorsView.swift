@@ -87,9 +87,9 @@ struct SimulatorsView: View {
     private var unavailableMessage: ListMessage? {
         guard simulators.groups.isEmpty, simulators.isLoading == false else { return nil }
         return ListMessage(
-            "No simulators",
+            "No simulators or devices",
             systemImage: "iphone.slash",
-            description: simulators.error ?? "xcrun simctl returned no iOS simulators.",
+            description: simulators.error ?? "xcrun simctl returned no iOS simulators, and devicectl lists no paired iPhone or iPad.",
             actionTitle: "Retry"
         ) {
             Task { await simulators.refresh() }

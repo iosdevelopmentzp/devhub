@@ -32,6 +32,9 @@ DevHubData/
                     SimctlAppLaunchRepository, SimctlMessagingRepository, SimctlRunner,
                     SimctlListParser, ContainerLocator, ProfileDefaultsPlan, AppURLSchemeParser,
                     Dictionary+ChildEnvironment
+    Devices/        DevicectlDeviceRepository(shell:scratch:), DevicectlRunner (--json-output through a temporary file),
+                    DevicectlListParser, DevicectlLaunchParser, DevicectlAppListParser (paired iPhones and iPads; see
+                    `xcode-toolchain`, "Physical devices")
     Build/          XcodeBuildRepository, BuildOutputParser, BuildStepThrottle, ProductLocator, XcodeContainer
     Logs/           SimctlAppLogRepository, AppLogParser, LogRedactor, LogCounter
     Claude/         AnthropicUsageRepository, ClaudeUsageParser, ClaudeCredentialsReader, ClaudeCredentialsParser,
@@ -163,7 +166,7 @@ arguments with spaces or shell characters.
 
 | Kind | Examples | Output panel |
 |---|---|---|
-| `read` | git `status log for-each-ref rev-parse symbolic-ref check-ref-format check-ignore reflog rev-list show-ref config diff merge-base ls-remote remote show`, `worktree list`, `stash list`, `branch` without `-d -D -m -M -u`; simctl `list get_app_container listapps bootstatus`, `spawn … read`; `du ps grep plutil pgrep`; `xcodebuild -showBuildSettings`; `gh` and `glab` reads (below); `osascript` without `click` | hidden unless "Show reads" (`OutputPanelState.showsReads`) |
+| `read` | git `status log for-each-ref rev-parse symbolic-ref check-ref-format check-ignore reflog rev-list show-ref config diff merge-base ls-remote remote show`, `worktree list`, `stash list`, `branch` without `-d -D -m -M -u`; simctl `list get_app_container listapps bootstatus`, `spawn … read`; devicectl `list`, `device info …`, `device copy from …`; `du ps grep plutil pgrep`; `xcodebuild -showBuildSettings`; `gh` and `glab` reads (below); `osascript` without `click` | hidden unless "Show reads" (`OutputPanelState.showsReads`) |
 | `action` | everything else | shown |
 | `secret` | `security`, `gh auth token` | "Output hidden: it contains credentials." Nothing recorded |
 | `appLog` | `simctl spawn … log stream` | "App log lines are shown in the Logs tab only." Nothing recorded |

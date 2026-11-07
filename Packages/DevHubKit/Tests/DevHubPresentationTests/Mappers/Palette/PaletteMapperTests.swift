@@ -107,4 +107,14 @@ import Testing
         #expect(projects.first?.title == "Switch to project \(ProjectSample.other.name)")
         #expect(projects.first?.subtitle.hasPrefix("⌃⌘2") == true)
     }
+
+    @Test func aDeviceSaysWhetherItIsConnected() {
+        var sources = sources
+        sources.simulators = [SimulatorFixture.device, SimulatorFixture.offlineDevice]
+
+        let subtitles = PaletteMapper.items(from: sources) { $0.id }.filter { $0.section == "Simulators" }.map(\.subtitle)
+
+        #expect(subtitles.contains("connected device"))
+        #expect(subtitles.contains("device, not connected"))
+    }
 }

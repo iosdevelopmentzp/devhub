@@ -15,7 +15,7 @@ struct MockBuildRepository: BuildRepository {
         BuildProduct(appPath: path, bundleID: "com.example.app")
     }
 
-    func lastBuiltAppPath(projectPath: String, container: String?, scheme: String, configuration: String) -> String? {
+    func lastBuiltAppPath(projectPath: String, container: String?, scheme: String, configuration: String, isPhysicalDevice: Bool) -> String? {
         nil
     }
 
@@ -40,6 +40,6 @@ struct MockBuildRepository: BuildRepository {
     }
 
     func locateProduct(_ request: BuildRequest, hints: [String]) async throws -> BuildProduct {
-        BuildProduct(appPath: "/tmp/DerivedData/Build/Products/\(request.configuration)-iphonesimulator/\(request.scheme).app", bundleID: "com.example.app")
+        BuildProduct(appPath: "/tmp/DerivedData/Build/Products/\(request.configuration)-\(request.isPhysicalDevice ? "iphoneos" : "iphonesimulator")/\(request.scheme).app", bundleID: "com.example.app")
     }
 }

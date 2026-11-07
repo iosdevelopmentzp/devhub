@@ -17,6 +17,7 @@ package struct ActionContextInputs: Hashable, Sendable {
     package var hostKind: CodeHostKind? = nil
     package var containers: AppContainers = .none
     package var simulatorState: Simulator.State? = nil
+    package var isPhysicalDevice = false
 
     package init(
         projectPath: String,
@@ -34,7 +35,8 @@ package struct ActionContextInputs: Hashable, Sendable {
         profileID: String = "",
         hostKind: CodeHostKind? = nil,
         containers: AppContainers = .none,
-        simulatorState: Simulator.State? = nil
+        simulatorState: Simulator.State? = nil,
+        isPhysicalDevice: Bool = false
     ) {
         self.projectPath = projectPath
         self.projectName = projectName
@@ -52,5 +54,6 @@ package struct ActionContextInputs: Hashable, Sendable {
         self.hostKind = hostKind
         self.containers = containers
         self.simulatorState = simulatorState
+        self.isPhysicalDevice = isPhysicalDevice
     }
 }

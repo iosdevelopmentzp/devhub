@@ -24,7 +24,8 @@ enum IdentityContextFixture {
         savedDeviceIDs: [String] = [],
         aliases: [String: String] = [:],
         isApplying: Bool = false,
-        config: LaunchIdentityConfig = config
+        config: LaunchIdentityConfig = config,
+        isPhysicalDevice: Bool = false
     ) -> IdentityContext {
         IdentityContext(
             config: config,
@@ -34,7 +35,8 @@ enum IdentityContextFixture {
             settings: settings,
             savedDeviceIDs: savedDeviceIDs,
             aliases: aliases,
-            isApplying: isApplying
+            isApplying: isApplying,
+            isPhysicalDevice: isPhysicalDevice
         )
     }
 

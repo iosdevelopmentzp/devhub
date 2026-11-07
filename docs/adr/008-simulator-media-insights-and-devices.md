@@ -82,10 +82,10 @@ Decision (owner, 2026-11-01): options 1 and 2 from one source, option 2 (the inj
 
 ### D8. Real devices
 
-1. A "Devices" section in the Simulators tab from `xcrun devicectl list devices --json-output <file>`: name, model, OS, connection (USB or Wi-Fi), pairing and Developer Mode.
-2. Build for a device: `xcodebuild -destination 'platform=iOS,id=<udid>' -allowProvisioningUpdates` with the automatic signing of the project. DevHub does not manage certificates or profiles.
-3. Install and launch: `devicectl device install app --device <id> <App.app>`, `devicectl device process launch --device <id> --terminate-existing --console <bundle ID>`. The console output goes to the Logs tab.
-4. App data: `devicectl device copy from --domain-type appDataContainer --domain-identifier <bundle ID>` downloads the data of the app, and `copy to` puts it back: app snapshots (D6) for a device.
+1. A "Devices" section in the Simulators tab from `xcrun devicectl list devices --json-output <file>`: name, OS version, "Connected" (`tunnelState == connected`) or "Not connected". A device is a `Simulator` value with `isPhysical` and its own `runtime`; its id is the hardware UDID, which `xcodebuild` and `devicectl` both take. The row hides every simulator-only action. One port, `DeviceRepository`, for everything that runs through `devicectl`; the use cases branch on `BuildRequest.isPhysicalDevice` and `IdentityLaunch.simulator.isPhysical`.
+2. Build for a device: the same `xcodebuild` with `-destination id=<udid>` plus `-allowProvisioningUpdates`, with the automatic signing of the project. DevHub does not manage certificates or profiles. Checked: `xcodebuild -showdestinations` lists the device with that id.
+3. Install and launch: `devicectl device install app --device <id> <App.app>`, `devicectl device process launch --device <id> --terminate-existing --environment-variables <JSON> <bundle ID> <args>`. The launch profile (`env`, `args`, `defaults`) and the device ID work as on a simulator. `defaults` go through `copy from`, `defaults write` on the Mac and `copy to` on `Library/Preferences/<suite>.plist` of the app data container (checked on an iPhone 2026-11-07: the key survived a relaunch; `appGroupDataContainer` listing failed with CoreDevice error 3, and the app kept its group suite plist in its own container). Clean install: `uninstall app`, then install the last build; no keychain reset.
+4. Deferred (owner, 2026-11-07): the console and the Logs tab (`--console` or a syslog tool), the mock server on a device (needs a listener on the LAN address and a local network permission in the app), Run & Attach (the attacher clicks a simulator destination), deep links, push, app data and app snapshots (D6) for a device.
 5. The device must be paired, unlocked and in Developer Mode. A device name is personal: it never goes into a committed file, and tests use sample names.
 
 ## Plan
@@ -97,7 +97,8 @@ Decision (owner, 2026-11-01): options 1 and 2 from one source, option 2 (the inj
 - [ ] 4. D5 build insights.
 - [ ] 5. D6 app snapshots.
 - [ ] 6. D6 device snapshots with the keychain.
-- [ ] 7. D8 devices: list, install, launch, console.
+- [x] 7. D8 devices: list, install, launch with profiles and the device ID, clean install, identity panel.
+- [ ] 7b. D8 devices: console in the Logs tab, mocks, Run & Attach.
 - [ ] 8. D8 devices: build with signing, app data copy.
 - [x] 9a. D1.1 open Simulator.app or Device Hub by the Xcode in use; the menu item and the example config follow.
 - [ ] 9. D1.2 check the rest on Xcode 27, after the owner installs Xcode 27.
@@ -111,4 +112,7 @@ Decision (owner, 2026-11-01): options 1 and 2 from one source, option 2 (the inj
 | `b6dc8e2` | Step 2: GIF and compressed video: `MediaRepository`, `AVMediaRepository` in `DevHubData/Media/` (`AVAssetImageGenerator` and `CGImageDestination`, `AVAssetExportSession`), `MediaOutputPolicy`, `MediaStore` and `MediaChoice`, Convert in the QA panel, the AVFoundation and ImageIO rule in `check-layers.sh`. |
 | `2ca80b0` | Step 3: device frames on screenshots: `DeviceChromeLocator`, `DeviceChromeParser`, `DeviceFrameLayout`, `DeviceFrameRenderer` in `DevHubData/Media/`, `MediaRepository.addFrame`, `--mask=alpha` screenshots, the saved switch in `SimulatorQAStore`, fixture and integration tests. |
 | `6eb9711` | Step 3b: device frames on GIFs and MP4 videos: `DeviceFrameOverlay`, `FramedVideoComposition` (`AVVideoComposition.Configuration`), the outer outline from `paths.simpleOutsideBorder`, `framedFor` on `makeGIF` and `compress`, `MediaOutputPolicy.gifFrames` over the sample times of a variable frame rate recording, GIF written in one step, `--mask=black` recordings, `SimulatorQAStore.addsDeviceFrame`. |
+| `7074404` | Rule: never name another project in a doc, a comment, a commit, a test or the code (`.claude/rules/anonymity.md`). |
+| `d95514e` | Tags from the status script (`AppStateReport.tags`, `ScriptViewTag` with `icon` and `hint`, `ConfigTagMapper`) and `launch.profiles[].tint` for the profile tag. |
+| `03ab6a8` | The Xcode tag in the run bar (`XcodeTagMapper`, `XcodeSelectionStore.refreshIfNeeded`, `XcodeInstallationRepository.installation(atDeveloperDir:)` for a Mac where Spotlight does not find Xcode). |
 | `de740f8` | Step 9a: Device Hub on Xcode 27: `SimulatorApp` and `SimulatorRepository.simulatorApp()`, `SimulatorAppLocation` (Simulator.app of the project's developer dir, else `DeviceHub.app` of that Xcode, opened with `devices://device/open?id=<udid>` after `simctl boot`), the row menu title "Open in Simulator" or "Open in Device Hub", the example `list-devices` script. |

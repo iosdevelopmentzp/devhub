@@ -120,11 +120,13 @@ struct DeviceIdentityPanel: View {
                 CleanInstallNote(model: model.cleanInstallNote)
                 Spacer()
                 Button("Close", action: onClose)
-                Button("Launch & Attach", systemImage: "ladybug") {
-                    onLaunch(true)
+                if model.canAttach {
+                    Button("Launch & Attach", systemImage: "ladybug") {
+                        onLaunch(true)
+                    }
+                    .disabled(model.canLaunch == false)
+                    .hint("Launch the installed app frozen and attach Xcode, no build")
                 }
-                .disabled(model.canLaunch == false)
-                .hint("Launch the installed app frozen and attach Xcode, no build")
                 Button(model.launchTitle) {
                     onLaunch(false)
                 }

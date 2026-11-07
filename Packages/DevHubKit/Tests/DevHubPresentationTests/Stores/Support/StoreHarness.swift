@@ -199,10 +199,11 @@ final class StoreHarness {
         events: events
     )
 
-    lazy var simulators = SimulatorsStore(repository: ports.simulators, activity: activity, operations: operations, events: events, store: store)
+    lazy var simulators = SimulatorsStore(repository: ports.simulators, devices: ports.devices, activity: activity, operations: operations, events: events, store: store)
 
     lazy var identity = IdentityStore(
         repository: ports.launcher,
+        devices: ports.devices,
         launchInstalledApp: useCases.launchInstalledApp,
         session: session,
         config: config,
@@ -215,7 +216,14 @@ final class StoreHarness {
 
     lazy var simulatorStatuses = SimulatorStatusStore(readStatus: useCases.readSimulatorStatus, config: config, session: session, simulators: simulators, build: build, codeHosts: codeHostRemote, launcher: ports.launcher, events: events, settleDelay: .zero)
 
-    lazy var build = BuildStore(
+    lazy var build: BuildStore = {
+        let build = makeBuild()
+        identity.use(build: build)
+        return build
+    }()
+
+    private func makeBuild() -> BuildStore {
+        BuildStore(
         repository: ports.build,
         buildAndRun: useCases.buildAndRun,
         commandRun: useCases.commandRun,
@@ -231,7 +239,8 @@ final class StoreHarness {
         events: events,
         store: store,
         prompts: ports.reviewPrompts
-    )
+        )
+    }
 
     lazy var testRuns = TestRunsStore(runTests: useCases.runTests, build: build, worktrees: worktrees, config: config, activity: activity, notifier: notifier, events: events, prompts: ports.reviewPrompts)
 

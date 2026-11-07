@@ -108,6 +108,8 @@ DevHub reads the app for booted and favorite simulators, and for simulators with
 3. Look for the hook: `grep -q -a -F <marker> <file>` on the executable and on every `*.debug.dylib` in the app.
 4. Read the stored profile: the first profile with `storage` gives the suite and key. DevHub reads `Library/Preferences/<suite>.plist` from the data container (or the group container for a `group.` suite).
 
+On a physical device ([Simulators](simulators.md#physical-devices)) DevHub asks `devicectl device info apps --bundle-id` whether the app is installed and which version it has. The hook markers are looked up in the last product that DevHub built on this Mac, when its bundle ID matches; a build that DevHub never made shows "no … hook". The stored profile comes from `Library/Preferences/<suite>.plist` of the app data container, copied with `devicectl device copy from`.
+
 ### The bundle ID
 
 The bundle ID of the panel and of a launch from it is the bundle ID of the last launch from DevHub on this simulator, when the project config knows it. Otherwise it is the effective bundle ID of the project (`xcode.bundleIDs`, `xcode.bundleID`, or the detected one).
@@ -174,3 +176,4 @@ The old key `simulators.identity` is not read.
 4. Launches from Xcode or the home screen do not get the ID, unless the app keeps it itself (`keptVariable`).
 5. Only the first profile with `storage` is used to read the stored profile.
 6. A clean install from the identity panel needs an installed app or a built app to copy from.
+7. On a physical device a clean install needs the last built product on this Mac, keeps the keychain of the device, and the hook tag is right only for a build that DevHub made. Launch & Attach is hidden there.

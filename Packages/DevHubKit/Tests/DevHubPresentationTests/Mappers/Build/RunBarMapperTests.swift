@@ -10,7 +10,7 @@ import Testing
 
         #expect(model.targetLabel == "Target")
         #expect(model.target == nil)
-        #expect(model.noTargetText == "No simulator selected")
+        #expect(model.noTargetText == "No simulator or device selected")
         #expect(model.progress == nil)
         #expect(model.outcome == nil)
         #expect(model.isRunning == false)
@@ -47,7 +47,7 @@ import Testing
 
         #expect(withTarget.tint == .green)
         #expect(withTarget.text.hasPrefix("Launched on iPhone 16 Pro · "))
-        #expect(withoutTarget.text.hasPrefix("Launched on simulator · "))
+        #expect(withoutTarget.text.hasPrefix("Launched on the target · "))
         #expect(map(state: state, target: nil, identity: nil).progress == nil)
     }
 
@@ -163,5 +163,36 @@ import Testing
             hasLog: false,
             isLoadingSimulators: false
         )
+    }
+
+    @Test func aPhysicalTargetDisablesAttachAndNamesTheDevice() throws {
+        let context = IdentityContextFixture.context(app: .notInstalled)
+
+        let model = map(state: BuildState(), target: SimulatorFixture.device, identity: context)
+        let simulator = map(state: BuildState(), target: SimulatorFixture.iPhone, identity: nil)
+
+        #expect(model.canRun)
+        #expect(model.canAttach == false)
+        #expect(model.runHint == "Build and launch on the target device (⌘R)")
+        #expect(model.attachHint == "Run & Attach is not available on a physical device yet. Use Build & Run, then attach Xcode by hand.")
+        #expect(model.target?.identityMissingText == "App not installed on this device")
+        #expect(simulator.canAttach)
+        #expect(simulator.runHint == "Build and launch on the target simulator (⌘R)")
+    }
+
+    @Test func aCommandProjectDisablesAttach() {
+        let model = RunBarMapper.model(
+            state: BuildState(),
+            target: SimulatorFixture.iPhone,
+            runtime: nil,
+            identity: nil,
+            mockState: nil,
+            hasLog: false,
+            isLoadingSimulators: false,
+            isCommandProject: true
+        )
+
+        #expect(model.canAttach == false)
+        #expect(model.attachHint == "Run & Attach needs an Xcode project. This project builds with its commands.")
     }
 }

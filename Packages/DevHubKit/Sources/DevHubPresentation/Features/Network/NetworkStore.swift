@@ -89,7 +89,7 @@ final class NetworkStore {
 
     func prepare(target: Simulator?) {
         let all = simulators.all
-        if let selectedUDID, all.isEmpty == false, all.contains(where: { $0.id == selectedUDID && $0.state == .booted }) == false {
+        if let selectedUDID, all.isEmpty == false, all.contains(where: { $0.id == selectedUDID && $0.state == .booted && $0.isPhysical == false }) == false {
             self.selectedUDID = nil
         }
         if selectedUDID == nil {

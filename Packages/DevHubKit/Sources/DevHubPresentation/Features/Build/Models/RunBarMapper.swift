@@ -11,16 +11,21 @@ enum RunBarMapper {
         identity: IdentityContext?,
         mockState: MockServerState?,
         hasLog: Bool,
-        isLoadingSimulators: Bool
+        isLoadingSimulators: Bool,
+        isCommandProject: Bool = false
     ) -> RunBarModel {
-        RunBarModel(
+        let isPhysical = target?.isPhysical == true
+        return RunBarModel(
             targetLabel: "Target",
             target: target.map { targetModel(for: $0, runtime: runtime, identity: identity, mockState: mockState, cleanInstallIsOn: state.cleanInstall) },
-            noTargetText: "No simulator selected",
+            noTargetText: "No simulator or device selected",
             progress: progress(state.phase),
             outcome: outcome(state.phase, targetName: target?.name, scheme: state.scheme),
             isRunning: state.isRunning,
             canRun: target != nil,
+            canAttach: target != nil && isCommandProject == false && isPhysical == false,
+            runHint: isPhysical ? "Build and launch on the target device (⌘R)" : "Build and launch on the target simulator (⌘R)",
+            attachHint: attachHint(isCommandProject: isCommandProject, isPhysical: isPhysical),
             canShowLog: hasLog,
             canRefreshSimulators: isLoadingSimulators == false
         )
@@ -39,10 +44,16 @@ enum RunBarMapper {
             icon: SimulatorRowMapper.kindIcon(simulator.kind),
             runtimeTag: runtime.map { TagModel($0) },
             identity: identity.flatMap { $0.isInstalled ? IdentityPanelMapper.summary(context: $0, mockState: mockState) : nil },
-            identityMissingText: identity.flatMap { $0.isInstalled ? nil : "App not installed on this simulator" },
+            identityMissingText: identity.flatMap { $0.isInstalled ? nil : (simulator.isPhysical ? "App not installed on this device" : "App not installed on this simulator") },
             launch: identity.map { IdentityPanelMapper.launch(context: $0) },
             cleanInstallNote: identity.map { IdentityPanelMapper.cleanInstallNote(context: $0, cleanInstallIsOn: cleanInstallIsOn) }
         )
+    }
+
+    private static func attachHint(isCommandProject: Bool, isPhysical: Bool) -> String {
+        if isCommandProject { return "Run & Attach needs an Xcode project. This project builds with its commands." }
+        if isPhysical { return "Run & Attach is not available on a physical device yet. Use Build & Run, then attach Xcode by hand." }
+        return "Build, launch frozen with --wait-for-debugger and attach Xcode (⇧⌘R). Xcode's console stays empty for an attached process."
     }
 
     private static func progress(_ phase: BuildState.Phase) -> RunBarModel.Progress? {
@@ -55,7 +66,7 @@ enum RunBarMapper {
         case .succeeded(let date, let launched):
             RunBarModel.Outcome(
                 tint: .green,
-                text: launched ? "Launched on \(targetName ?? "simulator") · \(date.relativeDescription)" : "Built \(scheme), not launched · \(date.relativeDescription)"
+                text: launched ? "Launched on \(targetName ?? "the target") · \(date.relativeDescription)" : "Built \(scheme), not launched · \(date.relativeDescription)"
             )
         case .failed(let message):
             RunBarModel.Outcome(tint: .red, text: message)

@@ -46,7 +46,7 @@ final class LogsStore {
 
     var availableSimulators: [Simulator] {
         simulators.all.filter { simulator in
-            simulator.state == .booted && streams.contains { $0.id == simulator.id } == false
+            simulator.state == .booted && simulator.isPhysical == false && streams.contains { $0.id == simulator.id } == false
         }
     }
 
@@ -56,7 +56,7 @@ final class LogsStore {
     }
 
     func stream(on udid: Simulator.ID) {
-        guard let simulator = simulators.simulator(id: udid) else { return }
+        guard let simulator = simulators.simulator(id: udid), simulator.isPhysical == false else { return }
         add(simulator)
         start(udid)
     }

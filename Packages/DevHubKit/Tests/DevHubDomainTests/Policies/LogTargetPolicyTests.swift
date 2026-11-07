@@ -30,4 +30,11 @@ import Testing
 
         #expect(result == nil)
     }
+
+    @Test func aPhysicalDeviceIsNeverTheLogTarget() {
+        let device = SimulatorFixture.device("D")
+
+        #expect(LogTargetPolicy.defaultSimulator(target: device, simulators: [device, SimulatorFixture.booted("B")])?.id == "B")
+        #expect(LogTargetPolicy.defaultSimulator(target: nil, simulators: [device]) == nil)
+    }
 }

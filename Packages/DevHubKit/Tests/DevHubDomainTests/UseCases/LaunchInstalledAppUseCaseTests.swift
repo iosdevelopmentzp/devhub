@@ -102,4 +102,66 @@ import Testing
     private func launch(_ ports: Ports, _ request: IdentityLaunch, cleanInstall: Bool) async throws -> LaunchRecord {
         try await UseCases(ports: ports).launchInstalledApp.execute(request, cleanInstall: cleanInstall)
     }
+
+    @Test func aPhysicalDeviceLaunchesWithDevicectlOnly() async throws {
+        let (ports, spies) = Ports.spies()
+        var request = IdentityLaunchFixture.plain
+        request.simulator = SimulatorFixture.device(udid)
+        request.plan = IdentityLaunchFixture.plan(identity: "QA-DEVICE", profile: IdentityLaunchFixture.staging)
+
+        let record = try await launch(ports, request, cleanInstall: false)
+
+        #expect(spies.simulators.calls.isEmpty)
+        #expect(spies.launcher.calls.isEmpty)
+        #expect(spies.mockServer.calls.isEmpty)
+        #expect(spies.devices.calls == [.launch(udid: udid, bundleID: bundleID, environment: ["API_ENV": "staging", "APP_DEVICE_ID": "QA-DEVICE"])])
+        #expect(spies.devices.launchArguments == [["-skipOnboarding"]])
+        #expect(record.identity == "QA-DEVICE")
+        #expect(record.baseURL == nil)
+    }
+
+    @Test func cleanInstallOnADeviceReinstallsTheLastBuildThenWritesTheDefaults() async throws {
+        let (ports, spies) = Ports.spies()
+        let item = ProfileDefault(suite: "com.example.app", key: "onboarding", value: "false", type: "bool")
+        var profile = IdentityLaunchFixture.staging
+        profile.defaults = [item]
+        var request = IdentityLaunchFixture.plain
+        request.simulator = SimulatorFixture.device(udid)
+        request.plan = IdentityLaunchFixture.plan(identity: nil, profile: profile)
+
+        _ = try await launch(ports, request, cleanInstall: true)
+
+        #expect(spies.devices.calls == [
+            .uninstall(udid: udid, bundleID: bundleID),
+            .install(udid: udid, appPath: "/derived/App.app"),
+            .writeDefaults(udid: udid, bundleID: bundleID, defaults: [item]),
+            .launch(udid: udid, bundleID: bundleID, environment: ["API_ENV": "staging"]),
+        ])
+        #expect(spies.launcher.calls.isEmpty)
+    }
+
+    @Test func cleanInstallOnADeviceWithoutABuildFails() async {
+        let (ports, spies) = Ports.spies()
+        var request = IdentityLaunchFixture.plain
+        request.simulator = SimulatorFixture.device(udid)
+        request.fallbackAppPath = nil
+
+        await #expect(throws: AppLaunchError.self) {
+            try await launch(ports, request, cleanInstall: true)
+        }
+        #expect(spies.devices.calls.isEmpty)
+    }
+
+    @Test func attachOnADeviceFails() async {
+        let (ports, spies) = Ports.spies()
+        var request = IdentityLaunchFixture.plain
+        request.simulator = SimulatorFixture.device(udid)
+        request.attachDebugger = true
+
+        await #expect(throws: DeviceError.self) {
+            try await launch(ports, request, cleanInstall: false)
+        }
+        #expect(spies.devices.calls.isEmpty)
+        #expect(spies.attacher.calls.isEmpty)
+    }
 }

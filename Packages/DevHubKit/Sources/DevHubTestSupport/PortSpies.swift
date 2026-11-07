@@ -4,6 +4,7 @@ package struct PortSpies: Sendable {
     package let usage = SpyClaudeUsageRepository()
     package let copilotUsage = SpyCopilotUsageRepository()
     package let simulators = SpySimulatorRepository()
+    package let devices = SpyDeviceRepository()
     package let build = SpyBuildRepository()
     package let testRuns = SpyTestRunRepository()
     package let worktrees = SpyWorktreeRepository()

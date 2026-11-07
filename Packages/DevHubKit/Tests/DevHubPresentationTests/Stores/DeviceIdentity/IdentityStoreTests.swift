@@ -369,4 +369,20 @@ import DevHubTestSupport
         harness.events.post(.appLaunched(simulatorID: simulator.id, launch: LaunchRecord(bundleID: "com.example.other", profileID: nil, identity: nil, baseURL: nil, date: .now)))
         #expect(store.bundleID(for: simulator.id) == bundleID)
     }
+
+    @Test func refreshOnADeviceInspectsThroughDevicectlWithTheLastBuild() async {
+        await loadConfig()
+        harness.simulators.groups = [SimulatorGroup(runtime: SimulatorGroup.devicesTitle, simulators: [SimulatorSample.device])]
+        harness.spies.build.lastBuiltAppPathResult = "/derived/App.app"
+        harness.spies.devices.inspectResult = installed
+        _ = harness.build
+
+        await store.refresh(id: SimulatorSample.device.id)
+
+        #expect(store.apps[SimulatorSample.device.id] == installed)
+        #expect(harness.spies.launcher.calls.isEmpty)
+        #expect(harness.spies.devices.calls == [.inspect(udid: SimulatorSample.device.id, bundleID: bundleID, identity: LaunchConfigSample.identity, storage: nil, localAppPath: "/derived/App.app")])
+        #expect(store.context(for: SimulatorSample.device.id)?.isPhysicalDevice == true)
+        #expect(harness.spies.build.lastBuiltAppPathPlatforms == [true])
+    }
 }

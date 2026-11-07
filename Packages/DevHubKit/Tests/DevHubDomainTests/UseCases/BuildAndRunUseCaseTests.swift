@@ -207,7 +207,7 @@ import Testing
     @Test func cancellingTheConsumerStopsThePipeline() async throws {
         let (ports, spies) = scriptedPorts()
         let simulators = GatedSimulatorRepository()
-        let gated = BuildAndRunUseCase(build: ports.build, simulators: simulators, attacher: ports.attacher, mockServer: ports.mockServer)
+        let gated = BuildAndRunUseCase(build: ports.build, simulators: simulators, devices: ports.devices, attacher: ports.attacher, mockServer: ports.mockServer)
         let received = CallbackRecorder<String>()
 
         let consumer = Task {
@@ -276,8 +276,73 @@ import Testing
         #expect(spies.simulators.launchArguments == [["-UITests", "YES"]])
     }
 
+    @Test func aPhysicalDeviceSkipsTheBootAndInstallsAndLaunchesWithDevicectl() async {
+        let (ports, spies) = scriptedPorts()
+        var request = BuildRequestFixture.incremental
+        request.isPhysicalDevice = true
+        request.launch = LaunchPlan(profile: LaunchProfile(id: "staging", title: "Staging", env: ["API_ENV": "staging"], args: ["-UITests"]), identityConfig: LaunchIdentityConfig(variable: "APP_DEVICE_ID"), identity: "QA-DEVICE", baseURLVariable: nil)
+
+        let result = await collect(useCase(ports).run(request))
+
+        #expect(result.error == nil)
+        #expect(result.events == [
+            "step: Building App",
+            "output: Compiling Login.swift",
+            "step: Locating app",
+            "output: App: /derived/App.app",
+            "step: Installing on iPhone 17",
+            "step: Launching com.example.app · ID QA-DEVICE",
+            "launched: staging QA-DEVICE -",
+        ])
+        #expect(spies.simulators.calls.isEmpty)
+        #expect(spies.devices.calls == [
+            .install(udid: udid, appPath: product.appPath),
+            .launch(udid: udid, bundleID: product.bundleID, environment: ["API_ENV": "staging", "APP_DEVICE_ID": "QA-DEVICE"]),
+        ])
+        #expect(spies.devices.launchArguments == [["-UITests"]])
+        #expect(spies.mockServer.calls.isEmpty)
+    }
+
+    @Test func cleanInstallOnADeviceRemovesTheAppAndWritesTheDefaults() async {
+        let (ports, spies) = scriptedPorts()
+        let item = ProfileDefault(suite: "com.example.app", key: "environment", value: "staging")
+        var request = BuildRequestFixture.incremental
+        request.isPhysicalDevice = true
+        request.cleanInstall = true
+        request.launch = LaunchPlan(profile: LaunchProfile(id: "staging", title: "Staging", defaults: [item]), identityConfig: nil, identity: nil, baseURLVariable: nil)
+
+        let result = await collect(useCase(ports).run(request))
+
+        #expect(result.error == nil)
+        #expect(result.events.contains("step: Clean install: removing the app from iPhone 17"))
+        #expect(result.events.contains("step: Writing 1 default of the launch profile"))
+        #expect(spies.devices.calls == [
+            .uninstall(udid: udid, bundleID: product.bundleID),
+            .install(udid: udid, appPath: product.appPath),
+            .writeDefaults(udid: udid, bundleID: product.bundleID, defaults: [item]),
+            .launch(udid: udid, bundleID: product.bundleID, environment: [:]),
+        ])
+        #expect(spies.simulators.calls.isEmpty)
+    }
+
+    @Test func attachOnADeviceFailsBeforeTheInstall() async {
+        let (ports, spies) = scriptedPorts()
+        var request = BuildRequestFixture.incremental
+        request.isPhysicalDevice = true
+        request.attachDebugger = true
+
+        let result = await collect(useCase(ports).run(request))
+
+        guard case .attachNotAvailable? = result.error as? DeviceError else {
+            Issue.record("Expected .attachNotAvailable, got \(String(describing: result.error))")
+            return
+        }
+        #expect(spies.devices.calls.isEmpty)
+        #expect(spies.attacher.calls.isEmpty)
+    }
+
     private func useCase(_ ports: Ports) -> BuildAndRunUseCase {
-        BuildAndRunUseCase(build: ports.build, simulators: ports.simulators, attacher: ports.attacher, mockServer: ports.mockServer)
+        BuildAndRunUseCase(build: ports.build, simulators: ports.simulators, devices: ports.devices, attacher: ports.attacher, mockServer: ports.mockServer)
     }
 }
 

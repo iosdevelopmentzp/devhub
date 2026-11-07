@@ -8,6 +8,7 @@ extension Ports {
             usage: MockClaudeUsageRepository(),
             copilotUsage: MockCopilotUsageRepository(),
             simulators: MockSimulatorRepository(),
+            devices: MockDeviceRepository(),
             build: MockBuildRepository(),
             testRuns: MockTestRunRepository(),
             worktrees: MockWorktreeRepository(),

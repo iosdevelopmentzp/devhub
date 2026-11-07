@@ -13,6 +13,7 @@ package struct ActionContext: Hashable, Sendable {
     package var simulatorUDID = ""
     package var simulatorName = ""
     package var simulatorState = ""
+    package var simulatorKind = ""
     package var appPath = ""
     package var worktreePath = ""
     package var configDir = ""
@@ -43,6 +44,7 @@ package struct ActionContext: Hashable, Sendable {
             "SIMULATOR_UDID": simulatorUDID,
             "SIMULATOR_NAME": simulatorName,
             "SIMULATOR_STATE": simulatorState,
+            "SIMULATOR_KIND": simulatorKind,
             "APP_PATH": appPath,
             "WORKTREE_PATH": worktreePath,
             "CONFIG_DIR": configDir,

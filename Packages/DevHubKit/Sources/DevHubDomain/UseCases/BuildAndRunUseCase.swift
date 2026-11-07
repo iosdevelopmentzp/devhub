@@ -5,10 +5,10 @@ package struct BuildAndRunUseCase: Sendable {
     package let simulators: any SimulatorRepository
     package let install: AppInstallStep
 
-    package init(build: any BuildRepository, simulators: any SimulatorRepository, attacher: any XcodeAttaching, mockServer: any MockServerRepository) {
+    package init(build: any BuildRepository, simulators: any SimulatorRepository, devices: any DeviceRepository, attacher: any XcodeAttaching, mockServer: any MockServerRepository) {
         self.build = build
         self.simulators = simulators
-        install = AppInstallStep(simulators: simulators, attacher: attacher, mockServer: mockServer)
+        install = AppInstallStep(simulators: simulators, devices: devices, attacher: attacher, mockServer: mockServer)
     }
 
     package func run(_ request: BuildRequest) -> AsyncThrowingStream<BuildEvent, Error> {
@@ -28,9 +28,11 @@ package struct BuildAndRunUseCase: Sendable {
     private func pipeline(_ request: BuildRequest, continuation: AsyncThrowingStream<BuildEvent, Error>.Continuation) async throws {
         let onEvent: @Sendable (BuildEvent) -> Void = { continuation.yield($0) }
 
-        continuation.yield(.step("Booting \(request.simulatorName)", progress: nil))
-        try await simulators.boot(udid: request.simulatorUDID)
-        try Task.checkCancellation()
+        if request.isPhysicalDevice == false {
+            continuation.yield(.step("Booting \(request.simulatorName)", progress: nil))
+            try await simulators.boot(udid: request.simulatorUDID)
+            try Task.checkCancellation()
+        }
 
         if request.incremental == false {
             continuation.yield(.step("Cleaning", progress: nil))

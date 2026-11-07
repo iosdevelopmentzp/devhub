@@ -68,7 +68,7 @@ struct NetworkView: View {
     private func emptyMessage(shownIsEmpty: Bool) -> ListMessage? {
         let model = NetworkEmptyStateMapper.model(
             hasBaseURLVariable: hasBaseURLVariable,
-            hasBootedSimulator: simulators.all.contains { $0.state == .booted },
+            hasBootedSimulator: simulators.all.contains { $0.state == .booted && $0.isPhysical == false },
             isIntercepting: network.isIntercepting,
             hasRequests: network.allRequests.isEmpty == false || network.pendingCount > 0,
             shownIsEmpty: shownIsEmpty,
