@@ -26,6 +26,10 @@ import Testing
         #expect(GhClient.name(.gitHubSample) == "app")
     }
 
+    @Test func aPagedReadAsksForEveryPageInOneArray() {
+        #expect(GhClient.pagedArguments(endpoint: "user/teams?per_page=100", host: "github.com") == ["api", "--hostname", "github.com", "--paginate", "--slurp", "user/teams?per_page=100"])
+    }
+
     @Test func aLogReadAllowsEscapeSequences() {
         #expect(GhClient.logArguments(endpoint: "repos/example/app/actions/jobs/9/logs", host: "github.com") == ["api", "--hostname", "github.com", "--allow-escape-sequences", "repos/example/app/actions/jobs/9/logs"])
     }

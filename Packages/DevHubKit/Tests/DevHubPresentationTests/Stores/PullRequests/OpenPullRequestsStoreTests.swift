@@ -294,4 +294,69 @@ import DevHubTestSupport
         #expect(OpenPullRequestsStore.pollInterval(panelShown: true, watching: true) == .seconds(60))
         #expect(OpenPullRequestsStore.pollInterval(panelShown: false, watching: true) == .seconds(60))
     }
+
+    private func useReviewQueue(_ value: String) async {
+        let config = ProjectConfig(git: GitConfig(pullRequests: PullRequestsConfig(reviewQueue: value)))
+        harness.spies.config.loadResult = ResolvedConfig(project: config, actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+    }
+
+    @Test func theAssignedRuleCountsRequestsForMeOrMyTeamsOnly() async {
+        await useReviewQueue("assigned")
+        harness.spies.codeHost.myTeamsResult = .success(["example/ios"])
+        script([
+            PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened),
+            PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, reviewers: ["me"]),
+            PullRequestSummaryFixture.request(iid: 3, source: "c", state: .opened, requestedTeams: ["example/ios"]),
+            PullRequestSummaryFixture.request(iid: 4, source: "d", state: .opened, requestedTeams: ["example/qa"]),
+        ])
+
+        await store.refresh()
+        await store.refresh()
+
+        #expect(store.reviewQueue == .assigned)
+        #expect(store.reviewTeams == ["example/ios"])
+        #expect(store.reviewCount == 2)
+        #expect(harness.spies.codeHost.calls.filter { $0 == .myTeams(repository: remote) }.count == 1)
+    }
+
+    @Test func theOpenRuleNeverReadsTheTeams() async {
+        script([PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened, requestedTeams: ["example/qa"])])
+
+        await store.refresh()
+
+        #expect(store.reviewQueue == .open)
+        #expect(store.reviewCount == 1)
+        #expect(harness.spies.codeHost.calls == [.openRequests(repository: remote)])
+    }
+
+    @Test func aFailedTeamsReadIsLoggedOnceAndCountsMyOwnRequests() async {
+        await useReviewQueue("assigned")
+        harness.spies.codeHost.myTeamsResult = .failure(PullRequestError.command("no read:org"))
+        script([
+            PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened, assignees: ["me"]),
+            PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, requestedTeams: ["example/ios"]),
+        ])
+
+        await store.refresh()
+        await store.refresh()
+
+        #expect(store.reviewCount == 1)
+        #expect(harness.activityTitles.filter { $0 == "Cannot read your teams on GitLab" }.count == 1)
+    }
+
+    @Test func aChangeOfTheRuleCountsAgainWithoutANotice() async throws {
+        await useReviewQueue("assigned")
+        script([
+            PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened, reviewers: ["me"]),
+            PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened),
+        ])
+        await store.refresh()
+        #expect(store.reviewCount == 1)
+
+        await useReviewQueue("open")
+
+        try await waitUntil { store.reviewCount == 2 }
+        #expect(harness.spies.notifications.posted.isEmpty)
+    }
 }

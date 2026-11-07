@@ -26,7 +26,7 @@ struct MockCodeHostRepository: CodeHostRepository {
         let requests = MockData.pullRequests.filter { request in
             switch query.scope {
             case .mine: if request.author != MockData.gitLabUsername { return false }
-            case .reviewing: return ReviewQueuePolicy.needsMyReview(request, username: MockData.gitLabUsername)
+            case .reviewing: return ReviewQueuePolicy.needsMyReview(request, reviewer: ReviewerIdentity(username: MockData.gitLabUsername))
             case .assigned: return false
             case .all: break
             }
@@ -102,6 +102,15 @@ struct MockCodeHostRepository: CodeHostRepository {
     func people(repository: CodeHost) async throws -> [String] {
         try? await Task.sleep(for: .milliseconds(200))
         return MockData.people
+    }
+
+    func teams(repository: CodeHost) async throws -> [String] {
+        try? await Task.sleep(for: .milliseconds(200))
+        return MockData.teams
+    }
+
+    func myTeams(repository: CodeHost) async throws -> [String] {
+        MockData.myTeams
     }
 
     func updatePeople(iid: Int, role: PullRequestPersonRole, add: [String], remove: [String], repository: CodeHost) async throws {

@@ -38,6 +38,7 @@ import Testing
             labels: ["feature"],
             assignees: ["sam"],
             reviewers: ["kim"],
+            requestedTeams: ["example/ios"],
             recentComments: [RecentComment(id: "501", author: "sam"), RecentComment(id: "601", author: "lee")],
             createdAt: ISO8601.date(from: "2026-10-17T22:30:37Z"),
             mergedAt: nil,

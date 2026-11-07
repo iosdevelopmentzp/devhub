@@ -13,7 +13,7 @@ enum PullRequestCompactRowMapper {
             iconTint: row.iconTint,
             iconHint: row.iconHint,
             isNew: row.isNew,
-            signals: signals(for: request, username: context.username, scope: context.scope, words: context.words),
+            signals: signals(for: request, reviewer: context.reviewer, scope: context.scope, words: context.words),
             author: context.scope == .mine ? "" : request.author,
             authorTint: row.authorTint,
             dateText: (request.mergedAt ?? request.closedAt ?? request.updatedAt)?.relativeDescription,
@@ -22,8 +22,9 @@ enum PullRequestCompactRowMapper {
         )
     }
 
-    static func signals(for request: PullRequestSummary, username: String?, scope: PullRequestScope, words: CodeHostWords) -> [TagModel] {
+    static func signals(for request: PullRequestSummary, reviewer: ReviewerIdentity?, scope: PullRequestScope, words: CodeHostWords) -> [TagModel] {
         let isOpen = request.state == .opened
+        let username = reviewer?.username
         var signals: [TagModel] = []
         if request.isDraft, isOpen {
             signals.append(TagModel("draft", tint: .secondary, hint: "Draft: not ready for review"))
@@ -31,7 +32,7 @@ enum PullRequestCompactRowMapper {
         if request.hasConflicts, isOpen {
             signals.append(.icon("exclamationmark.triangle.fill", tint: .red, hint: PullRequestTagMapper.conflictsTag(targetBranch: request.targetBranch, words: words).hint))
         }
-        if scope != .reviewing, isOpen, let username, ReviewQueuePolicy.needsMyReview(request, username: username) {
+        if scope != .reviewing, isOpen, let reviewer, ReviewQueuePolicy.needsMyReview(request, reviewer: reviewer) {
             signals.append(.icon("eye", tint: .indigo, hint: "Needs your review"))
         }
         if let pipeline = request.pipeline {

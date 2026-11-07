@@ -8,6 +8,14 @@ struct GlabClient {
         try await run(["api", "--hostname", host, endpoint], host: host)
     }
 
+    func paged(_ endpoint: String, host: String) async throws -> Data {
+        try await run(Self.pagedArguments(endpoint: endpoint, host: host), host: host)
+    }
+
+    static func pagedArguments(endpoint: String, host: String) -> [String] {
+        ["api", "--hostname", host, "--paginate", endpoint]
+    }
+
     func rest(_ endpoint: String, method: String, fields: [(name: String, value: String)], host: String) async throws -> Data {
         try await run(Self.restArguments(endpoint: endpoint, method: method, fields: fields, host: host), host: host)
     }

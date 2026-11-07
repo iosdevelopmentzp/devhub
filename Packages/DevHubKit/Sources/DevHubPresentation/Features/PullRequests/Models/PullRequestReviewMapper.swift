@@ -23,11 +23,12 @@ enum PullRequestReviewMapper {
             ))
         }
         if request.state == .opened {
-            if waiting.isEmpty == false {
+            if waiting.isEmpty == false || request.requestedTeams.isEmpty == false {
                 lines.append(PullRequestReviewLineModel(
                     id: "waiting",
                     title: "Waiting for",
                     tags: waiting.map { TagModel(name($0, username: username), tint: .orange, systemImage: "hourglass", hint: "Review requested from \(name($0, username: username)), no answer yet") }
+                        + request.requestedTeams.map { TagModel($0, tint: .orange, systemImage: "person.3", hint: "Review requested from the team \($0). It leaves the list once a member reviews") }
                 ))
             } else if request.reviewers.isEmpty, request.approvedBy.isEmpty {
                 lines.append(PullRequestReviewLineModel(

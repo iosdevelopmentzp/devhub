@@ -47,7 +47,8 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
         { "name": "Project", "patterns": ["*.xcodeproj/*", "*.resolved"], "hidden": true },
         { "name": "UI", "patterns": ["*/Calls/*", "*UI/*"] }
       ],
-      "defaults": { "draft": true, "deleteSourceBranch": true, "squash": false }
+      "defaults": { "draft": true, "deleteSourceBranch": true, "squash": false },
+      "reviewQueue": "assigned"
     }
   },
   "launch": {

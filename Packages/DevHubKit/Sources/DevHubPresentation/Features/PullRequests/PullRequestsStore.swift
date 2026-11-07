@@ -57,6 +57,7 @@ final class PullRequestsStore {
 
     @ObservationIgnored private let repository: CodeHostRepository
     @ObservationIgnored private let remote: any CodeHostLookup
+    @ObservationIgnored private let openRequests: any OpenRequestsLookup
     @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let operations: OperationLog
@@ -73,9 +74,14 @@ final class PullRequestsStore {
         remote.words
     }
 
-    init(repository: CodeHostRepository, remote: any CodeHostLookup, activity: ActivityLog, operations: OperationLog, events: AppEvents, store: any KeyValueStore) {
+    var reviewer: ReviewerIdentity? {
+        openRequests.reviewer(username: username)
+    }
+
+    init(repository: CodeHostRepository, remote: any CodeHostLookup, openRequests: any OpenRequestsLookup, activity: ActivityLog, operations: OperationLog, events: AppEvents, store: any KeyValueStore) {
         self.repository = repository
         self.remote = remote
+        self.openRequests = openRequests
         self.store = store
         self.activity = activity
         self.operations = operations

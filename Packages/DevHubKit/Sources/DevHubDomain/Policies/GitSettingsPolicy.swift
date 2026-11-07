@@ -55,7 +55,8 @@ package enum GitSettingsPolicy {
             deleteSourceBranch: config?.defaults?.deleteSourceBranch ?? true,
             squash: config?.defaults?.squash ?? false,
             aiCommands: aiCommands(ai),
-            aiTextCommands: AITextCommandPolicy.commands(ai)
+            aiTextCommands: AITextCommandPolicy.commands(ai),
+            reviewQueue: ReviewQueuePolicy.rule(config?.reviewQueue)
         )
     }
 

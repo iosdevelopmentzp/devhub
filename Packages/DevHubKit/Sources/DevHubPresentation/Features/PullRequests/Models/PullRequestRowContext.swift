@@ -3,6 +3,8 @@ import DevHubDomain
 
 struct PullRequestRowContext {
     var username: String?
+    var reviewTeams: [String] = []
+    var reviewQueue = ReviewQueueRule.open
     var scope: PullRequestScope
     var seenAt: Date?
     var now: Date
@@ -16,8 +18,13 @@ struct PullRequestRowContext {
     var watchedIDs: Set<Int>
     var onHoldJobs: [Int: [String]] = [:]
     var people: [String] = []
+    var teams: [String] = []
     var busyPeopleIDs: Set<Int> = []
     var explanations: [Int: String] = [:]
     var explainingIDs: Set<Int> = []
     var aiProvider = AIProvider.claude
+
+    var reviewer: ReviewerIdentity? {
+        username.map { ReviewerIdentity(username: $0, teams: reviewTeams, rule: reviewQueue) }
+    }
 }

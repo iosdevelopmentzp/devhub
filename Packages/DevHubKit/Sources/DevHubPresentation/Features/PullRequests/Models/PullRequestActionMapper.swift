@@ -4,10 +4,10 @@ import DevHubUI
 
 enum PullRequestActionMapper {
 
-    static func primary(for request: PullRequestSummary, username: String?, words: CodeHostWords) -> [PullRequestActionModel] {
+    static func primary(for request: PullRequestSummary, reviewer: ReviewerIdentity?, words: CodeHostWords) -> [PullRequestActionModel] {
         guard request.state == .opened else { return [] }
         var actions: [PullRequestActionModel] = []
-        if isPrimaryApproval(request, username: username) {
+        if isPrimaryApproval(request, reviewer: reviewer) {
             actions.append(approve(words))
         }
         if request.detailedStatus == .mergeable, request.permissions.canMerge {
@@ -31,15 +31,15 @@ enum PullRequestActionMapper {
         return actions
     }
 
-    static func overflow(for request: PullRequestSummary, username: String?, words: CodeHostWords) -> [PullRequestActionModel] {
+    static func overflow(for request: PullRequestSummary, reviewer: ReviewerIdentity?, words: CodeHostWords) -> [PullRequestActionModel] {
         guard request.state == .opened else { return [] }
         var actions: [PullRequestActionModel] = []
-        if let username, request.author != username {
+        if let username = reviewer?.username, request.author != username {
             if request.approvedBy.contains(username) {
                 if request.permissions.canRevokeApproval {
                     actions.append(PullRequestActionModel(id: .unapprove, title: "Revoke Approval", systemImage: "xmark.seal", hint: "Remove your approval"))
                 }
-            } else if request.permissions.canApprove, isPrimaryApproval(request, username: username) == false {
+            } else if request.permissions.canApprove, isPrimaryApproval(request, reviewer: reviewer) == false {
                 actions.append(approve(words))
             }
         }
@@ -65,8 +65,8 @@ enum PullRequestActionMapper {
         PullRequestActionModel(id: .approve, title: "Approve", systemImage: "checkmark.seal", hint: "Approve this \(words.request) as you", tint: .green)
     }
 
-    private static func isPrimaryApproval(_ request: PullRequestSummary, username: String?) -> Bool {
-        guard let username, request.permissions.canApprove else { return false }
-        return ReviewQueuePolicy.needsMyReview(request, username: username)
+    private static func isPrimaryApproval(_ request: PullRequestSummary, reviewer: ReviewerIdentity?) -> Bool {
+        guard let reviewer, request.permissions.canApprove else { return false }
+        return ReviewQueuePolicy.needsMyReview(request, reviewer: reviewer)
     }
 }

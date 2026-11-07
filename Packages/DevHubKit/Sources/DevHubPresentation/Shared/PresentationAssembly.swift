@@ -143,7 +143,8 @@ package final class PresentationAssembly {
         ciBranchRuns = CIBranchRunsStore(ci: ports.ci, projects: ciProjects, checkout: git, activity: activity, operations: operations, notifier: notifier, events: events, basePollInterval: .seconds(300))
         pullRequestHiddenFiles = PullRequestHiddenFiles(session: session, events: events, store: store)
         pullRequestReviews = PullRequestReviewMemory(session: session, settings: settings, events: events, store: store, now: { .now })
-        pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events, store: store)
+        openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, checkout: git, activity: activity, notifier: notifier, events: events, store: store)
+        pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, openRequests: openPullRequests, activity: activity, operations: operations, events: events, store: store)
         pullRequestPeople = PullRequestPeopleStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events)
         aiText = AITextStore(
             repository: ports.aiText,
@@ -156,7 +157,6 @@ package final class PresentationAssembly {
             activity: activity,
             events: events
         )
-        openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
         ciWatch = CIWatchStore(
             repository: ports.codeHost,
             ci: ports.ci,

@@ -14,6 +14,7 @@ struct PullRequestPeopleModel: Equatable {
         var icon: String
         var hint: String
         var options: [Option]
+        var teams: [Option] = []
         var emptyText: String?
     }
 
@@ -22,7 +23,7 @@ struct PullRequestPeopleModel: Equatable {
 
     static let preview = PullRequestPeopleModel(
         menus: [
-            Menu(id: .reviewer, title: "Reviewers 2", icon: "person.2.badge.plus", hint: "Add or remove reviewers", options: [Option(id: "sam", title: "sam", isSelected: true), Option(id: "kim", title: "kim", isSelected: false)], emptyText: nil),
+            Menu(id: .reviewer, title: "Reviewers 2", icon: "person.2.badge.plus", hint: "Add or remove reviewers", options: [Option(id: "sam", title: "sam", isSelected: true), Option(id: "kim", title: "kim", isSelected: false)], teams: [Option(id: "example/ios", title: "example/ios (team)", isSelected: false)], emptyText: nil),
             Menu(id: .assignee, title: "Assignees 1", icon: "person.crop.circle.badge.checkmark", hint: "Add or remove assignees", options: [Option(id: "alex", title: "alex (you)", isSelected: true)], emptyText: nil),
         ],
         isBusy: false

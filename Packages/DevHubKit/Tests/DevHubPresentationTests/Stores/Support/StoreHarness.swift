@@ -160,7 +160,7 @@ final class StoreHarness {
         store: store
     )
 
-    lazy var pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events, store: store)
+    lazy var pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, openRequests: openPullRequests, activity: activity, operations: operations, events: events, store: store)
     lazy var pullRequestPeople = PullRequestPeopleStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events)
     lazy var aiText = AITextStore(
         repository: ports.aiText,
@@ -174,7 +174,7 @@ final class StoreHarness {
         events: events
     )
 
-    lazy var openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, activity: activity, notifier: notifier, events: events, store: store)
+    lazy var openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, checkout: git, activity: activity, notifier: notifier, events: events, store: store)
 
     lazy var ciWatch = CIWatchStore(
         repository: ports.codeHost,

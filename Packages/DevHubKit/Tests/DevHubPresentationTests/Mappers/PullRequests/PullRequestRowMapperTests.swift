@@ -321,6 +321,21 @@ import DevHubTestSupport
         #expect(model.tags.contains { $0.text == "watching" } == false)
     }
 
+    @Test func theAssignedRuleTagsOnlyRequestsForMyTeam() {
+        let forTeam = PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, requestedTeams: ["example/ios"])
+        let forOthers = PullRequestSummaryFixture.request(iid: 8, source: "y", state: .opened, reviewers: ["kim"])
+        var context = PullRequestRowContext(username: "me", scope: .all, seenAt: nil, now: now, isMainCheckoutClean: true, ticket: .standard, words: .gitLab, staleDays: 14, hiddenFiles: [], watchedIDs: [])
+        context.reviewTeams = ["example/ios"]
+        context.reviewQueue = .assigned
+
+        let tagged = PullRequestRowMapper.model(for: forTeam, context: context, local: .none, isBusy: false, isExpanded: false, configActions: [])
+        let untagged = PullRequestRowMapper.model(for: forOthers, context: context, local: .none, isBusy: false, isExpanded: false, configActions: [])
+
+        #expect(tagged.tags.first == TagModel("needs your review", tint: .indigo, systemImage: "eye", hint: "Opened by sam, asks for a review from you or your team, you have not approved it"))
+        #expect(untagged.tags.contains { $0.text == "needs your review" } == false)
+        #expect(untagged.primaryActions.contains { $0.id == .approve } == false)
+    }
+
     private func map(
         _ request: PullRequestSummary,
         username: String? = "me",

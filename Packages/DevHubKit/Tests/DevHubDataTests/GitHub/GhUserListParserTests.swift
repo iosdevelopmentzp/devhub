@@ -10,6 +10,12 @@ import Testing
         #expect(try GhUserListParser.logins(from: data) == ["Alex", "sam"])
     }
 
+    @Test func readsEveryPageOfASlurpedAnswer() throws {
+        let data = Data(#"[[{"login":"sam"},{"login":"kim"}],[{"login":"lee"},{"login":"sam"}]]"#.utf8)
+
+        #expect(try GhUserListParser.logins(from: data) == ["kim", "lee", "sam"])
+    }
+
     @Test func anEmptyListIsEmpty() throws {
         #expect(try GhUserListParser.logins(from: Data("[]".utf8)).isEmpty)
     }

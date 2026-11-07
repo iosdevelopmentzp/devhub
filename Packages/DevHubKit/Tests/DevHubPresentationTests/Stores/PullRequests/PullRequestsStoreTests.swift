@@ -441,6 +441,21 @@ import DevHubTestSupport
 
         harness.events.post(.refreshRequested(.pullRequests))
 
-        try await waitUntil { harness.spies.codeHost.calls.count == 2 }
+        try await waitUntil { harness.spies.codeHost.calls.filter { $0 == .list(store.query, after: nil, repository: remote) }.count == 2 }
+    }
+
+    @Test func theReviewingScopeFollowsTheAssignedRule() async {
+        let config = ProjectConfig(git: GitConfig(pullRequests: PullRequestsConfig(reviewQueue: "assigned")))
+        harness.spies.config.loadResult = ResolvedConfig(project: config, actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+        let named = PullRequestSummaryFixture.request(iid: 1, source: "a", state: .opened, reviewers: ["me"])
+        let other = PullRequestSummaryFixture.request(iid: 2, source: "b", state: .opened, reviewers: ["kim"])
+        script([named, other])
+        store.scope = .reviewing
+
+        await store.refresh()
+
+        #expect(store.reviewer == ReviewerIdentity(username: "me", rule: .assigned))
+        #expect(store.visible.map(\.iid) == [1])
     }
 }

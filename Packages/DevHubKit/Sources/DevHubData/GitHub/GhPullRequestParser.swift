@@ -44,6 +44,7 @@ enum GhPullRequestParser {
     private struct ReviewRequest: Decodable {
         struct Reviewer: Decodable {
             let login: String?
+            let combinedSlug: String?
         }
 
         let requestedReviewer: Reviewer?
@@ -320,6 +321,7 @@ enum GhPullRequestParser {
             labels: node.labels?.nodes.map(\.name) ?? [],
             assignees: node.assignees?.nodes.map(\.login) ?? [],
             reviewers: (node.reviewRequests?.nodes ?? []).compactMap { $0.requestedReviewer?.login },
+            requestedTeams: (node.reviewRequests?.nodes ?? []).compactMap { $0.requestedReviewer?.combinedSlug },
             changesRequestedBy: (node.latestReviews?.nodes ?? []).filter { $0.state == "CHANGES_REQUESTED" }.compactMap { $0.author?.login },
             recentComments: recentComments(node),
             createdAt: node.createdAt,

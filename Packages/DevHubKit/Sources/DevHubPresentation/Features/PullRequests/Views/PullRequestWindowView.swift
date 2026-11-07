@@ -97,6 +97,8 @@ struct PullRequestWindowView: View {
     private var context: PullRequestRowContext {
         PullRequestRowContext(
             username: pullRequests.username,
+            reviewTeams: openPullRequests.reviewTeams,
+            reviewQueue: openPullRequests.reviewQueue,
             scope: .all,
             seenAt: nil,
             now: .now,
@@ -110,6 +112,7 @@ struct PullRequestWindowView: View {
             watchedIDs: openPullRequests.watchedIDs,
             onHoldJobs: ciWatch.onHoldJobNames,
             people: people.people,
+            teams: people.teams,
             busyPeopleIDs: people.busyIDs,
             explanations: aiText.explanations,
             explainingIDs: aiText.explainingIDs,

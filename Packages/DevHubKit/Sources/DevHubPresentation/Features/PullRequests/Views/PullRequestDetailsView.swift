@@ -1,4 +1,5 @@
 import SwiftUI
+import DevHubDomain
 import DevHubUI
 
 struct PullRequestDetailsView: View {
@@ -369,6 +370,13 @@ struct PullRequestDetailsView: View {
         }
     }
 
+    private func personToggle(_ option: PullRequestPeopleModel.Option, role: PullRequestPersonRole) -> some View {
+        Toggle(option.title, isOn: Binding(
+            get: { option.isSelected },
+            set: { _ in actions.togglePerson(option.id, role) }
+        ))
+    }
+
     private func peopleMenus(_ people: PullRequestPeopleModel) -> some View {
         HStack(spacing: 12) {
             ForEach(people.menus) { menu in
@@ -377,10 +385,13 @@ struct PullRequestDetailsView: View {
                         Text(emptyText)
                     }
                     ForEach(menu.options) { option in
-                        Toggle(option.title, isOn: Binding(
-                            get: { option.isSelected },
-                            set: { _ in actions.togglePerson(option.id, menu.id) }
-                        ))
+                        personToggle(option, role: menu.id)
+                    }
+                    if menu.teams.isEmpty == false {
+                        Divider()
+                        ForEach(menu.teams) { option in
+                            personToggle(option, role: menu.id)
+                        }
                     }
                 } label: {
                     Label(menu.title, systemImage: menu.icon)
