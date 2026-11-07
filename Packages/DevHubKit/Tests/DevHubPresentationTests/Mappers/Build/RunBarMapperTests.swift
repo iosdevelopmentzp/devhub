@@ -165,16 +165,16 @@ import Testing
         )
     }
 
-    @Test func aPhysicalTargetDisablesAttachAndNamesTheDevice() throws {
+    @Test func aPhysicalTargetAttachesWithAStoppedLaunchAndNamesTheDevice() throws {
         let context = IdentityContextFixture.context(app: .notInstalled)
 
         let model = map(state: BuildState(), target: SimulatorFixture.device, identity: context)
         let simulator = map(state: BuildState(), target: SimulatorFixture.iPhone, identity: nil)
 
         #expect(model.canRun)
-        #expect(model.canAttach == false)
+        #expect(model.canAttach)
         #expect(model.runHint == "Build and launch on the target device (⌘R)")
-        #expect(model.attachHint == "Run & Attach is not available on a physical device yet. Use Build & Run, then attach Xcode by hand.")
+        #expect(model.attachHint == "Build, launch stopped with devicectl --start-stopped and attach Xcode (⇧⌘R). Xcode's console stays empty for an attached process.")
         #expect(model.target?.identityMissingText == "App not installed on this device")
         #expect(simulator.canAttach)
         #expect(simulator.runHint == "Build and launch on the target simulator (⌘R)")

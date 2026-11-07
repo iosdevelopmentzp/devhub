@@ -101,7 +101,7 @@ import Testing
             .launch(udid: udid, bundleID: product.bundleID, waitForDebugger: true, environment: ["APP_DEVICE_ID": "QA-DEVICE"]),
         ])
         #expect(spies.simulators.launchArguments == [["-skipOnboarding"]])
-        #expect(spies.attacher.calls == [.attach(pid: 77, simulatorUDID: udid, projectPath: "/repo", container: nil)])
+        #expect(spies.attacher.calls == [.attach(pid: 77, destination: .simulator(udid), projectPath: "/repo", container: nil)])
     }
 
     @Test func cleanBuildCleansBeforeBuilding() async {
@@ -160,7 +160,7 @@ import Testing
             "step: Attaching Xcode to pid 55",
         ])
         #expect(spies.simulators.calls.last == .launch(udid: udid, bundleID: product.bundleID, waitForDebugger: true, environment: [:]))
-        #expect(spies.attacher.calls == [.attach(pid: 55, simulatorUDID: udid, projectPath: "/repo", container: nil)])
+        #expect(spies.attacher.calls == [.attach(pid: 55, destination: .simulator(udid), projectPath: "/repo", container: nil)])
     }
 
     @Test func attachWithoutAProcessIDFails() async {
@@ -325,19 +325,31 @@ import Testing
         #expect(spies.simulators.calls.isEmpty)
     }
 
-    @Test func attachOnADeviceFailsBeforeTheInstall() async {
+    @Test func attachOnADeviceLaunchesStoppedAndAttachesXcode() async {
         let (ports, spies) = scriptedPorts()
+        spies.devices.launchResult = .success(808)
         var request = BuildRequestFixture.incremental
         request.isPhysicalDevice = true
         request.attachDebugger = true
 
         let result = await collect(useCase(ports).run(request))
 
-        guard case .attachNotAvailable? = result.error as? DeviceError else {
-            Issue.record("Expected .attachNotAvailable, got \(String(describing: result.error))")
-            return
-        }
-        #expect(spies.devices.calls.isEmpty)
+        #expect(result.error == nil)
+        #expect(spies.devices.calls.last == .launchStopped(udid: udid, bundleID: product.bundleID, environment: [:]))
+        #expect(spies.attacher.calls == [.attach(pid: 808, destination: .device(udid), projectPath: "/repo", container: nil)])
+        #expect(result.events.contains("step: Attaching Xcode to pid 808"))
+    }
+
+    @Test func attachOnADeviceWithoutAProcessIDFails() async {
+        let (ports, spies) = scriptedPorts()
+        spies.devices.launchResult = .success(nil)
+        var request = BuildRequestFixture.incremental
+        request.isPhysicalDevice = true
+        request.attachDebugger = true
+
+        let result = await collect(useCase(ports).run(request))
+
+        #expect(result.error != nil)
         #expect(spies.attacher.calls.isEmpty)
     }
 

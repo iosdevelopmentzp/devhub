@@ -27,7 +27,7 @@ enum IdentityPanelMapper {
             launchTitle: willCleanInstall ? "Reinstall & Launch" : "Launch",
             launchTint: willCleanInstall ? .orange : nil,
             canLaunch: context.isApplying == false && buildIsRunning == false && context.isInstalled,
-            canAttach: context.isPhysicalDevice == false
+            canAttach: true
         )
     }
 

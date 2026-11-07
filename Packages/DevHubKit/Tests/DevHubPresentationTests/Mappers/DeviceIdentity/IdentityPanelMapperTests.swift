@@ -258,7 +258,7 @@ import Testing
         IdentityPanelMapper.model(context: context, bundleID: "com.example.app", buildIsRunning: buildIsRunning, cleanInstallIsOn: cleanInstallIsOn)
     }
 
-    @Test func aPhysicalDeviceHidesAttachAndSaysTheKeychainStays() {
+    @Test func aPhysicalDeviceCanAttachAndSaysTheKeychainStays() {
         let device = Fixture.context(isPhysicalDevice: true)
         let needed = Fixture.context(settings: Fixture.settings(desired: "devhub-1"), isPhysicalDevice: true)
 
@@ -266,7 +266,7 @@ import Testing
         let on = IdentityPanelMapper.cleanInstallNote(context: device, cleanInstallIsOn: true)
         let reinstall = IdentityPanelMapper.cleanInstallNote(context: needed, cleanInstallIsOn: false)
 
-        #expect(model.canAttach == false)
+        #expect(model.canAttach)
         #expect(IdentityPanelMapper.model(context: Fixture.context(), bundleID: "com.example.app", buildIsRunning: false, cleanInstallIsOn: false).canAttach)
         #expect(on.text == "Clean install is on: the next launch deletes the app and installs the last build again. The keychain of the device stays.")
         #expect(reinstall.text == "The app on this device has another ID: the next launch deletes the app and installs the last build again. The keychain of the device stays. The session is lost.")

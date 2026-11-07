@@ -39,11 +39,10 @@ package struct AppInstallStep: Sendable {
         guard let pid else { throw BuildError.failed("simctl launch did not report a process ID.") }
         continuation.yield(.output("Waiting for debugger, pid \(pid)"))
         continuation.yield(.step("Attaching Xcode to pid \(pid)", progress: nil))
-        try await attacher.attach(pid: pid, simulatorUDID: request.simulatorUDID, projectPath: request.projectPath, container: request.container)
+        try await attacher.attach(pid: pid, destination: .simulator(request.simulatorUDID), projectPath: request.projectPath, container: request.container)
     }
 
     private func runOnDevice(_ product: BuildProduct, request: BuildRequest, continuation: AsyncThrowingStream<BuildEvent, Error>.Continuation) async throws {
-        guard request.attachDebugger == false else { throw DeviceError.attachNotAvailable }
         if request.cleanInstall {
             continuation.yield(.step("Clean install: removing the app from \(request.simulatorName)", progress: nil))
             try await devices.uninstall(udid: request.simulatorUDID, bundleID: product.bundleID)
@@ -59,8 +58,13 @@ package struct AppInstallStep: Sendable {
         }
 
         continuation.yield(.step(Self.launchStep(product, plan: plan), progress: nil))
-        _ = try await devices.launch(udid: request.simulatorUDID, bundleID: product.bundleID, environment: plan.environment, arguments: plan.arguments)
+        let pid = try await devices.launch(udid: request.simulatorUDID, bundleID: product.bundleID, environment: plan.environment, arguments: plan.arguments, startStopped: request.attachDebugger)
         continuation.yield(.launched(plan.record(bundleID: product.bundleID, baseURL: nil, date: .now)))
+        guard request.attachDebugger else { return }
+        guard let pid else { throw BuildError.failed("devicectl did not report a process ID.") }
+        continuation.yield(.output("Started stopped, pid \(pid)"))
+        continuation.yield(.step("Attaching Xcode to pid \(pid)", progress: nil))
+        try await attacher.attach(pid: pid, destination: .device(request.simulatorUDID), projectPath: request.projectPath, container: request.container)
     }
 
     private func launch(

@@ -98,7 +98,7 @@ Decision (owner, 2026-11-01): options 1 and 2 from one source, option 2 (the inj
 - [ ] 5. D6 app snapshots.
 - [ ] 6. D6 device snapshots with the keychain.
 - [x] 7. D8 devices: list, install, launch with profiles and the device ID, clean install, identity panel.
-- [ ] 7b. D8 devices: console in the Logs tab, mocks, Run & Attach.
+- [ ] 7b. D8 devices: console in the Logs tab, mocks. Run & Attach is done in ADR 017 step 10.
 - [ ] 8. D8 devices: build with signing, app data copy.
 - [x] 9a. D1.1 open Simulator.app or Device Hub by the Xcode in use; the menu item and the example config follow.
 - [ ] 9. D1.2 check the rest on Xcode 27, after the owner installs Xcode 27.

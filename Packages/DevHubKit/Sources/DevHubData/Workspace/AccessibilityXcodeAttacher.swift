@@ -5,6 +5,8 @@ import DevHubDomain
 struct AccessibilityXcodeAttacher: XcodeAttaching {
     let shell: ShellRunner
 
+    static let deviceAttachWait: Duration = .seconds(5)
+
     var isTrusted: Bool {
         AXIsProcessTrusted()
     }
@@ -14,7 +16,7 @@ struct AccessibilityXcodeAttacher: XcodeAttaching {
         _ = AXIsProcessTrustedWithOptions(options)
     }
 
-    func attach(pid: Int32, simulatorUDID: String, projectPath: String, container preferred: String?) async throws {
+    func attach(pid: Int32, destination: AttachDestination, projectPath: String, container preferred: String?) async throws {
         guard isTrusted else {
             requestTrust()
             throw XcodeAttachError.accessibilityNotGranted
@@ -31,7 +33,7 @@ struct AccessibilityXcodeAttacher: XcodeAttaching {
             try await Task.sleep(for: .seconds(1.5))
         }
 
-        await selectRunDestination(udid: simulatorUDID, documentPath: container.url.path)
+        await selectRunDestination(udid: destination.udid, documentPath: container.url.path)
 
         let script = """
         tell application "System Events" to tell process "Xcode"
@@ -46,6 +48,10 @@ struct AccessibilityXcodeAttacher: XcodeAttaching {
         """
         let result = try await shell.run("osascript", ["-e", script], cwd: nil)
         guard result.exitCode == 0 else { throw XcodeAttachError.script(result.failureMessage) }
+        if case .device = destination {
+            try await Task.sleep(for: Self.deviceAttachWait)
+            return
+        }
 
         for _ in 0..<25 {
             try await Task.sleep(for: .seconds(1))

@@ -311,7 +311,7 @@ import DevHubTestSupport
 
         try await waitUntil { store.isApplying(simulator.id) == false }
         #expect(lastLaunch == .launch(udid: simulator.id, bundleID: bundleID, waitForDebugger: true, environment: [:]))
-        #expect(harness.spies.attacher.calls == [.attach(pid: 42, simulatorUDID: simulator.id, projectPath: ProjectSample.path, container: nil)])
+        #expect(harness.spies.attacher.calls == [.attach(pid: 42, destination: .simulator(simulator.id), projectPath: ProjectSample.path, container: nil)])
         #expect(harness.lastActivity?.detail == "own ID · Xcode attached")
     }
 
@@ -323,7 +323,7 @@ import DevHubTestSupport
         store.launchInstalledApp(on: simulator, profile: nil, attachDebugger: true, forceCleanInstall: false, projectPath: ProjectSample.path, fallbackAppPath: nil)
 
         try await waitUntil { store.isApplying(simulator.id) == false }
-        #expect(harness.spies.attacher.calls == [.attach(pid: 42, simulatorUDID: simulator.id, projectPath: ProjectSample.path, container: "App.xcworkspace")])
+        #expect(harness.spies.attacher.calls == [.attach(pid: 42, destination: .simulator(simulator.id), projectPath: ProjectSample.path, container: "App.xcworkspace")])
     }
 
     @Test func launchInstalledAppAsksForAccessibilityFirst() {
