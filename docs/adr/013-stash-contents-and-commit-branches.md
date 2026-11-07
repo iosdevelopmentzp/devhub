@@ -29,3 +29,4 @@ Expanding a commit in History or Reflog also runs `git branch -a --contains <has
 
 | Commit | What |
 |---|---|
+| `4769db9` | D1 to D3: `GitStash.hash`, `stashFiles`, `stashDiff`, `branchesContaining` with `GitContainingBranchesParser`, `GitCommand.stashBranch`, the stash row with files and the branch field, the "In …" line of a commit, the debug switches. |
