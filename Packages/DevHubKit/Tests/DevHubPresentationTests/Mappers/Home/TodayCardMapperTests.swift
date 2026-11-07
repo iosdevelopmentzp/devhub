@@ -21,6 +21,7 @@ import Testing
             openRequests: [failed(12, author: "alex"), failed(13, author: "sam")],
             username: "alex",
             onHold: [:],
+            baseBranchFailure: nil,
             worktrees: [WorktreeFixture.main, finished],
             simulators: [SimulatorFixture.iPhone, SimulatorFixture.iPad],
             words: .gitHub
@@ -37,7 +38,7 @@ import Testing
     }
 
     @Test func severalFailedRequestsOpenTheMineScope() {
-        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [failed(12, author: "alex"), failed(14, author: "alex")], username: "alex", onHold: [:], worktrees: [], simulators: [], words: .gitLab)
+        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [failed(12, author: "alex"), failed(14, author: "alex")], username: "alex", onHold: [:], baseBranchFailure: nil, worktrees: [], simulators: [], words: .gitLab)
 
         #expect(items.map(\.target) == [.pullRequests(.mine)])
         #expect(items[0].title == "2 of your merge requests: pipeline failed")
@@ -45,7 +46,7 @@ import Testing
     }
 
     @Test func oneRequestOnHoldOpensThatRequest() {
-        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [], username: "alex", onHold: [7: ["approve-release"], 9: []], worktrees: [], simulators: [], words: .gitLab)
+        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [], username: "alex", onHold: [7: ["approve-release"], 9: []], baseBranchFailure: nil, worktrees: [], simulators: [], words: .gitLab)
 
         #expect(items.map(\.id) == ["approval"])
         #expect(items[0].icon == "hand.raised.fill")
@@ -56,19 +57,32 @@ import Testing
     }
 
     @Test func severalRequestsOnHoldOpenTheMineScope() {
-        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [], username: "alex", onHold: [7: ["approve-release"], 12: ["approve-release", "approve-deploy"]], worktrees: [], simulators: [], words: .gitHub)
+        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [], username: "alex", onHold: [7: ["approve-release"], 12: ["approve-release", "approve-deploy"]], baseBranchFailure: nil, worktrees: [], simulators: [], words: .gitHub)
 
         #expect(items[0].title == "2 of your pull requests wait for your approval")
         #expect(items[0].detail == "#12, #7")
         #expect(items[0].target == .pullRequests(.mine))
     }
 
+    @Test func aFailedBaseBranchOpensTheGitTab() {
+        let failure = BaseBranchCIFailure(branch: "dev", workflows: ["build-and-test", "nightly"], subject: "Merge pull request #1840")
+        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [], username: nil, onHold: [:], baseBranchFailure: failure, worktrees: [], simulators: [], words: .gitHub)
+
+        #expect(items.map(\.id) == ["baseBranch"])
+        #expect(items[0].icon == "xmark.octagon.fill")
+        #expect(items[0].tint == .red)
+        #expect(items[0].title == "CI of dev failed: build-and-test, nightly")
+        #expect(items[0].detail == "Merge pull request #1840")
+        #expect(items[0].target == .git)
+        #expect(BaseBranchCIFailure(branch: "dev", workflows: [], subject: nil).title == "CI of dev failed")
+    }
+
     @Test func nothingToDoGivesNoItems() {
-        #expect(TodayCardMapper.items(reviewCount: 0, openRequests: [], username: nil, onHold: [:], worktrees: [WorktreeFixture.main], simulators: [SimulatorFixture.iPad], words: .gitHub).isEmpty)
+        #expect(TodayCardMapper.items(reviewCount: 0, openRequests: [], username: nil, onHold: [:], baseBranchFailure: nil, worktrees: [WorktreeFixture.main], simulators: [SimulatorFixture.iPad], words: .gitHub).isEmpty)
     }
 
     @Test func aConnectedDeviceDoesNotCountAsABootedSimulator() {
-        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [], username: nil, onHold: [:], worktrees: [], simulators: [SimulatorFixture.device, SimulatorFixture.iPad], words: .gitHub)
+        let items = TodayCardMapper.items(reviewCount: 0, openRequests: [], username: nil, onHold: [:], baseBranchFailure: nil, worktrees: [], simulators: [SimulatorFixture.device, SimulatorFixture.iPad], words: .gitHub)
 
         #expect(items.isEmpty)
     }

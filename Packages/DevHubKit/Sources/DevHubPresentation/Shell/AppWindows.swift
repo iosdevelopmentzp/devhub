@@ -83,6 +83,7 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         assembly.inbox.startPolling()
         assembly.ciAutoRerun.startPolling()
         assembly.ciWatch.startPolling()
+        assembly.ciBranchRuns.startPolling()
         assembly.updates.onInstalling = { NSApp.terminate(nil) }
         assembly.updates.start()
         observeNotificationClicks()

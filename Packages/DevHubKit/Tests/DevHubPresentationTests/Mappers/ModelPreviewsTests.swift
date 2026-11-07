@@ -51,6 +51,7 @@ import Testing
         #expect(GitHeaderModel.preview.actions == [.preview])
         #expect(LocalBranchRowModel.preview.canSwitch)
         #expect(PullRequestLineModel.preview.canRefresh)
+        #expect(CIBranchLineModel.preview.openURL == nil)
         #expect(RemoteBranchRowModel.preview.localName == "feature/ABC-2401-gifts")
     }
 

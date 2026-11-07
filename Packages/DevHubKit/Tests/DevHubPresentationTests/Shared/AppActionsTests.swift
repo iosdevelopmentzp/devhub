@@ -168,5 +168,12 @@ import Testing
 
         assembly.appActions.open(.simulators)
         #expect(assembly.navigator.selection == .feature(.simulators))
+
+        assembly.appActions.open(TodayTarget.git)
+        #expect(assembly.navigator.selection == .feature(.git))
+
+        assembly.appActions.open(.worktrees)
+        assembly.appActions.open(ActivityTarget.git)
+        #expect(assembly.navigator.selection == .feature(.git))
     }
 }

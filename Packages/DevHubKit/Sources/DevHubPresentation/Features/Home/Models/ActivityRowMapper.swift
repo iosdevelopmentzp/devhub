@@ -26,6 +26,7 @@ enum ActivityRowMapper {
         case .build: "Open the run bar in the Simulators tab"
         case .inbox: "Open the Inbox"
         case .utilities: "Open the Utils tab"
+        case .git: "Open the Git tab"
         }
     }
 

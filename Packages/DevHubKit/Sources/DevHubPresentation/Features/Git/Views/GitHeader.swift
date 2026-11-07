@@ -6,6 +6,7 @@ struct GitHeader: View {
     @Environment(GitStore.self) private var git
     @Environment(WorktreesStore.self) private var worktrees
     @Environment(BranchPullRequestStore.self) private var branchPullRequest
+    @Environment(CIBranchRunsStore.self) private var ciRuns
     @Environment(OpenPullRequestsStore.self) private var openPullRequests
     @Environment(AppActions.self) private var appActions
     @Environment(SettingsStore.self) private var settings
@@ -32,6 +33,9 @@ struct GitHeader: View {
                     branchLine(model)
                     if model.showsPullRequestLine {
                         pullRequestLine
+                    }
+                    if ciRuns.isAvailable {
+                        ciLine
                     }
                     if let operationText = model.operationText {
                         operationBanner(operationText, canContinue: model.canContinueOperation)
@@ -105,6 +109,29 @@ struct GitHeader: View {
         )
         .task(id: git.snapshot?.branch) {
             await branchPullRequest.refreshIfStale()
+        }
+    }
+
+    private var ciLine: some View {
+        CIBranchLine(
+            model: CIBranchLineMapper.model(
+                run: ciRuns.run,
+                workflows: ciRuns.workflows,
+                error: ciRuns.error,
+                isLoading: ciRuns.isLoading,
+                loadedBranch: ciRuns.loadedBranch,
+                branch: git.currentBranch,
+                busy: ciRuns.busyWorkflows,
+                slug: ciRuns.slug,
+                base: CIWorkflowLink.base(of: branchPullRequest.status?.pipeline?.webURL?.absoluteString),
+                words: words
+            ),
+            onRefresh: { Task { await ciRuns.refresh() } },
+            onRerun: { ciRuns.rerun($0, named: $1) },
+            onCancel: { ciRuns.cancel($0, named: $1) }
+        )
+        .task(id: git.snapshot?.branch) {
+            await ciRuns.refreshIfStale()
         }
     }
 

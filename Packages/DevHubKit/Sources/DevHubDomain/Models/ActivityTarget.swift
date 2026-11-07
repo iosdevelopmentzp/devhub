@@ -7,4 +7,5 @@ package enum ActivityTarget: Hashable, Codable, Sendable {
     case build
     case inbox
     case utilities
+    case git
 }

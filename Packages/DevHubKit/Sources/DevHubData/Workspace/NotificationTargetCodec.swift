@@ -17,6 +17,7 @@ enum NotificationTargetCodec {
         case .build: [Keys.target: "build"]
         case .inbox: [Keys.target: "inbox"]
         case .utilities: [Keys.target: "utilities"]
+        case .git: [Keys.target: "git"]
         }
     }
 
@@ -36,6 +37,8 @@ enum NotificationTargetCodec {
             return .inbox
         case "utilities":
             return .utilities
+        case "git":
+            return .git
         default:
             return nil
         }

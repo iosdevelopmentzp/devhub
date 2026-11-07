@@ -6,4 +6,5 @@ enum TodayTarget: Equatable {
     case pullRequest(Int)
     case worktrees
     case simulators
+    case git
 }

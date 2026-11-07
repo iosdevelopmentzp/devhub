@@ -35,6 +35,7 @@ extension View {
             .environment(assembly.changes)
             .environment(assembly.history)
             .environment(assembly.branchPullRequest)
+            .environment(assembly.ciBranchRuns)
             .environment(assembly.pullRequests)
             .environment(assembly.openPullRequests)
             .environment(assembly.ciWatch)

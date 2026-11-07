@@ -222,6 +222,7 @@ final class AppActions {
         case .pullRequest(let iid): showPullRequest(iid: iid)
         case .worktrees: navigator.show(.worktrees)
         case .simulators: navigator.show(.simulators)
+        case .git: navigator.show(.git)
         }
     }
 
@@ -233,6 +234,7 @@ final class AppActions {
         case .build: navigator.show(.simulators)
         case .inbox: openInbox()
         case .utilities: openUtility(.compressVideo)
+        case .git: navigator.show(.git)
         }
     }
 

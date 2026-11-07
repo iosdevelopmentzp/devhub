@@ -10,6 +10,7 @@ enum TodayCardMapper {
         openRequests: [PullRequestSummary],
         username: String?,
         onHold: [Int: [String]],
+        baseBranchFailure: BaseBranchCIFailure?,
         worktrees: [Worktree],
         simulators: [Simulator],
         words: CodeHostWords
@@ -18,6 +19,7 @@ enum TodayCardMapper {
             reviewItem(reviewCount, words: words),
             failedItem(openRequests, username: username, words: words),
             approvalItem(onHold, words: words),
+            baseBranchItem(baseBranchFailure),
             worktreesItem(worktrees),
             simulatorsItem(simulators),
         ].compactMap { $0 }
@@ -82,6 +84,18 @@ enum TodayCardMapper {
             title: "\(waiting.count) of your \(words.requests) wait for your approval",
             detail: waiting.prefix(3).map { words.reference($0) }.joined(separator: ", "),
             target: .pullRequests(.mine)
+        )
+    }
+
+    private static func baseBranchItem(_ failure: BaseBranchCIFailure?) -> TodayItemModel? {
+        guard let failure else { return nil }
+        return TodayItemModel(
+            id: "baseBranch",
+            icon: "xmark.octagon.fill",
+            tint: .red,
+            title: failure.title,
+            detail: failure.subject,
+            target: .git
         )
     }
 

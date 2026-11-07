@@ -35,6 +35,7 @@ package final class PresentationAssembly {
     let pullRequestHiddenFiles: PullRequestHiddenFiles
     let pullRequestReviews: PullRequestReviewMemory
     let branchPullRequest: BranchPullRequestStore
+    let ciBranchRuns: CIBranchRunsStore
     let pullRequests: PullRequestsStore
     let openPullRequests: OpenPullRequestsStore
     let ciWatch: CIWatchStore
@@ -137,6 +138,7 @@ package final class PresentationAssembly {
         codeHostRemote = CodeHostRemote(git: ports.git, worktrees: worktrees, events: events)
         ciProjects = CIProjectResolver(config: config, worktrees: worktrees, remote: codeHostRemote, tools: ports.tools, events: events)
         ciHistory = CIWorkflowHistory(session: session, events: events, store: store)
+        ciBranchRuns = CIBranchRunsStore(ci: ports.ci, projects: ciProjects, checkout: git, activity: activity, operations: operations, notifier: notifier, events: events, basePollInterval: .seconds(300))
         pullRequestHiddenFiles = PullRequestHiddenFiles(session: session, events: events, store: store)
         pullRequestReviews = PullRequestReviewMemory(session: session, settings: settings, events: events, store: store, now: { .now })
         pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events, store: store)
