@@ -36,7 +36,7 @@ A segmented control selects one section. The choice is saved.
 | Changes N | The commit box, then the files in groups: Conflicts, Staged, Changes, New files |
 | Stash N | Only when the stash is not empty. Each entry shows the message, `stash@{n}`, the branch and the date |
 
-A click on a commit or a reflog row lists its files. A click on a file shows its diff. A click on a changed file shows its diff. A diff shows at most 4,000 lines.
+A click on a commit or a reflog row lists its files. A click on a file shows its diff. A click on a changed file shows its diff. Inside a changed pair of lines the words that differ get a stronger background. A diff shows at most 4,000 lines.
 
 The search field in the toolbar filters the rows of the current section: branch name and subject, commit subject, hash, author and refs, file path, stash message.
 

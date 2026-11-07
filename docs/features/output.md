@@ -83,7 +83,7 @@ An operation is one action that you started. `OperationScope.current` (a Domain 
 
 Code: `DevHubPresentation/Shared/Operations/`, `Features/Operations/` (`OperationsTray`, `OperationsTrayMapper`, `OperationCard`, `OperationsIndicator`), `Shared/ActionRunner.swift`, `DevHubDomain/Models/OperationScope.swift`, `DevHubDomain/Policies/FailureDigestPolicy.swift`.
 
-The cards show in one tray at the bottom of the tab, over the list and above the Output panel, in the order the operations started. The tray floats over the content, so nothing below it moves when a card appears or grows. Several operations at once are several cards. When the cards need more than 45 % of the panel height, the tray scrolls. A request window has its own tray with the operations of that request. Each card has its origin: where the action started and which place its Retry repeats.
+Each operation is one thin row in a strip at the bottom of the tab, above the Output panel, in the order the operations started: the state icon or a spinner, the title, the failure message or the last output line, the progress text and the time, then Retry, Stop, a chevron and a close button. A running script draws its progress as a thin bar along the bottom of its row. The strip takes its own space under the list and covers nothing. At most 3 rows show; a fourth line says "N more in the footer list". The chevron, or a click on the row, opens the card of that operation above the strip, over the list, with the steps, the failure lines, Full Output and Copy Error; the chevron or the close button of the card closes it, and only one card is open at a time. A request window has its own strip and card with the operations of that request. Each operation has its origin: where the action started and which place its Retry repeats.
 
 | Origin | Started by |
 |---|---|
@@ -99,14 +99,14 @@ The cards show in one tray at the bottom of the tab, over the list and above the
 | `.newPullRequest` | Write with AI in the new request form |
 | `.disk` | Delete in Settings → Disk |
 
-A card shows:
+A row shows the title, the message or the last line, the progress text and the time while it runs, the duration after. The card shows:
 
 - while it runs: a spinner, the title, the time since the start, the steps (commands that are not reads, and reads that failed) with their duration, the last output line, the progress bar of a script and Stop for a config action;
 - after a failure: "<title> failed" in red, the message, the steps with a red cross on the failed one, the lines of the failed step that explain it (`FailureDigestPolicy`: lines with `error`, `fatal`, `failed`, `rejected`, `conflict`, `denied`, `not found`, `hint:` and similar words, else the last 6 lines, at most 8 lines, colour codes removed), and Retry, Copy Error, Full Output and a close button;
 - after a success with a failed step (a commit whose push failed): an orange card "<title> · a step failed" with the same failure part;
 - after a success: a green line with the duration that goes away after 4 seconds.
 
-A new operation at the same origin hides the finished card of the last one. A success goes away after 4 seconds; a failure stays until its close button. Retry runs the same action again with the same inputs.
+A new operation at the same origin hides the finished row of the last one. A success goes away after 4 seconds; a failure stays until its close button. Retry runs the same action again with the same inputs.
 
 The footer shows the operations next to the build state: the title and progress of a running operation, "N running", or "N failed" in red until the list is opened. A click opens the list of this session with the same cards; the close button of a card removes it from the list, and "Clear Finished" removes every finished one.
 

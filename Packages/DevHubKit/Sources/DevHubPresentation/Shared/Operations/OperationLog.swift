@@ -9,6 +9,7 @@ final class OperationLog {
     static let finishedLimit = 30
 
     private(set) var records: [OperationRecord] = []
+    private(set) var expandedID: OperationRecord.ID?
 
     @ObservationIgnored private var retries: [OperationRecord.ID: () -> Void] = [:]
     @ObservationIgnored private var stops: [OperationRecord.ID: () -> Void] = [:]
@@ -102,6 +103,13 @@ final class OperationLog {
             $0.isDismissed = true
             $0.isSeen = true
         }
+        if expandedID == id {
+            expandedID = nil
+        }
+    }
+
+    func toggleExpanded(_ id: OperationRecord.ID) {
+        expandedID = expandedID == id ? nil : id
     }
 
     func retry(_ id: OperationRecord.ID) {
@@ -122,6 +130,7 @@ final class OperationLog {
         guard record(id)?.isRunning == false else { return }
         records.removeAll { $0.id == id }
         retries[id] = nil
+        clearExpandedIfGone()
     }
 
     func clearFinished() {
@@ -130,6 +139,12 @@ final class OperationLog {
         for id in removed {
             retries[id] = nil
         }
+        clearExpandedIfGone()
+    }
+
+    private func clearExpandedIfGone() {
+        guard let expandedID, records.contains(where: { $0.id == expandedID }) == false else { return }
+        self.expandedID = nil
     }
 
     func markAllSeen() {

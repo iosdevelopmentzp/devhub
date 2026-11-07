@@ -30,6 +30,7 @@ struct RootView: View {
             Divider()
             if session.hasProject {
                 featureView
+                OperationsStrip(origin: nil)
             } else {
                 NoProjectState()
             }

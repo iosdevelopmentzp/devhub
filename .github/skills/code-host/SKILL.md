@@ -161,6 +161,7 @@ Other repository facts: `squashOnMerge` (GitHub `viewerDefaultMergeMethod` is `S
 | `git.host.name` | the value for `--hostname` |
 | `git.pullRequests.targets`, `template`, `staleDays`, `defaults.*` | the new request form and the `stale` tag (`PullRequestSettings`) |
 | `git.pullRequests.hiddenFiles` | glob patterns of the files hidden from the details file list (`PullRequestSettings.hiddenFiles`, `HiddenFilePolicy`); the default is `[]`: nothing is hidden until the user or this list says so |
+| `git.pullRequests.fileGroups` | named groups of glob patterns (`PullRequestSettings.fileGroups`, `FileGroupPolicy`); the details show a chip per matched group that hides or shows it, `hidden: true` starts hidden |
 | `ai.reviewCommand` | "Fix threads with AI" |
 | `ai.textCommands` | "Write with AI" in the new request form and "Explain" in the details (`AITextCommandPolicy`, `AITextStore`) |
 | `when.host` | shows a config action only for one kind (`ActionCondition.host`, `ActionConditionFacts.hostKind`) |

@@ -78,6 +78,8 @@ import Testing
         #expect(AIWriteButtonModel.preview.choices.count == 2)
         #expect(PullRequestExplainModel.preview.text != nil)
         #expect(PullRequestFileGroupChipModel.preview.isHidden)
+        #expect(OperationStripModel.preview.canRetry)
+        #expect(OperationsStripModel.preview.moreText != nil)
         #expect(PullRequestFileSidebarModel.preview.rows.count == 2)
         #expect(PullRequestFileSidebarRowModel.preview.isChanged)
         #expect(SplitDiffRowModel.preview.lineIDs == [1, 0])

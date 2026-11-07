@@ -105,6 +105,28 @@ import DevHubDomain
         #expect(log.records.count == 1)
     }
 
+    @Test func toggleExpandedFlipsTheCardAndDismissClosesIt() {
+        let id = log.start("Fetch", at: .git, retry: nil, stop: nil)
+        let other = log.start("Push", at: .git, retry: nil, stop: nil)
+
+        log.toggleExpanded(id)
+        #expect(log.expandedID == id)
+        log.toggleExpanded(other)
+        #expect(log.expandedID == other)
+        log.toggleExpanded(other)
+        #expect(log.expandedID == nil)
+
+        log.toggleExpanded(id)
+        log.fail(id, message: "offline")
+        log.dismiss(id)
+        #expect(log.expandedID == nil)
+
+        log.toggleExpanded(other)
+        log.succeed(other)
+        log.clearFinished()
+        #expect(log.expandedID == nil)
+    }
+
     @Test func retryRunsTheClosureOnlyAfterTheEnd() {
         var retries = 0
         let id = log.start("Push", at: .git, retry: { retries += 1 }, stop: nil)

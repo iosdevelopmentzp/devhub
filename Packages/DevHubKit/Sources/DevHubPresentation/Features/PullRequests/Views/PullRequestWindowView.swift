@@ -34,32 +34,9 @@ struct PullRequestWindowView: View {
                 }
                 .frame(width: Self.sidebarWidth)
                 Divider()
-                ScrollView {
-                    PullRequestRow(
-                        model: PullRequestRowMapper.model(
-                            for: summary,
-                            context: context,
-                            local: PullRequestLocalStateMapper.state(for: summary.sourceBranch, checkout: git, worktrees: worktrees),
-                            isBusy: pullRequests.isBusy(summary.id),
-                            isExpanded: true,
-                            configActions: []
-                        ),
-                        details: details,
-                        isSelected: false,
-                        isNarrow: false,
-                        isPickingLaunch: isPickingLaunch,
-                        detailActions: detailActions,
-                        onToggle: {},
-                        onRequestLaunch: { isPickingLaunch = true },
-                        onCancelLaunch: { isPickingLaunch = false },
-                        onAction: { pullRequests.perform($0, on: summary.id) },
-                        onMerge: { pullRequests.merge(summary.id, kind: $0, squash: $1, removeSourceBranch: $2) },
-                        onLabel: nil
-                    )
-                    .padding(.vertical, 8)
-                }
-                .overlay(alignment: .bottom) {
-                    OperationsTray(origin: .pullRequest(summary.id), maxHeight: 320)
+                VStack(spacing: 0) {
+                    requestScroll
+                    OperationsStrip(origin: .pullRequest(summary.id))
                 }
             }
             .environment(\.diffScrollProxy, proxy)
@@ -74,6 +51,45 @@ struct PullRequestWindowView: View {
             await detailStore.load(summary.id)
             await people.loadIfNeeded()
         }
+    }
+
+    private var requestScroll: some View {
+        ScrollView {
+            PullRequestRow(
+                model: PullRequestRowMapper.model(
+                    for: summary,
+                    context: context,
+                    local: PullRequestLocalStateMapper.state(for: summary.sourceBranch, checkout: git, worktrees: worktrees),
+                    isBusy: pullRequests.isBusy(summary.id),
+                    isExpanded: true,
+                    configActions: []
+                ),
+                details: details,
+                isSelected: false,
+                isNarrow: false,
+                isPickingLaunch: isPickingLaunch,
+                detailActions: detailActions,
+                onToggle: {},
+                onRequestLaunch: { isPickingLaunch = true },
+                onCancelLaunch: { isPickingLaunch = false },
+                onAction: { pullRequests.perform($0, on: summary.id) },
+                onMerge: { pullRequests.merge(summary.id, kind: $0, squash: $1, removeSourceBranch: $2) },
+                onLabel: nil
+            )
+            .padding(.vertical, 8)
+        }
+        .overlay(alignment: .bottom) {
+            OperationsTray(origin: .pullRequest(summary.id), maxHeight: 320)
+        }
+    }
+
+    private var detailActions: PullRequestDetailActions {
+        PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, aiText: aiText, autoRerun: autoRerun, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: nil)
+    }
+
+    private func sidebar(_ details: PullRequestDetailsModel) -> PullRequestFileSidebarModel? {
+        guard case .loaded(let loaded) = details.content else { return nil }
+        return PullRequestFileSidebarMapper.model(for: loaded, query: fileQuery)
     }
 
     private var context: PullRequestRowContext {
@@ -96,15 +112,6 @@ struct PullRequestWindowView: View {
             explainingIDs: aiText.explainingIDs,
             aiProvider: aiText.defaultProvider
         )
-    }
-
-    private var detailActions: PullRequestDetailActions {
-        PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, aiText: aiText, autoRerun: autoRerun, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: nil)
-    }
-
-    private func sidebar(_ details: PullRequestDetailsModel) -> PullRequestFileSidebarModel? {
-        guard case .loaded(let loaded) = details.content else { return nil }
-        return PullRequestFileSidebarMapper.model(for: loaded, query: fileQuery)
     }
 
     private var details: PullRequestDetailsModel {

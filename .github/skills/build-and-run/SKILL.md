@@ -53,6 +53,9 @@ Debug builds only. `DevHubComposition/Debug/DebugLaunch.swift` reads them and ca
 |---|---|
 | `DEVHUB_PROJECT=<path>` | adds and selects a project (saved) |
 | `DEVHUB_PULL_REQUEST=<n>` | shows the Pull Requests tab and opens request `n` |
+| `DEVHUB_PULL_REQUEST_WINDOW=1` | with `DEVHUB_PULL_REQUEST`: opens the request in its own window instead of the panel; `DEVHUB_SNAPSHOT` draws that window |
+| `DEVHUB_REVEAL_FILE=<path>` | with `DEVHUB_PULL_REQUEST`: once the details are loaded, opens the diff of that file and scrolls to it |
+| `DEVHUB_DIFF_LAYOUT=unified\|sideBySide` | sets the saved diff layout of the Pull Requests details |
 | `DEVHUB_PORTS=mock` | starts the app on `PresentationAssembly.preview()`: mock ports, an in-memory store and the sample projects, nothing saved. With `DEVHUB_OPEN_PANEL=1 DEVHUB_PULL_REQUEST=1842` the details show the mock CircleCI workflow, the auto re-run menu and one earlier run. The Git tab shows a failed push card and the footer a running script (`seedOperations` in `PresentationAssembly+Preview.swift`); the run bar shows the crash of `MockData.crashReport` |
 | `DEVHUB_WINDOW_MODE=panel\|window` | sets the window mode (saved). In window mode `DEVHUB_OPEN_PANEL` shows the main window and `DEVHUB_SNAPSHOT` draws it |
 | `DEVHUB_RUN_ACTION=<id>[,<id>]` | runs config actions with their default inputs |
