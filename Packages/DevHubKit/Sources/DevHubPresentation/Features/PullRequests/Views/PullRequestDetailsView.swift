@@ -218,6 +218,8 @@ struct PullRequestDetailsView: View {
                         actions.startAutoRerun(choice.count)
                     }
                 }
+                Divider()
+                Toggle(model.onlyFlakyTitle, isOn: Binding(get: { model.onlyFlaky }, set: { actions.setAutoRerunOnlyFlaky($0) }))
             } label: {
                 Label(model.title, systemImage: model.icon)
             }

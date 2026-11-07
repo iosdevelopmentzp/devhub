@@ -86,8 +86,10 @@ enum PullRequestDetailsMapper {
                 isOn: true,
                 title: "Auto re-run \(plan.attempts) of \(plan.maxAttempts)",
                 icon: "repeat.circle.fill",
-                hint: "DevHub runs the failed CircleCI jobs again each time a workflow fails. \(CountText.count(plan.attemptsLeft, "re-run", "re-runs")) left. Click to stop.",
-                choices: []
+                hint: "DevHub runs the failed CircleCI jobs again \(plan.onlyFlaky ? "when every failed test is flaky" : "each time a workflow fails"). \(CountText.count(plan.attemptsLeft, "re-run", "re-runs")) left. Click to stop.",
+                choices: [],
+                onlyFlaky: plan.onlyFlaky,
+                onlyFlakyHint: onlyFlakyHint
             )
         }
         guard review.hasCIProvider, let state = review.ciToolState, CIPolicy.installCommand(for: state) == nil else { return nil }
@@ -95,10 +97,14 @@ enum PullRequestDetailsMapper {
             isOn: false,
             title: "Auto re-run",
             icon: "repeat.circle",
-            hint: "Run the failed CircleCI jobs again each time a workflow fails (circleci workflow rerun --from-failed). DevHub checks every minute and tells you when the checks pass or when it gives up.",
-            choices: CIAutoRerunPolicy.attemptChoices.map { PullRequestDetailsModel.AutoRerun.Choice(count: $0, title: "Up to \(CountText.count($0, "time", "times"))") }
+            hint: "Run the failed CircleCI jobs again \(review.autoRerunOnlyFlaky ? "when every failed test is flaky" : "each time a workflow fails") (circleci workflow rerun --from-failed). DevHub checks every minute and tells you when the checks pass or when it stops.",
+            choices: CIAutoRerunPolicy.attemptChoices.map { PullRequestDetailsModel.AutoRerun.Choice(count: $0, title: "Up to \(CountText.count($0, "time", "times"))") },
+            onlyFlaky: review.autoRerunOnlyFlaky,
+            onlyFlakyHint: onlyFlakyHint
         )
     }
+
+    static let onlyFlakyHint = "On: a re-run only when every failed test is in the flaky list of CircleCI Insights; a failure on another test or without test results stops the plan. Off: a re-run after every failure. Insights has no flaky list for a GitLab project or a GitHub App project, so turn it off there"
 
     static func commentBox(summary: PullRequestSummary, review: PullRequestReviewState, words: CodeHostWords) -> PullRequestCommentBoxModel {
         let reference = words.reference(summary.iid)

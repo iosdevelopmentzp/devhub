@@ -33,6 +33,7 @@ struct PullRequestReviewState: Equatable {
     var ciHistory: [CIWorkflowRecord] = []
     var showsCIHistory = false
     var autoRerunPlan: CIAutoRerunPlan?
+    var autoRerunOnlyFlaky = true
     var openJobDetails: Set<String> = []
     var openTestMessages: Set<String> = []
     var openCIHistoryRuns: Set<String> = []

@@ -7,6 +7,7 @@ import DevHubUI
 @Observable
 final class CIAutoRerunStore: CIAutoRerunLookup {
     private(set) var plans: [Int: CIAutoRerunPlan] = [:]
+    private(set) var onlyFlaky = true
 
     @ObservationIgnored private let repository: CodeHostRepository
     @ObservationIgnored private let ci: any CIRepository
@@ -22,9 +23,12 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
     @ObservationIgnored private var pollingTask: Task<Void, Never>?
     @ObservationIgnored private var checking: Set<Int> = []
     @ObservationIgnored private var loggedErrors: [Int: String] = [:]
+    @ObservationIgnored private var loggedFlakyError: String?
+    @ObservationIgnored private var flakyCache: FlakyCache?
     @ObservationIgnored private var subscription: SubscriptionToken?
 
     static let pollInterval: Duration = .seconds(60)
+    static let flakyListAge: TimeInterval = 600
     private static let failedTestJobLimit = 5
 
     init(
@@ -50,13 +54,17 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
         self.events = events
         self.store = store
         plans = Self.loadPlans(from: store, projectID: session.selectedProjectID)
+        onlyFlaky = Self.loadOnlyFlaky(from: store, projectID: session.selectedProjectID)
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             guard case .projectChanged = event else { return }
             pollingTask?.cancel()
             pollingTask = nil
             loggedErrors = [:]
+            loggedFlakyError = nil
+            flakyCache = nil
             plans = Self.loadPlans(from: store, projectID: session.selectedProjectID)
+            onlyFlaky = Self.loadOnlyFlaky(from: store, projectID: session.selectedProjectID)
             resumePolling()
         }
     }
@@ -74,13 +82,20 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
         resumePolling()
     }
 
+    func setOnlyFlaky(_ enabled: Bool) {
+        guard enabled != onlyFlaky else { return }
+        onlyFlaky = enabled
+        store.set(enabled ? nil : "any", forKey: PullRequestsPreferenceKeys.autoRerunOnlyFlaky(projectID: session.selectedProjectID))
+        activity.log(enabled ? "Auto re-run: only flaky failures" : "Auto re-run: every failure", detail: Self.modeText(onlyFlaky: enabled), outcome: .info)
+    }
+
     func start(_ iid: Int, maxAttempts: Int) {
         guard plans[iid] == nil, maxAttempts > 0 else { return }
-        plans[iid] = CIAutoRerunPlan(iid: iid, maxAttempts: maxAttempts, attempts: 0, handledWorkflowIDs: [], lastRerunAt: nil)
+        plans[iid] = CIAutoRerunPlan(iid: iid, maxAttempts: maxAttempts, attempts: 0, handledWorkflowIDs: [], lastRerunAt: nil, onlyFlaky: onlyFlaky)
         save()
         activity.log(
             "Auto re-run on for \(words.reference(iid))",
-            detail: "DevHub runs the failed CircleCI jobs again each time a workflow fails, up to \(CountText.count(maxAttempts, "time", "times"))",
+            detail: "DevHub runs the failed CircleCI jobs again each time a workflow fails, up to \(CountText.count(maxAttempts, "time", "times")). \(Self.modeText(onlyFlaky: onlyFlaky))",
             outcome: .info
         )
         resumePolling()
@@ -119,13 +134,23 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
     private func act(on workflows: [CIWorkflow], of iid: Int, project: CIProject) async {
         guard let plan = plans[iid] else { return }
         let reference = words.reference(iid)
-        let decisions = workflows.map { CIAutoRerunPolicy.decision(for: $0, plan: plan, failure: nil, now: .now) }
+        var testsByWorkflow: [String: [String: [CITestResult]]] = [:]
+        var decisions: [CIAutoRerunPolicy.Decision] = []
+        for workflow in workflows {
+            var failure: CIFailureKind?
+            if plan.onlyFlaky, workflow.status == .failed, plan.handledWorkflowIDs.contains(workflow.id) == false {
+                let tests = await failedTests(of: workflow, project: project)
+                testsByWorkflow[workflow.id] = tests
+                failure = CIFailurePolicy.kind(of: workflow, failedTests: tests, flaky: await flakyTests(project: project))
+            }
+            decisions.append(CIAutoRerunPolicy.decision(for: workflow, plan: plan, failure: failure, now: .now))
+        }
         switch CIAutoRerunPolicy.outcome(of: decisions) {
         case .wait:
             break
         case .rerun:
             let failed = zip(workflows, decisions).filter { $0.1 == .rerun }.map(\.0)
-            await rerun(failed, of: iid, project: project)
+            await rerun(failed, of: iid, project: project, failedTests: testsByWorkflow)
         case .succeeded:
             finish(iid, title: "\(words.checksTitle) of \(reference) passed", body: afterText(plan.attempts), outcome: .success)
         case .cancelled:
@@ -133,16 +158,26 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
         case .exhausted:
             finish(iid, title: "Auto re-run of \(reference) gave up", body: "The \(words.checks) failed again after \(CountText.count(plan.maxAttempts, "re-run", "re-runs"))", outcome: .failure)
         case .stopped(let reason):
+            for (workflow, decision) in zip(workflows, decisions) {
+                guard case .stopped = decision else { continue }
+                history.remember(workflow, failedTests: testsByWorkflow[workflow.id] ?? [:], for: iid)
+            }
             finish(iid, title: "Auto re-run of \(reference) stopped", body: "No re-run: \(reason)", outcome: .failure)
         }
     }
 
-    private func rerun(_ workflows: [CIWorkflow], of iid: Int, project: CIProject) async {
+    private func rerun(_ workflows: [CIWorkflow], of iid: Int, project: CIProject, failedTests: [String: [String: [CITestResult]]]) async {
         let reference = words.reference(iid)
         var didRerun = false
         for workflow in workflows {
             guard let plan = plans[iid], plan.attempts < plan.maxAttempts else { break }
-            await record(workflow, of: iid, project: project)
+            let tests: [String: [CITestResult]]
+            if let known = failedTests[workflow.id] {
+                tests = known
+            } else {
+                tests = await self.failedTests(of: workflow, project: project)
+            }
+            history.remember(workflow, failedTests: tests, for: iid)
             do {
                 try await ci.rerun(workflowID: workflow.id, fromFailed: true, project: project)
             } catch {
@@ -165,7 +200,7 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
         }
     }
 
-    private func record(_ workflow: CIWorkflow, of iid: Int, project: CIProject) async {
+    private func failedTests(of workflow: CIWorkflow, project: CIProject) async -> [String: [CITestResult]] {
         var failedTests: [String: [CITestResult]] = [:]
         for job in workflow.jobs.filter({ $0.status == .failed }).prefix(Self.failedTestJobLimit) {
             do {
@@ -174,7 +209,32 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
                 activity.log("Cannot read the failed tests of \(job.name)", detail: error.localizedDescription, outcome: .failure)
             }
         }
-        history.remember(workflow, failedTests: failedTests, for: iid)
+        return failedTests
+    }
+
+    private func flakyTests(project: CIProject) async -> [CIFlakyTest] {
+        if let flakyCache, Date.now.timeIntervalSince(flakyCache.readAt) < Self.flakyListAge {
+            return flakyCache.tests
+        }
+        var tests: [CIFlakyTest] = []
+        do {
+            tests = try await ci.flakyTests(project: project)
+            loggedFlakyError = nil
+        } catch {
+            let message = error.localizedDescription
+            if message != loggedFlakyError {
+                loggedFlakyError = message
+                activity.log("Cannot read the flaky tests of CircleCI", detail: message, outcome: .failure)
+            }
+        }
+        flakyCache = FlakyCache(tests: tests, readAt: .now)
+        return tests
+    }
+
+    static func modeText(onlyFlaky: Bool) -> String {
+        onlyFlaky
+            ? "A re-run happens only when every failed test is flaky. A failure on another test or without test results stops the plan"
+            : "A re-run happens after every failure"
     }
 
     private func finish(_ iid: Int, title: String, body: String, outcome: ActivityEvent.Outcome) {
@@ -218,8 +278,17 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
         store.encode(kept.isEmpty ? nil : kept, forKey: PullRequestsPreferenceKeys.autoRerun(projectID: session.selectedProjectID))
     }
 
+    private static func loadOnlyFlaky(from store: any KeyValueStore, projectID: String) -> Bool {
+        store.string(forKey: PullRequestsPreferenceKeys.autoRerunOnlyFlaky(projectID: projectID)) != "any"
+    }
+
     private static func loadPlans(from store: any KeyValueStore, projectID: String) -> [Int: CIAutoRerunPlan] {
         let plans = store.decode([CIAutoRerunPlan].self, forKey: PullRequestsPreferenceKeys.autoRerun(projectID: projectID)) ?? []
         return Dictionary(plans.map { ($0.iid, $0) }, uniquingKeysWith: { first, _ in first })
     }
+}
+
+private struct FlakyCache {
+    let tests: [CIFlakyTest]
+    let readAt: Date
 }

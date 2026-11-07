@@ -339,13 +339,23 @@ import DevHubTestSupport
         #expect(off.title == "Auto re-run")
         #expect(off.choices.map(\.count) == CIAutoRerunPolicy.attemptChoices)
         #expect(off.choices.first?.title == "Up to 3 times")
+        #expect(off.onlyFlaky)
+        #expect(off.onlyFlakyTitle == "Only flaky failures")
+        #expect(off.onlyFlakyHint == PullRequestDetailsMapper.onlyFlakyHint)
+        #expect(off.hint.hasPrefix("Run the failed CircleCI jobs again when every failed test is flaky"))
+
+        review.autoRerunOnlyFlaky = false
+        let any = try #require(PullRequestDetailsMapper.autoRerun(review: review))
+        #expect(any.onlyFlaky == false)
+        #expect(any.hint.hasPrefix("Run the failed CircleCI jobs again each time a workflow fails"))
 
         review.hasCIProvider = false
         review.autoRerunPlan = CIAutoRerunPlan(iid: 7, maxAttempts: 10, attempts: 9, handledWorkflowIDs: [], lastRerunAt: nil)
         let on = try #require(PullRequestDetailsMapper.autoRerun(review: review))
         #expect(on.isOn)
         #expect(on.title == "Auto re-run 9 of 10")
-        #expect(on.hint.contains("1 re-run left"))
+        #expect(on.hint == "DevHub runs the failed CircleCI jobs again when every failed test is flaky. 1 re-run left. Click to stop.")
+        #expect(on.onlyFlaky)
         #expect(on.choices.isEmpty)
     }
 

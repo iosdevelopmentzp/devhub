@@ -46,6 +46,7 @@ struct PullRequestDetailActions {
     let runCISetup: (_ command: String) -> Void
     let startAutoRerun: (_ maxAttempts: Int) -> Void
     let stopAutoRerun: () -> Void
+    let setAutoRerunOnlyFlaky: (_ enabled: Bool) -> Void
     let toggleCIHistory: () -> Void
     let clearCIHistory: () -> Void
     let cancelPipeline: () -> Void
@@ -99,6 +100,7 @@ struct PullRequestDetailActions {
         runCISetup: { _ in },
         startAutoRerun: { _ in },
         stopAutoRerun: {},
+        setAutoRerunOnlyFlaky: { _ in },
         toggleCIHistory: {},
         clearCIHistory: {},
         cancelPipeline: {},
@@ -154,6 +156,7 @@ struct PullRequestDetailActions {
             runCISetup: runCISetup,
             startAutoRerun: startAutoRerun,
             stopAutoRerun: stopAutoRerun,
+            setAutoRerunOnlyFlaky: setAutoRerunOnlyFlaky,
             toggleCIHistory: toggleCIHistory,
             clearCIHistory: clearCIHistory,
             cancelPipeline: cancelPipeline,
@@ -228,6 +231,7 @@ extension PullRequestDetailActions {
             runCISetup: { appActions.runInTerminal($0, at: detailStore.ciCheckoutPath, title: "Started the CircleCI setup in Terminal") },
             startAutoRerun: { autoRerun.start(id, maxAttempts: $0) },
             stopAutoRerun: { autoRerun.stop(id) },
+            setAutoRerunOnlyFlaky: { autoRerun.setOnlyFlaky($0) },
             toggleCIHistory: { detailStore.toggleCIHistory(of: id) },
             clearCIHistory: { detailStore.clearCIHistory(of: id) },
             cancelPipeline: { pullRequests.perform(.cancelPipeline, on: id) },

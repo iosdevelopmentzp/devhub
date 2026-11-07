@@ -44,6 +44,9 @@ struct PullRequestDetailsModel: Equatable {
         var icon: String
         var hint: String
         var choices: [Choice]
+        var onlyFlaky: Bool
+        var onlyFlakyTitle = "Only flaky failures"
+        var onlyFlakyHint: String
     }
 
     struct Loaded: Equatable {
@@ -95,7 +98,7 @@ struct PullRequestDetailsModel: Equatable {
                 failedJobs: [],
                 jobsTitle: "Pipeline 1 · 1 failed",
                 jobGroups: [.preview, .previewCircleCI],
-                autoRerun: AutoRerun(isOn: true, title: "Auto re-run 2 of 10", icon: "repeat.circle.fill", hint: "DevHub runs the failed CircleCI jobs again each time a workflow fails. 8 re-runs left. Click to stop.", choices: []),
+                autoRerun: AutoRerun(isOn: true, title: "Auto re-run 2 of 10", icon: "repeat.circle.fill", hint: "DevHub runs the failed CircleCI jobs again each time a workflow fails. 8 re-runs left. Click to stop.", choices: [], onlyFlaky: true, onlyFlakyHint: ""),
                 ciHistoryTitle: "Previous CircleCI runs 1",
                 showsCIHistory: true,
                 ciHistory: [.preview],
