@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Infrastructure
+- `build-and-run` skill: a headless snapshot starts the app with its absolute path, so the `pkill` of the example finds it; a relative path left copies running with their own menu bar icons.
 - `Scripts/install.sh` creates the build clone `~/Library/Application Support/DevHub Generic/source` and writes `update/installed.json`; the new `Scripts/update.sh` (fetch, reset to `origin/main`, `install.sh`, the phases in `update/status.json`) is what the app runs for an update. `Scripts/auto-install.sh`, `Scripts/install-hooks.sh` and the `post-commit` and `post-merge` hooks are removed: the app updates only from the pushed `main`. Debug switch `DEVHUB_UPDATE_STATE=available|running|failed` for a snapshot of the footer button. ADR 014.
 - Debug switches `DEVHUB_GIT_SECTION=<section>` and `DEVHUB_GIT_EXPAND=stash:<index>|commit:<hash>` for headless snapshots of the Git tab. ADR 013.
 - Debug switches `DEVHUB_PULL_REQUEST_WINDOW=1` (opens the request in its window), `DEVHUB_REVEAL_FILE=<path>` (scrolls to a file of the request) and `DEVHUB_DIFF_LAYOUT=sideBySide` for headless snapshots. ADR 012.

@@ -40,6 +40,8 @@ for i in $(seq 1 40); do [ -f /path/in/scratchpad/git.png ] && break; sleep 0.25
 pkill -f "^$PWD/$APP/Contents/MacOS/DevHub"
 ```
 
+Start the app with its absolute path, as above. `pkill -f "^…"` matches the command line, so a copy started as `DerivedData/…/DevHub` (a relative path) is never found and keeps running with its own menu bar icon. Check with `pgrep -fl "Contents/MacOS/DevHub"` before you leave a session.
+
 Then read the picture. Snapshot trap: SwiftUI does not redraw a panel that is covered by other windows, and `cacheDisplay` does not draw some controls (a prominent button looks empty). Check the result on the command line as well.
 
 Use a throwaway repository for anything that runs actions or git steps: `git init`, one commit, a bare remote (`git init --bare upstream.git`, `git remote add upstream …`, `git push -u upstream main`), and a `.devhub/project.json`.
