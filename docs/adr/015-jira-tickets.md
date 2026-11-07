@@ -78,7 +78,7 @@ The ticket chip of the Git tab and the request rows still shows only the key and
 
 ## Where we stopped
 
-Steps 1 to 4 are in the worktree branch `worktree-jira` (folder `.claude/worktrees/jira`), not on `main`. The package tests pass (2,972 tests in 521 suites). The owner's Mac has `jira-cli` 1.7.0 installed but no config file and no token, so the Tickets tab shows the "jira is not set up" card there; the private project config of the owner's main app already has its `tracker` section. The next session: run the setup for the owner (step 5), look at the tab with real data, fix what the live tool returns differently, then merge the branch into `main` and push.
+Steps 1 to 4 are on `main` (merged from the worktree branch `worktree-jira` on 2026-11-07, the owner's decision: "merge, we sort it out there"). The package tests pass (2,973 tests in 521 suites). The owner's Mac has `jira-cli` 1.7.0 installed but no config file and no token, so the Tickets tab shows the "jira is not set up" card there; the private project config of the owner's main app already has its `tracker` section. The next session: run the setup for the owner (step 5: the token into the keychain item `jira-cli`, then `jira init`), look at the tab with real data, fix what the live tool returns differently.
 
 ## Consequences
 
@@ -90,3 +90,4 @@ Steps 1 to 4 are in the worktree branch `worktree-jira` (folder `.claude/worktre
 
 | Commit | What it did |
 |---|---|
+| `01f53de` | Steps 1 to 4: the Domain model, config and policies, the `jira` Data layer, the Tickets tool of Utils with its store, mappers, views and tests, the docs. Checked with 2,973 tests and a headless snapshot of the tab with the real tool and no config file. |

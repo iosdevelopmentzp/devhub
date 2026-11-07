@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-11-07 (ADR 015: Jira tickets in Utils, in the worktree branch `worktree-jira`)
+Last updated: 2026-11-07 (ADR 015: Jira tickets in Utils)
 
 ## Stage
 
@@ -132,7 +132,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 
 ## Next steps
 
-ADR 015 (Jira tickets) is in the worktree branch `worktree-jira`: steps 1 to 4 are done, step 5 (the check on a live Jira with the owner's token, then the merge into `main`) is next, then the ticket chip with the summary and the status (step 6) and Start as branch plus worktree (step 7).
+ADR 015 (Jira tickets): steps 1 to 4 are done, step 5 (the check on a live Jira with the owner's token) is next, then the ticket chip with the summary and the status (step 6) and Start as branch plus worktree (step 7).
 
 ADR 007 (operations and daily tools) is complete. ADR 008 (simulator media, build insights, snapshots, real devices, Xcode 27, network monitor) is next: `docs/adr/008-simulator-media-insights-and-devices.md`, first open step of its plan. Step 7 (physical devices: list, build, install, launch, profiles, identity) is done; step 7b (console in the Logs tab, mocks, Run & Attach on a device) is deferred. Step 9a (open Simulator.app or Device Hub) is done but not checked on Xcode 27; step 9 (the rest of D1.2) waits for Xcode 27 on this Mac. Step 10 starts with the injected library.
 
