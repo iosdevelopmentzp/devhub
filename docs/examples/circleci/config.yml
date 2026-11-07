@@ -1,0 +1,78 @@
+version: 2.1
+
+parameters:
+  fail-unit-tests:
+    type: string
+    default: "sometimes"
+
+jobs:
+  build:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - checkout
+      - run:
+          name: Build
+          command: |
+            mkdir -p artifacts
+            echo "Example App built at $(date -u +%FT%TZ)" > artifacts/build.log
+      - store_artifacts:
+          path: artifacts
+
+  unit-tests:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: |
+            mkdir -p test-results
+            case "<< pipeline.parameters.fail-unit-tests >>" in
+              always) failed=1 ;;
+              never) failed=0 ;;
+              *) failed=$(( $(date +%s) / 60 % 2 )) ;;
+            esac
+            if [ "$failed" = "1" ]; then
+              retry='<testcase classname="LoginTests" name="testRetryAfterTimeout" time="2.4"><failure message="XCTAssertEqual failed: (&quot;retrying&quot;) is not equal to (&quot;idle&quot;)">LoginTests.swift:42</failure></testcase>'
+            else
+              retry='<testcase classname="LoginTests" name="testRetryAfterTimeout" time="2.4"/>'
+            fi
+            cat > test-results/junit.xml <<XML
+            <?xml version="1.0" encoding="UTF-8"?>
+            <testsuite name="ExampleAppTests" tests="2" failures="$failed">
+              $retry
+              <testcase classname="ProfileTests" name="testBadgeCount" time="0.1"/>
+            </testsuite>
+            XML
+            echo "Executed 2 tests, with $failed failures"
+            exit $failed
+      - store_test_results:
+          path: test-results
+          when: always
+      - store_artifacts:
+          path: test-results
+          when: always
+
+  deploy:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - run:
+          name: Deploy
+          command: echo "Example App deployed"
+
+workflows:
+  build-and-test:
+    jobs:
+      - build
+      - unit-tests:
+          requires:
+            - build
+      - approve-release:
+          type: approval
+          requires:
+            - unit-tests
+      - deploy:
+          requires:
+            - approve-release
