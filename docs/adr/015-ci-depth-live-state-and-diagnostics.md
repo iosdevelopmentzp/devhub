@@ -122,3 +122,4 @@ Then in DevHub: open a request with CircleCI checks while a workflow runs and wa
 | `940cc90` | 6. The "only flaky failures" mode: `CIFailurePolicy` in `CIAutoRerunStore`, the check item, the per-project preference, the flaky list cache. |
 | `c8cb679` | 7. `CIBranchRunsStore`, `CIBranchLine` in the Git header, the base branch watch, the Today line, the activity target `git`. |
 | `503e5f8` | 8. `CIDiagnosticsStore`, `CIDiagnosticsBuilder`, `CIDiagnosticsSubjectsMapper`, the menus, `ISOTimestamp`. |
+| `49621d5` | 9. Docs pass: changelog, status, the feature pages, the dependency inventory, the skills, this page. |
