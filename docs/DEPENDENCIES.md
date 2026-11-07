@@ -24,9 +24,9 @@ Every process goes through `ShellRunner`. It sets `TelemetryOptOutPolicy.environ
 
 | Executable | Comes from | Used for | Talks to | Telemetry and update checks | Status |
 |---|---|---|---|---|---|
-| `git` | Xcode command line tools | Git, worktrees, branches, stashes | the remotes of the repository, with the user's SSH or HTTPS login | none | in use before the policy |
+| `git` | Xcode command line tools | Git, worktrees, branches, stashes; the update check (`fetch`, `merge-base`, `log`) in the build clone | the remotes of the repository, with the user's SSH or HTTPS login | none | in use before the policy |
 | `xcodebuild`, `xcrun` (`simctl`, `devicectl`), `xcode-select`, `xed` | Xcode | Build & Run, simulators, devices, logs, schemes | Apple, only for the signing of a device build, with the Apple ID in Xcode | Apple's own | in use before the policy |
-| `open`, `osascript`, `security`, `defaults`, `ditto`, `du`, `ps`, `pgrep`, `mdfind`, `grep`, `plutil`, `rm`, `sh`, `zsh` | macOS | open apps and links, Xcode attach, keychain reads, app data, folder sizes, disk cleanup, scripts | local only | none | in use before the policy |
+| `open`, `osascript`, `security`, `defaults`, `ditto`, `du`, `ps`, `pgrep`, `mdfind`, `grep`, `plutil`, `rm`, `sh`, `zsh` | macOS | open apps and links, Xcode attach, keychain reads, app data, folder sizes, disk cleanup, scripts, the detached start of `Scripts/update.sh` (`zsh`) | local only | none | in use before the policy |
 | `python3` | Xcode command line tools | the example scripts in `docs/examples/devhub`, two repository scripts | local only | none | in use before the policy |
 | `gh` | Homebrew, the user's install | GitHub pull requests, checks, notifications, the Copilot token | api.github.com, or the GitHub Enterprise host of the repository, with the user's login | both off through `GH_TELEMETRY=false` and `GH_NO_UPDATE_NOTIFIER=1` | in use before the policy |
 | `glab` | Homebrew, the user's install | GitLab merge requests | the GitLab host of the repository, with the user's login | an update check once a day; no environment variable, turn it off once with `glab config set check_update false` | in use before the policy |
@@ -45,7 +45,8 @@ The scripts and commands of a `.devhub` folder run whatever the user wrote there
 |---|---|---|---|
 | `actions/checkout` | `.github/workflows/ci.yml` | github.com, from the runner | commit SHA `11d5960a326750d5838078e36cf38b85af677262` (v4.4.0); the check fails on a tag or a branch |
 | GitHub-hosted runner `macos-26` | `ci.yml` | GitHub; the image brings Xcode, git and gh | by GitHub; the CI steps start no network tool |
-| `python3`, `osascript` | `Scripts/ai/*.sh`, `Scripts/generate-example-config.sh`, `Scripts/auto-install.sh` | local only | the system versions |
+| `python3`, `osascript` | `Scripts/ai/*.sh`, `Scripts/generate-example-config.sh` | local only | the system versions |
+| `git`, `codesign`, `ditto`, `pkill`, `pgrep`, `open` | `Scripts/install.sh`, `Scripts/update.sh` | `git` talks to the `origin` of this repository (clone, fetch); the rest is local | the system versions |
 | Claude Code hooks | `.claude/settings.json` | the two scripts in `Scripts/ai/` | — |
 
 ## Changing this list

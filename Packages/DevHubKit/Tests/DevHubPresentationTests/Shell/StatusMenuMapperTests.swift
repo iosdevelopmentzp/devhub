@@ -15,13 +15,13 @@ import Testing
             .project(id: "app", title: "Example App", isSelected: false),
             .project(id: "tools", title: "Tools", isSelected: true),
             .separator,
-            .keepAwake(isOn: true), .separator, .settings, .separator, .quit,
+            .keepAwake(isOn: true), .separator, .checkForUpdates, .settings, .separator, .quit,
         ])
     }
 
     @Test func oneProjectGivesNoProjectList() {
         let items = StatusMenuMapper.items(projects: [app], selectedID: "app", isKeepAwakeOn: false)
 
-        #expect(items == [.show, .separator, .keepAwake(isOn: false), .separator, .settings, .separator, .quit])
+        #expect(items == [.show, .separator, .keepAwake(isOn: false), .separator, .checkForUpdates, .settings, .separator, .quit])
     }
 }

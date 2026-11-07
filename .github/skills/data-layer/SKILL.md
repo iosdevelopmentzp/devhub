@@ -66,6 +66,9 @@ DevHubData/
                     with libx264 through FFmpegArguments, progress and errors through FFmpegOutputParser, the version
                     through FFmpegVersionParser, `brew install ffmpeg` steps through HomebrewOutputParser; writes a
                     hidden partial file and renames it at the end; ADR 009)
+    Updates/        FileUpdateRepository(shell:supportFolder:) (installed.json, status.json, update.log and the pid lock
+                    under `<support>/update/`; `git fetch`, `merge-base --is-ancestor` and `log` in the build clone;
+                    starts `Scripts/update.sh` detached through `zsh -c '… &!'`), UpdateCommitParser; ADR 014
     Assembly/       Ports+Live.swift
 DevHubMocks/        Mock<Thing>Repository one per file, MockData and MockData+<Domain>.swift,
                     Persistence/InMemoryKeyValueStore, Ports+Mock.swift

@@ -12,6 +12,10 @@ package extension PresentationAssembly {
         settings.values.windowMode = mode
     }
 
+    func debugSetUpdateState(_ rawValue: String) {
+        updates.debugApply(rawValue)
+    }
+
     func debugShowPullRequest(_ value: String) {
         guard let iid = Int(value) else { return }
         appActions.showPullRequest(iid: iid)

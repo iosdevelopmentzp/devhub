@@ -12,6 +12,9 @@ enum DebugLaunch {
         if let path = environment["DEVHUB_PROJECT"] {
             assembly.debugAddProject(path: path)
         }
+        if let state = environment["DEVHUB_UPDATE_STATE"] {
+            assembly.debugSetUpdateState(state)
+        }
         let runs = (environment["DEVHUB_RUN_ACTION"] ?? "").split(separator: ",").map(String.init)
         let request = environment["DEVHUB_REQUEST_ACTION"]
         if runs.isEmpty == false || request != nil {

@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Infrastructure
+- `Scripts/install.sh` creates the build clone `~/Library/Application Support/DevHub Generic/source` and writes `update/installed.json`; the new `Scripts/update.sh` (fetch, reset to `origin/main`, `install.sh`, the phases in `update/status.json`) is what the app runs for an update. `Scripts/auto-install.sh`, `Scripts/install-hooks.sh` and the `post-commit` and `post-merge` hooks are removed: the app updates only from the pushed `main`. Debug switch `DEVHUB_UPDATE_STATE=available|running|failed` for a snapshot of the footer button. ADR 014.
 - Debug switches `DEVHUB_GIT_SECTION=<section>` and `DEVHUB_GIT_EXPAND=stash:<index>|commit:<hash>` for headless snapshots of the Git tab. ADR 013.
 - Debug switches `DEVHUB_PULL_REQUEST_WINDOW=1` (opens the request in its window), `DEVHUB_REVEAL_FILE=<path>` (scrolls to a file of the request) and `DEVHUB_DIFF_LAYOUT=sideBySide` for headless snapshots. ADR 012.
 - Dependency policy (ADR 011): `.claude/rules/dependencies.md` (consent and a risk analysis before any package, executable, GitHub Action, host or version change; a vendored copy first), the inventory `docs/DEPENDENCIES.md`, and `Scripts/check-dependencies.sh` with `Scripts/allowed-tools.txt` and `Scripts/allowed-hosts.txt` in `build.sh` and CI. `actions/checkout` is pinned to its commit SHA.
@@ -17,6 +18,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Pull Requests: the file list of the details is a plain list, so a scroll to a file from the sidebar or from "Show in diff" works for a file far down. File headers no longer stick to the top while a long diff scrolls.
 
 ### Added
+- The app updates itself. Every 5 minutes, and at launch, it compares the installed build with `origin/main` of its repository. A footer button says "Update available · N" and lists the commits; "Update Now" fetches, builds and installs in the background while the footer shows the phase and the time ("Building · 1:20"). The app quits only for the swap of the bundle, opens again and shows "Updated to <hash>". A failed build leaves the old app running with "Update failed", the log and "Try Again". "Check for Updates" in the DevHub menu and in the status item menu checks now. A development build (no `installed.json`) never checks.
 - Git → Stash: a click on a stash lists its files, untracked ones with `?`, and a click on a file shows its diff. The menu gets "Create Branch from Stash…" (a name field under the row, then `git stash branch`), Copy Hash and Copy Message.
 - Git → History and Reflog: an expanded commit shows an "In …" line with every local and remote branch that contains it, next to the refs that point at it.
 - Pull Requests: `git.pullRequests.fileGroups` in `project.json` names groups of files by path and name patterns (tests, project files, an `App` folder, …). The details show one chip per matched group with its count; a click hides or shows the group for that request, and `hidden: true` starts hidden. The example config has Tests, Project and UI groups.

@@ -9,7 +9,7 @@ enum StatusMenuMapper {
             items += projects.map { .project(id: $0.id, title: $0.name, isSelected: $0.id == selectedID) }
             items.append(.separator)
         }
-        items += [.keepAwake(isOn: isKeepAwakeOn), .separator, .settings, .separator, .quit]
+        items += [.keepAwake(isOn: isKeepAwakeOn), .separator, .checkForUpdates, .settings, .separator, .quit]
         return items
     }
 }

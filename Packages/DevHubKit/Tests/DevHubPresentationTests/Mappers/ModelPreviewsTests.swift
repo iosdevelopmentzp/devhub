@@ -4,6 +4,13 @@ import Testing
 @testable import DevHubPresentation
 
 @Suite struct ModelPreviewsTests {
+    @Test func updatePreviewsBuild() {
+        #expect(UpdateIndicatorModel.preview.commits.count == 2)
+        #expect(UpdateIndicatorModel.previewRunning.isRunning)
+        #expect(UpdateIndicatorModel.previewFailed.actionTitle == "Try Again")
+        #expect(UpdateCommitRowModel.preview.hash == "a1b2c3d")
+    }
+
     @Test func utilsPreviewsBuild() {
         #expect(VideoJobRowModel.preview.canStop)
         #expect(VideoEngineModel.preview.action == .install("Install ffmpeg"))

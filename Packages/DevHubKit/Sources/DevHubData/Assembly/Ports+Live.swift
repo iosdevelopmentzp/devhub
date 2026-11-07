@@ -63,7 +63,8 @@ extension Ports {
                 ],
                 chromeRoot: URL(fileURLWithPath: "/Library/Developer/DeviceKit/Chrome")
             )),
-            videoCompression: FFmpegVideoCompressionRepository(shell: shell, tools: tools)
+            videoCompression: FFmpegVideoCompressionRepository(shell: shell, tools: tools),
+            updates: FileUpdateRepository(shell: shell, supportFolder: home.appendingPathComponent("Library/Application Support/DevHub Generic", isDirectory: true))
         )
     }
 }

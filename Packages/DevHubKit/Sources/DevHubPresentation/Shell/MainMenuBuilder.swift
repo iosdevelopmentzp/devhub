@@ -4,12 +4,15 @@ import DevHubUI
 
 @MainActor
 enum MainMenuBuilder {
-    static func build(target: AnyObject, settings: Selector) -> NSMenu {
+    static func build(target: AnyObject, settings: Selector, checkForUpdates: Selector) -> NSMenu {
         let main = NSMenu()
         let settingsItem = item("Settings…", settings, key: ",")
         settingsItem.target = target
+        let updatesItem = item("Check for Updates", checkForUpdates)
+        updatesItem.target = target
         main.addItem(submenu("DevHub", items: [
             item("About DevHub", #selector(NSApplication.orderFrontStandardAboutPanel(_:))),
+            updatesItem,
             .separator(),
             settingsItem,
             .separator(),

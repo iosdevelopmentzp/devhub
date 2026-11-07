@@ -14,9 +14,8 @@ description: "Build, test, smoke-run and install DevHub from the command line: S
 | `Scripts/smoke.sh` | starts the Debug build for 3 s and prints `alive` or `dead` |
 | `.github/workflows/ci.yml` | GitHub Actions (`macos-26`): the same checks on a clean machine for each push of `main` and each pull request. The anonymity check runs with the built-in patterns only |
 | `Scripts/run.sh` | Debug build, quits the running copy of this build, opens the new one |
-| `Scripts/install.sh` | Release build into `DerivedData/Install/`, copied to `/Applications/DevHub Generic.app` and opened. It copies the new app to `DevHub Generic.app.new` first, then stops the running copy (by its path) and swaps the folders. `DEVHUB_INSTALL_PATH` sets another target. `DEVHUB_SIGN_IDENTITY` or `~/.config/devhub/sign-identity` signs the app with a local identity, so macOS keeps its permissions after an update |
-| `Scripts/install-hooks.sh` | writes the `post-commit` and `post-merge` git hooks once per clone. A hook that has other content stays as it is |
-| `Scripts/auto-install.sh` | runs from the hooks: on `main`, after a change in `DevHub/`, `Packages/`, `DevHub.xcodeproj` or `Scripts/`, it runs `install.sh` in the background and shows a notification. Log: `.git/devhub-install.log` |
+| `Scripts/install.sh` | Release build into `DerivedData/Install/`, copied to `/Applications/DevHub Generic.app` and opened. It copies the new app to `DevHub Generic.app.new` first, then stops the running copy (by its path) and swaps the folders. `DEVHUB_INSTALL_PATH` sets another target. `DEVHUB_SIGN_IDENTITY` or `~/.config/devhub/sign-identity` signs the app with a local identity, so macOS keeps its permissions after an update. It also creates the build clone `~/Library/Application Support/DevHub Generic/source` (`DEVHUB_SUPPORT_DIR` moves the folder) when it is missing and writes `update/installed.json` after the install. With `UPDATE_STATUS_FILE` set it writes the phases `building`, `installing` and `done` to that file |
+| `Scripts/update.sh` | the self-update, run by the app from the build clone (ADR 014): a lock file with its pid in `update/update.lock`, `fetching` in `status.json`, `git fetch` and `reset --hard origin/main` (`DEVHUB_UPDATE_BRANCH`), then the `install.sh` of the clone. Output: `update/update.log`. `Scripts/update-status.sh` holds the shared JSON writer |
 | `Scripts/make-launcher.sh` | creates `DevHub Launcher.app` (AppleScript) in the repo root that runs `run.sh`. Not committed |
 | `Scripts/generate-example-config.sh` | rewrites `DevHubDomain/Policies/ExampleConfig.swift` from `docs/examples/devhub/` |
 
@@ -52,6 +51,7 @@ Debug builds only. `DevHubComposition/Debug/DebugLaunch.swift` reads them and ca
 | Switch | Effect |
 |---|---|
 | `DEVHUB_PROJECT=<path>` | adds and selects a project (saved) |
+| `DEVHUB_UPDATE_STATE=available\|running\|failed` | puts the footer update button into that state (mock ports; sample commits, "Building · 1:20", a failure with a log) |
 | `DEVHUB_PULL_REQUEST=<n>` | shows the Pull Requests tab and opens request `n` |
 | `DEVHUB_PULL_REQUEST_WINDOW=1` | with `DEVHUB_PULL_REQUEST`: opens the request in its own window instead of the panel; `DEVHUB_SNAPSHOT` draws that window |
 | `DEVHUB_REVEAL_FILE=<path>` | with `DEVHUB_PULL_REQUEST`: once the details are loaded, opens the diff of that file and scrolls to it |

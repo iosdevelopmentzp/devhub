@@ -11,6 +11,7 @@ struct FooterView: View {
         HStack(spacing: 10) {
             BuildStatusLabel(phase: build.state.phase)
             OperationsIndicator()
+            UpdateIndicator()
             Spacer()
             OutputToggle()
             Text("⌘1–\(min(FeatureRegistry.tabBarFeatures.count + config.resolved.tabs.count, 9)) tabs")

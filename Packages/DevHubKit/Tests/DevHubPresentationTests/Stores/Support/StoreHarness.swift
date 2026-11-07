@@ -276,6 +276,8 @@ final class StoreHarness {
 
     lazy var aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, worktrees: worktrees, store: store)
 
+    lazy var updates = UpdateStore(repository: ports.updates, toaster: toaster, activity: activity, checkInterval: .seconds(3600), statusInterval: .milliseconds(5), now: { Date(timeIntervalSince1970: 1_800_000_000) })
+
 
     // MARK: Observations
 

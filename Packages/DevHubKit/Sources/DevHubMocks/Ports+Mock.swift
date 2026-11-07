@@ -41,7 +41,8 @@ extension Ports {
             aiText: MockAITextRepository(),
             diskCleanup: MockDiskCleanupRepository(),
             media: MockMediaRepository(),
-            videoCompression: MockVideoCompressionRepository()
+            videoCompression: MockVideoCompressionRepository(),
+            updates: MockUpdateRepository()
         )
     }
 }

@@ -82,6 +82,8 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         assembly.openPullRequests.startPolling()
         assembly.inbox.startPolling()
         assembly.ciAutoRerun.startPolling()
+        assembly.updates.onInstalling = { NSApp.terminate(nil) }
+        assembly.updates.start()
         observeNotificationClicks()
         Task { [assembly] in
             await assembly.config.reload()
@@ -258,6 +260,8 @@ package final class AppWindows: NSObject, NSWindowDelegate {
             let entry = menuItem("Keep Mac Awake", action: #selector(menuKeepAwake))
             entry.state = isOn ? .on : .off
             return entry
+        case .checkForUpdates:
+            return menuItem("Check for Updates", action: #selector(menuCheckForUpdates))
         case .settings:
             return menuItem("Settings…", key: ",", action: #selector(menuSettings))
         case .quit:
@@ -312,6 +316,13 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         assembly.appActions.openSettings()
     }
 
+    @objc private func menuCheckForUpdates() {
+        show()
+        Task { [assembly] in
+            await assembly.updates.checkNow()
+        }
+    }
+
     func showPanel() {
         if panel.contentViewController == nil {
             panel.contentViewController = hostingController(isPinned: false)
@@ -349,7 +360,7 @@ package final class AppWindows: NSObject, NSWindowDelegate {
 
     private func installMainMenu() {
         guard mode == .window else { return }
-        NSApp.mainMenu = MainMenuBuilder.build(target: self, settings: #selector(menuSettings))
+        NSApp.mainMenu = MainMenuBuilder.build(target: self, settings: #selector(menuSettings), checkForUpdates: #selector(menuCheckForUpdates))
     }
 
     private func observeActivation() {

@@ -40,7 +40,8 @@ package extension Ports {
             aiText: spies.aiText,
             diskCleanup: spies.diskCleanup,
             media: spies.media,
-            videoCompression: spies.videoCompression
+            videoCompression: spies.videoCompression,
+            updates: spies.updates
         )
         return (ports, spies)
     }

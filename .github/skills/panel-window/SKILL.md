@@ -50,7 +50,7 @@ changes it; `SettingsStore.onWindowModeChange` calls `AppWindows.applyWindowMode
 | Left click on the icon, global shortcut (`toggle()`) | `showPinnedOrPanel()`: the pinned window to the front, else toggle the panel | `toggleWindow()`: hide the main window when it is the key window of the active app on this desktop, else `showWindow()` |
 | Dock click, "Show DevHub" (`show()`) | open the panel (or the pinned window) | `showWindow()` |
 | Dock icon | only with "Show Dock icon" | always (`SettingsStore.showsDockIcon`) |
-| Main menu | the SwiftUI default | `MainMenuBuilder` (DevHub, File, Edit, Window), installed again on every `didBecomeActiveNotification` |
+| Main menu | the SwiftUI default | `MainMenuBuilder` (DevHub with Check for Updates and Settings…, File, Edit, Window), installed again on every `didBecomeActiveNotification` |
 | Pin button | shown | hidden |
 
 `MainWindow` is an `NSWindow` with a title bar, `moveToActiveSpace`, the light appearance and the autosave name
@@ -89,7 +89,7 @@ Environment values for the shell: `\.isPinnedWindow` (DevHubUI), `\.togglePin`, 
   on the status item. `closePanel()` removes the monitor.
 - A left click on the status item calls `toggle()`. A right click closes the panel and opens a menu built from
   `StatusMenuMapper.items(projects:selectedID:isKeepAwakeOn:)`: Show DevHub, the project list (only with two or more
-  projects; a click selects the project and shows DevHub), Keep Mac Awake, Settings…, Quit DevHub. The menu is set on
+  projects; a click selects the project and shows DevHub), Keep Mac Awake, Check for Updates, Settings…, Quit DevHub. The menu is set on
   the status item only for that click (`statusItem.menu = menu; performClick; statusItem.menu = nil`), so a left
   click still reaches `statusItemClicked`.
 - A `FileDropView` (DevHubUI) covers the status item button. It takes the left and right mouse down (with

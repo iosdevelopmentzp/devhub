@@ -21,8 +21,8 @@ Read first, in this order: this file, `docs/STATUS.md` (where the project stands
 | `Scripts/test.sh [args]` | `swift test -q` on the package, one summary line, exit code forwarded. `--skip integration` skips the process suites, `--filter <Suite>` runs one suite |
 | `Scripts/smoke.sh` | Starts the Debug build headless for 3 s and prints `alive` or `dead` |
 | `Scripts/run.sh` | Debug build, quits a running copy of this build, opens the new one |
-| `Scripts/install.sh` | Release build into `/Applications/DevHub Generic.app`, so it runs next to the main DevHub in `/Applications/DevHub.app` |
-| `Scripts/install-hooks.sh` | Once per clone: git hooks that run `Scripts/auto-install.sh` after a commit or merge on `main`. It installs a new build in the background (log in `.git/devhub-install.log`) |
+| `Scripts/install.sh` | Release build into `/Applications/DevHub Generic.app`, so it runs next to the main DevHub in `/Applications/DevHub.app`. Creates the build clone in `~/Library/Application Support/DevHub Generic/source` and writes `update/installed.json` there |
+| `Scripts/update.sh` | Run by the app from the build clone: fetch and reset to `origin/main`, then `install.sh` with the phases in `update/status.json` and the output in `update/update.log`. ADR 014 |
 | `Scripts/check-anonymous.sh` | Fails on a name of the owner's projects (from `~/.devhub/anonymity-denylist.txt`, outside the repository), a bundle ID, plist suite or host that is not a sample value, in any file or in the last commit message |
 | `Scripts/check-dependencies.sh` | Fails on a package dependency, a package manager file, a GitHub Action without a commit SHA, an executable the Swift sources start that is not in `Scripts/allowed-tools.txt`, or a host in `DevHubData` that is not in `Scripts/allowed-hosts.txt` |
 | `.github/workflows/ci.yml` | GitHub Actions on a `macos-26` runner for each push of `main` and each pull request: layer check, anonymity check (built-in patterns only), dependency check, Debug build, smoke check, every test in a serial run (`--no-parallel`) |
