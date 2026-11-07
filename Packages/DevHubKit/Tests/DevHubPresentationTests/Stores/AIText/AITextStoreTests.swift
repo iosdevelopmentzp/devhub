@@ -113,4 +113,19 @@ import DevHubTestSupport
 
         #expect(store.defaultProvider == .copilot)
     }
+
+    @Test func aLargeDiffIsExplainedInParts() async throws {
+        harness.spies.aiText.generateResult = .success("Part answer")
+        let big = (0..<3).map { index in
+            PullRequestFileDiff(oldPath: "f\(index).swift", path: "f\(index).swift", kind: .modified, additions: 1, deletions: 0, diff: GitDiff(lines: [String(repeating: "+x", count: 20_000)], droppedLines: 0, isBinary: false), isTooLarge: false)
+        }
+
+        store.explain(summary, description: "", files: big, changedSinceReview: [], provider: .claude)
+
+        try await waitUntil { store.running.isEmpty }
+        #expect(harness.spies.aiText.calls.count == 3)
+        #expect(harness.spies.aiText.calls[1].prompt.contains("This is part 2 of 3"))
+        #expect(store.explanations[7]?.hasPrefix("### Part 1 of 3\n\nPart answer") == true)
+        #expect(harness.lastActivity?.detail == "3 parts")
+    }
 }

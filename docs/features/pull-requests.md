@@ -140,7 +140,7 @@ How it runs:
 2. It runs the command of the tool from `ai.textCommands` with `/bin/sh -c` in the main checkout. The PATH gets `~/.local/bin`, `~/.claude/local`, `~/.npm-global/bin`, `/opt/homebrew/bin` and `/usr/local/bin` first.
 3. The defaults are `claude -p "$(cat {prompt})" --output-format text` and `copilot -p "$(cat {prompt})" -s --no-ask-user --no-color --stream off`. `{prompt}` becomes the quoted path of the prompt file.
 4. DevHub removes code fences and terminal colour codes from the answer. Exit code 127 means "not installed". Another failure shows the last 6 lines of the output.
-5. A diff longer than 60,000 characters is cut, with a note to the tool about the rest. A file whose diff the host did not send is described by its counts only.
+5. Explain splits a diff longer than 60,000 characters into parts of whole files (at most 5 parts) and asks the tool once per part, one after another; the card says "Reading part 2 of 3…", and the answer shows each part under "Part N of M". Files after the fifth part are named under "Not explained". A single file longer than the limit is cut, with a note to the tool about the rest; a commit message or a new request is cut the same way. A file whose diff the host did not send is described by its counts only.
 
 The command lands in the Output panel like every other command. The prompt holds the diff, so it goes to the AI service of the chosen tool.
 

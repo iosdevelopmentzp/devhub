@@ -17,6 +17,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - `docs/customization.md`: the map from a need to the `.devhub/` mechanism that covers it, a worked example of a chat command tab built from scripts, actions and a custom tab, and the schema gaps that such a tab still has. Linked from the README, `AGENTS.md`, the example folder and the `extensions` skill.
 
 ### Changed
+- Pull requests: Explain reads a diff longer than 60,000 characters in parts (whole files, at most 5 parts, "Reading part 2 of 3…") instead of cutting it, and names the files left out after the fifth part. ADR 017.
 - Operations: the cards no longer float over the list. Every running or finished action is one thin row in a strip at the bottom of the tab (icon, title, message or last line, progress, time, Retry, Stop, close), with the script progress as a thin bar. The card with the steps and the failure lines opens over the list only from the chevron or a click on the row, one at a time, and closes with a second click. At most 3 rows show; the footer list has the rest. The request window has the same strip.
 - Pull Requests: the file list of the details is a plain list, so a scroll to a file from the sidebar or from "Show in diff" works for a file far down. File headers no longer stick to the top while a long diff scrolls.
 
