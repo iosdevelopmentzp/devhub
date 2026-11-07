@@ -50,12 +50,23 @@ package enum GitSettingsPolicy {
             template: meaningful(config?.template),
             staleDays: config?.staleDays.map { max($0, 1) } ?? defaultStaleDays,
             hiddenFiles: config?.hiddenFiles?.compactMap(meaningful) ?? [],
+            fileGroups: fileGroups(config?.fileGroups),
             isDraft: config?.defaults?.draft ?? false,
             deleteSourceBranch: config?.defaults?.deleteSourceBranch ?? true,
             squash: config?.defaults?.squash ?? false,
             aiCommands: aiCommands(ai),
             aiTextCommands: AITextCommandPolicy.commands(ai)
         )
+    }
+
+    package static func fileGroups(_ configs: [FileGroupConfig]?) -> [PullRequestFileGroup] {
+        var names: Set<String> = []
+        return (configs ?? []).compactMap { config in
+            guard let name = meaningful(config.name), names.insert(name).inserted else { return nil }
+            let patterns = config.patterns?.compactMap(meaningful) ?? []
+            guard patterns.isEmpty == false else { return nil }
+            return PullRequestFileGroup(name: name, patterns: patterns, isHiddenByDefault: config.hidden ?? false)
+        }
     }
 
     package static func aiCommands(_ ai: AIConfig?) -> [AIProvider: String] {

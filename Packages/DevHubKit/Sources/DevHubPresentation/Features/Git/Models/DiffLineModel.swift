@@ -10,6 +10,7 @@ struct DiffLineModel: Identifiable, Equatable {
     var backgroundOpacity: Double
     var oldNumber: Int?
     var newNumber: Int?
+    var emphasis: [Range<Int>] = []
 
-    static let preview = DiffLineModel(id: 0, text: "+    let value: GiftValue", tint: .green, foregroundOpacity: 0.9, backgroundOpacity: 0.08, oldNumber: nil, newNumber: 42)
+    static let preview = DiffLineModel(id: 0, text: "+    let value: GiftValue", tint: .green, foregroundOpacity: 0.9, backgroundOpacity: 0.08, oldNumber: nil, newNumber: 42, emphasis: [16..<25])
 }

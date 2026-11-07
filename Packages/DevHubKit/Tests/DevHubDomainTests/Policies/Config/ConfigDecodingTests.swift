@@ -13,6 +13,28 @@ import Testing
         #expect(config.home?.quickActions == ["builtin.buildRun", "clean"])
     }
 
+    @Test func decodesThePullRequestFileGroups() throws {
+        let json = """
+        {
+          "git": {
+            "pullRequests": {
+              "fileGroups": [
+                { "name": "Tests", "patterns": ["*Tests/*", "*Tests.swift"], "hidden": true },
+                { "name": "App", "patterns": ["*/App/*"] }
+              ]
+            }
+          }
+        }
+        """
+
+        let config = try ConfigDecoding.decode(ProjectConfig.self, from: ConfigDecoding.parseJSON(json))
+
+        #expect(config.git?.pullRequests?.fileGroups == [
+            FileGroupConfig(name: "Tests", patterns: ["*Tests/*", "*Tests.swift"], hidden: true),
+            FileGroupConfig(name: "App", patterns: ["*/App/*"], hidden: nil),
+        ])
+    }
+
     @Test func decodesTheLaunchIdentityProfileFieldsAndNetwork() throws {
         let json = """
         {

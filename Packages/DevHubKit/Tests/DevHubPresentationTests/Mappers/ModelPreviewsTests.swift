@@ -77,6 +77,7 @@ import Testing
         #expect(PullRequestPeopleModel.preview.menus.count == 2)
         #expect(AIWriteButtonModel.preview.choices.count == 2)
         #expect(PullRequestExplainModel.preview.text != nil)
+        #expect(PullRequestFileGroupChipModel.preview.isHidden)
         #expect(DiskCleanupRowModel.preview.canDelete)
         #expect(SimulatorSectionModel.preview.rows.count == 1)
         #expect(UsageMeterModel.preview.levelTint == .orange)

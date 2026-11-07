@@ -118,6 +118,9 @@ struct PullRequestDetailsView: View {
             }
             VStack(alignment: .leading, spacing: 6) {
                 filesHeader(loaded)
+                if loaded.fileGroups.isEmpty == false {
+                    fileGroupChips(loaded.fileGroups)
+                }
                 if let notice = loaded.reviewNotice {
                     reviewNoticeLine(notice)
                 }
@@ -385,6 +388,22 @@ struct PullRequestDetailsView: View {
                 .fixedSize()
                 .hint("Stop comparing this request with your last review")
         }
+    }
+
+    private func fileGroupChips(_ groups: [PullRequestFileGroupChipModel]) -> some View {
+        FlowLayout(spacing: 6) {
+            ForEach(groups) { group in
+                Button {
+                    actions.toggleFileGroup(group.id)
+                } label: {
+                    Tag(group.title, tint: group.tint.color, systemImage: group.icon)
+                        .opacity(group.isHidden ? 0.75 : 1)
+                }
+                .buttonStyle(.plain)
+                .hint(group.hint)
+            }
+        }
+        .padding(.bottom, 2)
     }
 
     private func hideSuggestionLine(_ suggestion: PullRequestDetailsModel.HideSuggestion) -> some View {

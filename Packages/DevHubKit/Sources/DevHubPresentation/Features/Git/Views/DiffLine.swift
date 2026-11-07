@@ -15,7 +15,7 @@ struct DiffLine: View {
         HStack(alignment: .firstTextBaseline, spacing: 0) {
             number(model.oldNumber)
             number(model.newNumber)
-            Text(model.text)
+            Text(emphasizedText)
                 .foregroundStyle(foreground)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.leading, 10)
@@ -59,6 +59,18 @@ struct DiffLine: View {
         Text(value.map(String.init) ?? "")
             .foregroundStyle(.tertiary)
             .frame(width: 34, alignment: .trailing)
+    }
+
+    private var emphasizedText: AttributedString {
+        var text = AttributedString(model.text)
+        guard let tint = model.tint, model.emphasis.isEmpty == false else { return text }
+        for range in model.emphasis {
+            guard range.upperBound <= text.characters.count else { continue }
+            let start = text.index(text.startIndex, offsetByCharacters: range.lowerBound)
+            let end = text.index(text.startIndex, offsetByCharacters: range.upperBound)
+            text[start..<end].backgroundColor = tint.color.opacity(0.28)
+        }
+        return text
     }
 
     private var foreground: Color {

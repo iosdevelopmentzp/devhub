@@ -11,6 +11,7 @@ struct PullRequestRowContext {
     var words: CodeHostWords
     var staleDays: Int
     var hiddenFiles: [String]
+    var fileGroups: [PullRequestFileGroup] = []
     var watchedIDs: Set<Int>
     var people: [String] = []
     var busyPeopleIDs: Set<Int> = []

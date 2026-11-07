@@ -18,7 +18,10 @@ enum PullRequestDetailsMapper {
         guard let details, let diffs else { return PullRequestDetailsModel(content: .loading) }
         let words = context.words
         let paths = diffs.map(\.path)
+        let groupMatches = FileGroupPolicy.matches(in: paths, groups: context.fileGroups)
         let hidden = HiddenFilePolicy.hiddenPaths(in: paths, patterns: context.hiddenFiles, chosen: review.chosenHiddenFiles)
+            .union(FileGroupPolicy.hiddenPaths(in: groupMatches, toggled: review.toggledGroups))
+        let grouped = FileGroupPolicy.groupedPaths(in: groupMatches)
         let visible = review.showsHiddenFiles ? diffs : diffs.filter { hidden.contains($0.path) == false }
         let additions = visible.reduce(0) { $0 + $1.additions }
         let deletions = visible.reduce(0) { $0 + $1.deletions }
@@ -51,7 +54,8 @@ enum PullRequestDetailsMapper {
                     filesTitle: "Files \(visible.count) · +\(additions) −\(deletions)" + (viewedCount > 0 ? " · \(viewedCount) viewed" : ""),
                     hiddenFilesTitle: hiddenFilesTitle(count: hidden.count, shown: review.showsHiddenFiles),
                     hiddenFilesHint: hidden.isEmpty ? nil : hiddenFilesHint(count: hidden.count, shown: review.showsHiddenFiles),
-                    hideSuggestion: hideSuggestion(HiddenFilePolicy.suggestedPaths(in: paths, hidden: hidden)),
+                    hideSuggestion: hideSuggestion(HiddenFilePolicy.suggestedPaths(in: paths, hidden: hidden.union(grouped))),
+                    fileGroups: PullRequestFileGroupChipMapper.models(for: groupMatches, groups: context.fileGroups, toggled: review.toggledGroups),
                     reviewNotice: reviewNotice(review: review, words: words),
                     people: PullRequestPeopleMapper.model(summary: summary, context: context),
                     explain: PullRequestExplainMapper.model(summary: summary, review: review, context: context),
@@ -64,7 +68,8 @@ enum PullRequestDetailsMapper {
                         var row = PullRequestFileRowMapper.hiding(
                             PullRequestFileRowMapper.model(for: file, review: review, threads: threadRows, words: words),
                             isHidden: hidden.contains(file.path),
-                            isChosen: review.chosenHiddenFiles.contains(file.path)
+                            isChosen: review.chosenHiddenFiles.contains(file.path),
+                            group: FileGroupPolicy.groupName(of: file.path, in: groupMatches)
                         )
                         row.reviewTag = changed.contains(file.path) ? changedSinceReviewTag : nil
                         return row
@@ -157,8 +162,8 @@ enum PullRequestDetailsMapper {
 
     private static func hiddenFilesHint(count: Int, shown: Bool) -> String {
         let reason = count == 1
-            ? "1 file is hidden: you hid it, or it matches git.pullRequests.hiddenFiles."
-            : "\(count) files are hidden: you hid them, or they match git.pullRequests.hiddenFiles."
+            ? "1 file is hidden: you hid it, it is in a hidden group, or it matches git.pullRequests.hiddenFiles."
+            : "\(count) files are hidden: you hid them, they are in a hidden group, or they match git.pullRequests.hiddenFiles."
         return shown ? "\(reason) Click to hide them again." : "\(reason) Click to show them."
     }
 

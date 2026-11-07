@@ -76,6 +76,7 @@ struct PullRequestWindowView: View {
             words: words,
             staleDays: git.gitSettings.pullRequests.staleDays,
             hiddenFiles: git.gitSettings.pullRequests.hiddenFiles,
+            fileGroups: git.gitSettings.pullRequests.fileGroups,
             watchedIDs: openPullRequests.watchedIDs,
             people: people.people,
             busyPeopleIDs: people.busyIDs,

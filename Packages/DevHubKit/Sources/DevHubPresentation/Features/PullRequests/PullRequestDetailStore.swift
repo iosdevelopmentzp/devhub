@@ -15,6 +15,7 @@ final class PullRequestDetailStore {
     private(set) var showsThreadsInDiff = true
     private(set) var openDiffThreads: Set<ReviewThread.ID> = []
     private(set) var shownHiddenFiles: Set<PullRequestSummary.ID> = []
+    private(set) var toggledGroups: [PullRequestSummary.ID: Set<String>] = [:]
     private(set) var commentDrafts: [PullRequestSummary.ID: String] = [:]
     private(set) var busyComments: Set<PullRequestSummary.ID> = []
     private(set) var lineComment: LineCommentDraft?
@@ -120,6 +121,7 @@ final class PullRequestDetailStore {
         fingerprints = [:]
         openDiffThreads = []
         shownHiddenFiles = []
+        toggledGroups = [:]
         commentDrafts = [:]
         lineComment = nil
         jobLogs = [:]
@@ -169,6 +171,7 @@ final class PullRequestDetailStore {
             openTestMessages: openTestMessages,
             openCIHistoryRuns: openCIHistoryRuns,
             chosenHiddenFiles: hiddenFiles.paths,
+            toggledGroups: toggledGroups[id] ?? [],
             reviewedAt: reviews.snapshot(of: id)?.reviewedAt,
             changedSinceReview: ReviewChangePolicy.changedPaths(since: reviews.snapshot(of: id), paths: diffs[id]?.map(\.path) ?? [], fingerprints: fingerprints[id] ?? [:]),
             showsOnlyChangedSinceReview: onlyChangedSinceReview.contains(id)
@@ -227,6 +230,14 @@ final class PullRequestDetailStore {
         if shownHiddenFiles.remove(id) == nil {
             shownHiddenFiles.insert(id)
         }
+    }
+
+    func toggleFileGroup(_ name: String, of id: PullRequestSummary.ID) {
+        var toggled = toggledGroups[id] ?? []
+        if toggled.remove(name) == nil {
+            toggled.insert(name)
+        }
+        toggledGroups[id] = toggled
     }
 
     func toggleViewed(_ fileID: PullRequestFileDiff.ID, of id: PullRequestSummary.ID) {

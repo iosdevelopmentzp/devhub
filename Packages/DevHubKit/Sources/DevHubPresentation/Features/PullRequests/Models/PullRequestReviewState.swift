@@ -32,6 +32,7 @@ struct PullRequestReviewState: Equatable {
     var openTestMessages: Set<String> = []
     var openCIHistoryRuns: Set<String> = []
     var chosenHiddenFiles: Set<String> = []
+    var toggledGroups: Set<String> = []
     var reviewedAt: Date?
     var changedSinceReview: [String] = []
     var showsOnlyChangedSinceReview = false

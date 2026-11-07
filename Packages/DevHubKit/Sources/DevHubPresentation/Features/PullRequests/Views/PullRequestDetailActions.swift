@@ -7,6 +7,7 @@ struct PullRequestDetailActions {
     let expandAllFiles: (_ fileIDs: Set<PullRequestFileDiff.ID>) -> Void
     let collapseAllFiles: () -> Void
     let toggleHiddenFiles: () -> Void
+    let toggleFileGroup: (_ name: String) -> Void
     let toggleOnlyChangedSinceReview: () -> Void
     let forgetReview: () -> Void
     let togglePerson: (_ login: String, _ role: PullRequestPersonRole) -> Void
@@ -56,6 +57,7 @@ struct PullRequestDetailActions {
         expandAllFiles: { _ in },
         collapseAllFiles: {},
         toggleHiddenFiles: {},
+        toggleFileGroup: { _ in },
         toggleOnlyChangedSinceReview: {},
         forgetReview: {},
         togglePerson: { _, _ in },
@@ -107,6 +109,7 @@ struct PullRequestDetailActions {
             expandAllFiles: expandAllFiles,
             collapseAllFiles: collapseAllFiles,
             toggleHiddenFiles: toggleHiddenFiles,
+            toggleFileGroup: toggleFileGroup,
             toggleOnlyChangedSinceReview: toggleOnlyChangedSinceReview,
             forgetReview: forgetReview,
             togglePerson: togglePerson,
@@ -173,6 +176,7 @@ extension PullRequestDetailActions {
             expandAllFiles: { detailStore.expandAllFiles($0, of: id) },
             collapseAllFiles: { detailStore.collapseAllFiles(of: id) },
             toggleHiddenFiles: { detailStore.toggleHiddenFiles(of: id) },
+            toggleFileGroup: { detailStore.toggleFileGroup($0, of: id) },
             toggleOnlyChangedSinceReview: { detailStore.toggleOnlyChangedSinceReview(of: id) },
             forgetReview: { detailStore.forgetReview(of: id) },
             togglePerson: { people.toggle($0, role: $1, on: summary) },

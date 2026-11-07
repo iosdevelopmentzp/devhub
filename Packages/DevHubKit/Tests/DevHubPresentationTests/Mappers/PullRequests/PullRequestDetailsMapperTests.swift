@@ -127,7 +127,7 @@ import DevHubTestSupport
 
         #expect(hidden.files.map(\.id) == ["a.swift"])
         #expect(hidden.hiddenFilesTitle == "Show 1 hidden")
-        #expect(hidden.hiddenFilesHint == "1 file is hidden: you hid it, or it matches git.pullRequests.hiddenFiles. Click to show them.")
+        #expect(hidden.hiddenFilesHint == "1 file is hidden: you hid it, it is in a hidden group, or it matches git.pullRequests.hiddenFiles. Click to show them.")
         #expect(hidden.files[0].canHide)
         #expect(hidden.files[0].hiddenTag == nil)
         #expect(shown.files.map(\.id) == ["a.swift", "b.png"])
@@ -185,8 +185,53 @@ import DevHubTestSupport
         #expect(loaded.jobsTitle == "Pipeline 1")
     }
 
-    private func context(hiddenFiles: [String] = []) -> PullRequestRowContext {
-        PullRequestRowContext(username: "me", scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: true, ticket: .standard, words: .gitLab, staleDays: 14, hiddenFiles: hiddenFiles, watchedIDs: [])
+    private func context(hiddenFiles: [String] = [], fileGroups: [PullRequestFileGroup] = []) -> PullRequestRowContext {
+        PullRequestRowContext(username: "me", scope: .all, seenAt: nil, now: .now, isMainCheckoutClean: true, ticket: .standard, words: .gitLab, staleDays: 14, hiddenFiles: hiddenFiles, fileGroups: fileGroups, watchedIDs: [])
+    }
+
+    @Test func aGroupHiddenByDefaultKeepsItsFilesOutUntilItsChipIsToggled() throws {
+        let groups = [
+            PullRequestFileGroup(name: "Tests", patterns: ["*Tests/*"], isHiddenByDefault: true),
+            PullRequestFileGroup(name: "Images", patterns: ["*.png"], isHiddenByDefault: false),
+        ]
+        var toggledState = review(expanded: [])
+        toggledState.toggledGroups = ["Tests", "Images"]
+
+        let hidden = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files + [testFile], error: nil, review: review(expanded: []), context: context(fileGroups: groups)))
+        let toggled = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files + [testFile], error: nil, review: toggledState, context: context(fileGroups: groups)))
+
+        #expect(hidden.fileGroups.map(\.title) == ["Tests 1", "Images 1"])
+        #expect(hidden.fileGroups.map(\.isHidden) == [true, false])
+        #expect(hidden.files.map(\.id) == ["a.swift", "b.png"])
+        #expect(hidden.hiddenFilesTitle == "Show 1 hidden")
+        #expect(hidden.hiddenFilesHint == "1 file is hidden: you hid it, it is in a hidden group, or it matches git.pullRequests.hiddenFiles. Click to show them.")
+        #expect(hidden.hideSuggestion == nil)
+        #expect(toggled.fileGroups.map(\.isHidden) == [false, true])
+        #expect(toggled.files.map(\.id) == ["a.swift", "AppTests/LoginTests.swift"])
+        #expect(toggled.hiddenFilesTitle == "Show 1 hidden")
+    }
+
+    @Test func aFileOfAHiddenGroupShowsItsGroupInTheHiddenTag() throws {
+        let groups = [PullRequestFileGroup(name: "Tests", patterns: ["*Tests/*"], isHiddenByDefault: true)]
+        var shownState = review(expanded: [])
+        shownState.showsHiddenFiles = true
+
+        let shown = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files + [testFile], error: nil, review: shownState, context: context(fileGroups: groups)))
+
+        #expect(shown.files.map(\.id) == ["a.swift", "b.png", "AppTests/LoginTests.swift"])
+        #expect(shown.files[2].hiddenTag?.hint?.contains("group Tests") == true)
+        #expect(shown.files[2].canHide == false)
+        #expect(shown.hiddenFilesTitle == "Hide 1")
+    }
+
+    @Test func theHideSuggestionLeavesOutFilesOfAShownGroup() throws {
+        let groups = [PullRequestFileGroup(name: "Tests", patterns: ["*Tests/*"], isHiddenByDefault: false)]
+
+        let model = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files + [testFile], error: nil, review: review(expanded: []), context: context(fileGroups: groups)))
+
+        #expect(model.files.map(\.id) == ["a.swift", "b.png", "AppTests/LoginTests.swift"])
+        #expect(model.hideSuggestion == nil)
+        #expect(model.fileGroups.map(\.title) == ["Tests 1"])
     }
 
     private func review(

@@ -41,7 +41,12 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
     "pullRequests": {
       "targets": ["main", "release"],
       "staleDays": 10,
-      "hiddenFiles": ["*Tests/*", "*.xcodeproj/*", "*.lock"],
+      "hiddenFiles": ["*.lock"],
+      "fileGroups": [
+        { "name": "Tests", "patterns": ["*Tests/*", "*Tests.swift"], "hidden": true },
+        { "name": "Project", "patterns": ["*.xcodeproj/*", "*.resolved"], "hidden": true },
+        { "name": "UI", "patterns": ["*/Calls/*", "*UI/*"] }
+      ],
       "defaults": { "draft": true, "deleteSourceBranch": true, "squash": false }
     }
   },

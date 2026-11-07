@@ -42,6 +42,16 @@ import Testing
         ))
     }
 
+    @Test func pairedLinesCarryTheirEmphasisShiftedPastThePrefix() {
+        let diff = GitDiff(lines: ["@@ -1,2 +1,2 @@", "-let a: Int", "+let a: String", " same"], droppedLines: 0, isBinary: false)
+
+        guard case .lines(let lines, _) = DiffMapper.model(for: diff) else {
+            Issue.record("Expected lines")
+            return
+        }
+        #expect(lines.map(\.emphasis) == [[], [8..<11], [8..<14], []])
+    }
+
     @Test func withoutHunkEveryLineIsShown() {
         let diff = GitDiff(lines: ["+only"], droppedLines: 0, isBinary: false)
 

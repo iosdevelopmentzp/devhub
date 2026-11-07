@@ -14,8 +14,13 @@ enum DiffMapper {
         }
         let headerEnd = diff.lines.firstIndex { $0.hasPrefix("@@") } ?? 0
         let hunkLines = Array(diff.lines[headerEnd...])
-        let lines = zip(hunkLines, DiffLineNumbering.numbers(for: hunkLines)).enumerated().map { offset, pair in
+        var lines = zip(hunkLines, DiffLineNumbering.numbers(for: hunkLines)).enumerated().map { offset, pair in
             line(id: offset, text: pair.0, numbers: pair.1)
+        }
+        for pair in DiffLineEmphasis.pairs(in: hunkLines) {
+            guard let ranges = DiffLineEmphasis.ranges(removed: String(hunkLines[pair.removed].dropFirst()), added: String(hunkLines[pair.added].dropFirst())) else { continue }
+            lines[pair.removed].emphasis = ranges.removed.map { ($0.lowerBound + 1)..<($0.upperBound + 1) }
+            lines[pair.added].emphasis = ranges.added.map { ($0.lowerBound + 1)..<($0.upperBound + 1) }
         }
         return .lines(lines, droppedNote: diff.droppedLines > 0 ? "… \(diff.droppedLines) more lines not shown" : nil)
     }

@@ -212,6 +212,21 @@ import DevHubTestSupport
         #expect(harness.spies.codeHost.calls.count == 3)
     }
 
+    @Test func aGroupToggleIsKeptPerRequestUntilTheProjectChanges() {
+        store.toggleFileGroup("Tests", of: 7)
+        store.toggleFileGroup("App", of: 7)
+        store.toggleFileGroup("Tests", of: 8)
+        store.toggleFileGroup("App", of: 7)
+
+        #expect(store.review(of: 7).toggledGroups == ["Tests"])
+        #expect(store.review(of: 8).toggledGroups == ["Tests"])
+        #expect(store.review(of: 9).toggledGroups.isEmpty)
+
+        harness.events.post(.projectChanged)
+
+        #expect(store.review(of: 7).toggledGroups.isEmpty)
+    }
+
     @Test func projectChangedClearsTheCache() async {
         script()
         await store.load(7)

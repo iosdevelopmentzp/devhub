@@ -180,6 +180,7 @@ import Testing
         #expect(byPattern.canHide == false)
         #expect(byPattern.canUnhide == false)
         #expect(byPattern.hiddenTag?.hint == "This file matches git.pullRequests.hiddenFiles in project.json")
+        #expect(PullRequestFileRowMapper.hiding(model, isHidden: true, isChosen: false, group: "Tests").hiddenTag?.hint == "This file is in the group Tests, hidden by its chip above the list (git.pullRequests.fileGroups in project.json)")
     }
 
     @Test func onlyAModifiedOrRenamedTextFileOffersTheWholeFile() {

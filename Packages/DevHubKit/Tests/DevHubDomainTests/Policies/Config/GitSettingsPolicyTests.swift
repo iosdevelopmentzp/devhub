@@ -79,6 +79,23 @@ import Testing
         ))
     }
 
+    @Test func fileGroupsKeepNamedGroupsWithPatternsOnce() {
+        let config = ProjectConfig(git: GitConfig(pullRequests: PullRequestsConfig(fileGroups: [
+            FileGroupConfig(name: " Tests ", patterns: ["*Tests/*", " ", "*Tests.swift"], hidden: true),
+            FileGroupConfig(name: "App", patterns: ["*/App/*"]),
+            FileGroupConfig(name: "Tests", patterns: ["Other/*"]),
+            FileGroupConfig(name: " ", patterns: ["*.lock"]),
+            FileGroupConfig(name: "Empty", patterns: [" "]),
+            FileGroupConfig(name: "None"),
+        ])))
+
+        #expect(GitSettingsPolicy.settings(for: config).pullRequests.fileGroups == [
+            PullRequestFileGroup(name: "Tests", patterns: ["*Tests/*", "*Tests.swift"], isHiddenByDefault: true),
+            PullRequestFileGroup(name: "App", patterns: ["*/App/*"], isHiddenByDefault: false),
+        ])
+        #expect(GitSettingsPolicy.settings(for: ProjectConfig()).pullRequests.fileGroups.isEmpty)
+    }
+
     @Test func anEmptyHiddenFilesListHidesNothing() {
         let config = ProjectConfig(git: GitConfig(pullRequests: PullRequestsConfig(hiddenFiles: [])))
 
