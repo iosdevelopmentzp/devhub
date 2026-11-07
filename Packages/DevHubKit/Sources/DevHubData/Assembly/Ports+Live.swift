@@ -64,7 +64,8 @@ extension Ports {
                 chromeRoot: URL(fileURLWithPath: "/Library/Developer/DeviceKit/Chrome")
             )),
             videoCompression: FFmpegVideoCompressionRepository(shell: shell, tools: tools),
-            updates: FileUpdateRepository(shell: shell, supportFolder: home.appendingPathComponent("Library/Application Support/DevHub Generic", isDirectory: true))
+            updates: FileUpdateRepository(shell: shell, supportFolder: home.appendingPathComponent("Library/Application Support/DevHub Generic", isDirectory: true)),
+            tracker: JiraIssueRepository(shell: shell, tools: tools, configFile: home.appendingPathComponent(".config/.jira/.config.yml").path)
         )
     }
 }

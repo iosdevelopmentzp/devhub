@@ -39,6 +39,7 @@ package struct PortSpies: Sendable {
     package let media = SpyMediaRepository()
     package let videoCompression = SpyVideoCompressionRepository()
     package let updates = SpyUpdateRepository()
+    package let tracker = SpyIssueTrackerRepository()
 
     package init() {}
 }

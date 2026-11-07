@@ -165,6 +165,36 @@ import Testing
         #expect(git?["commitPrefix"] != nil)
     }
 
+    @Test func decodesTheTrackerSection() throws {
+        let json = """
+        { "tracker": { "kind": "jira", "project": "ABC", "statuses": ["To Do", "In Progress", "Done"], "startStatus": "In Progress", "filter": "type != Epic", "branchFormat": "fix/{key}" } }
+        """
+
+        let config = try ConfigDecoding.decode(ProjectConfig.self, from: ConfigDecoding.parseJSON(json))
+
+        #expect(config.tracker == TrackerConfig(kind: .jira, project: "ABC", statuses: ["To Do", "In Progress", "Done"], startStatus: "In Progress", filter: "type != Epic", branchFormat: "fix/{key}"))
+    }
+
+    @Test func theTrackerCanBeTurnedOffWithNone() throws {
+        let json = """
+        { "tracker": { "kind": "none" } }
+        """
+
+        let config = try ConfigDecoding.decode(ProjectConfig.self, from: ConfigDecoding.parseJSON(json))
+
+        #expect(config.tracker?.kind == .disabled)
+    }
+
+    @Test func anUnknownTrackerKindIsAnError() {
+        let json = """
+        { "tracker": { "kind": "linear" } }
+        """
+
+        #expect(throws: ConfigError.self) {
+            try ConfigDecoding.decode(ProjectConfig.self, from: ConfigDecoding.parseJSON(json))
+        }
+    }
+
     private func describe(_ object: [String: Any]) -> String {
         do {
             _ = try ConfigDecoding.decode(ActionConfig.self, from: object)

@@ -72,6 +72,12 @@ All fields optional. Missing values are detected (see "default").
 | `launch.identity.hookMarker` | string | the value of `variable` | the text DevHub looks for in the app binary; when it is found, the identity panel shows a green tag with the variable name, else a red "no … hook" tag |
 | `network.baseURLVariable` | string | — | the environment variable that gets the URL of the DevHub mock server when the app is relaunched through it. Without it the mock server cannot redirect the app |
 | `network.mocksFolder` | path | `~/.devhub/mocks/<project folder name>` | where the mock sets of the project are saved. A relative path starts at the project folder, `~` is the home folder. A change reloads the sets |
+| `tracker.kind` | `"jira"` \| `"none"` | `jira` when `git.ticketURL` contains `atlassian` or `jira`, else `none` | the issue tracker of Utils → Tickets. DevHub reads Jira through the `jira` tool (`brew install jira-cli`, set up with `jira init`); `none` hides the list |
+| `tracker.project` | string | the default project of the `jira` config | the Jira project key, passed as `-p` to every list |
+| `tracker.statuses` | [string] | `["To Do", "In Progress", "In Review", "Done"]` | the statuses of the "Move to" menu of a ticket row, in this order; the current status is left out |
+| `tracker.startStatus` | string | `In Progress` | the status of the Start button of a ticket row (`jira issue move <key> <status>`) |
+| `tracker.filter` | JQL | — | added to every list with `AND (…)`, for example `type != Epic` |
+| `tracker.branchFormat` | string | `feature/{key}-{slug}` | the branch name that "Copy Branch Name" gives: `{key}` is the ticket key, `{slug}` the summary in lower case ASCII with dashes, at most 40 characters |
 | `logs.process` | string | `CFBundleExecutable` of the installed app, else the scheme | default process filter of a new log stream; each stream can change it in the Logs toolbar |
 | `logs.subsystem` | string | — | default subsystem of a new log stream; when set, the stream predicate filters by subsystem instead of process |
 | `simulators.statusScript` | path | — | section 6 |

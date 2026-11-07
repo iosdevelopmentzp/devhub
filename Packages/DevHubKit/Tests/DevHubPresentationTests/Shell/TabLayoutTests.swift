@@ -43,7 +43,7 @@ import Testing
         let utils = layout.tabs(in: .utils, customTabs: [qa, ops])
 
         #expect(bar == FeatureRegistry.tabBarFeatures.map { TabID.feature($0.id) }.filter { $0 != .feature(.network) } + [.utility(.compressVideo), .custom("qa")])
-        #expect(utils == [.feature(.network), .custom("ops")])
+        #expect(utils == [.feature(.network), .utility(.tickets), .custom("ops")])
     }
 
     @Test func rawOverridesRoundTripAndSkipUnknownValues() {

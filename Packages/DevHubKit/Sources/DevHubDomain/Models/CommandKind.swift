@@ -18,6 +18,7 @@ package enum CommandKind: Sendable {
     private static let plainReads: Set<String> = ["du", "ps", "grep", "plutil", "pgrep", "mdfind", "xcode-select", "ffprobe"]
     private static let codeHostReads: Set<String> = ["view", "list", "checks", "diff", "status"]
     private static let circleCIReads: Set<String> = ["run list", "run get", "workflow get", "workflow list", "job get", "job output", "testresult list", "setting list", "version", "auth me"]
+    private static let jiraReads: Set<String> = ["issue list", "issue view", "sprint list", "epic list", "project list", "board list", "me", "version"]
 
     package static func classify(_ executable: String, _ arguments: [String]) -> CommandKind {
         let name = (executable as NSString).lastPathComponent
@@ -40,6 +41,8 @@ package enum CommandKind: Sendable {
             return codeHostKind(arguments)
         case "circleci":
             return circleCIKind(arguments)
+        case "jira":
+            return jiraKind(arguments)
         case "xcodebuild":
             return arguments.contains("-showBuildSettings") ? .read : .action
         case "osascript":
@@ -68,6 +71,12 @@ package enum CommandKind: Sendable {
         }
         let pair = words.prefix(2).joined(separator: " ")
         return circleCIReads.contains(pair) || circleCIReads.contains(words.first ?? "") ? .read : .action
+    }
+
+    private static func jiraKind(_ arguments: [String]) -> CommandKind {
+        let words = arguments.filter { $0.hasPrefix("-") == false }
+        let pair = words.prefix(2).joined(separator: " ")
+        return jiraReads.contains(pair) || jiraReads.contains(words.first ?? "") ? .read : .action
     }
 
     private static func codeHostKind(_ arguments: [String]) -> CommandKind {

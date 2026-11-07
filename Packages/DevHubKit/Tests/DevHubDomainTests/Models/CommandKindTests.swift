@@ -167,6 +167,22 @@ import Testing
         #expect(CommandKind.classify("xcrun", ["devicectl", "device", "copy", "from", "--device", "D1", "--source", "a", "--destination", "b"]) == .read)
     }
 
+    @Test func jiraListsViewsAndMeAreReads() {
+        #expect(CommandKind.classify("jira", ["issue", "list", "-q", "assignee = currentUser()", "--raw", "-p", "ABC"]) == .read)
+        #expect(CommandKind.classify("jira", ["issue", "view", "ABC-123", "--raw"]) == .read)
+        #expect(CommandKind.classify("jira", ["me"]) == .read)
+        #expect(CommandKind.classify("jira", ["version"]) == .read)
+        #expect(CommandKind.classify("jira", ["sprint", "list", "--current"]) == .read)
+    }
+
+    @Test func jiraMovesCreatesAndCommentsAreActions() {
+        #expect(CommandKind.classify("jira", ["issue", "move", "ABC-123", "In Progress"]) == .action)
+        #expect(CommandKind.classify("jira", ["issue", "create", "-tBug"]) == .action)
+        #expect(CommandKind.classify("jira", ["issue", "comment", "add", "ABC-123", "text"]) == .action)
+        #expect(CommandKind.classify("jira", ["init"]) == .action)
+        #expect(CommandKind.classify("jira", []) == .action)
+    }
+
     @Test func devicectlInstallLaunchAndCopyToAreActions() {
         #expect(CommandKind.classify("xcrun", ["devicectl", "device", "install", "app", "--device", "D1", "/tmp/App.app"]) == .action)
         #expect(CommandKind.classify("xcrun", ["devicectl", "device", "process", "launch", "--device", "D1", "com.example.app"]) == .action)

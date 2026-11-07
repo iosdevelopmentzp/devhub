@@ -1,6 +1,6 @@
 # Dependencies and tools
 
-Last reviewed: 2026-11-07 (ADR 011). The rule for changes: `.claude/rules/dependencies.md`. The check: `Scripts/check-dependencies.sh`, run by `Scripts/build.sh` and CI (`dependencies: ok`).
+Last reviewed: 2026-11-07 (ADR 015: `jira`). The rule for changes: `.claude/rules/dependencies.md`. The check: `Scripts/check-dependencies.sh`, run by `Scripts/build.sh` and CI (`dependencies: ok`).
 
 ## Libraries
 
@@ -36,6 +36,7 @@ Every process goes through `ShellRunner`. It sets `TelemetryOptOutPolicy.environ
 | `code`, `cursor`, `zed` | the editors of the user | "Open in Editor" for the editor chosen in Settings | local | their own, outside DevHub | in use before the policy |
 | `ffmpeg`, `ffprobe` | Homebrew | Utils → Compress Video | local only | none | in use before the policy |
 | `brew` | Homebrew | only `brew install ffmpeg` from the button in Utils | formulae.brew.sh and GitHub, for the formula and the bottle | analytics off through `HOMEBREW_NO_ANALYTICS=1` | in use before the policy |
+| `jira` (jira-cli 1.7.0 checked) | Homebrew, the user's install (`brew install jira-cli`) | Utils → Tickets: the open tickets, a status move | the Jira server of its own config file `~/.config/.jira/.config.yml`, with the user's token from the keychain item `jira-cli` or `~/.netrc`; DevHub never reads the token | none documented or found in the source (MIT, open) | approved 2026-11-07 (ADR 015) |
 
 The scripts and commands of a `.devhub` folder run whatever the user wrote there. They are the user's own code, not a dependency of DevHub. Settings → Doctor prints install commands (`brew install …`, `npm install -g …`) as text and runs none of them.
 

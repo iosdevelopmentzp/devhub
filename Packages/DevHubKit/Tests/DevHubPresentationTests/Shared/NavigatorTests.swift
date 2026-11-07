@@ -85,7 +85,7 @@ import Testing
 
         #expect(navigator.utilsSelection == .utility(.compressVideo))
         #expect(navigator.utilsTab == .utility(.compressVideo))
-        #expect(navigator.tabs(in: .utils) == [.utility(.compressVideo)])
+        #expect(navigator.tabs(in: .utils) == [.utility(.compressVideo), .utility(.tickets)])
     }
 
     @Test func aSavedUtilitySelectionIsReadInBothForms() {
@@ -134,7 +134,7 @@ import Testing
         #expect(navigator.selection == .feature(.utils))
         #expect(navigator.utilsSelection == .feature(.logs))
         #expect(navigator.placement(of: .feature(.logs)) == .utils)
-        #expect(navigator.tabs(in: .utils) == [.feature(.logs), .utility(.compressVideo)])
+        #expect(navigator.tabs(in: .utils) == [.feature(.logs), .utility(.compressVideo), .utility(.tickets)])
         #expect(store.stringMap(forKey: "tabs.layout") == ["logs": "utils"])
         #expect(self.navigator().placement(of: .feature(.logs)) == .utils)
     }
@@ -157,7 +157,7 @@ import Testing
 
         #expect(navigator.selection == .utility(.compressVideo))
         #expect(navigator.tabs(in: .bar).last == .utility(.compressVideo))
-        #expect(navigator.utilsTab == nil)
+        #expect(navigator.utilsTab == .utility(.tickets))
         #expect(store.string(forKey: "navigator.selection") == "utility.compressVideo")
     }
 

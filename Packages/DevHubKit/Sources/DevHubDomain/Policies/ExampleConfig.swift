@@ -58,6 +58,7 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
     "identity": { "variable": "APP_DEVICE_ID", "keptVariable": "APP_KEEP_DEVICE_ID", "args": ["-skipOnboarding", "YES"], "idPrefix": "devhub-" }
   },
   "network": { "baseURLVariable": "APP_BASE_URL", "mocksFolder": "Tests/Mocks" },
+  "tracker": { "kind": "jira", "project": "ABC", "statuses": ["To Do", "In Progress", "In Review", "Done"], "startStatus": "In Progress", "branchFormat": "feature/{key}-{slug}" },
   "logs": { "subsystem": "com.example.app" },
   "simulators": { "statusScript": "scripts/sim-status.sh" },
   "home": { "quickActions": ["builtin.buildRun", "builtin.runAttach", "clean-derived-data", "open-ci", "builtin.terminal", "builtin.copyBranch"] }

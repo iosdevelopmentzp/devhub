@@ -41,7 +41,8 @@ package extension Ports {
             diskCleanup: spies.diskCleanup,
             media: spies.media,
             videoCompression: spies.videoCompression,
-            updates: spies.updates
+            updates: spies.updates,
+            tracker: spies.tracker
         )
         return (ports, spies)
     }

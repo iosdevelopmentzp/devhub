@@ -37,3 +37,5 @@ zed
 ffmpeg
 ffprobe
 brew
+# issue tracker, with the user's own login
+jira

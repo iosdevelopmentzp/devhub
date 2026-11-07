@@ -69,7 +69,7 @@ Debug builds only. `DevHubComposition/Debug/DebugLaunch.swift` reads them and ca
 | `DEVHUB_MOCK=<udid or name>,<off\|passthrough\|mock>[,<set name>]` | sets the mock server mode (and the set) of that simulator, runs Apply & Relaunch and selects the simulator in the Network tab |
 | `DEVHUB_LOG_STREAMS=<udid or name>[,<udid or name>]` | starts a log stream on each simulator; the Logs tab shows one chip per stream |
 | `DEVHUB_OPEN_PANEL=1` | opens the panel at launch |
-| `DEVHUB_TAB=<id>` | selects a tab (saved): a built-in id, `utility.compressVideo` or `tab.<id>`; a tab placed in Utils opens Utils on it |
+| `DEVHUB_TAB=<id>` | selects a tab (saved): a built-in id, `utility.compressVideo`, `utility.tickets` or `tab.<id>`; a tab placed in Utils opens Utils on it |
 | `DEVHUB_PALETTE=<query>` | opens the command palette with that text (empty text is allowed) |
 | `DEVHUB_SHOW_OUTPUT=1` | opens the Output panel (saved) |
 | `DEVHUB_SNAPSHOT=<png path>` | writes a picture of the panel |

@@ -7,6 +7,7 @@ Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Utils/`, `Shell/
 | Tool | What it does |
 |---|---|
 | Compress Video | makes a screen recording or any video much smaller with ffmpeg, next to the original |
+| Tickets | the open Jira tickets of the project through `jira-cli`: yours or the whole project, Start, Move to, the branch name, the link (ADR 015) |
 | a custom tab | the sections of a `.devhub/tabs/<id>.json` file ([Custom tabs](custom-tabs.md)) |
 | a moved built-in tab | the same screen as in the tab bar, for example Logs or Network |
 
@@ -18,6 +19,32 @@ Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Utils/`, `Shell/
 - ⌘1 to ⌘9 follow the positions in the tab bar, so a move changes the numbers of the tabs after it. Sub-tabs have no shortcut; the ⌘K palette lists every tab of both places and opens it where it is.
 - A notification, a palette entry or a row action that opens a moved tab (for example "Open the Logs tab") opens Utils on that sub-tab. The search field and its saved text follow the shown sub-tab.
 - `DEVHUB_TAB` takes a sub-tab too: `utility.compressVideo`, `tab.<id>`, or a built-in id. The Debug build opens Utils on it when the layout puts it there.
+
+## Tickets
+
+Source: `Features/Utils/Tickets/`, `DevHubData/Jira/`, `DevHubDomain/Models/Tracker/`, `Policies/TrackerSettingsPolicy.swift`, `TrackerQueryPolicy.swift`, `TrackerBranchPolicy.swift`, `Repositories/IssueTrackerRepository.swift`. The plan and the decisions are in ADR 015.
+
+The tab reads Jira through the `jira` tool of `jira-cli`, with the user's own login. DevHub never reads the token: it lives in the keychain item `jira-cli` (account = the login), in `~/.netrc`, or in `JIRA_API_TOKEN` of the shell (a menu bar app does not see the shell, so use the keychain or `~/.netrc`). Set-up once: `brew install jira-cli`, an API token from the Atlassian account, `security add-generic-password -s jira-cli -a <login> -w <token>`, then `jira init`.
+
+1. **Which project.** `tracker` in `project.json` ([extensions.md §2](../extensions.md#2-projectjson)): `kind`, `project`, `statuses`, `startStatus`, `filter`, `branchFormat`. Without `tracker.kind`, a `git.ticketURL` that points at Jira turns the tab on. A project without a tracker shows "No tracker for this project" with the config line to add.
+
+2. **The toolbar.** A scope picker (**Mine**: `assignee = currentUser() AND statusCategory != Done`; **Project**: `statusCategory != Done`), both inside the project of `tracker.project` or of the `jira` config, newest update first, 50 at most. The count, and Refresh. The scope is saved (`utils.tickets.scope`). The search field of the tab filters by key, summary, status and assignee.
+
+3. **The tool card.** Each time the panel opens on the tab, DevHub looks for `jira`, its config file (`~/.config/.jira/.config.yml`) and the login (`jira me`).
+
+   | State | Card |
+   |---|---|
+   | ready | green, compact: `jira 1.7.0` and the login |
+   | missing | orange "jira is not installed", `brew install jira-cli` to copy, Check Again |
+   | no config file | orange "jira is not set up", `jira init` to copy, the keychain hint, Check Again |
+   | no token | orange "jira has no API token", the `security add-generic-password …` command to copy, Check Again |
+   | another failure | red "jira failed" with the message, Check Again |
+
+4. **The list**, in sections by status category: In progress, To do, Other, Done. A row: the type icon (bug red, story green, epic purple, task blue, other grey), the key (click to copy), the summary, the status tag (grey to do, blue in progress, green done), the priority tag (red highest, orange high, grey low), the assignee and "updated 2 hr. ago". On hover: **Start** (`jira issue move <key> <startStatus>`, hidden when the ticket is already there or done), **Copy Branch Name** (`tracker.branchFormat`, for example `feature/ABC-123-login-button-stays-disabled`), **Open in Browser**. The context menu adds Copy Key and **Move to** with every status of `tracker.statuses` except the current one. A move shows a spinner in the row, logs "Moved ABC-123 to In Review" with the command, toasts, and reads the list again; a failure logs and toasts the reason.
+
+5. **Commands.** `jira version`, `jira me`, `jira issue list -q <jql> --raw --paginate 0:50 --order-by updated [-p <project>]` (reads), `jira issue move <key> <status>` (an action). All in the Output panel.
+
+6. **Limits.** Checked by tests and the mock ports; the live tool was not run with a token in the session that built the tab (ADR 015, step 5). The list is one page of 50. Jira statuses are matched by name, as `jira issue move` takes them. A summary without ASCII letters gives a branch name of the key alone. The ticket chip of the Git tab still shows only the key.
 
 ## Compress Video
 

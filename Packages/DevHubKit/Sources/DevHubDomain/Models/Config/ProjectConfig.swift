@@ -14,6 +14,7 @@ package struct ProjectConfig: Codable, Hashable, Sendable {
     package var ai: AIConfig? = nil
     package var ci: CIConfig? = nil
     package var network: NetworkConfig? = nil
+    package var tracker: TrackerConfig? = nil
 
     package static let empty = ProjectConfig()
 
@@ -30,7 +31,8 @@ package struct ProjectConfig: Codable, Hashable, Sendable {
         home: HomeConfig? = nil,
         ai: AIConfig? = nil,
         ci: CIConfig? = nil,
-        network: NetworkConfig? = nil
+        network: NetworkConfig? = nil,
+        tracker: TrackerConfig? = nil
     ) {
         self.name = name
         self.kind = kind
@@ -45,5 +47,6 @@ package struct ProjectConfig: Codable, Hashable, Sendable {
         self.ai = ai
         self.ci = ci
         self.network = network
+        self.tracker = tracker
     }
 }
