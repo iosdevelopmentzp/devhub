@@ -3,6 +3,8 @@ import DevHubDomain
 import DevHubUI
 
 struct DiffLine: View {
+    @Environment(\.diffFontSize) private var fontSize
+
     let model: DiffLineModel
     let side: DiffSide?
     let isHighlighted: Bool
@@ -11,6 +13,8 @@ struct DiffLine: View {
     let onComment: (() -> Void)?
 
     @State private var isHovered = false
+
+    private static let numberWidthPerPoint: CGFloat = 3.1
 
     init(model: DiffLineModel, side: DiffSide? = nil, isHighlighted: Bool, onOpen: (() -> Void)?, onOpenOnWeb: (() -> Void)?, onComment: (() -> Void)?) {
         self.model = model
@@ -34,7 +38,7 @@ struct DiffLine: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.leading, 10)
         }
-        .font(.system(size: 11, design: .monospaced))
+        .font(.system(size: fontSize, design: .monospaced))
         .padding(.horizontal, 8)
         .padding(.vertical, 0.5)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -72,7 +76,7 @@ struct DiffLine: View {
     private func number(_ value: Int?) -> some View {
         Text(value.map(String.init) ?? "")
             .foregroundStyle(.tertiary)
-            .frame(width: 34, alignment: .trailing)
+            .frame(width: (fontSize * Self.numberWidthPerPoint).rounded(.up), alignment: .trailing)
     }
 
     private var emphasizedText: AttributedString {

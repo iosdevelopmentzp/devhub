@@ -27,6 +27,9 @@ struct PullRequestFileRowModel: Identifiable, Equatable {
     var reviewTag: TagModel? = nil
     var canHide = true
     var canUnhide = false
+    var layout = DiffLayout.unified
+    var layoutHint: String? = nil
+    var isFullLoading = false
 
     static func scrollID(_ id: String) -> String {
         "merge-request-file:\(id)"
@@ -52,6 +55,8 @@ struct PullRequestFileRowModel: Identifiable, Equatable {
         lineComposer: .preview,
         canOpenOnWeb: true,
         isFull: false,
-        fullHint: "Show the whole file with the changes in place"
+        fullHint: "Show the whole file with the changes in place",
+        layout: .sideBySide,
+        layoutHint: "Show this file unified: removed and added lines in one column"
     )
 }

@@ -421,6 +421,20 @@ import DevHubTestSupport
         #expect(harness.spies.codeHost.calls.filter { $0 == .fileContent(path: "a.swift", ref: "abc123", repository: remote) }.count == 1)
     }
 
+    @Test func showingTheWholeFileOpensItsDiffAndDropsTheFocus() async throws {
+        script()
+        await store.load(7)
+        harness.spies.codeHost.fileContentResult = .success("a\nb\n")
+        store.showInDiff(threadID: "t1", of: 7)
+        store.toggleFile("a.swift", of: 7)
+
+        store.toggleFullFile("a.swift", of: summary)
+
+        #expect(store.expandedFiles(of: 7) == ["a.swift"])
+        #expect(store.focus(of: 7) == nil)
+        try await waitUntil { store.review(of: 7).fileContents["a.swift"] == ["a", "b"] }
+    }
+
     @Test func aFailedFileReadIsLoggedAndTheFileStaysFolded() async throws {
         script()
         await store.load(7)
@@ -431,6 +445,71 @@ import DevHubTestSupport
         try await waitUntil { harness.lastActivity?.title == "Cannot read a.swift at abc123" }
         #expect(harness.lastActivity?.outcome == .failure)
         #expect(store.review(of: 7).fullFiles.isEmpty)
+    }
+
+    // MARK: Layout of one file
+
+    @Test func aFileLayoutDiffersFromTheStandardUntilToggledBack() {
+        store.toggleFileLayout("a.swift", of: 7, standard: .unified)
+
+        #expect(store.review(of: 7).fileLayouts == ["a.swift": .sideBySide])
+        #expect(store.review(of: 8).fileLayouts.isEmpty)
+        #expect(store.expandedFiles(of: 7) == ["a.swift"])
+
+        store.toggleFileLayout("a.swift", of: 7, standard: .unified)
+        #expect(store.review(of: 7).fileLayouts.isEmpty)
+    }
+
+    @Test func aFileLayoutFollowsTheStandardItWasToggledFrom() {
+        store.toggleFileLayout("a.swift", of: 7, standard: .sideBySide)
+
+        #expect(store.review(of: 7).fileLayouts == ["a.swift": .unified])
+    }
+
+    // MARK: Refresh
+
+    @Test func refreshReplacesTheDataAndKeepsTheReviewState() async throws {
+        script()
+        await store.load(7)
+        store.toggleViewed("a.swift", of: 7)
+        store.toggleFileLayout("a.swift", of: 7, standard: .unified)
+        harness.spies.codeHost.fileContentResult = .success("old\n")
+        store.toggleFullFile("a.swift", of: summary)
+        try await waitUntil { store.review(of: 7).fileContents["a.swift"] == ["old"] }
+        let newer = PullRequestDetails(description: "Adds login and logout", threads: [])
+        harness.spies.codeHost.detailsResult = .success(newer)
+        harness.spies.codeHost.fileContentResult = .success("new\n")
+
+        await store.refresh(summary)
+
+        #expect(store.details[7] == newer)
+        #expect(store.review(of: 7).viewedFiles == ["a.swift"])
+        #expect(store.review(of: 7).fileLayouts == ["a.swift": .sideBySide])
+        #expect(store.review(of: 7).fullFiles == ["a.swift"])
+        #expect(store.review(of: 7).fileContents["a.swift"] == ["new"])
+        #expect(store.review(of: 7).isRefreshing == false)
+    }
+
+    @Test func aFailedRefreshKeepsTheShownDataAndIsLogged() async {
+        script()
+        await store.load(7)
+        harness.spies.codeHost.diffsResult = .failure(PullRequestError.command("offline"))
+
+        await store.refresh(summary)
+
+        #expect(store.details[7] == details)
+        #expect(store.diffs[7] == files)
+        #expect(store.errors[7] == nil)
+        #expect(harness.lastActivity?.title == "Cannot refresh !7")
+        #expect(harness.lastActivity?.outcome == .failure)
+    }
+
+    @Test func refreshLoadsARequestThatWasNotReadYet() async {
+        script()
+
+        await store.refresh(summary)
+
+        #expect(store.isLoaded(7))
     }
 
     @Test func theFileLinkUsesTheHeadCommitOrTheBranch() async {

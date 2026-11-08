@@ -175,7 +175,9 @@ and `.colorScheme(.light)`; a pull request window sets `window.appearance = NSAp
 ## Hints
 
 `HintCenter` (DevHubUI `Hint/`, `@Observable`) holds one `Hint(id:text:frame:)`. `PresentationAssembly` builds it and
-`inject` puts it into `\.hintCenter`.
+`inject` puts it into `\.hintCenter`; `RootView` draws it with `HintOverlay`. A pull request window has its own
+center: `makePullRequestWindow` wraps the root in `.hintHost(HintCenter())` (overlay plus environment) before `inject`,
+so its hints show in that window and not in the panel. `HintCenter` removes its event monitor in its `deinit`.
 
 - `.hint(_:)` (`HintModifier`) reads its global frame with `onGeometryChange` and starts a task on hover. The delay
   is 550 ms, or 60 ms when a hint is visible or was hidden in the last 0.8 s. Hover end or `onDisappear` hides it.

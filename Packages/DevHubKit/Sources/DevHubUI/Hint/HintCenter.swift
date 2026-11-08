@@ -16,6 +16,12 @@ package final class HintCenter {
         }
     }
 
+    isolated deinit {
+        if let monitor {
+            NSEvent.removeMonitor(monitor)
+        }
+    }
+
     package var delay: Duration {
         let isWarm = current != nil || Date.now.timeIntervalSince(lastHidden) < 0.8
         return isWarm ? .milliseconds(60) : .milliseconds(550)

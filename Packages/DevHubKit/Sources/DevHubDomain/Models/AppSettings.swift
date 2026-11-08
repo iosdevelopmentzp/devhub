@@ -19,6 +19,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
     package var notifyWhenPanelClosed = true
     package var mutedNotifications: Set<NotificationKind> = []
     package var windowMode = WindowMode.panel
+    package var diffFontSize = DiffFontSizePolicy.standard
 
     package init(
         showDockIcon: Bool = false,
@@ -38,7 +39,8 @@ package struct AppSettings: Hashable, Codable, Sendable {
         autoFetchMinutes: Int = 0,
         notifyWhenPanelClosed: Bool = true,
         mutedNotifications: Set<NotificationKind> = [],
-        windowMode: WindowMode = WindowMode.panel
+        windowMode: WindowMode = WindowMode.panel,
+        diffFontSize: Int = DiffFontSizePolicy.standard
     ) {
         self.showDockIcon = showDockIcon
         self.showUsageStrip = showUsageStrip
@@ -58,6 +60,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         self.notifyWhenPanelClosed = notifyWhenPanelClosed
         self.mutedNotifications = mutedNotifications
         self.windowMode = windowMode
+        self.diffFontSize = diffFontSize
     }
 }
 
@@ -83,7 +86,8 @@ extension AppSettings {
             autoFetchMinutes: try container.decodeIfPresent(Int.self, forKey: .autoFetchMinutes) ?? defaults.autoFetchMinutes,
             notifyWhenPanelClosed: try container.decodeIfPresent(Bool.self, forKey: .notifyWhenPanelClosed) ?? defaults.notifyWhenPanelClosed,
             mutedNotifications: (try? container.decodeIfPresent(Set<NotificationKind>.self, forKey: .mutedNotifications)) ?? defaults.mutedNotifications,
-            windowMode: (try? container.decodeIfPresent(WindowMode.self, forKey: .windowMode)) ?? defaults.windowMode
+            windowMode: (try? container.decodeIfPresent(WindowMode.self, forKey: .windowMode)) ?? defaults.windowMode,
+            diffFontSize: DiffFontSizePolicy.clamped((try? container.decodeIfPresent(Int.self, forKey: .diffFontSize)) ?? defaults.diffFontSize)
         )
     }
 }

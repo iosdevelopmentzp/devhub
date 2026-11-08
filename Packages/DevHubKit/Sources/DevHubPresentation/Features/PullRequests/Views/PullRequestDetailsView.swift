@@ -5,6 +5,7 @@ import DevHubUI
 struct PullRequestDetailsView: View {
     @Environment(AppActions.self) private var appActions
     @Environment(\.codeHostWords) private var words
+    @Environment(\.diffFontSize) private var diffFontSize
 
     let model: PullRequestDetailsModel
     let actions: PullRequestDetailActions
@@ -45,40 +46,35 @@ struct PullRequestDetailsView: View {
         width >= Self.sideBySideMinimumWidth
     }
 
-    private func diffLayout(_ loaded: PullRequestDetailsModel.Loaded) -> DiffLayout {
-        loaded.diffLayout == .sideBySide && isWide ? .sideBySide : .unified
-    }
-
     private func loadedContent(_ loaded: PullRequestDetailsModel.Loaded) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            if loaded.pipelineTag != nil || actions.openWindow != nil {
-                HStack(spacing: 8) {
-                    if let pipeline = loaded.pipelineTag {
-                        Button {
-                            appActions.open(loaded.pipelineURL)
-                        } label: {
-                            ModelTag(model: pipeline)
-                        }
-                        .buttonStyle(.plain)
+            HStack(spacing: 8) {
+                if let pipeline = loaded.pipelineTag {
+                    Button {
+                        appActions.open(loaded.pipelineURL)
+                    } label: {
+                        ModelTag(model: pipeline)
                     }
-                    if let duration = loaded.pipelineDurationText {
-                        Text(duration)
-                            .font(.caption.monospacedDigit())
-                            .foregroundStyle(.secondary)
-                    }
-                    if loaded.canCancelPipeline {
-                        Button(words.cancelChecksTitle, systemImage: "stop.circle", action: actions.cancelPipeline)
-                            .controlSize(.small)
-                            .fixedSize()
-                            .hint("Stop the running \(words.checks) of the last commit")
-                    }
-                    Spacer(minLength: 4)
-                    if let onOpenWindow = actions.openWindow {
-                        Button("Open in Window", systemImage: "macwindow", action: onOpenWindow)
-                            .controlSize(.small)
-                            .fixedSize()
-                            .hint("Open this \(words.request) in its own window that stays open after the panel closes")
-                    }
+                    .buttonStyle(.plain)
+                }
+                if let duration = loaded.pipelineDurationText {
+                    Text(duration)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                if loaded.canCancelPipeline {
+                    Button(words.cancelChecksTitle, systemImage: "stop.circle", action: actions.cancelPipeline)
+                        .controlSize(.small)
+                        .fixedSize()
+                        .hint("Stop the running \(words.checks) of the last commit")
+                }
+                Spacer(minLength: 4)
+                refreshButton(isRefreshing: loaded.isRefreshing)
+                if let onOpenWindow = actions.openWindow {
+                    Button("Open in Window", systemImage: "macwindow", action: onOpenWindow)
+                        .controlSize(.small)
+                        .fixedSize()
+                        .hint("Open this \(words.request) in its own window that stays open after the panel closes")
                 }
             }
             if let notice = loaded.ciNotice {
@@ -145,7 +141,7 @@ struct PullRequestDetailsView: View {
                         Color.clear
                             .frame(height: 0)
                             .id(PullRequestFileRowModel.scrollID(file.id))
-                        PullRequestFileRow(model: file, actions: actions, layout: diffLayout(loaded))
+                        PullRequestFileRow(model: file, actions: actions, isWide: isWide)
                     }
                 }
             }
@@ -487,6 +483,7 @@ struct PullRequestDetailsView: View {
                 .fixedSize()
                 .hint("Threads show under their line in the diff, folded to one line. Hide them all, or open or fold them all.")
             }
+            diffTextSizeControl
             diffLayoutPicker(loaded)
             Button("Expand All", systemImage: "rectangle.expand.vertical") {
                 actions.expandAllFiles(Set(loaded.files.map(\.id)))
@@ -501,6 +498,39 @@ struct PullRequestDetailsView: View {
         .font(.caption)
     }
 
+    @ViewBuilder
+    private func refreshButton(isRefreshing: Bool) -> some View {
+        if isRefreshing {
+            ProgressView()
+                .controlSize(.small)
+        }
+        Button("Refresh", systemImage: "arrow.clockwise", action: actions.refresh)
+            .controlSize(.small)
+            .fixedSize()
+            .disabled(isRefreshing)
+            .hint("Read the \(words.request) again from \(words.name): description, threads, \(words.checks) and files. Viewed marks, open files and layouts stay. ⌘R in the \(words.request) window.")
+    }
+
+    private var diffTextSizeControl: some View {
+        HStack(spacing: 0) {
+            IconButton(systemImage: "textformat.size.smaller", help: "Smaller diff text (⌘−)") {
+                actions.changeDiffFontSize(-1)
+            }
+            .keyboardShortcut("-", modifiers: .command)
+            .disabled(Int(diffFontSize) <= DiffFontSizePolicy.range.lowerBound)
+            Button("\(Int(diffFontSize)) pt", action: actions.resetDiffFontSize)
+                .buttonStyle(LinkButtonStyle(.secondary))
+                .keyboardShortcut("0", modifiers: .command)
+                .fixedSize()
+                .hint("Text size of every diff in DevHub, saved. Click or press ⌘0 to go back to \(DiffFontSizePolicy.standard) pt.")
+            IconButton(systemImage: "textformat.size.larger", help: "Larger diff text (⌘=)") {
+                actions.changeDiffFontSize(1)
+            }
+            .keyboardShortcut("=", modifiers: .command)
+            .disabled(Int(diffFontSize) >= DiffFontSizePolicy.range.upperBound)
+        }
+    }
+
     private func diffLayoutPicker(_ loaded: PullRequestDetailsModel.Loaded) -> some View {
         Picker("Diff layout", selection: Binding(get: { loaded.diffLayout }, set: { actions.setDiffLayout($0) })) {
             ForEach(DiffLayout.allCases) { layout in
@@ -513,7 +543,7 @@ struct PullRequestDetailsView: View {
         .controlSize(.small)
         .fixedSize()
         .disabled(isWide == false)
-        .hint(isWide ? "\(DiffLayout.unified.hint). \(DiffLayout.sideBySide.hint). Saved." : "Side by side needs \(Int(Self.sideBySideMinimumWidth)) points of width. Open the \(words.request) in its window or widen the panel.")
+        .hint(isWide ? "\(DiffLayout.unified.hint). \(DiffLayout.sideBySide.hint). Saved. The button on a file changes only that file." : "Side by side needs \(Int(Self.sideBySideMinimumWidth)) points of width. Open the \(words.request) in its window or widen the panel.")
     }
 
     private func section<Content: View>(_ title: String, fixThreads: Bool, @ViewBuilder content: () -> Content) -> some View {

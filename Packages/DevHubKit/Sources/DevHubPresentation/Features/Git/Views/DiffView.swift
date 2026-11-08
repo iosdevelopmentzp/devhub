@@ -14,6 +14,8 @@ struct DiffView<Accessory: View>: View {
     let onCommentLine: ((DiffLineModel) -> Void)?
     let accessory: (_ lineID: Int) -> Accessory
 
+    private static var eagerLineLimit: Int { 1_500 }
+
     init(
         model: DiffModel,
         layout: DiffLayout = .unified,
@@ -45,7 +47,7 @@ struct DiffView<Accessory: View>: View {
             case .note(let text):
                 note(text)
             case .lines(let lines, let droppedNote):
-                LazyVStack(alignment: .leading, spacing: 0) {
+                lineStack(isLazy: lines.count > Self.eagerLineLimit) {
                     if layout == .sideBySide {
                         ForEach(SplitDiffMapper.rows(from: lines)) { row in
                             SplitDiffRow(model: row, highlightedLineID: highlightedLineID, onOpenLine: onOpenLine, onOpenLineOnWeb: onOpenLineOnWeb, onCommentLine: onCommentLine)
@@ -76,6 +78,15 @@ struct DiffView<Accessory: View>: View {
         }
         .background(Theme.base, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(Theme.border))
+    }
+
+    @ViewBuilder
+    private func lineStack<Content: View>(isLazy: Bool, @ViewBuilder content: () -> Content) -> some View {
+        if isLazy {
+            LazyVStack(alignment: .leading, spacing: 0, content: content)
+        } else {
+            VStack(alignment: .leading, spacing: 0, content: content)
+        }
     }
 
     private func scrollID(_ line: Int) -> String {

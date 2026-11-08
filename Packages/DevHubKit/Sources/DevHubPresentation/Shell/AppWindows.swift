@@ -464,6 +464,7 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         window.contentMinSize = NSSize(width: 1_000, height: 560)
         window.collectionBehavior.insert(.moveToActiveSpace)
         let root = PullRequestWindowView(summary: summary)
+            .hintHost(HintCenter())
             .inject(assembly)
             .colorScheme(.light)
         window.contentViewController = NSHostingController(rootView: root)

@@ -3,10 +3,12 @@ import DevHubUI
 
 struct PullRequestFileRow: View {
     @Environment(\.diffScrollProxy) private var scrollProxy
+    @Environment(\.copyToPasteboard) private var copyToPasteboard
+    @Environment(\.codeHostWords) private var words
 
     let model: PullRequestFileRowModel
     let actions: PullRequestDetailActions
-    var layout = DiffLayout.unified
+    let isWide: Bool
 
     private static let layoutSettleDelay: Duration = .milliseconds(100)
 
@@ -100,9 +102,22 @@ struct PullRequestFileRow: View {
                 .fixedSize()
                 .hint("Mark the file as viewed: it folds and its name turns grey. DevHub keeps the mark until it quits.")
             if let fullHint = model.fullHint {
-                IconButton(systemImage: "text.justify.leading", help: fullHint, tint: model.isFull ? .accentColor : .primary) {
-                    actions.toggleFullFile(model.id)
+                if model.isFullLoading {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .frame(width: IconButton.side, height: IconButton.side)
+                        .hint("Reading the whole file…")
+                } else {
+                    ToggleIconButton(systemImage: "text.justify.leading", help: fullHint, isOn: model.isFull) {
+                        actions.toggleFullFile(model.id)
+                    }
                 }
+            }
+            if let layoutHint = model.layoutHint {
+                ToggleIconButton(systemImage: DiffLayout.sideBySide.icon, help: isWide ? layoutHint : narrowHint, isOn: layout == .sideBySide) {
+                    actions.toggleFileLayout(model.id)
+                }
+                .disabled(isWide == false)
             }
             if model.canOpenOnWeb {
                 IconButton(systemImage: "safari", help: "Open the whole file in the browser at the last commit. Right-click a diff line to open it at that line.") {
@@ -124,6 +139,7 @@ struct PullRequestFileRow: View {
         }
         .padding(.vertical, 4)
         .background(Theme.base)
+        .contextMenu { contextMenu }
         .task(id: model.isFocused) {
             guard model.isFocused else { return }
             try? await Task.sleep(for: Self.layoutSettleDelay)
@@ -132,11 +148,63 @@ struct PullRequestFileRow: View {
             }
         }
     }
+
+    private var narrowHint: String {
+        "Side by side needs \(Int(PullRequestDetailsView.sideBySideMinimumWidth)) points of width. Open the \(words.request) in its window or widen the panel."
+    }
+
+    private var layout: DiffLayout {
+        model.layout == .sideBySide && isWide ? .sideBySide : .unified
+    }
+
+    @ViewBuilder
+    private var contextMenu: some View {
+        Button(model.isExpanded ? "Fold Diff" : "Open Diff", systemImage: model.isExpanded ? "chevron.down" : "chevron.right") {
+            actions.toggleFile(model.id)
+        }
+        Button(model.isViewed ? "Mark as Not Viewed" : "Mark as Viewed", systemImage: model.isViewed ? "square" : "checkmark.square") {
+            actions.toggleViewed(model.id)
+        }
+        if model.fullHint != nil {
+            Button(model.isFull ? "Show Only Changed Parts" : "Show Whole File", systemImage: "text.justify.leading") {
+                actions.toggleFullFile(model.id)
+            }
+        }
+        if model.layoutHint != nil {
+            Button(layout == .sideBySide ? "Show Unified" : "Show Side by Side", systemImage: DiffLayout.sideBySide.icon) {
+                actions.toggleFileLayout(model.id)
+            }
+            .disabled(isWide == false)
+        }
+        Divider()
+        Button("Open in Editor", systemImage: "arrow.up.forward.app") {
+            actions.openFile(model.path, nil)
+        }
+        if model.canOpenOnWeb {
+            Button("Open in Browser", systemImage: "safari") {
+                actions.openFileOnWeb(model.path, nil)
+            }
+        }
+        Button("Copy Path", systemImage: "doc.on.doc") {
+            copyToPasteboard(model.path, "path")
+        }
+        if model.canUnhide {
+            Divider()
+            Button("Show This File Again", systemImage: "eye") {
+                actions.unhideFile(model.path)
+            }
+        } else if model.canHide {
+            Divider()
+            Button("Hide This File", systemImage: "eye.slash") {
+                actions.hideFiles([model.path])
+            }
+        }
+    }
 }
 
 #Preview {
     LazyVStack(pinnedViews: [.sectionHeaders]) {
-        PullRequestFileRow(model: .preview, actions: .preview)
+        PullRequestFileRow(model: .preview, actions: .preview, isWide: true)
     }
     .previewEnvironment()
     .padding()

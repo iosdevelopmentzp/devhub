@@ -18,6 +18,8 @@ struct PullRequestReviewState: Equatable {
     var busyJobs: Set<String> = []
     var fullFiles: Set<PullRequestFileDiff.ID> = []
     var fileContents: [String: [String]] = [:]
+    var fileLayouts: [PullRequestFileDiff.ID: DiffLayout] = [:]
+    var isRefreshing = false
     var hasCIProvider = false
     var ciToolState: CIToolState?
     var ciWorkflows: [String: CIWorkflow] = [:]

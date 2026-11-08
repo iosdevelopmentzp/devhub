@@ -65,6 +65,7 @@ extension View {
             .environment(assembly.updates)
             .environment(assembly.appActions)
             .modifier(CodeHostWordsModifier(remote: assembly.codeHostRemote))
+            .modifier(DiffFontSizeModifier(settings: assembly.settings))
             .environment(\.hintCenter, assembly.hints)
             .environment(\.copyToPasteboard, { value, label in assembly.toaster.copy(value, label: label) })
     }
