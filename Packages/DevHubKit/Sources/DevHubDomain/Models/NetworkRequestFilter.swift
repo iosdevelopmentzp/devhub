@@ -11,7 +11,7 @@ package enum NetworkRequestFilter: String, CaseIterable, Sendable {
         switch self {
         case .all: true
         case .failed: request.isFailure || (request.statusCode ?? 0) >= 400
-        case .slow: (request.duration ?? 0) > Self.slowThreshold
+        case .slow: request.isWebSocket == false && (request.duration ?? 0) > Self.slowThreshold
         }
     }
 }

@@ -316,9 +316,9 @@ It describes how the project builds, runs and connects. Every field is optional.
 | `build.command`, `run.command` | the build and run scripts of a `kind: command` project |
 | `git.*` | remote, host kind and name, base branch, protected branches, commit prefix, ticket link, worktree folder and bootstrap, pull request targets, template, stale days, form defaults |
 | `ai.commands` | one command per AI tool (`claude`, `copilot`) for "Fix with AI": review threads, failed tests, build errors |
-| `launch.profiles[]` | environment, arguments, defaults, storage, upstream, production flag, clean install |
+| `launch.profiles[]` | environment, arguments, defaults, storage, upstream and routes, production flag, clean install |
 | `launch.identity.*` | the device ID variable and its rules |
-| `network.*` | `baseURLVariable`, `mocksFolder` |
+| `network.*` | `baseURLVariable`, `mocksFolder`, `sourceScript` |
 | `logs.*` | default process and subsystem |
 | `simulators.statusScript` | the status script |
 | `home.quickActions` | order and visibility of the Home grid |
@@ -482,11 +482,12 @@ Traps:
 
 - `NWMockServerRepository` runs one local HTTP server per simulator with Network.framework (`NWListener`). It listens only on `127.0.0.1`.
 - The port is stable per simulator: a hash of the UDID in the range 49152 to 59151 (`MockServerPortPolicy`). When that port is busy, the server uses any free port. DevHub starts the servers again on the same ports after a restart, so apps that were launched earlier still reach them.
-- **Upstream.** The server forwards to the `upstream` URL of the selected launch profile. A profile with no `upstream`, or with `production: true`, cannot use the server. DevHub refuses and says why.
+- **Upstream.** The server forwards to the `upstream` URL of the selected launch profile. A profile with no `upstream`, or with `production: true`, cannot use the server. DevHub refuses and says why. `routes` send a path prefix to another real server (the longest prefix wins), for HTTP and WebSocket.
 - **Redirect.** DevHub sets the environment variable named in `network.baseURLVariable` to `http://127.0.0.1:<port>` at launch. The app must read its base URL from that variable. Without `network.baseURLVariable` the server cannot redirect the app, and the mode bar is hidden.
 - A Build & Run on a simulator with a running server also gets the variable. If the profile changed, the server forwards to the new upstream.
 - A rule answers with a fixed response, or forwards and then patches the JSON response (set or remove a key path). A delay is optional.
-- WebSocket upgrades get 501 "WebSocket not mocked yet".
+- A WebSocket upgrade goes to the upstream through a tunnel (`WebSocketTunnel`): the same handshake with the upstream `Host` and `Origin`, no compression, then bytes in both directions. One row per connection, status 101, the messages in the response body (`→` sent, `←` received, the last 500). Rules do not apply. An unreachable upstream gives 502.
+- **Source script.** `network.sourceScript` runs while the Network tab is open, for the chosen simulator, and prints one `@devhub {"request": …}` line per request it reads somewhere else, for example in a log file of the app. Its rows get a `script` tag. While the server runs, script rows for `127.0.0.1` and `localhost` are hidden. DevHub itself still parses no log format of an app.
 - An upstream error becomes a 502 with the reason.
 - Request and response data pass through `NetworkRequestRedactor` before DevHub keeps them.
 - Mock sets are JSON files in `network.mocksFolder` (default `~/.devhub/mocks/<project folder name>`). A large body can live in a separate file next to the set.

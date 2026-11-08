@@ -62,6 +62,17 @@ import Testing
         #expect(NetworkRequestDetailMapper.model(for: request).sourceNote == "Answered by a DevHub mock rule")
     }
 
+    @Test func aScriptRequestAndAWebSocketSayWhereTheyCameFrom() {
+        var script = NetworkRequestFixture.profile
+        script.origin = .sourceScript
+        var socket = NetworkRequestFixture.profile
+        socket.requestHeaders = [HTTPHeader(name: "Upgrade", value: "websocket")]
+
+        #expect(NetworkRequestDetailMapper.model(for: script).sourceNote == "Reported by network.sourceScript. The mock server did not see this request")
+        #expect(NetworkRequestDetailMapper.model(for: socket).sourceNote == "WebSocket passed through by DevHub to api-qa.example.com. Messages are not mocked")
+        #expect(NetworkRequestDetailMapper.model(for: socket).canMock == false)
+    }
+
     @Test func requestWithoutMethodCannotBeMocked() {
         #expect(NetworkRequestDetailMapper.model(for: NetworkRequestFixture.profile).canMock)
         #expect(NetworkRequestDetailMapper.model(for: NetworkRequestFixture.with(method: "", statusCode: nil, error: "x", isFailure: true, duration: nil)).canMock == false)

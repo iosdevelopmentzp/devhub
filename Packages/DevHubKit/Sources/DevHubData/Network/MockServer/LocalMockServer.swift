@@ -13,6 +13,7 @@ final class LocalMockServer: @unchecked Sendable {
     private var onExchange: @Sendable (NetworkRequest) -> Void
     private var nextID = LocalMockServer.firstExchangeID
     private var connections: [ObjectIdentifier: NWConnection] = [:]
+    private var tunnels: [ObjectIdentifier: WebSocketTunnel] = [:]
     private var boundPort: Int?
 
     init(handler: MockExchangeHandler, onExchange: @escaping @Sendable (NetworkRequest) -> Void, preferredPort: Int?) throws {
@@ -30,11 +31,11 @@ final class LocalMockServer: @unchecked Sendable {
         lock.withLock { boundPort }
     }
 
-    var upstream: URL {
+    var upstream: MockUpstream {
         lock.withLock { handler.upstream }
     }
 
-    func retarget(upstream: URL) {
+    func retarget(upstream: MockUpstream) {
         lock.withLock {
             handler = MockExchangeHandler(upstream: upstream, rules: handler.rules, forwarder: handler.forwarder)
         }
@@ -83,12 +84,15 @@ final class LocalMockServer: @unchecked Sendable {
     }
 
     func stop() async {
-        let open = lock.withLock {
+        let (open, tunnels) = lock.withLock {
             let open = Array(connections.values)
+            let tunnels = Array(self.tunnels.values)
             connections = [:]
+            self.tunnels = [:]
             boundPort = nil
-            return open
+            return (open, tunnels)
         }
+        tunnels.forEach { $0.cancel() }
         open.forEach { $0.cancel() }
         guard listener.state != .cancelled else { return }
         _ = try? await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
@@ -154,11 +158,40 @@ final class LocalMockServer: @unchecked Sendable {
             return (self.handler, self.onExchange, nextID)
         }
         let startedAt = Date()
+        guard request.isWebSocketUpgrade == false else {
+            openTunnel(for: request, on: connection, upstream: handler.upstream.url(forPath: request.path), id: id, startedAt: startedAt, onExchange: onExchange)
+            return
+        }
         Task { [weak self] in
             let result = await handler.handle(request, id: id, startedAt: startedAt)
             self?.send(result.response, on: connection)
             onExchange(result.exchange)
         }
+    }
+
+    private func openTunnel(
+        for request: MockHTTPRequest,
+        on connection: NWConnection,
+        upstream: URL,
+        id: Int,
+        startedAt: Date,
+        onExchange: @escaping @Sendable (NetworkRequest) -> Void
+    ) {
+        let tunnel = WebSocketTunnel(
+            client: connection,
+            request: request,
+            upstream: upstream,
+            id: id,
+            startedAt: startedAt,
+            queue: queue,
+            onExchange: onExchange,
+            onClose: { [weak self] key in
+                guard let self else { return }
+                _ = lock.withLock { tunnels.removeValue(forKey: key) }
+            }
+        )
+        lock.withLock { tunnels[ObjectIdentifier(tunnel)] = tunnel }
+        tunnel.open()
     }
 
     private func send(_ response: MockHTTPResponse, on connection: NWConnection) {

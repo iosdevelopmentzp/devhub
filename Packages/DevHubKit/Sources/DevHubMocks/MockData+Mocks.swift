@@ -81,6 +81,43 @@ extension MockData {
             responseHeaders: [HTTPHeader(name: "Content-Type", value: "application/json")],
             error: nil,
             isFailure: false
+        ),
+        NetworkRequest(
+            id: (1 << 32) + 2,
+            method: "GET",
+            url: "wss://socket-qa.example.com/socket.io/?EIO=4&transport=websocket",
+            path: "/socket.io/",
+            host: "socket-qa.example.com",
+            statusCode: 101,
+            statusText: "Switching Protocols",
+            startedAt: ago(minutes: 0.25),
+            duration: 12.4,
+            requestBody: "",
+            responseBody: "→ 40\n← 40{\"sid\":\"abc\"}\n← 42[\"balance\",{\"coins\":120}]",
+            responseHeaders: [HTTPHeader(name: "Upgrade", value: "websocket")],
+            error: nil,
+            isFailure: false,
+            requestHeaders: [HTTPHeader(name: "Upgrade", value: "websocket")]
+        )
+    ]
+
+    package static let sourceScriptExchanges: [NetworkRequest] = [
+        NetworkRequest(
+            id: 1 << 40,
+            method: "GET",
+            url: "https://api-qa.example.com/v1/profile/info",
+            path: "/v1/profile/info",
+            host: "api-qa.example.com",
+            statusCode: 200,
+            statusText: "no error",
+            startedAt: ago(minutes: 0.3),
+            duration: 0.182,
+            requestBody: "",
+            responseBody: #"{"data":{"name":"alex","id":"qa-12"}}"#,
+            responseHeaders: [HTTPHeader(name: "Content-Type", value: "application/json")],
+            error: nil,
+            isFailure: false,
+            origin: .sourceScript
         )
     ]
 }

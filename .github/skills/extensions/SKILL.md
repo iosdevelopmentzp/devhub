@@ -15,6 +15,8 @@ The map from a need to a mechanism, with a worked example, is `docs/customizatio
    - a script the user runs from Home → an executable in `scripts/` with `# devhub:` header lines; no JSON needed;
    - a launch variant (environment variables, arguments, defaults in the app container) → `launch.profiles[]` in `project.json`;
    - a status line under a simulator → `simulators.statusScript` in `project.json`;
+   - requests of the app that the mock server does not see (a launch from Xcode, a log file of the app) → `network.sourceScript`, a script outside `scripts/` that prints `@devhub {"request": …}` lines (extensions §10);
+   - a second real server behind the one base URL (a socket host) → `routes` on the launch profile;
    - a whole tab → `tabs/<id>.json` with sections of action ids and source scripts, and `inputs` shared by every row (saved per project and tab, `recent: true` for a menu of recent values, `confirm` on a choice option). The tab is a sub-tab of Utils; `"placement": "bar"` puts it in the tab bar, and a right-click on the tab moves it (`TabLayout`, saved under `tabs.layout`, wins over the file);
    - a text to paste somewhere (a chat command, a ticket line) → an action with `run: { "copy": "{env} coins {user}", "open": "slack://…" }`: no script, the rendered text shows under the inputs, every copy lands in the Recent list of its tab with Resend.
 3. Save. DevHub reloads on file change. A decode error shows inline with the file name and the reason; fix and save again.

@@ -9,6 +9,7 @@ package struct LaunchProfile: Codable, Hashable, Sendable, Identifiable {
     package var cleanInstall: Bool? = nil
     package var storage: ProfileStorage? = nil
     package var upstream: String? = nil
+    package var routes: [ProfileRoute]? = nil
     package var production: Bool? = nil
     package var tint: ConfigTint? = nil
 
@@ -21,6 +22,7 @@ package struct LaunchProfile: Codable, Hashable, Sendable, Identifiable {
         cleanInstall: Bool? = nil,
         storage: ProfileStorage? = nil,
         upstream: String? = nil,
+        routes: [ProfileRoute]? = nil,
         production: Bool? = nil,
         tint: ConfigTint? = nil
     ) {
@@ -32,6 +34,7 @@ package struct LaunchProfile: Codable, Hashable, Sendable, Identifiable {
         self.cleanInstall = cleanInstall
         self.storage = storage
         self.upstream = upstream
+        self.routes = routes
         self.production = production
         self.tint = tint
     }

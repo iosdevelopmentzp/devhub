@@ -21,6 +21,12 @@ struct NetworkView: View {
                 MockServerBar()
                 Divider()
             }
+            if let failure = network.sourceFailure {
+                NoticeBar("Network source script: \(failure)", actionTitle: "Retry") {
+                    network.restartSource()
+                }
+                Divider()
+            }
             if mockSets.isShowingRules {
                 MockRulesView()
             } else {
@@ -32,6 +38,9 @@ struct NetworkView: View {
         .task(id: openCount) {
             network.prepare(target: build.target)
             await mockSets.load()
+        }
+        .task(id: network.sourceKey) {
+            await network.followSource()
         }
     }
 
@@ -68,6 +77,7 @@ struct NetworkView: View {
     private func emptyMessage(shownIsEmpty: Bool) -> ListMessage? {
         let model = NetworkEmptyStateMapper.model(
             hasBaseURLVariable: hasBaseURLVariable,
+            hasSourceScript: network.sourceScript != nil,
             hasBootedSimulator: simulators.all.contains { $0.state == .booted && $0.isPhysical == false },
             isIntercepting: network.isIntercepting,
             hasRequests: network.allRequests.isEmpty == false || network.pendingCount > 0,

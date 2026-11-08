@@ -2,9 +2,7 @@ import Foundation
 import DevHubDomain
 
 struct MockExchangeHandler: Sendable {
-    static let webSocketMessage = "WebSocket not mocked yet"
-
-    let upstream: URL
+    let upstream: MockUpstream
     let rules: [MockRule]
     let forwarder: HTTPForwarder
 
@@ -13,17 +11,18 @@ struct MockExchangeHandler: Sendable {
         let start = clock.now
         let requestBody = Self.text(request.body)
         let operations = GraphQLParser.exchange(method: request.method, query: request.query, requestBody: requestBody, responseBody: "")?.operationNames ?? []
-        let rule = request.isWebSocketUpgrade ? nil : MockRuleMatcher.match(method: request.method, path: request.path, query: request.query, operationNames: operations, in: rules)
-        let (response, error) = await response(for: request, rule: rule)
+        let target = upstream.url(forPath: request.path)
+        let rule = MockRuleMatcher.match(method: request.method, path: request.path, query: request.query, operationNames: operations, in: rules)
+        let (response, error) = await response(for: request, rule: rule, target: target)
         let elapsed = clock.now - start
         let responseBody = Self.text(response.body)
         let graphQL = GraphQLParser.exchange(method: request.method, query: request.query, requestBody: requestBody, responseBody: responseBody)
         let exchange = NetworkRequest(
             id: id,
             method: request.method,
-            url: HTTPForwarder.url(upstream: upstream, target: request.target)?.absoluteString ?? request.target,
+            url: HTTPForwarder.url(upstream: target, target: request.target)?.absoluteString ?? request.target,
             path: request.path,
-            host: upstream.host ?? "",
+            host: target.host ?? "",
             statusCode: response.status,
             statusText: HTTPResponseSerializer.reasonPhrase(response.status),
             startedAt: startedAt,
@@ -40,31 +39,28 @@ struct MockExchangeHandler: Sendable {
         return (response, NetworkRequestRedactor.redact(exchange))
     }
 
-    private func response(for request: MockHTTPRequest, rule: MockRule?) async -> (MockHTTPResponse, String?) {
-        if request.isWebSocketUpgrade {
-            return (.text(501, Self.webSocketMessage), Self.webSocketMessage)
-        }
+    private func response(for request: MockHTTPRequest, rule: MockRule?, target: URL) async -> (MockHTTPResponse, String?) {
         switch rule?.action {
         case .respond(let mock):
             await Self.wait(mock.delay)
             return (Self.response(from: mock), nil)
         case .patch(let patch):
-            let (forwarded, error) = await forward(request)
+            let (forwarded, error) = await forward(request, to: target)
             await Self.wait(patch.delay)
             guard error == nil, JSONPatcher.isJSON(forwarded.body) else { return (forwarded, error) }
             var patched = forwarded
             patched.body = JSONPatcher.apply(patch.operations, to: forwarded.body)
             return (patched, nil)
         case nil:
-            return await forward(request)
+            return await forward(request, to: target)
         }
     }
 
-    private func forward(_ request: MockHTTPRequest) async -> (MockHTTPResponse, String?) {
+    private func forward(_ request: MockHTTPRequest, to target: URL) async -> (MockHTTPResponse, String?) {
         do {
-            return (try await forwarder.forward(request, to: upstream), nil)
+            return (try await forwarder.forward(request, to: target), nil)
         } catch {
-            let message = "Upstream \(upstream.host ?? "host") failed: \(error.localizedDescription)"
+            let message = "Upstream \(target.host ?? "host") failed: \(error.localizedDescription)"
             return (.jsonError(502, message), message)
         }
     }

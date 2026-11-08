@@ -25,24 +25,39 @@ final class NetworkStore {
             frozenExchanges = isPaused ? liveExchanges : nil
         }
     }
+    private(set) var sourceExchanges: [NetworkRequest] = []
+    private(set) var sourceFailure: String?
+    private var sourceRestarts = 0
     private var frozenExchanges: [NetworkRequest]?
 
+    @ObservationIgnored private let followNetworkSource: FollowNetworkSourceUseCase
+    @ObservationIgnored private let scriptEnvironment: SimulatorScriptEnvironment
+    @ObservationIgnored private let config: ConfigStore
     @ObservationIgnored private let session: ProjectSession
     @ObservationIgnored private let simulators: any SimulatorLookup
     @ObservationIgnored private let mockTraffic: any MockTrafficLookup
+    @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private var subscription: SubscriptionToken?
 
     init(
+        followNetworkSource: FollowNetworkSourceUseCase,
+        scriptEnvironment: SimulatorScriptEnvironment,
+        config: ConfigStore,
         session: ProjectSession,
         simulators: any SimulatorLookup,
         mockTraffic: any MockTrafficLookup,
+        activity: ActivityLog,
         events: AppEvents,
         store: any KeyValueStore
     ) {
+        self.followNetworkSource = followNetworkSource
+        self.scriptEnvironment = scriptEnvironment
+        self.config = config
         self.session = session
         self.simulators = simulators
         self.mockTraffic = mockTraffic
+        self.activity = activity
         self.store = store
         selectedUDID = store.string(forKey: Keys.simulator)
         filter = store.string(forKey: Keys.filter).flatMap(NetworkRequestFilter.init(rawValue:)) ?? .all
@@ -83,8 +98,56 @@ final class NetworkStore {
         return allRequests.first { $0.id == selectedRequestID } ?? liveExchanges.first { $0.id == selectedRequestID }
     }
 
+    var sourceScript: String? {
+        guard session.hasProject, let script = config.config.network?.sourceScript?.trimmed, script.isEmpty == false else { return nil }
+        return script
+    }
+
+    var sourceKey: String {
+        [selectedUDID ?? "", sourceScript ?? "", session.selectedProject.path, String(sourceRestarts)].joined(separator: "|")
+    }
+
     private var liveExchanges: [NetworkRequest] {
-        selectedUDID.map(mockTraffic.exchanges(for:)) ?? []
+        guard let selectedUDID else { return [] }
+        return NetworkTrafficPolicy.merge(
+            mockServer: mockTraffic.exchanges(for: selectedUDID),
+            sourceScript: sourceExchanges,
+            isIntercepting: mockTraffic.isIntercepting(selectedUDID)
+        )
+    }
+
+    func followSource() async {
+        sourceExchanges = []
+        sourceFailure = nil
+        guard let script = sourceScript, let udid = selectedUDID, let simulator = simulators.simulator(id: udid) else { return }
+        let request = NetworkSourceRequest(
+            script: script,
+            layers: config.resolved.layers,
+            projectPath: session.selectedProject.path,
+            environment: await scriptEnvironment.environment(for: simulator)
+        )
+        guard Task.isCancelled == false else { return }
+        do {
+            for try await event in followNetworkSource.execute(request) {
+                guard Task.isCancelled == false else { return }
+                switch event {
+                case let .request(request):
+                    sourceExchanges = NetworkTrafficPolicy.upsert(request, into: sourceExchanges)
+                case let .error(message):
+                    sourceFailure = message
+                case .output, .exited:
+                    break
+                }
+            }
+        } catch {
+            guard Task.isCancelled == false else { return }
+            sourceFailure = error.localizedDescription
+            activity.log("The network source script stopped", detail: error.localizedDescription, outcome: .failure)
+        }
+    }
+
+    func restartSource() {
+        sourceRestarts += 1
     }
 
     func prepare(target: Simulator?) {
@@ -107,6 +170,7 @@ final class NetworkStore {
         if let selectedUDID {
             mockTraffic.clearExchanges(for: selectedUDID)
         }
+        sourceExchanges = []
         selectedRequestID = nil
         frozenExchanges = isPaused ? [] : nil
     }

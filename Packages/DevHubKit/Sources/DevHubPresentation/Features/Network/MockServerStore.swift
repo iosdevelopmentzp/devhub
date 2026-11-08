@@ -27,8 +27,6 @@ final class MockServerStore: MockTrafficLookup {
     @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private var subscription: SubscriptionToken?
 
-    static let maxExchanges = 2_000
-
     init(
         relaunch: RelaunchWithMocksUseCase,
         server: any MockServerRepository,
@@ -134,11 +132,12 @@ final class MockServerStore: MockTrafficLookup {
     func restoreServers() {
         guard config.config.network?.baseURLVariable?.trimmed.isEmpty == false else { return }
         let profiles = config.config.launch?.profiles ?? []
-        let saved = settings.compactMap { id, setting -> (id: Simulator.ID, setting: MockSimulatorSettings, upstream: URL)? in
-            guard setting.mode != .off, let upstream = setting.upstream.flatMap(URL.init(string:)) else { return nil }
-            let profile = upstream.host.flatMap { MockUpstreamPolicy.profile(ofHost: $0, in: profiles) }
+        let saved = settings.compactMap { id, setting -> (id: Simulator.ID, setting: MockSimulatorSettings, upstream: MockUpstream)? in
+            guard setting.mode != .off, let url = setting.upstream.flatMap(URL.init(string:)) else { return nil }
+            let profile = url.host.flatMap { MockUpstreamPolicy.profile(ofHost: $0, in: profiles) }
             guard profile?.isProduction != true else { return nil }
-            return (id, setting, upstream)
+            let routes = profile.flatMap { try? MockUpstreamPolicy.upstream(for: $0) }?.routes ?? []
+            return (id, setting, MockUpstream(url: url, routes: routes))
         }
         guard saved.isEmpty == false else { return }
         Task { [weak self] in
@@ -156,7 +155,7 @@ final class MockServerStore: MockTrafficLookup {
                     states[item.id] = MockServerState(
                         mode: item.setting.mode,
                         setID: item.setting.mode == .mock ? item.setting.setID : nil,
-                        upstreamHost: item.upstream.host ?? item.upstream.absoluteString,
+                        upstreamHost: item.upstream.host,
                         status: .running(port: port)
                     )
                     restored.append(port)
@@ -189,12 +188,7 @@ final class MockServerStore: MockTrafficLookup {
     }
 
     func receive(_ exchange: NetworkRequest, for id: Simulator.ID) {
-        var list = exchanges[id] ?? []
-        list.append(exchange)
-        if list.count > Self.maxExchanges {
-            list.removeFirst(list.count - Self.maxExchanges)
-        }
-        exchanges[id] = list
+        exchanges[id] = NetworkTrafficPolicy.upsert(exchange, into: exchanges[id] ?? [])
     }
 
     // MARK: Helpers
@@ -208,13 +202,13 @@ final class MockServerStore: MockTrafficLookup {
             return
         }
         state.status = .running(port: port)
-        state.upstreamHost = upstream.host ?? upstream.absoluteString
+        state.upstreamHost = upstream.host
         if state != states[id] {
             states[id] = state
         }
         var current = settings(for: id)
-        if current.upstream != upstream.absoluteString {
-            current.upstream = upstream.absoluteString
+        if current.upstream != upstream.url.absoluteString {
+            current.upstream = upstream.url.absoluteString
             settings[id] = current
         }
     }
@@ -224,7 +218,7 @@ final class MockServerStore: MockTrafficLookup {
         if request.mode == .off {
             current.upstream = nil
         } else if let upstream = try? MockUpstreamPolicy.upstream(for: request.plan.profile) {
-            current.upstream = upstream.absoluteString
+            current.upstream = upstream.url.absoluteString
         }
         guard current != settings(for: id) else { return }
         settings[id] = current

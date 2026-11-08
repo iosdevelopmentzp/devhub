@@ -3,6 +3,7 @@ import Foundation
 package enum MockServerError: LocalizedError, Equatable {
     case productionRefused(profile: String)
     case noUpstream(profile: String)
+    case badRoute(profile: String, path: String)
     case noProfile
     case disabled
     case noSetChosen
@@ -14,6 +15,8 @@ package enum MockServerError: LocalizedError, Equatable {
             "The \(profile) profile is marked production: DevHub does not send production traffic through the mock server. Choose another profile in the run bar."
         case .noUpstream(let profile):
             "The \(profile) profile has no upstream. Add the real server URL as launch.profiles[].upstream in .devhub/project.json."
+        case .badRoute(let profile, let path):
+            "The route \(path) of the \(profile) profile is not valid. A route needs a path that starts with / and an http or https upstream: launch.profiles[].routes in .devhub/project.json."
         case .noProfile:
             "The project has no launch profile. Add launch.profiles with an upstream to .devhub/project.json."
         case .disabled:

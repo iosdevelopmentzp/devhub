@@ -3,19 +3,19 @@ import Foundation
 
 package final class SpyMockServerRepository: MockServerRepository, @unchecked Sendable {
     package enum Call: Hashable {
-        case start(udid: String, upstream: URL, rules: [MockRule])
+        case start(udid: String, upstream: MockUpstream, rules: [MockRule])
         case update(udid: String, rules: [MockRule])
         case stop(udid: String)
         case port(udid: String)
         case upstream(udid: String)
-        case retarget(udid: String, upstream: URL)
+        case retarget(udid: String, upstream: MockUpstream)
     }
 
     private let lock = NSLock()
     private var _calls: [Call] = []
     private var _startResult: Result<Int, any Error> = .success(52_001)
     private var _ports: [String: Int] = [:]
-    private var _upstreams: [String: URL] = [:]
+    private var _upstreams: [String: MockUpstream] = [:]
     private var _handlers: [String: @Sendable (NetworkRequest) -> Void] = [:]
 
     package init() {}
@@ -34,7 +34,7 @@ package final class SpyMockServerRepository: MockServerRepository, @unchecked Se
         set { lock.withLock { _ports = newValue } }
     }
 
-    package func start(udid: String, upstream: URL, rules: [MockRule], onExchange: @escaping @Sendable (NetworkRequest) -> Void) async throws -> Int {
+    package func start(udid: String, upstream: MockUpstream, rules: [MockRule], onExchange: @escaping @Sendable (NetworkRequest) -> Void) async throws -> Int {
         try lock.withLock {
             _calls.append(.start(udid: udid, upstream: upstream, rules: rules))
             let port = try _startResult.get()
@@ -65,19 +65,19 @@ package final class SpyMockServerRepository: MockServerRepository, @unchecked Se
         }
     }
 
-    package var upstreams: [String: URL] {
+    package var upstreams: [String: MockUpstream] {
         get { lock.withLock { _upstreams } }
         set { lock.withLock { _upstreams = newValue } }
     }
 
-    package func upstream(udid: String) async -> URL? {
+    package func upstream(udid: String) async -> MockUpstream? {
         lock.withLock {
             _calls.append(.upstream(udid: udid))
             return _upstreams[udid]
         }
     }
 
-    package func retarget(udid: String, upstream: URL) async {
+    package func retarget(udid: String, upstream: MockUpstream) async {
         lock.withLock {
             _calls.append(.retarget(udid: udid, upstream: upstream))
             _upstreams[udid] = upstream

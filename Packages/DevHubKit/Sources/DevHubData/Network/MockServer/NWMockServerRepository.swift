@@ -9,7 +9,7 @@ actor NWMockServerRepository: MockServerRepository {
         forwarder = HTTPForwarder(session: session)
     }
 
-    func start(udid: String, upstream: URL, rules: [MockRule], onExchange: @escaping @Sendable (NetworkRequest) -> Void) async throws -> Int {
+    func start(udid: String, upstream: MockUpstream, rules: [MockRule], onExchange: @escaping @Sendable (NetworkRequest) -> Void) async throws -> Int {
         let handler = MockExchangeHandler(upstream: upstream, rules: rules, forwarder: forwarder)
         if let server = servers[udid], let port = server.port {
             server.configure(handler: handler, onExchange: onExchange)
@@ -53,11 +53,11 @@ actor NWMockServerRepository: MockServerRepository {
         servers[udid]?.port
     }
 
-    func upstream(udid: String) async -> URL? {
+    func upstream(udid: String) async -> MockUpstream? {
         servers[udid]?.upstream
     }
 
-    func retarget(udid: String, upstream: URL) async {
+    func retarget(udid: String, upstream: MockUpstream) async {
         servers[udid]?.retarget(upstream: upstream)
     }
 }

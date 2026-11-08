@@ -25,13 +25,25 @@ enum NetworkRequestRowMapper {
 
     static let mockedTag = TagModel("mocked", tint: .purple, systemImage: "theatermasks", hint: "A DevHub mock rule answered or changed this response")
     static let passthroughTag = TagModel("via DevHub", tint: .indigo, systemImage: "arrow.left.arrow.right", hint: "The DevHub mock server forwarded this request to the real host")
+    static let sourceScriptTag = TagModel("script", tint: .teal, systemImage: "doc.text", hint: "network.sourceScript reported this request. The mock server did not see it")
+    static let webSocketTag = TagModel("WebSocket", tint: .blue, systemImage: "bolt.horizontal", hint: "A WebSocket connection. The DevHub mock server passes its messages through; the response shows the messages, → sent and ← received")
 
     static func tags(for request: NetworkRequest) -> [TagModel] {
-        var tags = [request.mockRuleID == nil ? passthroughTag : mockedTag]
+        var tags = [originTag(of: request)]
+        if request.isWebSocket {
+            tags.append(webSocketTag)
+        }
         if let errors = request.graphQL?.errors, errors.isEmpty == false {
             tags.append(TagModel(CountText.count(errors.count, "GraphQL error"), tint: .red, systemImage: "exclamationmark.triangle.fill", hint: errors.joined(separator: "\n")))
         }
         return tags
+    }
+
+    static func originTag(of request: NetworkRequest) -> TagModel {
+        switch request.origin {
+        case .sourceScript: sourceScriptTag
+        case .mockServer: request.mockRuleID == nil ? passthroughTag : mockedTag
+        }
     }
 
     static func title(of request: NetworkRequest) -> String {
@@ -61,7 +73,7 @@ enum NetworkRequestRowMapper {
         if request.error != nil || request.graphQL?.errors.isEmpty == false { return .red }
         guard let code = request.statusCode else { return request.isFailure ? .red : .gray }
         switch code {
-        case 200..<300: return .green
+        case 101, 200..<300: return .green
         case 300..<500: return .orange
         default: return .red
         }

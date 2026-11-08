@@ -7,8 +7,8 @@ import Testing
     private let dev = LaunchProfile(id: "dev", title: "Dev", upstream: "http://localhost:8080/api")
 
     @Test func profileUpstreamIsTheURL() throws {
-        #expect(try MockUpstreamPolicy.upstream(for: staging).absoluteString == "https://api.staging.example.com")
-        #expect(try MockUpstreamPolicy.upstream(for: dev).absoluteString == "http://localhost:8080/api")
+        #expect(try MockUpstreamPolicy.upstream(for: staging).url.absoluteString == "https://api.staging.example.com")
+        #expect(try MockUpstreamPolicy.upstream(for: dev).url.absoluteString == "http://localhost:8080/api")
     }
 
     @Test func noProfileIsRefused() {
@@ -34,6 +34,33 @@ import Testing
         }
         #expect(throws: MockServerError.noUpstream(profile: "FTP")) {
             try MockUpstreamPolicy.upstream(for: LaunchProfile(id: "ftp", title: "FTP", upstream: "ftp://files.example.com"))
+        }
+    }
+
+    @Test func routesSendAPathPrefixToAnotherUpstream() throws {
+        let profile = LaunchProfile(
+            id: "qa",
+            title: "QA",
+            upstream: "https://api-qa.example.com",
+            routes: [ProfileRoute(path: " /socket.io/ ", upstream: "https://socket-qa.example.com"), ProfileRoute(path: "/socket.io/admin", upstream: "https://admin-qa.example.com")]
+        )
+
+        let upstream = try MockUpstreamPolicy.upstream(for: profile)
+
+        #expect(upstream.url(forPath: "/v1/profile").absoluteString == "https://api-qa.example.com")
+        #expect(upstream.url(forPath: "/socket.io/").absoluteString == "https://socket-qa.example.com")
+        #expect(upstream.url(forPath: "/socket.io/admin/x").absoluteString == "https://admin-qa.example.com")
+    }
+
+    @Test func aBadRouteIsRefusedWithItsPath() {
+        let noSlash = LaunchProfile(id: "qa", title: "QA", upstream: "https://api-qa.example.com", routes: [ProfileRoute(path: "socket.io", upstream: "https://socket-qa.example.com")])
+        let badURL = LaunchProfile(id: "qa", title: "QA", upstream: "https://api-qa.example.com", routes: [ProfileRoute(path: "/ws", upstream: "wss://socket-qa.example.com")])
+
+        #expect(throws: MockServerError.badRoute(profile: "QA", path: "socket.io")) {
+            try MockUpstreamPolicy.upstream(for: noSlash)
+        }
+        #expect(throws: MockServerError.badRoute(profile: "QA", path: "/ws")) {
+            try MockUpstreamPolicy.upstream(for: badURL)
         }
     }
 

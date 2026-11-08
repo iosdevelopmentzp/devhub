@@ -54,7 +54,9 @@ DevHubData/
     Network/MockServer/  NWMockServerRepository(session:) (actor, one LocalMockServer per udid), LocalMockServer
                     (NWListener on 127.0.0.1), HTTPRequestParser, MockHTTPRequest, MockHTTPResponse,
                     HTTPResponseSerializer, HTTPForwarder (URLSession, no redirects), MockExchangeHandler,
-                    URLSession+MockForwarding   (Network.framework allowed here only)
+                    URLSession+MockForwarding, WebSocket/ (WebSocketTunnel, WebSocketHandshake,
+                    WebSocketFrameReader, WebSocketTranscript)   (Network.framework allowed here only)
+    Network/Source/      ScriptNetworkSourceRepository(scripts:), NetworkSourceLineParser
     Network/MockSets/    FileMockSetRepository(root:), MockSetFileCoder, MockRouteName
     Workspace/      ShellWorkspaceOpener, AccessibilityXcodeAttacher, XcodeDerivedDataRepository, XcodeProjectDetector,
                     PathToolLocator, SystemUserNotificationRepository, GlobalHotKey, GlobalShortcut+Carbon,
@@ -245,8 +247,15 @@ rules; `stop` cancels the listener and every open connection. Network.framework 
   `Content-Length`; `.incomplete` until the last byte; chunked bodies get 501 unless the body is the empty
   `0\r\n\r\n`. Every answer goes through `HTTPResponseSerializer` with a correct `Content-Length` and
   `Connection: close`, then the connection closes.
-- `MockExchangeHandler` decides: a WebSocket upgrade gets 501 and an exchange with the error "WebSocket not mocked
-  yet"; otherwise `MockRuleMatcher` (Domain) picks the first enabled rule. A respond rule never touches the network.
+- `LocalMockServer` hands a WebSocket upgrade to `WebSocketTunnel` (`MockServer/WebSocket/`): an `NWConnection` to
+  the upstream of the route (TLS for `https`), the handshake from `WebSocketHandshake.requestHead` (upstream `Host`
+  and `Origin`, no `Sec-WebSocket-Extensions`), the raw answer passed back, then bytes both ways until one side
+  closes. `WebSocketFrameReader` (pure, masks, fragments, a frame over 1 MB is counted and skipped) and
+  `WebSocketTranscript` (last 500 messages) fill the response body of one exchange; the tunnel calls `onExchange`
+  again with the same id (at most every 0.3 s, and at the close), so `MockServerStore.receive` upserts by id.
+  An unreachable upstream answers 502. All tunnel state lives on the server queue.
+- `MockExchangeHandler` handles every other request: `MockUpstream.url(forPath:)` picks the upstream (the longest
+  route of the profile, else the base URL), then `MockRuleMatcher` (Domain) picks the first enabled rule. A respond rule never touches the network.
   A patch rule forwards, waits the delay, then runs `JSONPatcher` (Domain) when the body is JSON. No rule: forward.
   An upstream failure becomes 502 with a JSON error body.
 - `HTTPForwarder` builds `upstream + target`, copies method, body and the app's headers (with `Authorization`,
@@ -258,7 +267,8 @@ rules; `stop` cancels the listener and every open connection. Network.framework 
 - Every exchange becomes a `NetworkRequest` with `mockRuleID` and request headers, and goes through
   `NetworkRequestRedactor` before `onExchange` is called. The Network tab lists exchanges only.
 - The launch side lives in Domain: `MockLaunchEnvironment.variables(port:variable:)` puts the server URL into
-  `network.baseURLVariable`, `MockUpstreamPolicy` takes the upstream from the launch profile. Every launch goes
+  `network.baseURLVariable`, `MockUpstreamPolicy` builds the `MockUpstream` (base URL and `routes`) from the launch
+  profile. Every launch goes
   through `SimulatorRepository.launch` with the environment and arguments of a `LaunchPlan`; Data prefixes every
   key with `SIMCTL_CHILD_` (`Dictionary+ChildEnvironment`). `SimctlAppLaunchRepository` reads the installed app
   (version, identity hook in the binary, stored profile) and does the clean install.
@@ -268,8 +278,20 @@ rules; `stop` cancels the listener and every open connection. Network.framework 
   `LogRedactor` and drops credential headers before writing. A broken file throws `MockSetError.unreadable` with
   its name. Default root `~/.devhub/mocks` from `Ports.live`.
 - Tests: `HTTPRequestParserTests`, `HTTPResponseSerializerTests`, `HTTPForwarderTests`, `MockExchangeHandlerTests`
-  (stub session), `FileMockSetRepositoryTests` (round trip, body files, "no token on disk"), and
-  `MockServerIntegrationTests` over real sockets (`RawHTTPClient` for raw requests such as a WebSocket upgrade).
+  (stub session), `WebSocketFrameReaderTests`, `WebSocketHandshakeTests`, `WebSocketTranscriptTests`,
+  `FileMockSetRepositoryTests` (round trip, body files, "no token on disk"), and `MockServerIntegrationTests` over
+  real sockets (`RawHTTPClient` for raw requests, `WebSocketEchoServer` in `Support/` for a real WebSocket through a
+  route).
+
+## Network source script
+
+`ScriptNetworkSourceRepository: NetworkSourceRepository` (`Network/Source/`) runs `network.sourceScript` through
+`ShellScriptRunner` with no time limit and maps each line with `NetworkSourceLineParser.parse(_:id:)`: a
+`@devhub {"request": …}` line becomes a redacted `NetworkRequest` with `origin: .sourceScript` (the DTO is private in
+the parser; dates through `ISO8601`), `@devhub {"error": …}` and a broken request become `.error`, other lines
+`.output` after `LogRedactor`. The `id` key of a line maps to a stable id from `1 << 40`, so a later line replaces
+the row. `FollowNetworkSourceUseCase` (Domain) finds the script and turns a non-zero exit into
+`NetworkSourceError.exited` with the last plain line.
 
 ## Persistence
 

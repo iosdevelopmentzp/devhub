@@ -6,6 +6,11 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 
 ## [Unreleased]
 
+### Added
+- Network: `network.sourceScript`. A project script reports requests that the mock server does not see (a launch from Xcode, a log file of the app) with `@devhub {"request": …}` lines; the rows get a `script` tag and a bar shows script errors with Retry. ADR 018, extensions §10, example `docs/examples/devhub/network/source.sh`.
+- Network: WebSocket connections pass through the mock server to the upstream instead of getting status 501. One row per connection with status 101, a `WebSocket` tag and the messages (`→` sent, `←` received) in the response body. Mock rules do not apply to WebSocket messages.
+- Launch profiles: `routes` send a path prefix to another real server, for HTTP and WebSocket, for example `/socket.io/` to a socket host.
+
 ### Infrastructure
 - Skills `code-host`, `data-layer`, `testing` and `xcode-toolchain` describe the ADR 017 code: teams and `myTeams`, `JSONPages` for paged answers, the `.xcresult` parsers and spies, `AttachDestination` and `--start-stopped`. ADR 017 is done; `docs/STATUS.md` has decision 77 and its gaps.
 - `docs/examples/circleci/config.yml`: a CircleCI config for a test project (a build with an artifact, unit tests with a JUnit file that fails on odd minutes, an approval job, a deploy). The owner provides a test CircleCI account later; until then the CI features are checked by tests and the mock ports. ADR 015.

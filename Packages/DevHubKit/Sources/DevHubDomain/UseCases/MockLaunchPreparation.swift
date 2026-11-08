@@ -33,7 +33,7 @@ package struct MockLaunchPreparation: Sendable {
             if await mockServer.upstream(udid: udid) != upstream {
                 await mockServer.retarget(udid: udid, upstream: upstream)
             }
-            return Outcome(environment: variables, note: "Mock server on: \(baseURL) → \(upstream.host ?? upstream.absoluteString)", baseURL: baseURL)
+            return Outcome(environment: variables, note: "Mock server on: \(baseURL) → \(upstream.host)", baseURL: baseURL)
         } catch {
             await mockServer.stop(udid: udid)
             return Outcome(environment: [:], note: "Mock server stopped: \(error.localizedDescription)", baseURL: nil)

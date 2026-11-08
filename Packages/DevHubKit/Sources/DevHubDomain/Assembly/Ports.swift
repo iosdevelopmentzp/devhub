@@ -14,6 +14,7 @@ package struct Ports: Sendable {
     package let logs: any AppLogRepository
     package let mockServer: any MockServerRepository
     package let mockSets: any MockSetRepository
+    package let networkSource: any NetworkSourceRepository
     package let messaging: any SimulatorMessagingRepository
     package let codeHost: any CodeHostRepository
     package let ci: any CIRepository
@@ -56,6 +57,7 @@ package struct Ports: Sendable {
         logs: any AppLogRepository,
         mockServer: any MockServerRepository,
         mockSets: any MockSetRepository,
+        networkSource: any NetworkSourceRepository,
         messaging: any SimulatorMessagingRepository,
         codeHost: any CodeHostRepository,
         ci: any CIRepository,
@@ -97,6 +99,7 @@ package struct Ports: Sendable {
         self.logs = logs
         self.mockServer = mockServer
         self.mockSets = mockSets
+        self.networkSource = networkSource
         self.messaging = messaging
         self.codeHost = codeHost
         self.ci = ci

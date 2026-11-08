@@ -17,6 +17,7 @@ package extension Ports {
             logs: spies.logs,
             mockServer: spies.mockServer,
             mockSets: spies.mockSets,
+            networkSource: spies.networkSource,
             messaging: spies.messaging,
             codeHost: spies.codeHost,
             ci: spies.ci,

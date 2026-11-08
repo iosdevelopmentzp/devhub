@@ -27,6 +27,7 @@ extension Ports {
             logs: SimctlAppLogRepository(shell: shell),
             mockServer: NWMockServerRepository(session: .mockForwarding()),
             mockSets: FileMockSetRepository(root: home.appendingPathComponent(".devhub/mocks", isDirectory: true)),
+            networkSource: ScriptNetworkSourceRepository(scripts: ShellScriptRunner(shell: shell)),
             messaging: SimctlMessagingRepository(shell: shell),
             codeHost: RoutingCodeHostRepository(
                 gitHub: GhPullRequestRepository(client: GhClient(shell: shell)),

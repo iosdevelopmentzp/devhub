@@ -95,7 +95,7 @@ import Testing
         let record = try await launch(ports, request, cleanInstall: false)
 
         #expect(spies.simulators.calls.last == .launch(udid: udid, bundleID: bundleID, waitForDebugger: false, environment: ["API_ENV": "staging", "APP_BASE_URL": "http://127.0.0.1:52001"]))
-        #expect(spies.mockServer.calls.contains(.retarget(udid: udid, upstream: URL(string: "https://api.staging.example.com")!)))
+        #expect(spies.mockServer.calls.contains(.retarget(udid: udid, upstream: MockUpstream(url: URL(string: "https://api.staging.example.com")!))))
         #expect(record.baseURL == "http://127.0.0.1:52001")
     }
 

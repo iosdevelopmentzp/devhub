@@ -6,6 +6,7 @@ enum NetworkEmptyStateMapper {
 
     static func model(
         hasBaseURLVariable: Bool,
+        hasSourceScript: Bool,
         hasBootedSimulator: Bool,
         isIntercepting: Bool,
         hasRequests: Bool,
@@ -14,8 +15,9 @@ enum NetworkEmptyStateMapper {
         filter: NetworkRequestFilter
     ) -> NetworkEmptyStateModel? {
         if hasRequests == false {
-            guard hasBaseURLVariable else { return noVariable }
+            guard hasBaseURLVariable || hasSourceScript else { return noVariable }
             guard hasBootedSimulator else { return noSimulator }
+            guard isIntercepting || hasSourceScript == false else { return waitingForScript }
             guard isIntercepting else { return serverOff }
             return waiting
         }
@@ -30,7 +32,13 @@ enum NetworkEmptyStateMapper {
     private static let noVariable = NetworkEmptyStateModel(
         title: "Network mocks are off for this project",
         systemImage: "network.slash",
-        description: "Set network.baseURLVariable in .devhub/project.json. DevHub puts the URL of its mock server into that variable when it launches the app."
+        description: "Set network.baseURLVariable in .devhub/project.json. DevHub puts the URL of its mock server into that variable when it launches the app. Or set network.sourceScript: a script that reads the requests of the app, for example from its log file."
+    )
+
+    private static let waitingForScript = NetworkEmptyStateModel(
+        title: "Waiting for requests…",
+        systemImage: "doc.text.magnifyingglass",
+        description: "DevHub runs network.sourceScript for this simulator. Use the app; the requests the script reports show here. Start the mock server to see exact timing and to mock answers."
     )
 
     private static let noSimulator = NetworkEmptyStateModel(

@@ -33,6 +33,14 @@ import Testing
         #expect(NetworkRequestFilter.slow.matches(request) == expected)
     }
 
+    @Test func aLongWebSocketConnectionIsNotSlow() {
+        var socket = NetworkRequestFixture.request(statusCode: 101, duration: 30, isFailure: false)
+        socket.requestHeaders = [HTTPHeader(name: "Upgrade", value: "websocket")]
+
+        #expect(NetworkRequestFilter.slow.matches(socket) == false)
+        #expect(socket.isWebSocket)
+    }
+
     @Test func rawValuesStayStableForSavedFilters() {
         #expect(NetworkRequestFilter.allCases.map(\.rawValue) == ["all", "failed", "slow"])
     }

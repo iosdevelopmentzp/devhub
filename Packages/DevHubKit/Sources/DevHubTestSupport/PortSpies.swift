@@ -14,6 +14,7 @@ package struct PortSpies: Sendable {
     package let logs = SpyAppLogRepository()
     package let mockServer = SpyMockServerRepository()
     package let mockSets = SpyMockSetRepository()
+    package let networkSource = SpyNetworkSourceRepository()
     package let messaging = SpySimulatorMessagingRepository()
     package let codeHost = SpyCodeHostRepository()
     package let ci = SpyCIRepository()

@@ -56,7 +56,7 @@ that queue: about 3 s on 14 cores, about 10 s on the 3-core CI runner, which is 
 
 One `Spy<Port>` per port: `SpyGitRepository`, `SpyGitChangesRepository`, `SpyWorktreeRepository`,
 `SpyCodeHostRepository`, `SpySimulatorRepository`, `SpyDeviceRepository`, `SpySimulatorMessagingRepository`, `SpyBuildRepository`,
-`SpyAppLaunchRepository`, `SpyDerivedDataRepository`, `SpyAppLogRepository`, `SpyMockServerRepository` (`emit(_:udid:)` calls the saved `onExchange`), `SpyMockSetRepository` (`savedSets`), `SpyAISessionRepository`, `SpyCopilotUsageRepository`,
+`SpyAppLaunchRepository`, `SpyDerivedDataRepository`, `SpyAppLogRepository`, `SpyMockServerRepository` (`emit(_:udid:)` calls the saved `onExchange`), `SpyNetworkSourceRepository` (`events` for a stream that finishes, or `emit(_:)` and `finish(throwing:)` on the open stream), `SpyMockSetRepository` (`savedSets`), `SpyAISessionRepository`, `SpyCopilotUsageRepository`,
 `SpyClaudeUsageRepository`, `SpyWorkspaceOpener`, `SpyXcodeAttacher`, `SpyProjectDetector`,
 `SpyReviewPromptRepository`, `SpyConfigRepository`, `SpyScriptRunner`, `SpyToolLocator`,
 `SpyUserNotificationRepository`, `SpyCrashReportRepository` (`emitChange()`, `ownReportsResult` for a crash of DevHub), `SpyTestRunRepository` (`runEvents`, `runResult`, `resultsResult` and `attachmentsResult` for the `.xcresult` bundle), `SpyAppDataRepository` (`readResult`, `actionError`), `SpyAITextRepository` (`generateResult`; `SpyGitChangesRepository.patchResult` gives the diff), `SpyDiskCleanupRepository` (`itemsResult`, `sizes`, `cleanError`), plus `SpyCommandRecorder` (`events`) and `CallbackRecorder<Value>` (a thread-safe list for `@Sendable` callbacks).
