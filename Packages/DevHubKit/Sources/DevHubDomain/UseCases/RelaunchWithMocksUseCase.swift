@@ -29,7 +29,7 @@ package struct RelaunchWithMocksUseCase: Sendable {
         let state = MockServerState(
             mode: request.mode,
             setID: request.mode == .mock ? request.set?.id : nil,
-            upstreamHost: upstream.host ?? upstream.absoluteString,
+            upstreamHost: upstream.host,
             status: .running(port: port)
         )
         return Result(state: state, launch: request.plan.record(bundleID: request.bundleID, baseURL: MockLaunchEnvironment.baseURL(port: port), date: .now))

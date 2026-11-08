@@ -14,7 +14,7 @@ import Testing
 
         let result = try await useCase(ports).execute(request(mode: .passthrough, set: nil)) { _ in }
 
-        #expect(spies.mockServer.calls == [.start(udid: udid, upstream: staging, rules: [])])
+        #expect(spies.mockServer.calls == [.start(udid: udid, upstream: MockUpstream(url: staging), rules: [])])
         #expect(spies.simulators.calls == [
             .openInSimulatorApp(udid: udid),
             .launch(udid: udid, bundleID: bundleID, waitForDebugger: false, environment: ["API_ENV": "staging", "APP_DEVICE_ID": "QA-DEVICE", "APP_BASE_URL": "http://127.0.0.1:52001"]),
@@ -40,7 +40,7 @@ import Testing
 
         let result = try await useCase(ports).execute(request(mode: .mock, set: MockRuleFixture.set)) { _ in }
 
-        #expect(spies.mockServer.calls == [.start(udid: udid, upstream: staging, rules: MockRuleFixture.set.rules)])
+        #expect(spies.mockServer.calls == [.start(udid: udid, upstream: MockUpstream(url: staging), rules: MockRuleFixture.set.rules)])
         #expect(result.state?.setID == MockRuleFixture.set.id)
     }
 

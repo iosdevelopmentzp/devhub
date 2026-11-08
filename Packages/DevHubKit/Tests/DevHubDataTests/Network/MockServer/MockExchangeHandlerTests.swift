@@ -58,21 +58,27 @@ import Testing
         #expect(String(decoding: result.response.body, as: UTF8.self).contains("abc123"))
     }
 
-    @Test func webSocketUpgradeIsAnswered501AndRecordedWithAnError() async {
-        let rule = rule(.respond(MockResponse(status: 200, headers: [], body: "", delay: 0)))
-        let request = HTTPRequestFixture.request("GET", "/socket.io/?EIO=4", headers: [HTTPHeader(name: "Upgrade", value: "websocket")], body: "")
+    @Test func aRouteForwardsItsPathToAnotherUpstream() async {
+        let other = "socket-qa.example.com"
+        let session = StubURLProtocol.session(host: other) { request in
+            (HTTPRequestFixture.response(url: request.url ?? URL(fileURLWithPath: "/"), status: 200, headers: [:]), Data("routed".utf8))
+        }
+        let routed = MockExchangeHandler(
+            upstream: MockUpstream(url: URL(string: "https://\(host)")!, routes: [MockRoute(path: "/socket.io/", upstream: URL(string: "https://\(other)")!)]),
+            rules: [],
+            forwarder: HTTPForwarder(session: session)
+        )
 
-        let result = await handler(rules: [rule]).handle(request, id: 1, startedAt: Date())
+        let result = await routed.handle(HTTPRequestFixture.request("GET", "/socket.io/?EIO=4&transport=polling", headers: [], body: ""), id: 1, startedAt: Date())
 
-        #expect(result.response.status == 501)
-        #expect(result.exchange.error == "WebSocket not mocked yet")
-        #expect(result.exchange.isFailure)
-        #expect(result.exchange.mockRuleID == nil)
+        #expect(String(decoding: result.response.body, as: UTF8.self) == "routed")
+        #expect(result.exchange.host == other)
+        #expect(result.exchange.url == "https://\(other)/socket.io/?EIO=4&transport=polling")
     }
 
     @Test func upstreamFailureBecomes502() async {
         let failing = MockExchangeHandler(
-            upstream: URL(string: "https://\(host)")!,
+            upstream: MockUpstream(url: URL(string: "https://\(host)")!),
             rules: [],
             forwarder: HTTPForwarder(session: StubURLProtocol.session(host: host) { _ in throw URLError(.notConnectedToInternet) })
         )
@@ -115,7 +121,7 @@ import Testing
         let session = StubURLProtocol.session(host: host) { request in
             (HTTPRequestFixture.response(url: request.url ?? URL(fileURLWithPath: "/"), status: 200, headers: ["Content-Type": "application/json", "Content-Encoding": "gzip"]), body)
         }
-        return MockExchangeHandler(upstream: URL(string: "https://\(host)")!, rules: rules, forwarder: HTTPForwarder(session: session))
+        return MockExchangeHandler(upstream: MockUpstream(url: URL(string: "https://\(host)")!), rules: rules, forwarder: HTTPForwarder(session: session))
     }
 
     private func rule(_ action: MockAction) -> MockRule {

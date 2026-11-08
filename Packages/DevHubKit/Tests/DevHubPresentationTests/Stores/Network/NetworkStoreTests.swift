@@ -170,4 +170,76 @@ import DevHubTestSupport
 
         #expect(store.selectedUDID == udid)
     }
+    // MARK: Source script
+
+    private func useSourceScript(_ events: [NetworkSourceEvent]) async {
+        harness.simulators.groups = SimulatorSample.groups
+        store.selectedUDID = udid
+        harness.spies.tools.existingFiles = [ProjectSample.path + "/network/source.sh"]
+        harness.spies.networkSource.events = events
+        harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(network: NetworkConfig(sourceScript: "network/source.sh")), actions: [], tabs: [], issues: [], layers: [])
+        await harness.config.reload()
+    }
+
+    @Test func theSourceScriptRequestsShowNextToTheServerExchanges() async {
+        await useSourceScript([.request(NetworkRequestSample.fromScript)])
+        harness.mockServer.receive(NetworkRequestSample.ok, for: udid)
+
+        await store.followSource()
+
+        #expect(Set(store.allRequests) == [NetworkRequestSample.ok, NetworkRequestSample.fromScript])
+        let call = harness.spies.networkSource.calls.first
+        #expect(call?.executable == ProjectSample.path + "/network/source.sh")
+        #expect(call?.environment["DEVHUB_SIMULATOR_UDID"] == udid)
+        #expect(call?.timeout == nil)
+    }
+
+    @Test func aRequestWithTheSameIDReplacesTheEarlierOne() async {
+        var finished = NetworkRequestSample.fromScript
+        finished.duration = 0.4
+        await useSourceScript([.request(NetworkRequestSample.fromScript), .request(finished)])
+
+        await store.followSource()
+
+        #expect(store.allRequests == [finished])
+    }
+
+    @Test func anErrorLineIsShownAndTheStreamGoesOn() async {
+        await useSourceScript([.error("The request directive has no url."), .request(NetworkRequestSample.fromScript)])
+
+        await store.followSource()
+
+        #expect(store.sourceFailure == "The request directive has no url.")
+        #expect(store.allRequests == [NetworkRequestSample.fromScript])
+    }
+
+    @Test func aScriptThatStopsShowsItsLastLineAndRetryRestartsIt() async {
+        await useSourceScript([.output("no log file"), .exited(2)])
+        let key = store.sourceKey
+
+        await store.followSource()
+        store.restartSource()
+
+        #expect(store.sourceFailure == "The network source script stopped: no log file")
+        #expect(harness.activity.events.first?.outcome == .failure)
+        #expect(store.sourceKey != key)
+    }
+
+    @Test func withoutASourceScriptNothingRuns() async {
+        receive([NetworkRequestSample.ok])
+
+        await store.followSource()
+
+        #expect(store.sourceScript == nil)
+        #expect(harness.spies.networkSource.calls.isEmpty)
+    }
+
+    @Test func clearDropsTheSourceScriptRequests() async {
+        await useSourceScript([.request(NetworkRequestSample.fromScript)])
+        await store.followSource()
+
+        store.clear()
+
+        #expect(store.allRequests.isEmpty)
+    }
 }

@@ -3,9 +3,9 @@ import DevHubDomain
 
 actor MockLocalServerRepository: MockServerRepository {
     private var ports: [String: Int] = [:]
-    private var upstreams: [String: URL] = [:]
+    private var upstreams: [String: MockUpstream] = [:]
 
-    func start(udid: String, upstream: URL, rules: [MockRule], onExchange: @escaping @Sendable (NetworkRequest) -> Void) async throws -> Int {
+    func start(udid: String, upstream: MockUpstream, rules: [MockRule], onExchange: @escaping @Sendable (NetworkRequest) -> Void) async throws -> Int {
         try await Task.sleep(for: .milliseconds(200))
         let port = ports[udid] ?? 52_000 + ports.count
         ports[udid] = port
@@ -27,11 +27,11 @@ actor MockLocalServerRepository: MockServerRepository {
         ports[udid]
     }
 
-    func upstream(udid: String) async -> URL? {
+    func upstream(udid: String) async -> MockUpstream? {
         upstreams[udid]
     }
 
-    func retarget(udid: String, upstream: URL) async {
+    func retarget(udid: String, upstream: MockUpstream) async {
         guard ports[udid] != nil else { return }
         upstreams[udid] = upstream
     }

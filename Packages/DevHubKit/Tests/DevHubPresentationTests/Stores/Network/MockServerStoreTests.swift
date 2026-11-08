@@ -74,7 +74,7 @@ import DevHubTestSupport
 
         try await applyAndWait()
 
-        #expect(harness.spies.mockServer.calls.contains(.start(udid: udid, upstream: staging, rules: [])))
+        #expect(harness.spies.mockServer.calls.contains(.start(udid: udid, upstream: MockUpstream(url: staging), rules: [])))
         #expect(lastLaunch == .launch(udid: udid, bundleID: ProjectSample.app.bundleID, waitForDebugger: false, environment: stub))
         #expect(store.states[udid] == MockServerState(mode: .passthrough, setID: nil, upstreamHost: "api.staging.example.com", status: .running(port: 52001)))
         #expect(store.isIntercepting(udid))
@@ -91,7 +91,7 @@ import DevHubTestSupport
 
         try await applyAndWait()
 
-        #expect(harness.spies.mockServer.calls.contains(.start(udid: udid, upstream: dev, rules: [])))
+        #expect(harness.spies.mockServer.calls.contains(.start(udid: udid, upstream: MockUpstream(url: dev), rules: [])))
         #expect(lastLaunch == .launch(udid: udid, bundleID: ProjectSample.app.bundleID, waitForDebugger: false, environment: ["APP_DEVICE_ID": "QA-DEVICE", "APP_BASE_URL": "http://127.0.0.1:52001"]))
     }
 
@@ -103,7 +103,7 @@ import DevHubTestSupport
 
         try await applyAndWait()
 
-        #expect(harness.spies.mockServer.calls.contains(.start(udid: udid, upstream: dev, rules: [])))
+        #expect(harness.spies.mockServer.calls.contains(.start(udid: udid, upstream: MockUpstream(url: dev), rules: [])))
     }
 
     @Test func applyUsesTheProfileOfTheRunBar() async throws {
@@ -114,7 +114,7 @@ import DevHubTestSupport
 
         try await applyAndWait()
 
-        #expect(harness.spies.mockServer.calls.contains(.start(udid: udid, upstream: dev, rules: [])))
+        #expect(harness.spies.mockServer.calls.contains(.start(udid: udid, upstream: MockUpstream(url: dev), rules: [])))
     }
 
     @Test func applyMockSendsTheRulesOfTheChosenSet() async throws {
@@ -125,7 +125,7 @@ import DevHubTestSupport
 
         try await applyAndWait()
 
-        #expect(harness.spies.mockServer.calls.contains(.start(udid: udid, upstream: staging, rules: MockSetSample.vip.rules)))
+        #expect(harness.spies.mockServer.calls.contains(.start(udid: udid, upstream: MockUpstream(url: staging), rules: MockSetSample.vip.rules)))
         #expect(store.states[udid]?.setID == MockSetSample.vip.id)
     }
 
@@ -189,7 +189,7 @@ import DevHubTestSupport
         await loadConfig()
         store.setMode(.passthrough, for: udid)
         try await applyAndWait()
-        await harness.spies.mockServer.retarget(udid: udid, upstream: dev)
+        await harness.spies.mockServer.retarget(udid: udid, upstream: MockUpstream(url: dev))
 
         harness.events.post(.appLaunched(simulatorID: udid, launch: nil))
 
@@ -228,7 +228,7 @@ import DevHubTestSupport
         restored.mockServer.restoreServers()
 
         try await waitUntil { restored.mockServer.states[udid] != nil }
-        #expect(restored.spies.mockServer.calls == [.start(udid: udid, upstream: MockSetSample.qa, rules: MockSetSample.vip.rules)])
+        #expect(restored.spies.mockServer.calls == [.start(udid: udid, upstream: MockUpstream(url: MockSetSample.qa), rules: MockSetSample.vip.rules)])
         #expect(restored.mockServer.states[udid] == MockServerState(mode: .mock, setID: MockSetSample.vip.id, upstreamHost: "api-qa.example.com", status: .running(port: 52001)))
         #expect(restored.spies.simulators.calls.isEmpty)
         #expect(restored.lastActivity?.title == "Mock servers restored: 1")
@@ -255,7 +255,7 @@ import DevHubTestSupport
         restored.mockServer.restoreServers()
 
         try await waitUntil { restored.mockServer.states["staging"] != nil }
-        #expect(restored.spies.mockServer.calls == [.start(udid: "staging", upstream: staging, rules: [])])
+        #expect(restored.spies.mockServer.calls == [.start(udid: "staging", upstream: MockUpstream(url: staging), rules: [])])
     }
 
     // MARK: Traffic
@@ -273,11 +273,11 @@ import DevHubTestSupport
     }
 
     @Test func exchangesAreCappedAtTheLimit() {
-        for id in 0..<(MockServerStore.maxExchanges + 5) {
+        for id in 0..<(NetworkTrafficPolicy.maxRequests + 5) {
             store.receive(NetworkRequestSample.make(id: id, method: "GET", path: "/x", statusCode: 200, duration: nil, isFailure: false), for: udid)
         }
 
-        #expect(store.exchanges(for: udid).count == MockServerStore.maxExchanges)
+        #expect(store.exchanges(for: udid).count == NetworkTrafficPolicy.maxRequests)
         #expect(store.exchanges(for: udid).first?.id == 5)
     }
 

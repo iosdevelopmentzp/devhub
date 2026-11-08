@@ -33,10 +33,13 @@ Each layer holds `project.json` (not the global layer), `actions/*.json`, `scrip
 | order or hide the tiles on Home | `home.quickActions` with built-in and config ids | §2 |
 | build and run a non-Xcode project | `kind: command` with `build.command` and `run.command`; `@devhub {"app": …}` hands the app to DevHub | §2 |
 | pick the scheme, configuration, bundle ID or Xcode of a project | `xcode.scheme`, `xcode.schemes`, `xcode.configuration`, `xcode.bundleID`, `xcode.bundleIDs`, `xcode.developerDir` | §2 |
-| launch the app with an environment, arguments or defaults | `launch.profiles[]` (`env`, `args`, `defaults`, `storage`, `upstream`, `production`, `cleanInstall`, `tint`) | §5 |
+| launch the app with an environment, arguments or defaults | `launch.profiles[]` (`env`, `args`, `defaults`, `storage`, `upstream`, `routes`, `production`, `cleanInstall`, `tint`) | §5 |
 | give each launch a device or account ID | `launch.identity` (variable, kept variable, args, prefix, clean install rule, hook marker) | §2, [device identity](features/device-identity.md) |
 | show what the running app reports (ID, environment, host, user, version, tags) | `simulators.statusScript` printing a `state` directive | §6, §7 |
 | redirect the app to the mock server | `network.baseURLVariable`, `network.mocksFolder`, mock set files | §2, §9 |
+| send the socket or another part of the API to its own real server through the mock server | `launch.profiles[].routes` (path prefix → upstream) | §5 |
+| see the requests of the app without the mock server (a launch from Xcode, a log file of the app) | `network.sourceScript` printing `request` lines | §10 |
+| open a saved deep link or send a saved push to a simulator | one script action per link or payload in `simulators.row` or `simulators.runBar`: `xcrun simctl openurl "$DEVHUB_SIMULATOR_UDID" example://…`, or `xcrun simctl push "$DEVHUB_SIMULATOR_UDID" "$DEVHUB_BUNDLE_ID" "$DEVHUB_CONFIG_DIR/payloads/<name>.json"` | §3, §3.3, §3.4 |
 | set git rules: remote, base branch, protected branches, ticket pattern and link, worktree folder and bootstrap | `git.*` | §2 |
 | list the Jira tickets of the project in Utils → Tickets, with Start, Move to and a branch name | `tracker.*` (`kind`, `project`, `statuses`, `startStatus`, `filter`, `branchFormat`); the `jira` tool of jira-cli with your own login | §2, [utils](features/utils.md#tickets) |
 | tune pull requests: targets, template, stale days, hidden files, defaults | `git.pullRequests.*` | §2 |

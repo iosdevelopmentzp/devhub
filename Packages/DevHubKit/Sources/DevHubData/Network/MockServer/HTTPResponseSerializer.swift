@@ -18,6 +18,7 @@ enum HTTPResponseSerializer {
 
     static func reasonPhrase(_ status: Int) -> String {
         switch status {
+        case 101: "Switching Protocols"
         case 200: "OK"
         case 201: "Created"
         case 202: "Accepted"

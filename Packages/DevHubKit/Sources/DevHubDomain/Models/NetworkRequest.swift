@@ -18,6 +18,7 @@ package struct NetworkRequest: Identifiable, Hashable, Sendable {
     package var mockRuleID: MockRule.ID? = nil
     package var requestHeaders: [HTTPHeader] = []
     package var graphQL: GraphQLExchange? = nil
+    package var origin: NetworkRequestOrigin = .mockServer
 
     package init(
         id: Int,
@@ -36,7 +37,8 @@ package struct NetworkRequest: Identifiable, Hashable, Sendable {
         isFailure: Bool,
         mockRuleID: MockRule.ID? = nil,
         requestHeaders: [HTTPHeader] = [],
-        graphQL: GraphQLExchange? = nil
+        graphQL: GraphQLExchange? = nil,
+        origin: NetworkRequestOrigin = .mockServer
     ) {
         self.id = id
         self.method = method
@@ -55,5 +57,10 @@ package struct NetworkRequest: Identifiable, Hashable, Sendable {
         self.mockRuleID = mockRuleID
         self.requestHeaders = requestHeaders
         self.graphQL = graphQL
+        self.origin = origin
+    }
+
+    package var isWebSocket: Bool {
+        requestHeaders.contains { $0.name.caseInsensitiveCompare("Upgrade") == .orderedSame && $0.value.lowercased() == "websocket" }
     }
 }

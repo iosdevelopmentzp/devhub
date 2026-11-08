@@ -4,6 +4,8 @@ The Network tab shows the HTTP requests of the app on one simulator. It can also
 
 DevHub does this with a small HTTP server on this Mac. We call it the mock server. DevHub launches the app with the URL of this server in an environment variable. The app sends its requests to the server, and the server forwards them to the real server of the launch profile. We call the real server the upstream.
 
+A project can also set `network.sourceScript`: a script that reports the requests of the app from another place, such as its log file. Those rows show without the mock server, also after a launch from Xcode (see "Network source script" below).
+
 Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Network/`, `DevHubData/Network/`, `DevHubDomain/UseCases/RelaunchWithMocksUseCase.swift`, `MockLaunchPreparation.swift`, `DevHubDomain/Policies/Mock*.swift`, `GraphQLParser.swift`, `JSONPatcher.swift`.
 
 Related pages: [Simulators](simulators.md), [Device identity](device-identity.md).
@@ -28,7 +30,8 @@ Related pages: [Simulators](simulators.md), [Device identity](device-identity.md
    - the method tag;
    - the path, or for GraphQL the operation name with a `query`, `mutation` or `batch of <n>` tag;
    - the host;
-   - a `via DevHub` tag (forwarded) or a `mocked` tag (a rule answered or changed it);
+   - a `via DevHub` tag (forwarded), a `mocked` tag (a rule answered or changed it) or a `script` tag (reported by `network.sourceScript`);
+   - a `WebSocket` tag for a WebSocket connection;
    - a red "<n> GraphQL errors" tag when the response has an `errors` array;
    - the status, the duration (orange when slow) and the time.
 4. **The request details**, under a row after a click:
@@ -37,16 +40,19 @@ Related pages: [Simulators](simulators.md), [Device identity](device-identity.md
    - the request body and the response body (JSON is formatted);
    - the request headers and the response headers.
 
+A bar over the list shows the last error of the network source script, with **Retry**.
+
 The search field in the toolbar filters by method, path, status, host and GraphQL operation name.
 
 ### Empty states
 
 | Situation | Message |
 |---|---|
-| No `network.baseURLVariable` | "Network mocks are off for this project" and how to set the variable |
+| No `network.baseURLVariable` and no `network.sourceScript` | "Network mocks are off for this project" and how to set either one |
 | No booted simulator | "No simulator booted" |
 | The server is off for the chosen simulator | "Mock server is off": start Passthrough and relaunch the app |
 | The server runs, no request yet | "Waiting for requests…" |
+| A source script, the server off, no request yet | "Waiting for requests…": DevHub runs the script for this simulator |
 | A filter hides every request | "No failed requests" or "No slow requests" |
 
 ### App status line
@@ -109,7 +115,7 @@ When DevHub starts, it starts the saved servers again on their ports. It skips a
 
 The server (`NWMockServerRepository`, `MockExchangeHandler`) handles each request in this order:
 
-1. A WebSocket upgrade gets status 501 "WebSocket not mocked yet".
+1. A WebSocket upgrade goes to the upstream as a tunnel (see "WebSocket" below). Rules do not apply to it.
 2. DevHub finds the first enabled rule that matches (see "Rule matching" below).
 3. **Respond rule:** DevHub waits for the delay, then answers with the status, headers and body of the rule. Without a `Content-Type`, DevHub adds `application/json` for a JSON body, else `text/plain; charset=utf-8`.
 4. **Patch rule:** DevHub forwards the request, waits for the delay, then changes the JSON response. A response that is not JSON passes unchanged.
@@ -117,10 +123,22 @@ The server (`NWMockServerRepository`, `MockExchangeHandler`) handles each reques
 
 Forwarding details:
 
-1. The URL is the upstream URL plus the path and query of the request.
+1. The URL is the upstream URL plus the path and query of the request. When the profile has `routes`, the longest route whose `path` starts the request path gives the upstream instead.
 2. DevHub drops hop headers such as `Host`, `Connection` and `Accept-Encoding`, and asks for `Accept-Encoding: identity`.
 3. Redirects are not followed. Cookies are not stored. The timeout is 60 seconds.
 4. When the upstream fails, the app gets status 502 with a JSON error.
+
+### WebSocket
+
+A request with `Upgrade: websocket` does not go to the rules. `WebSocketTunnel` opens a TCP connection to the upstream (TLS for `https`), sends the same handshake with the `Host` and `Origin` of the upstream, and then passes the bytes in both directions until one side closes. It drops `Sec-WebSocket-Extensions`, so the two sides do not compress the messages and DevHub can read them.
+
+The list shows one row per connection, with status 101 and a `WebSocket` tag. The duration is the time the connection was open; the Slow filter leaves WebSocket rows out. The response body lists the messages: `→` sent by the app, `←` received, a binary message as its size; pings are left out. The last 500 messages are kept, each cut at 2,000 characters. When the upstream cannot be reached, the app gets status 502 and the row shows the error.
+
+A client that builds its socket URL from the same base URL as its REST calls (Socket.IO does) works through the mock server. When the socket server has its own host, add a route for its path to the profile: `{"path": "/socket.io/", "upstream": "https://socket.staging.example.com"}`.
+
+### Network source script
+
+`network.sourceScript` reports requests that do not pass through the mock server. DevHub runs it while the tab is open, for the chosen simulator, and adds its requests to the list, sorted by start time, with a `script` tag. A change of the simulator, the project or the config, and **Retry**, start the script again; the script prints the recent requests again on each start. While the mock server runs for the simulator, script rows for `127.0.0.1` and `localhost` are hidden, because the mock server shows those requests itself. The timing and the bodies are what the script reports. The format is in [extensions §10](../extensions.md#10-network-source-script).
 
 Before a request reaches the list, DevHub removes the `Authorization`, `Cookie`, `Set-Cookie` and `Proxy-Authorization` headers and masks tokens and passwords in the URL, the bodies, the GraphQL variables and the errors.
 
@@ -182,7 +200,9 @@ A response with an `errors` array counts as failed, even with status 200.
 |---|---|---|
 | `network.baseURLVariable` | The variable that gets `http://127.0.0.1:<port>`. Without it the mock server bar is hidden and the server cannot start | [§2](../extensions.md#2-projectjson) |
 | `network.mocksFolder` | Where the set files live. A relative path starts at the project folder. Default `~/.devhub/mocks/<project folder name>` | [§2](../extensions.md#2-projectjson) |
+| `network.sourceScript` | The script that reports requests the mock server does not see | [§10](../extensions.md#10-network-source-script) |
 | `launch.profiles[].upstream` | The real server the mock server forwards to | [§5](../extensions.md#5-launch-profiles) |
+| `launch.profiles[].routes` | Another real server for the requests whose path starts with a prefix, for HTTP and WebSocket | [§5](../extensions.md#5-launch-profiles) |
 | `launch.profiles[].production` | The server refuses this profile | [§5](../extensions.md#5-launch-profiles) |
 | `launch.profiles[].storage` | Helps to find the profile of the installed app | [§5](../extensions.md#5-launch-profiles) |
 | `simulators.statusScript` | Its `state` line gives the host and profile of the app | [§6](../extensions.md#6-simulator-status-script) |
@@ -206,11 +226,11 @@ The mock sets are files, not preferences.
 
 ## Limits
 
-1. The list shows only the requests that pass through the DevHub mock server. Traffic that the app sends to other hosts is not shown.
+1. The list shows the requests that pass through the DevHub mock server and the requests that `network.sourceScript` reports. Other traffic is not shown.
 2. Without `network.baseURLVariable` the server cannot redirect the app, and the mode, the set picker and the Rules button are hidden.
 3. The app reads the server URL only at launch. A change of the mode or the set needs Apply & Relaunch.
 4. A launch from Xcode or the home screen does not get the variable. The app status line warns about it.
-5. WebSockets are not mocked or forwarded.
+5. WebSocket messages pass through but are not mocked, and a rule does not apply to a WebSocket connection.
 6. A production profile cannot use the mock server. This refusal was checked by tests only.
 7. Copy as cURL has no request headers. Add the token by hand.
 8. The list keeps 2,000 requests per simulator, in memory only.

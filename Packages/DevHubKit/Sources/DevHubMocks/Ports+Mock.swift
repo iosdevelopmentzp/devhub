@@ -18,6 +18,7 @@ extension Ports {
             logs: MockAppLogRepository(),
             mockServer: MockLocalServerRepository(),
             mockSets: MockSetStoreRepository(),
+            networkSource: MockNetworkSourceRepository(),
             messaging: MockSimulatorMessagingRepository(),
             codeHost: MockCodeHostRepository(),
             ci: MockCIRepository(),

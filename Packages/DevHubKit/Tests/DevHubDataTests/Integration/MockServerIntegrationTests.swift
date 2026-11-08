@@ -11,7 +11,7 @@ import Testing
         let repository = NWMockServerRepository(session: .mockForwarding())
         let recorder = CallbackRecorder<NetworkRequest>()
         let rule = respondRule(path: "/v1/settings/list", status: 201, body: #"{"mocked":true}"#)
-        let port = try await repository.start(udid: udid, upstream: URL(string: "https://unused.invalid")!, rules: [rule]) { recorder.append($0) }
+        let port = try await repository.start(udid: udid, upstream: MockUpstream(url: URL(string: "https://unused.invalid")!), rules: [rule]) { recorder.append($0) }
 
         let (data, response) = try await get("http://127.0.0.1:\(port)/v1/settings/list")
 
@@ -36,7 +36,7 @@ import Testing
             query: nil,
             action: .patch(MockPatch(operations: [JSONPatchOperation(keyPath: "data.isVIP", value: "true")], delay: 0))
         )
-        let port = try await repository.start(udid: udid, upstream: URL(string: "https://\(host)")!, rules: [patch]) { _ in }
+        let port = try await repository.start(udid: udid, upstream: MockUpstream(url: URL(string: "https://\(host)")!), rules: [patch]) { _ in }
 
         let (data, response) = try await get("http://127.0.0.1:\(port)/v1/profile/info")
 
@@ -51,12 +51,12 @@ import Testing
         let upstreamRepository = NWMockServerRepository(session: .mockForwarding())
         let upstreamPort = try await upstreamRepository.start(
             udid: "upstream",
-            upstream: URL(string: "https://unused.invalid")!,
+            upstream: MockUpstream(url: URL(string: "https://unused.invalid")!),
             rules: [respondRule(path: "/v1/real", status: 200, body: #"{"from":"upstream"}"#)]
         ) { _ in }
         let repository = NWMockServerRepository(session: .mockForwarding())
         let recorder = CallbackRecorder<NetworkRequest>()
-        let port = try await repository.start(udid: udid, upstream: URL(string: "http://127.0.0.1:\(upstreamPort)")!, rules: [respondRule(path: "/v1/other", status: 500, body: "")]) { recorder.append($0) }
+        let port = try await repository.start(udid: udid, upstream: MockUpstream(url: URL(string: "http://127.0.0.1:\(upstreamPort)")!), rules: [respondRule(path: "/v1/other", status: 500, body: "")]) { recorder.append($0) }
 
         let (data, response) = try await get("http://127.0.0.1:\(port)/v1/real?x=1")
 
@@ -69,24 +69,58 @@ import Testing
         await upstreamRepository.stop(udid: "upstream")
     }
 
-    @Test func webSocketUpgradeIsAnswered501() async throws {
+    @Test func webSocketMessagesPassThroughTheRouteAndShowInTheTranscript() async throws {
+        let echo = try WebSocketEchoServer()
+        let echoPort = try await echo.start()
         let repository = NWMockServerRepository(session: .mockForwarding())
         let recorder = CallbackRecorder<NetworkRequest>()
-        let port = try await repository.start(udid: udid, upstream: URL(string: "https://unused.invalid")!, rules: []) { recorder.append($0) }
+        let upstream = MockUpstream(
+            url: URL(string: "https://unused.invalid")!,
+            routes: [MockRoute(path: "/socket.io/", upstream: URL(string: "http://127.0.0.1:\(echoPort)")!)]
+        )
+        let port = try await repository.start(udid: udid, upstream: upstream, rules: []) { recorder.append($0) }
+        let task = URLSession(configuration: .ephemeral).webSocketTask(with: URL(string: "ws://127.0.0.1:\(port)/socket.io/?EIO=4&transport=websocket")!)
+        task.resume()
+
+        try await task.send(.string("hello"))
+        let reply = try await task.receive()
+        task.cancel(with: .normalClosure, reason: nil)
+
+        guard case let .string(text) = reply else {
+            Issue.record("The echo is not text")
+            return
+        }
+        #expect(text == "hello")
+        try await waitUntil { recorder.values.last?.duration != nil }
+        let exchange = try #require(recorder.values.last)
+        #expect(exchange.statusCode == 101)
+        #expect(exchange.isWebSocket)
+        #expect(exchange.url == "ws://127.0.0.1:\(echoPort)/socket.io/?EIO=4&transport=websocket")
+        #expect(exchange.responseBody.contains("→ hello"))
+        #expect(exchange.responseBody.contains("← hello"))
+        #expect(Set(recorder.values.map(\.id)).count == 1)
+        await repository.stop(udid: udid)
+        echo.stop()
+    }
+
+    @Test func webSocketUpgradeToAClosedPortIsAnswered502() async throws {
+        let repository = NWMockServerRepository(session: .mockForwarding())
+        let recorder = CallbackRecorder<NetworkRequest>()
+        let port = try await repository.start(udid: udid, upstream: MockUpstream(url: URL(string: "http://127.0.0.1:1")!), rules: []) { recorder.append($0) }
 
         let reply = String(decoding: try await RawHTTPClient.send(HTTPRequestFixture.webSocketUpgrade, port: port), as: UTF8.self)
 
-        #expect(reply.hasPrefix("HTTP/1.1 501 Not Implemented\r\n"))
-        #expect(reply.contains("Connection: close"))
-        try await waitUntil { recorder.values.count == 1 }
-        #expect(recorder.values.first?.error == "WebSocket not mocked yet")
+        #expect(reply.hasPrefix("HTTP/1.1 502 Bad Gateway\r\n"))
+        try await waitUntil { recorder.values.last?.duration != nil }
+        #expect(recorder.values.last?.statusCode == 502)
+        #expect(recorder.values.last?.error?.contains("127.0.0.1") == true)
         await repository.stop(udid: udid)
     }
 
     @Test func startingTwiceKeepsThePortAndSwapsTheRules() async throws {
         let repository = NWMockServerRepository(session: .mockForwarding())
-        let first = try await repository.start(udid: udid, upstream: URL(string: "https://unused.invalid")!, rules: [respondRule(path: "/v1/x", status: 200, body: "one")]) { _ in }
-        let second = try await repository.start(udid: udid, upstream: URL(string: "https://unused.invalid")!, rules: [respondRule(path: "/v1/x", status: 200, body: "two")]) { _ in }
+        let first = try await repository.start(udid: udid, upstream: MockUpstream(url: URL(string: "https://unused.invalid")!), rules: [respondRule(path: "/v1/x", status: 200, body: "one")]) { _ in }
+        let second = try await repository.start(udid: udid, upstream: MockUpstream(url: URL(string: "https://unused.invalid")!), rules: [respondRule(path: "/v1/x", status: 200, body: "two")]) { _ in }
         await repository.update(udid: udid, rules: [respondRule(path: "/v1/x", status: 200, body: "three")])
 
         let (data, _) = try await get("http://127.0.0.1:\(second)/v1/x")
@@ -98,7 +132,7 @@ import Testing
 
     @Test func stopClosesThePort() async throws {
         let repository = NWMockServerRepository(session: .mockForwarding())
-        let port = try await repository.start(udid: udid, upstream: URL(string: "https://unused.invalid")!, rules: []) { _ in }
+        let port = try await repository.start(udid: udid, upstream: MockUpstream(url: URL(string: "https://unused.invalid")!), rules: []) { _ in }
 
         await repository.stop(udid: udid)
 

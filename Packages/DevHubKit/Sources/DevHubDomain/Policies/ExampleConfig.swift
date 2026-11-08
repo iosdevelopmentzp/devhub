@@ -10,6 +10,7 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
 - `project.json`: how the project builds and runs, base branch, worktree rules, launch profiles with their mock server upstream, the launch identity, the network mocks, log filter, Home grid order.
 - `actions/`: buttons with placements, inputs and confirmation.
 - `scripts/`: executables. A script with a `# devhub:` header becomes a row on Home without a JSON file. The helper scripts that an action, a tab or `simulators.statusScript` runs have `placements = palette`, so Home does not list them twice.
+- `network/source.sh`: the `network.sourceScript` of the project. It reads `Library/Caches/network.jsonl` of the app (one JSON request per line) and prints `@devhub {"request": …}` lines for the Network tab.
 - `tabs/`: `qa.json`, a custom tab built from actions and a source script; `chat.json`, a tab of chat commands with shared inputs (environment and user ID), `copy` actions that put the rendered command on the clipboard and open the channel, and a Recent list with Resend.
 """#, isExecutable: false),
         ExampleFile(path: "project.json", text: #"""
@@ -58,7 +59,7 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
     ],
     "identity": { "variable": "APP_DEVICE_ID", "keptVariable": "APP_KEEP_DEVICE_ID", "args": ["-skipOnboarding", "YES"], "idPrefix": "devhub-" }
   },
-  "network": { "baseURLVariable": "APP_BASE_URL", "mocksFolder": "Tests/Mocks" },
+  "network": { "baseURLVariable": "APP_BASE_URL", "mocksFolder": "Tests/Mocks", "sourceScript": "network/source.sh" },
   "tracker": { "kind": "jira", "project": "ABC", "statuses": ["To Do", "In Progress", "In Review", "Done"], "startStatus": "In Progress", "branchFormat": "feature/{key}-{slug}" },
   "logs": { "subsystem": "com.example.app" },
   "simulators": { "statusScript": "scripts/sim-status.sh" },
@@ -153,6 +154,18 @@ Copy this folder into a project as `.devhub/` and adjust the values. Every field
   "when": { "host": "github" }
 }
 """#, isExecutable: false),
+        ExampleFile(path: "network/source.sh", text: #"""
+#!/bin/zsh
+set -u
+if [ -z "${DEVHUB_DATA_CONTAINER:-}" ]; then
+    print '@devhub {"error": "The app is not installed on this simulator."}'
+    exit 0
+fi
+log="$DEVHUB_DATA_CONTAINER/Library/Caches/network.jsonl"
+tail -n 200 -F "$log" 2>/dev/null | while IFS= read -r line; do
+    [ -n "$line" ] && print -r -- "@devhub {\"request\": $line}"
+done
+"""#, isExecutable: true),
         ExampleFile(path: "scripts/clean-derived-data.sh", text: #"""
 #!/bin/zsh
 # devhub: title = Clean DerivedData

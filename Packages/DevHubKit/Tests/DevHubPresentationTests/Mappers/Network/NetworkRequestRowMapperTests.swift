@@ -65,6 +65,18 @@ import Testing
         #expect(NetworkRequestRowMapper.model(for: noText, isSelected: false).statusHint == "200")
     }
 
+    @Test func theOriginAndAWebSocketHaveTheirTags() {
+        var script = NetworkRequestFixture.profile
+        script.origin = .sourceScript
+        var socket = NetworkRequestFixture.profile
+        socket.requestHeaders = [HTTPHeader(name: "Upgrade", value: "websocket")]
+        socket.statusCode = 101
+
+        #expect(NetworkRequestRowMapper.tags(for: script) == [NetworkRequestRowMapper.sourceScriptTag])
+        #expect(NetworkRequestRowMapper.tags(for: socket) == [NetworkRequestRowMapper.passthroughTag, NetworkRequestRowMapper.webSocketTag])
+        #expect(NetworkRequestRowMapper.statusTint(of: socket) == .green)
+    }
+
     @Test func aSlowRequestHasAnOrangeDurationAndNoDurationIsEmpty() {
         let slow = NetworkRequestFixture.with(method: "GET", statusCode: 200, error: nil, isFailure: false, duration: 2.5)
         let unknown = NetworkRequestFixture.with(method: "GET", statusCode: 200, error: nil, isFailure: false, duration: nil)

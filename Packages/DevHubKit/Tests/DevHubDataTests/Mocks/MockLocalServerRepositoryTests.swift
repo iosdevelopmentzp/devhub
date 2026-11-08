@@ -9,7 +9,7 @@ import Testing
         let repository = MockLocalServerRepository()
         let recorder = CallbackRecorder<NetworkRequest>()
 
-        let port = try await repository.start(udid: "sim", upstream: URL(string: "https://api-qa.example.com")!, rules: []) { recorder.append($0) }
+        let port = try await repository.start(udid: "sim", upstream: MockUpstream(url: URL(string: "https://api-qa.example.com")!), rules: []) { recorder.append($0) }
 
         #expect(await repository.port(udid: "sim") == port)
         #expect(recorder.values == MockData.mockServerExchanges)

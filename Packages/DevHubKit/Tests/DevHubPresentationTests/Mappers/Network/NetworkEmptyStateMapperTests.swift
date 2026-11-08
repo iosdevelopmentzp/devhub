@@ -11,6 +11,14 @@ import Testing
         #expect(map()?.title == "Waiting for requests…")
     }
 
+    @Test func aSourceScriptIsEnoughWithoutTheMockServer() {
+        let model = map(hasBaseURLVariable: false, hasSourceScript: true, isIntercepting: false)
+
+        #expect(model?.title == "Waiting for requests…")
+        #expect(model?.description.contains("network.sourceScript") == true)
+        #expect(map(hasSourceScript: true, hasBootedSimulator: false)?.title == "No simulator booted")
+    }
+
     @Test func aFilterWithNoMatchesSaysSo() {
         let model = map(hasRequests: true, shownIsEmpty: true, filter: .failed)
 
@@ -25,6 +33,7 @@ import Testing
 
     private func map(
         hasBaseURLVariable: Bool = true,
+        hasSourceScript: Bool = false,
         hasBootedSimulator: Bool = true,
         isIntercepting: Bool = true,
         hasRequests: Bool = false,
@@ -34,6 +43,7 @@ import Testing
     ) -> NetworkEmptyStateModel? {
         NetworkEmptyStateMapper.model(
             hasBaseURLVariable: hasBaseURLVariable,
+            hasSourceScript: hasSourceScript,
             hasBootedSimulator: hasBootedSimulator,
             isIntercepting: isIntercepting,
             hasRequests: hasRequests,

@@ -73,6 +73,7 @@ All fields optional. Missing values are detected (see "default").
 | `launch.identity.hookMarker` | string | the value of `variable` | the text DevHub looks for in the app binary; when it is found, the identity panel shows a green tag with the variable name, else a red "no … hook" tag |
 | `network.baseURLVariable` | string | — | the environment variable that gets the URL of the DevHub mock server when the app is relaunched through it. Without it the mock server cannot redirect the app |
 | `network.mocksFolder` | path | `~/.devhub/mocks/<project folder name>` | where the mock sets of the project are saved. A relative path starts at the project folder, `~` is the home folder. A change reloads the sets |
+| `network.sourceScript` | path | — | section 10: a script that reports requests the mock server does not see, for example from a log file of the app |
 | `tracker.kind` | `"jira"` \| `"none"` | `jira` when `git.ticketURL` contains `atlassian` or `jira`, else `none` | the issue tracker of Utils → Tickets. DevHub reads Jira through the `jira` tool (`brew install jira-cli`, set up with `jira init`); `none` hides the list |
 | `tracker.project` | string | the default project of the `jira` config | the Jira project key, passed as `-p` to every list |
 | `tracker.statuses` | [string] | `["To Do", "In Progress", "In Review", "Done"]` | the statuses of the "Move to" menu of a ticket row, in this order; the current status is left out |
@@ -225,6 +226,8 @@ Any executable under `scripts/` is an action without a JSON file. Header lines, 
   "args": ["-ui-testing"],
   "defaults": [ { "suite": "group.com.example.myapp", "key": "environment", "value": "staging", "type": "string" } ],
   "cleanInstall": false,
+  "upstream": "https://api.staging.example.com",
+  "routes": [ { "path": "/socket.io/", "upstream": "https://socket.staging.example.com" } ],
   "tint": "indigo"
 }
 ```
@@ -237,10 +240,11 @@ Any executable under `scripts/` is an action without a JSON file. Header lines, 
 | `cleanInstall` | when true the profile always deletes the app and resets the simulator keychain before install |
 | `storage` | `{"suite": "group.com.example.myapp", "key": "environment"}`: where the app saves its current profile; DevHub reads it to show which profile the installed app uses (same container rule as `defaults`) |
 | `upstream` | the URL of the real server for this profile; the mock server forwards to it in Passthrough mode |
+| `routes` | requests whose path starts with a route `path` go to the route `upstream` instead of `upstream`; the longest matching path wins. For an app that sends the calls for two real servers (for example REST and Socket.IO) to the one base URL. Applies to HTTP and WebSocket. A `path` must start with `/`, an `upstream` must be `http` or `https` |
 | `production` | when true the profile tag in the identity panel is red and the mock server refuses to run with it |
 | `tint` | the colour of the profile tag in the identity summary and panel: `gray`, `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `indigo`, `purple` or `pink`. Default: teal, red for a `production` profile. A set `tint` wins over that red |
 
-The selected profile is saved per simulator. The run bar shows a picker when the project has profiles. Launches from Xcode or the home screen do not get these values; the hint of the profile summary says so. A clean install also removes the defaults that an earlier profile wrote.
+The selected profile is saved per simulator. A simulator without a saved choice uses the first profile in the list, so put the everyday profile first. The run bar shows a picker when the project has profiles. Launches from Xcode or the home screen do not get these values; the hint of the profile summary says so. A clean install also removes the defaults that an earlier profile wrote.
 
 ## 6. Simulator status script
 
@@ -337,3 +341,38 @@ The Network tab saves each mock set as `<set name>.json` in `network.mocksFolder
 | `patch` | the request goes to the real host, then each operation sets (`value`) or removes (`remove: true`) a key path in the JSON response |
 
 The first enabled rule that matches wins. The Network list shows a GraphQL request by its operation name with a `query`, `mutation` or `batch` tag; a response with an `errors` array counts as failed even with status 200.
+
+## 10. Network source script
+
+`network.sourceScript` adds requests to the Network tab that the DevHub mock server does not see: a launch from Xcode, hosts other than the base URL, an app without `network.baseURLVariable`. The script reads them from a place the app writes to, for example its log file in the data container, and prints one line per request. DevHub does not parse any log format itself.
+
+DevHub starts the script when the Network tab is open and a simulator is chosen. It stops the script when the tab closes, the simulator or the project changes, or the config changes, and starts it again after that. So the script should first print the recent requests and then wait for new ones (`tail -F`). It has no time limit. It gets the variables of a simulator row action (section 3.4), among them `DEVHUB_SIMULATOR_UDID`, `DEVHUB_BUNDLE_ID` and `DEVHUB_DATA_CONTAINER`. A relative path is looked up like `simulators.statusScript` (section 6). Keep the script out of `scripts/`, for example in `network/source.sh`: a file in `scripts/` with a shebang becomes an action, and a script that never ends is not a useful button.
+
+One request per line:
+
+```
+@devhub {"request": {"id": "42", "method": "GET", "url": "https://api.example.com/v1/profile", "status": 200, "startedAt": "2026-11-06T08:15:30.702Z", "durationMs": 182, "responseBody": "{\"name\":\"alex\"}"}}
+```
+
+| Field | Required | Meaning |
+|---|---|---|
+| `method` | yes | the HTTP method |
+| `url` | yes | the full URL, or a path that starts with `/` |
+| `id` | no | a key of the request, a string or a number. A later line with the same `id` replaces the earlier row, so a script can print a request first and add its duration later |
+| `status`, `statusText` | no | the status code and its text; 400 or more marks the row as failed |
+| `startedAt` | no | ISO 8601 with a time zone, or Unix seconds. The list is sorted by it |
+| `durationMs` | no | the duration in milliseconds |
+| `requestHeaders`, `responseHeaders` | no | JSON objects of header names and values |
+| `requestBody`, `responseBody` | no | text. A body over 512 KB is cut |
+| `error` | no | the error text; it marks the row as failed |
+
+Other lines:
+
+1. `@devhub {"error": "…"}` shows the text in a bar over the list, with Retry. The script keeps running.
+2. A line with a broken `request` directive shows the reason in the same bar, for example "The request directive has no url."
+3. Plain lines are ignored. When the script exits with a code other than 0, the bar shows the last plain line.
+4. Exit code 0 ends the stream without a message.
+
+DevHub removes the `Authorization`, `Cookie`, `Set-Cookie` and `Proxy-Authorization` headers and masks tokens, as for mock server requests. The rows get a `script` tag; the details, Copy as cURL and Mock This work as for other rows. While the mock server runs for the simulator, DevHub hides the script rows whose host is `127.0.0.1` or `localhost`: the mock server lists those requests itself, with exact timing. The tab keeps the last 2,000 script requests in memory.
+
+`docs/examples/devhub/network/source.sh` is a working example for an app that appends one JSON request object per line to `Library/Caches/network.jsonl`.

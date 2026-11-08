@@ -19,7 +19,7 @@ enum NetworkRequestDetailMapper {
             graphQLOperations: request.graphQL?.operations.map { "\($0.kind.rawValue) \($0.name ?? "(no name)")" } ?? [],
             graphQLVariables: request.graphQL.flatMap(variables),
             graphQLErrors: request.graphQL?.errors ?? [],
-            canMock: request.method.isEmpty == false && (request.path.isEmpty == false || request.url.isEmpty == false),
+            canMock: request.isWebSocket == false && request.method.isEmpty == false && (request.path.isEmpty == false || request.url.isEmpty == false),
             curl: CurlCommandBuilder.command(for: request),
             rawResponseBody: request.responseBody,
             canCopyResponseBody: request.responseBody.isEmpty == false
@@ -27,6 +27,12 @@ enum NetworkRequestDetailMapper {
     }
 
     static func sourceNote(for request: NetworkRequest) -> String? {
+        if request.origin == .sourceScript {
+            return "Reported by network.sourceScript. The mock server did not see this request"
+        }
+        if request.isWebSocket {
+            return "WebSocket passed through by DevHub to \(request.host). Messages are not mocked"
+        }
         if request.mockRuleID != nil {
             return "Answered by a DevHub mock rule"
         }

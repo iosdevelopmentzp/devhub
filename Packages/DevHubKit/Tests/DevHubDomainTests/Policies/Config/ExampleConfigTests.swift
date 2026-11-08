@@ -23,7 +23,7 @@ import Testing
         #expect(resolved.project.launch?.identity?.variable == "APP_DEVICE_ID")
         #expect(resolved.project.launch?.profiles?.first?.upstream == "https://api-qa.example.com")
         #expect(resolved.project.launch?.profiles?.last?.isProduction == true)
-        #expect(resolved.project.network == NetworkConfig(baseURLVariable: "APP_BASE_URL", mocksFolder: "Tests/Mocks"))
+        #expect(resolved.project.network == NetworkConfig(baseURLVariable: "APP_BASE_URL", mocksFolder: "Tests/Mocks", sourceScript: "network/source.sh"))
     }
 
     @Test func scriptsAreExecutable() {

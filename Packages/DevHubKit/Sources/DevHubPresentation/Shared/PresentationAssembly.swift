@@ -334,7 +334,17 @@ package final class PresentationAssembly {
             events: events,
             store: store
         )
-        network = NetworkStore(session: session, simulators: simulators, mockTraffic: mockServer, events: events, store: store)
+        network = NetworkStore(
+            followNetworkSource: useCases.followNetworkSource,
+            scriptEnvironment: SimulatorScriptEnvironment(config: config, session: session, build: build, codeHosts: codeHostRemote, launcher: ports.launcher),
+            config: config,
+            session: session,
+            simulators: simulators,
+            mockTraffic: mockServer,
+            activity: activity,
+            events: events,
+            store: store
+        )
         messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, operations: operations, events: events, store: store)
         simulatorQA = SimulatorQAStore(repository: ports.simulatorSettings, media: ports.media, store: store, activity: activity, operations: operations, screenshotFolder: "~/Desktop", now: { .now })
         media = MediaStore(repository: ports.media, operations: operations, activity: activity)

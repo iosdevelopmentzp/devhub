@@ -33,7 +33,7 @@ import Testing
     @Test func aDifferentProfileMovesTheServerToItsUpstream() async {
         let (ports, spies) = Ports.spies()
         spies.mockServer.ports = [udid: 52001]
-        spies.mockServer.upstreams = [udid: URL(string: "https://api.dev.example.com")!]
+        spies.mockServer.upstreams = [udid: MockUpstream(url: URL(string: "https://api.dev.example.com")!)]
 
         let outcome = await preparation(ports).prepare(udid: udid, plan: plan(IdentityLaunchFixture.staging))
 
@@ -42,13 +42,13 @@ import Testing
             note: "Mock server on: http://127.0.0.1:52001 → api.staging.example.com",
             baseURL: "http://127.0.0.1:52001"
         ))
-        #expect(spies.mockServer.calls.contains(.retarget(udid: udid, upstream: staging)))
+        #expect(spies.mockServer.calls.contains(.retarget(udid: udid, upstream: MockUpstream(url: staging))))
     }
 
     @Test func theSameUpstreamIsNotRetargeted() async {
         let (ports, spies) = Ports.spies()
         spies.mockServer.ports = [udid: 52001]
-        spies.mockServer.upstreams = [udid: staging]
+        spies.mockServer.upstreams = [udid: MockUpstream(url: staging)]
 
         let outcome = await preparation(ports).prepare(udid: udid, plan: plan(IdentityLaunchFixture.staging))
 
