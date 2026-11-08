@@ -26,6 +26,7 @@ new element. A new shared block goes into DevHubUI and into this table.
 | `PlainTag` | `PlainTag("approved", systemImage: "checkmark.seal")` | Icon and caption text without a capsule |
 | `IconTile` | `IconTile(systemImage: model.icon, tint: model.iconTint.color, size: 32)` | The rounded icon square at the start of a row (32) or a card |
 | `IconButton` | `IconButton(systemImage: "trash", help: "Delete worktree", tint: .red) { … }` | A 24 × 24 icon action with hover background and a hint. `IconButton.side` is 24 |
+| `ToggleIconButton` | `ToggleIconButton(systemImage: "text.justify.leading", help: model.fullHint, isOn: model.isFull) { … }` | An `IconButton` for a mode that stays on: accent icon and accent background while `isOn`, dimmed when disabled. The hint says what the next click does |
 | `OverflowMenu` | `OverflowMenu { Button("Copy Path", systemImage: "doc.on.doc") { … } }` | The ellipsis menu, same 24 × 24 size, hint "More actions" |
 | `HoverActions` | `HoverActions(isVisible: isHovered, count: 3, spacing: 2) { IconButton(…) }` | Hover buttons that keep their width when hidden (an empty frame of `count` buttons) |
 | `ActionBar`, `ActionItem` | `ActionBar(items: [ActionItem("Push", systemImage: "arrow.up", hint: "git push", priority: 6, isDisabled: false) { … }])` | A row of labelled buttons that never cuts a title: the lowest `priority` buttons lose their title first (`ActionBarLayout`, `ActionBarFit`) |
@@ -100,8 +101,9 @@ Tests never assert on the exact text of locale or clock formatters, only nil or 
 
 ## Hints and truncation
 
-Every icon without visible text explains itself on hover. `IconButton(help:)`, `OverflowMenu` and `ModelTag` (with
-`TagModel.hint`) do it already. Anything else gets `.hint("…")`. Never `.help`: the system tooltip is slow and
+Every icon without visible text explains itself on hover. `IconButton(help:)`, `ToggleIconButton(help:)`,
+`OverflowMenu` and `ModelTag` (with `TagModel.hint`) do it already. A window that does not show `RootView` (the
+request window) draws its own hints: its root gets `.hintHost(HintCenter())` before `inject`. Anything else gets `.hint("…")`. Never `.help`: the system tooltip is slow and
 unreliable in a menu bar panel. A hint says what happens, plus the git or simctl command when there is one. Timing and
 placement: `panel-window`.
 

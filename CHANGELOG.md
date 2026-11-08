@@ -7,11 +7,25 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Pull requests: a split button on each modified or renamed file shows only that file side by side (or unified when the header says Side by Side). The header control still sets every file.
+- Pull requests: Refresh at the top of the details reads the request again (description, threads, checks, files) and keeps the viewed marks, open files, whole files and layouts; ⌘R in the request window. A failed refresh keeps the shown data and logs the error.
+- Diffs: A− and A+ in the files header of a request (⌘−, ⌘=, ⌘0 or a click on the size resets) change the text size of every diff in DevHub, 9 to 20 pt, saved.
+- Pull requests: the context menu of a file header has the actions of its buttons, plus Copy Path.
+
+### Fixed
+- Pull requests: the whole-file and split buttons of a file have an accent background while they are on. The whole-file button shows a spinner while the file is read, and both buttons open a folded file.
+- Pull requests: the request window shows the hints of its buttons.
+- Diffs: scrolling a long diff or a whole file no longer jumps back. Diffs up to 1500 lines are laid out at once, so the scroll view knows their height.
+- Pull requests: showing the whole file of a file reached with "Show in diff" no longer scrolls back to the thread line.
+- Pull requests: the request window takes the newest title, checks and head commit of the request from the list, so a line comment after a new push uses the new commit.
+
+### Added
 - Network: `network.sourceScript`. A project script reports requests that the mock server does not see (a launch from Xcode, a log file of the app) with `@devhub {"request": …}` lines; the rows get a `script` tag and a bar shows script errors with Retry. ADR 018, extensions §10, example `docs/examples/devhub/network/source.sh`.
 - Network: WebSocket connections pass through the mock server to the upstream instead of getting status 501. One row per connection with status 101, a `WebSocket` tag and the messages (`→` sent, `←` received) in the response body. Mock rules do not apply to WebSocket messages.
 - Launch profiles: `routes` send a path prefix to another real server, for HTTP and WebSocket, for example `/socket.io/` to a socket host.
 
 ### Infrastructure
+- `ui-components` skill: `ToggleIconButton` and `.hintHost(_:)`; `panel-window` skill: the hint center of a pull request window.
 - Skills `code-host`, `data-layer`, `testing` and `xcode-toolchain` describe the ADR 017 code: teams and `myTeams`, `JSONPages` for paged answers, the `.xcresult` parsers and spies, `AttachDestination` and `--start-stopped`. ADR 017 is done; `docs/STATUS.md` has decision 77 and its gaps.
 - `docs/examples/circleci/config.yml`: a CircleCI config for a test project (a build with an artifact, unit tests with a JUnit file that fails on odd minutes, an approval job, a deploy). The owner provides a test CircleCI account later; until then the CI features are checked by tests and the mock ports. ADR 015.
 - The `circleci` CLI runs with `CIRCLE_NO_INTERACTIVE=1`, `CIRCLE_NO_UPDATE_CHECK=1`, `CIRCLE_SPINNER_DISABLED=1` and `NO_COLOR=1`; version 1.14.0 is the one checked (`docs/DEPENDENCIES.md`).

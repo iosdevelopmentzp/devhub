@@ -4,8 +4,9 @@ import DevHubUI
 
 enum PullRequestFileRowMapper {
 
-    static func model(for original: PullRequestFileDiff, review: PullRequestReviewState, threads: [ReviewThreadRowModel], words: CodeHostWords) -> PullRequestFileRowModel {
+    static func model(for original: PullRequestFileDiff, review: PullRequestReviewState, threads: [ReviewThreadRowModel], layout standard: DiffLayout, words: CodeHostWords) -> PullRequestFileRowModel {
         let isFull = review.fullFiles.contains(original.id)
+        let layout = review.fileLayouts[original.id] ?? standard
         let file = isFull ? expanded(original, review: review) : original
         let folder = (file.path as NSString).deletingLastPathComponent
         let isExpanded = review.expandedFiles.contains(file.id)
@@ -31,7 +32,10 @@ enum PullRequestFileRowMapper {
             lineComposer: isExpanded ? lineComposer(review: review, path: file.path) : nil,
             canOpenOnWeb: file.kind != .deleted,
             isFull: isFull,
-            fullHint: fullHint(original, isFull: isFull, words: words)
+            fullHint: fullHint(original, isFull: isFull, words: words),
+            layout: layout,
+            layoutHint: layoutHint(original, layout: layout),
+            isFullLoading: isFull && review.fileContents[original.id] == nil
         )
     }
 
@@ -63,6 +67,13 @@ enum PullRequestFileRowMapper {
         return isFull
             ? "Show only the changed parts"
             : "Show the whole file with the changes in place. DevHub reads the file at the last commit of the \(words.request) from \(words.name)."
+    }
+
+    private static func layoutHint(_ file: PullRequestFileDiff, layout: DiffLayout) -> String? {
+        guard file.kind == .modified || file.kind == .renamed, file.isTooLarge == false, file.diff.isBinary == false else { return nil }
+        return layout == .sideBySide
+            ? "Show this file unified: removed and added lines in one column. The other files keep their layout."
+            : "Show this file side by side: the file before the change on the left, after it on the right. The other files keep their layout."
     }
 
     static func lineComposer(review: PullRequestReviewState, path: String) -> LineComposerModel? {

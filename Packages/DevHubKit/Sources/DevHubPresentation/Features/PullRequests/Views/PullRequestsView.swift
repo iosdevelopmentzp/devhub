@@ -267,7 +267,7 @@ struct PullRequestsView: View {
     }
 
     private func detailActions(for summary: PullRequestSummary) -> PullRequestDetailActions {
-        PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, aiText: aiText, autoRerun: autoRerun, diagnostics: ciDiagnostics, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: openPullRequestWindow)
+        PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, aiText: aiText, autoRerun: autoRerun, diagnostics: ciDiagnostics, pullRequests: pullRequests, settings: settings, appActions: appActions, configActions: configActions, openWindow: openPullRequestWindow)
     }
 
     private func details(for summary: PullRequestSummary) -> PullRequestDetailsModel {

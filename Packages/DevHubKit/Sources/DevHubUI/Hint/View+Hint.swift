@@ -13,4 +13,9 @@ package extension View {
     func hintWhenTruncated(_ fullText: String, adding suffix: String) -> some View {
         modifier(TruncationHintModifier(fullText: fullText, suffix: suffix))
     }
+
+    func hintHost(_ center: HintCenter) -> some View {
+        overlay { HintOverlay(center: center) }
+            .environment(\.hintCenter, center)
+    }
 }

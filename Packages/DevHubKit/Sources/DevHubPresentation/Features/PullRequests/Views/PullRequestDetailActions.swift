@@ -9,6 +9,9 @@ struct PullRequestDetailActions {
     let toggleHiddenFiles: () -> Void
     let toggleFileGroup: (_ name: String) -> Void
     let setDiffLayout: (DiffLayout) -> Void
+    let toggleFileLayout: (_ fileID: PullRequestFileDiff.ID) -> Void
+    let changeDiffFontSize: (_ step: Int) -> Void
+    let resetDiffFontSize: () -> Void
     let toggleOnlyChangedSinceReview: () -> Void
     let forgetReview: () -> Void
     let togglePerson: (_ login: String, _ role: PullRequestPersonRole) -> Void
@@ -55,6 +58,7 @@ struct PullRequestDetailActions {
     let fixThreads: (AIProvider) -> Void
     let runConfigAction: (_ actionID: ConfigActionItemModel.ID) -> Void
     let openWindow: (() -> Void)?
+    let refresh: () -> Void
     let retry: () -> Void
 
     static let preview = PullRequestDetailActions(
@@ -65,6 +69,9 @@ struct PullRequestDetailActions {
         toggleHiddenFiles: {},
         toggleFileGroup: { _ in },
         setDiffLayout: { _ in },
+        toggleFileLayout: { _ in },
+        changeDiffFontSize: { _ in },
+        resetDiffFontSize: {},
         toggleOnlyChangedSinceReview: {},
         forgetReview: {},
         togglePerson: { _, _ in },
@@ -111,6 +118,7 @@ struct PullRequestDetailActions {
         fixThreads: { _ in },
         runConfigAction: { _ in },
         openWindow: {},
+        refresh: {},
         retry: {}
     )
 
@@ -123,6 +131,9 @@ struct PullRequestDetailActions {
             toggleHiddenFiles: toggleHiddenFiles,
             toggleFileGroup: toggleFileGroup,
             setDiffLayout: setDiffLayout,
+            toggleFileLayout: toggleFileLayout,
+            changeDiffFontSize: changeDiffFontSize,
+            resetDiffFontSize: resetDiffFontSize,
             toggleOnlyChangedSinceReview: toggleOnlyChangedSinceReview,
             forgetReview: forgetReview,
             togglePerson: togglePerson,
@@ -169,6 +180,7 @@ struct PullRequestDetailActions {
             fixThreads: fixThreads,
             runConfigAction: runConfigAction,
             openWindow: nil,
+            refresh: refresh,
             retry: retry
         )
     }
@@ -184,6 +196,7 @@ extension PullRequestDetailActions {
         autoRerun: CIAutoRerunStore,
         diagnostics: CIDiagnosticsStore,
         pullRequests: PullRequestsStore,
+        settings: SettingsStore,
         appActions: AppActions,
         configActions: ConfigActionsStore,
         openWindow: ((PullRequestSummary) -> Void)?
@@ -197,6 +210,9 @@ extension PullRequestDetailActions {
             toggleHiddenFiles: { detailStore.toggleHiddenFiles(of: id) },
             toggleFileGroup: { detailStore.toggleFileGroup($0, of: id) },
             setDiffLayout: { pullRequests.diffLayout = $0 },
+            toggleFileLayout: { detailStore.toggleFileLayout($0, of: id, standard: pullRequests.diffLayout) },
+            changeDiffFontSize: { settings.changeDiffFontSize(by: $0) },
+            resetDiffFontSize: { settings.resetDiffFontSize() },
             toggleOnlyChangedSinceReview: { detailStore.toggleOnlyChangedSinceReview(of: id) },
             forgetReview: { detailStore.forgetReview(of: id) },
             togglePerson: { people.toggle($0, role: $1, on: summary) },
@@ -253,6 +269,12 @@ extension PullRequestDetailActions {
                 )
             },
             openWindow: openWindow.map { open in { open(summary) } },
+            refresh: {
+                Task {
+                    await pullRequests.refresh()
+                    await detailStore.refresh(pullRequests.requests.first { $0.id == id } ?? summary)
+                }
+            },
             retry: { Task { await detailStore.reload(id) } }
         )
     }

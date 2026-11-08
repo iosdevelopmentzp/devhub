@@ -24,6 +24,15 @@ import Testing
         #expect(settings.windowMode == .panel)
         #expect(settings.usageProviders == .all)
         #expect(settings.mutedNotifications.isEmpty)
+        #expect(settings.diffFontSize == DiffFontSizePolicy.standard)
+    }
+
+    @Test func aSavedDiffFontSizeIsKeptInsideTheRange() throws {
+        let saved = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"diffFontSize":14}"#.utf8))
+        let tooLarge = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"diffFontSize":99}"#.utf8))
+
+        #expect(saved.diffFontSize == 14)
+        #expect(tooLarge.diffFontSize == DiffFontSizePolicy.range.upperBound)
     }
 
     @Test func mutedNotificationKindsAreKeptAndUnknownOnesIgnored() throws {

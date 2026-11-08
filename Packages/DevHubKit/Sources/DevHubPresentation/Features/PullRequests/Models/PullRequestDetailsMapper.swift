@@ -62,13 +62,14 @@ enum PullRequestDetailsMapper {
                     explain: PullRequestExplainMapper.model(summary: summary, review: review, context: context),
                     showsHiddenFiles: review.showsHiddenFiles,
                     diffLayout: context.diffLayout,
+                    isRefreshing: review.isRefreshing,
                     canExpandAllFiles: visible.count - viewedCount > expandedCount,
                     canCollapseAllFiles: expandedCount > 0,
                     hasThreadsInDiff: threadRows.contains { $0.canShowInDiff },
                     showsThreadsInDiff: review.showsThreadsInDiff,
                     files: shown.map { file in
                         var row = PullRequestFileRowMapper.hiding(
-                            PullRequestFileRowMapper.model(for: file, review: review, threads: threadRows, words: words),
+                            PullRequestFileRowMapper.model(for: file, review: review, threads: threadRows, layout: context.diffLayout, words: words),
                             isHidden: hidden.contains(file.path),
                             isChosen: review.chosenHiddenFiles.contains(file.path),
                             group: FileGroupPolicy.groupName(of: file.path, in: groupMatches)

@@ -25,6 +25,8 @@ final class PullRequestDetailStore {
     private(set) var busyJobs: Set<String> = []
     private(set) var fullFiles: [PullRequestSummary.ID: Set<PullRequestFileDiff.ID>] = [:]
     private(set) var fileContents: [PullRequestSummary.ID: [String: [String]]] = [:]
+    private(set) var fileLayouts: [PullRequestSummary.ID: [PullRequestFileDiff.ID: DiffLayout]] = [:]
+    private(set) var refreshing: Set<PullRequestSummary.ID> = []
     private(set) var ciToolState: CIToolState?
     private(set) var ciWorkflows: [String: CIWorkflow] = [:]
     private(set) var ciWorkflowErrors: [String: String] = [:]
@@ -140,6 +142,7 @@ final class PullRequestDetailStore {
         openJobLogs = []
         fullFiles = [:]
         fileContents = [:]
+        fileLayouts = [:]
         focus = nil
     }
 
@@ -169,6 +172,8 @@ final class PullRequestDetailStore {
             busyJobs: busyJobs,
             fullFiles: fullFiles[id] ?? [],
             fileContents: fileContents[id] ?? [:],
+            fileLayouts: fileLayouts[id] ?? [:],
+            isRefreshing: refreshing.contains(id),
             hasCIProvider: hasCIProvider(for: id),
             ciToolState: ciToolState,
             ciWorkflows: ciWorkflows,
@@ -314,21 +319,42 @@ final class PullRequestDetailStore {
         var files = fullFiles[id] ?? []
         if files.remove(fileID) == nil {
             files.insert(fileID)
+            expandedFiles[id, default: []].insert(fileID)
         }
         fullFiles[id] = files
+        clearFocus(of: id)
         guard files.contains(fileID), fileContents[id]?[fileID] == nil else { return }
-        let ref = summary.headSHA ?? summary.sourceBranch
-        Task { [weak self] in
-            guard let self else { return }
-            do {
-                let url = try await remote.codeHost()
-                let text = try await repository.fileContent(path: fileID, ref: ref, repository: url)
-                fileContents[id, default: [:]][fileID] = Self.lines(of: text)
-            } catch {
-                activity.log("Cannot read \(fileID) at \(ref)", detail: error.localizedDescription, outcome: .failure)
-                fullFiles[id]?.remove(fileID)
-            }
+        Task { await readFileContent(fileID, of: summary) }
+    }
+
+    private func readFileContent(_ fileID: PullRequestFileDiff.ID, of summary: PullRequestSummary) async {
+        guard let lines = await fileLines(fileID, of: summary) else {
+            fullFiles[summary.id]?.remove(fileID)
+            return
         }
+        fileContents[summary.id, default: [:]][fileID] = lines
+    }
+
+    private func fileLines(_ fileID: PullRequestFileDiff.ID, of summary: PullRequestSummary) async -> [String]? {
+        let ref = summary.headSHA ?? summary.sourceBranch
+        do {
+            let url = try await remote.codeHost()
+            let text = try await repository.fileContent(path: fileID, ref: ref, repository: url)
+            return Self.lines(of: text)
+        } catch is CancellationError {
+            return nil
+        } catch {
+            activity.log("Cannot read \(fileID) at \(ref)", detail: error.localizedDescription, outcome: .failure)
+            return nil
+        }
+    }
+
+    func toggleFileLayout(_ fileID: PullRequestFileDiff.ID, of id: PullRequestSummary.ID, standard: DiffLayout) {
+        let current = fileLayouts[id]?[fileID] ?? standard
+        let next: DiffLayout = current == .sideBySide ? .unified : .sideBySide
+        fileLayouts[id, default: [:]][fileID] = next == standard ? nil : next
+        expandedFiles[id, default: []].insert(fileID)
+        clearFocus(of: id)
     }
 
     private static func lines(of text: String) -> [String] {
@@ -584,6 +610,40 @@ final class PullRequestDetailStore {
                 activity.log("\(title) failed", detail: error.localizedDescription, outcome: .failure)
                 busyThreads.remove(threadID)
             }
+        }
+    }
+
+    func refresh(_ summary: PullRequestSummary) async {
+        let id = summary.id
+        guard isLoaded(id) else {
+            await load(id)
+            return
+        }
+        guard refreshing.contains(id) == false else { return }
+        refreshing.insert(id)
+        defer { refreshing.remove(id) }
+        do {
+            let url = try await remote.codeHost()
+            async let loadedDetails = repository.details(iid: id, repository: url)
+            async let loadedDiffs = repository.diffs(iid: id, repository: url)
+            let (description, files) = try await (loadedDetails, loadedDiffs)
+            var contents: [String: [String]] = [:]
+            for fileID in (fullFiles[id] ?? []).intersection(files.map(\.id)) {
+                contents[fileID] = await fileLines(fileID, of: summary)
+            }
+            clearCI(of: id)
+            details[id] = description
+            diffs[id] = files
+            errors[id] = nil
+            fileContents[id] = contents
+            fullFiles[id] = Set(contents.keys)
+            restoreViewed(of: id, files: files)
+            adoptHostReview(of: id, details: description)
+            history.load(id)
+            loadCI(of: id)
+        } catch is CancellationError {
+        } catch {
+            activity.log("Cannot refresh \(remote.words.reference(id))", detail: error.localizedDescription, outcome: .failure)
         }
     }
 

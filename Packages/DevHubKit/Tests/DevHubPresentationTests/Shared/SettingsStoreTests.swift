@@ -21,6 +21,20 @@ import Testing
         #expect(store.decode(AppSettings.self, forKey: "app.settings") == AppSettings(editor: "Cursor", terminal: "iTerm"))
     }
 
+    @Test func diffFontSizeChangesInStepsAndResetsToTheStandardSize() {
+        let settings = SettingsStore(values: AppSettings(), store: store)
+
+        settings.changeDiffFontSize(by: 2)
+        #expect(settings.values.diffFontSize == DiffFontSizePolicy.standard + 2)
+        #expect(store.decode(AppSettings.self, forKey: "app.settings")?.diffFontSize == DiffFontSizePolicy.standard + 2)
+
+        settings.changeDiffFontSize(by: 100)
+        #expect(settings.values.diffFontSize == DiffFontSizePolicy.range.upperBound)
+
+        settings.resetDiffFontSize()
+        #expect(settings.values.diffFontSize == DiffFontSizePolicy.standard)
+    }
+
     @Test func unchangedValuesAreNotSaved() {
         let settings = SettingsStore(values: AppSettings(), store: store)
 

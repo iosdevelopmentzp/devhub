@@ -28,6 +28,7 @@ struct PullRequestWindowView: View {
 
     var body: some View {
         let details = details
+        let detailActions = detailActions
         ScrollViewReader { proxy in
             HStack(spacing: 0) {
                 PullRequestFileSidebar(model: sidebar(details), selectedID: selectedFileID, query: $fileQuery, actions: detailActions) { id in
@@ -49,6 +50,13 @@ struct PullRequestWindowView: View {
         }
         .frame(minWidth: 1_000, minHeight: 560)
         .background(Theme.surface)
+        .background {
+            Button("Refresh", action: detailActions.refresh)
+                .keyboardShortcut("r")
+                .frame(width: 0, height: 0)
+                .opacity(0)
+                .accessibilityHidden(true)
+        }
         .task {
             await detailStore.load(summary.id)
             await people.loadIfNeeded()
@@ -59,9 +67,9 @@ struct PullRequestWindowView: View {
         ScrollView {
             PullRequestRow(
                 model: PullRequestRowMapper.model(
-                    for: summary,
+                    for: current,
                     context: context,
-                    local: PullRequestLocalStateMapper.state(for: summary.sourceBranch, checkout: git, worktrees: worktrees),
+                    local: PullRequestLocalStateMapper.state(for: current.sourceBranch, checkout: git, worktrees: worktrees),
                     isBusy: pullRequests.isBusy(summary.id),
                     isExpanded: true,
                     configActions: []
@@ -86,7 +94,17 @@ struct PullRequestWindowView: View {
     }
 
     private var detailActions: PullRequestDetailActions {
-        PullRequestDetailActions.live(for: summary, detailStore: detailStore, people: people, aiText: aiText, autoRerun: autoRerun, diagnostics: ciDiagnostics, pullRequests: pullRequests, appActions: appActions, configActions: configActions, openWindow: nil)
+        PullRequestDetailActions.live(for: current, detailStore: detailStore, people: people, aiText: aiText, autoRerun: autoRerun, diagnostics: ciDiagnostics, pullRequests: pullRequests, settings: settings, appActions: appActions, configActions: configActions, openWindow: nil)
+    }
+
+    private var current: PullRequestSummary {
+        if let listed = pullRequests.requests.first(where: { $0.id == summary.id }) {
+            return listed
+        }
+        if let open = openPullRequests.requestsByBranch[summary.sourceBranch], open.id == summary.id {
+            return open
+        }
+        return summary
     }
 
     private func sidebar(_ details: PullRequestDetailsModel) -> PullRequestFileSidebarModel? {
@@ -122,7 +140,7 @@ struct PullRequestWindowView: View {
 
     private var details: PullRequestDetailsModel {
         PullRequestDetailsMapper.model(
-            summary: summary,
+            summary: current,
             details: detailStore.details[summary.id],
             diffs: detailStore.diffs[summary.id],
             error: detailStore.errors[summary.id],

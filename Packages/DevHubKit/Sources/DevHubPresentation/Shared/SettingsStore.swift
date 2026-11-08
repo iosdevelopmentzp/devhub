@@ -47,6 +47,14 @@ package final class SettingsStore {
         values.windowMode == .window || values.showDockIcon
     }
 
+    func changeDiffFontSize(by step: Int) {
+        values.diffFontSize = DiffFontSizePolicy.changed(values.diffFontSize, by: step)
+    }
+
+    func resetDiffFontSize() {
+        values.diffFontSize = DiffFontSizePolicy.standard
+    }
+
     func setLaunchAtLogin(_ enabled: Bool) {
         do {
             if enabled {
