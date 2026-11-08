@@ -106,7 +106,7 @@ DevHub reads the app for booted and favorite simulators, and for simulators with
 1. Find the app: `xcrun simctl get_app_container <udid> <bundle ID> app`. When this fails, DevHub looks in `~/Library/Developer/CoreSimulator/Devices/<udid>/data/Containers/Bundle/Application`.
 2. Read `CFBundleExecutable` and `CFBundleShortVersionString` from its `Info.plist`.
 3. Look for the hook: `grep -q -a -F <marker> <file>` on the executable and on every `*.debug.dylib` in the app.
-4. Read the stored profile: the first profile with `storage` gives the suite and key. DevHub reads `Library/Preferences/<suite>.plist` from the data container (or the group container for a `group.` suite).
+4. Read the stored profile: the first profile with `storage` gives the suite and key. DevHub reads `Library/Preferences/<suite>.plist` from the data container (or the group container when the suite is an app group of the installed app).
 
 On a physical device ([Simulators](simulators.md#physical-devices)) DevHub asks `devicectl device info apps --bundle-id` whether the app is installed and which version it has. The hook markers are looked up in the last product that DevHub built on this Mac, when its bundle ID matches; a build that DevHub never made shows "no … hook". The stored profile comes from `Library/Preferences/<suite>.plist` of the app data container, copied with `devicectl device copy from`.
 

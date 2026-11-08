@@ -75,7 +75,9 @@ struct SimctlAppLaunchRepository: AppLaunchRepository {
     }
 
     private func storedProfile(udid: String, bundleID: String, storage: ProfileStorage?) async -> String? {
-        guard let storage, let folder = await container(udid: udid, bundleID: bundleID, kind: ProfileDefaultsPlan.containerKind(suite: storage.suite)) else { return nil }
+        guard let storage else { return nil }
+        let groups = ProfileDefaultsPlan.mayUseAppGroup([storage.suite]) ? await groups(udid: udid, bundleID: bundleID).map(\.name) : []
+        guard let folder = await container(udid: udid, bundleID: bundleID, kind: ProfileDefaultsPlan.containerKind(suite: storage.suite, appGroups: groups)) else { return nil }
         let plist = URL(fileURLWithPath: folder).appendingPathComponent("Library/Preferences/\(storage.suite).plist")
         guard let value = PlistReader.dictionary(at: plist)?[storage.key] else { return nil }
         return "\(value)"

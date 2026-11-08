@@ -93,7 +93,8 @@ struct SimctlSimulatorRepository: SimulatorRepository {
     }
 
     func writeDefaults(udid: String, bundleID: String, defaults: [ProfileDefault]) async throws {
-        for (container, items) in Dictionary(grouping: defaults, by: { ProfileDefaultsPlan.containerKind(suite: $0.suite) }) {
+        let groups = try await appGroups(udid: udid, bundleID: bundleID, suites: defaults.map(\.suite))
+        for (container, items) in Dictionary(grouping: defaults, by: { ProfileDefaultsPlan.containerKind(suite: $0.suite, appGroups: groups) }) {
             let root = try await simctl.run(["get_app_container", udid, bundleID, container], failure: SimulatorError.command).stdout.trimmingCharacters(in: .whitespacesAndNewlines)
             let folder = (root as NSString).appendingPathComponent("Library/Preferences")
             try FileManager.default.createDirectory(atPath: folder, withIntermediateDirectories: true)
@@ -113,6 +114,12 @@ struct SimctlSimulatorRepository: SimulatorRepository {
             }
             return counts
         }.value
+    }
+
+    private func appGroups(udid: String, bundleID: String, suites: [String]) async throws -> [String] {
+        guard ProfileDefaultsPlan.mayUseAppGroup(suites) else { return [] }
+        let result = try await simctl.run(["get_app_container", udid, bundleID, "groups"], failure: SimulatorError.command)
+        return AppGroupListParser.groups(from: result.stdout).map(\.name)
     }
 
     private func openInDeviceHub(udid: String, fallback: [String]) async throws {

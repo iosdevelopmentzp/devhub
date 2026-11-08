@@ -18,6 +18,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Diffs: scrolling a long diff or a whole file no longer jumps back. Diffs up to 1500 lines are laid out at once, so the scroll view knows their height.
 - Pull requests: showing the whole file of a file reached with "Show in diff" no longer scrolls back to the thread line.
 - Pull requests: the request window takes the newest title, checks and head commit of the request from the list, so a line comment after a new push uses the new commit.
+- Build & Run: a launch profile default with a `group.` suite no longer stops the run with the `simctl get_app_container` usage text when the app has no such app group. The value goes into the data container, where iOS keeps that suite for such an app. The stored profile is read from the same place.
 
 ### Added
 - Network: `network.sourceScript`. A project script reports requests that the mock server does not see (a launch from Xcode, a log file of the app) with `@devhub {"request": …}` lines; the rows get a `script` tag and a bar shows script errors with Retry. ADR 018, extensions §10, example `docs/examples/devhub/network/source.sh`.

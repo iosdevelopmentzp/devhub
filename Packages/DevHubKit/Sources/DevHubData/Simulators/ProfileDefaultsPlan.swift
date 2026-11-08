@@ -2,8 +2,12 @@ import Foundation
 import DevHubDomain
 
 enum ProfileDefaultsPlan {
-    static func containerKind(suite: String) -> String {
-        suite.hasPrefix("group.") ? suite : "data"
+    static func containerKind(suite: String, appGroups: [String]) -> String {
+        appGroups.contains(suite) ? suite : "data"
+    }
+
+    static func mayUseAppGroup(_ suites: [String]) -> Bool {
+        suites.contains { $0.hasPrefix("group.") }
     }
 
     static func writeArguments(_ item: ProfileDefault, udid: String, folder: String) -> [String] {

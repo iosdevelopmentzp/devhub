@@ -4,12 +4,22 @@ import Testing
 @testable import DevHubData
 
 @Suite struct ProfileDefaultsPlanTests {
-    @Test func anAppGroupSuiteUsesTheGroupContainer() {
-        let group = ProfileDefault(suite: "group.com.example.app", key: "environment", value: "staging")
-        let own = ProfileDefault(suite: "com.example.app", key: "environment", value: "staging")
+    @Test func anAppGroupOfTheAppUsesTheGroupContainer() {
+        let groups = ["group.com.example.app", "group.com.example.app.widgets"]
 
-        #expect(ProfileDefaultsPlan.containerKind(suite: group.suite) == "group.com.example.app")
-        #expect(ProfileDefaultsPlan.containerKind(suite: own.suite) == "data")
+        #expect(ProfileDefaultsPlan.containerKind(suite: "group.com.example.app", appGroups: groups) == "group.com.example.app")
+        #expect(ProfileDefaultsPlan.containerKind(suite: "com.example.app", appGroups: groups) == "data")
+    }
+
+    @Test func aGroupSuiteWithoutThatAppGroupUsesTheDataContainer() {
+        #expect(ProfileDefaultsPlan.containerKind(suite: "group.com.example.app", appGroups: []) == "data")
+        #expect(ProfileDefaultsPlan.containerKind(suite: "group.com.example.app", appGroups: ["group.com.example.app.widgets"]) == "data")
+    }
+
+    @Test func onlyAGroupSuiteNeedsTheAppGroupsOfTheApp() {
+        #expect(ProfileDefaultsPlan.mayUseAppGroup(["com.example.app", "group.com.example.app"]))
+        #expect(ProfileDefaultsPlan.mayUseAppGroup(["com.example.app"]) == false)
+        #expect(ProfileDefaultsPlan.mayUseAppGroup([]) == false)
     }
 
     @Test func theTypeChoosesTheDefaultsFlag() {
@@ -18,11 +28,6 @@ import Testing
         #expect(ProfileDefaultsPlan.writeArguments(ProfileDefault(suite: "s", key: "k", value: "x"), udid: "U", folder: folder) == ["spawn", "U", "defaults", "write", "/data/Library/Preferences/s.plist", "k", "-string", "x"])
         #expect(ProfileDefaultsPlan.writeArguments(ProfileDefault(suite: "s", key: "k", value: "YES", type: "bool"), udid: "U", folder: folder).suffix(2) == ["-bool", "true"])
         #expect(ProfileDefaultsPlan.writeArguments(ProfileDefault(suite: "s", key: "k", value: "3", type: "int"), udid: "U", folder: folder).suffix(2) == ["-integer", "3"])
-    }
-
-    @Test func anAppGroupSuiteReadsTheGroupContainer() {
-        #expect(ProfileDefaultsPlan.containerKind(suite: "group.com.example.app") == "group.com.example.app")
-        #expect(ProfileDefaultsPlan.containerKind(suite: "com.example.app") == "data")
     }
 
     @Test func localWriteArgumentsTargetAPlistInTheFolderWithoutTheExtension() {
