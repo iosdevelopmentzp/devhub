@@ -13,6 +13,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Pull requests: the context menu of a file header has the actions of its buttons, plus Copy Path.
 
 ### Fixed
+- Pull requests: scrolling a request with many open diffs is smooth again. DevHub draws only the diffs within one screen of the visible part (a diff farther away keeps its measured height as an empty block), diff lines and file headers react to the pointer only while it is over them, and a hint reads its position only while hovered. With every file of a 54-file request open, a rendered scroll step took about 150 ms before and about 20 ms now.
 - Pull requests: the whole-file and split buttons of a file have an accent background while they are on. The whole-file button shows a spinner while the file is read, and both buttons open a folded file.
 - Pull requests: the request window shows the hints of its buttons.
 - Diffs: scrolling a long diff or a whole file no longer jumps back. Diffs up to 1500 lines are laid out at once, so the scroll view knows their height.
@@ -26,6 +27,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Launch profiles: `routes` send a path prefix to another real server, for HTTP and WebSocket, for example `/socket.io/` to a socket host.
 
 ### Infrastructure
+- Debug launch: `DEVHUB_PULL_REQUEST_WINDOW=1` waits until the request list has the request (up to 30 s) before it opens the window; `DEVHUB_REVEAL_FILE=*` opens every file of the request.
 - `ui-components` skill: `ToggleIconButton` and `.hintHost(_:)`; `panel-window` skill: the hint center of a pull request window.
 - Skills `code-host`, `data-layer`, `testing` and `xcode-toolchain` describe the ADR 017 code: teams and `myTeams`, `JSONPages` for paged answers, the `.xcresult` parsers and spies, `AttachDestination` and `--start-stopped`. ADR 017 is done; `docs/STATUS.md` has decision 77 and its gaps.
 - `docs/examples/circleci/config.yml`: a CircleCI config for a test project (a build with an artifact, unit tests with a JUnit file that fails on odd minutes, an approval job, a deploy). The owner provides a test CircleCI account later; until then the CI features are checked by tests and the mock ports. ADR 015.

@@ -78,7 +78,9 @@ struct PullRequestDetailsPane: View {
                     )
                 }
                 .padding(14)
+                .coordinateSpace(.named(DiffViewport.coordinateSpace))
             }
+            .modifier(DiffViewportModifier())
             .environment(\.diffScrollProxy, proxy)
             .onChange(of: detailStore.focus(of: id)) { _, focus in
                 guard let focus else { return }

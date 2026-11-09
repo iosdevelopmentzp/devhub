@@ -29,6 +29,7 @@ new element. A new shared block goes into DevHubUI and into this table.
 | `ToggleIconButton` | `ToggleIconButton(systemImage: "text.justify.leading", help: model.fullHint, isOn: model.isFull) { … }` | An `IconButton` for a mode that stays on: accent icon and accent background while `isOn`, dimmed when disabled. The hint says what the next click does |
 | `OverflowMenu` | `OverflowMenu { Button("Copy Path", systemImage: "doc.on.doc") { … } }` | The ellipsis menu, same 24 × 24 size, hint "More actions" |
 | `HoverActions` | `HoverActions(isVisible: isHovered, count: 3, spacing: 2) { IconButton(…) }` | Hover buttons that keep their width when hidden (an empty frame of `count` buttons) |
+| `HoverHitTestGate` | `HoverHitTestGate { VStack(spacing: 0) { lines } }` | Hit testing of a group only while the pointer is over it. Wrap a group of rows or the buttons of a header that a screen shows hundreds of times (diff lines in groups of 24, file headers), so a scroll step does not hit-test them all. Nothing changes in the layout or the look |
 | `ActionBar`, `ActionItem` | `ActionBar(items: [ActionItem("Push", systemImage: "arrow.up", hint: "git push", priority: 6, isDisabled: false) { … }])` | A row of labelled buttons that never cuts a title: the lowest `priority` buttons lose their title first (`ActionBarLayout`, `ActionBarFit`) |
 | `PanelCard` | `PanelCard { VStack { … } }` | A white card: padding 12, corner 10, hairline border, soft shadow |
 | `SearchField` | `SearchField(prompt: "Search worktrees", text: $session.searchText, focus: $isSearchFocused)` | The search field. `TabSearchField` (Presentation `Shell/`) wraps it with the prompt of the tab, `ProjectSession.searchText` and ⌘F; each tab places `TabSearchField()` in its toolbar next to the list it filters |
@@ -103,7 +104,7 @@ Tests never assert on the exact text of locale or clock formatters, only nil or 
 
 Every icon without visible text explains itself on hover. `IconButton(help:)`, `ToggleIconButton(help:)`,
 `OverflowMenu` and `ModelTag` (with `TagModel.hint`) do it already. A window that does not show `RootView` (the
-request window) draws its own hints: its root gets `.hintHost(HintCenter())` before `inject`. Anything else gets `.hint("…")`. Never `.help`: the system tooltip is slow and
+request window) draws its own hints: its root gets `.hintHost(HintCenter())` before `inject`. Anything else gets `.hint("…")`; the modifier reads the frame of its view only while the pointer is on it, so hundreds of hints cost nothing while the content scrolls. Never `.help`: the system tooltip is slow and
 unreliable in a menu bar panel. A hint says what happens, plus the git or simctl command when there is one. Timing and
 placement: `panel-window`.
 

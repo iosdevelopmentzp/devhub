@@ -8,6 +8,7 @@ package struct HintModifier: ViewModifier {
     @State private var id = UUID()
     @State private var target = HintTarget()
     @State private var pending: Task<Void, Never>?
+    @State private var isHovering = false
 
     package init(text: String?) {
         self.text = text
@@ -15,11 +16,17 @@ package struct HintModifier: ViewModifier {
 
     package func body(content: Content) -> some View {
         content
-            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { target.frame = $0 }
+            .background {
+                if isHovering {
+                    Color.clear
+                        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { target.frame = $0 }
+                }
+            }
             .onChange(of: text, initial: true) { _, newText in
                 target.text = newText
             }
             .onHover { hovering in
+                isHovering = hovering
                 pending?.cancel()
                 guard let center else { return }
                 guard hovering else {

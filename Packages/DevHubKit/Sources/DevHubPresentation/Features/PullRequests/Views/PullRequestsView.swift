@@ -169,7 +169,9 @@ struct PullRequestsView: View {
                         }
                     }
                     .padding(.bottom, 8)
+                    .coordinateSpace(.named(DiffViewport.coordinateSpace))
                 }
+                .modifier(DiffViewportModifier())
                 .environment(\.diffScrollProxy, proxy)
                 .onChange(of: pullRequests.revealedID) { _, id in
                     guard let id else { return }

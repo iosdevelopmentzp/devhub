@@ -87,7 +87,9 @@ struct PullRequestWindowView: View {
                 onLabel: nil
             )
             .padding(.vertical, 8)
+            .coordinateSpace(.named(DiffViewport.coordinateSpace))
         }
+        .modifier(DiffViewportModifier())
         .overlay(alignment: .bottom) {
             OperationsTray(origin: .pullRequest(summary.id), maxHeight: 320)
         }
