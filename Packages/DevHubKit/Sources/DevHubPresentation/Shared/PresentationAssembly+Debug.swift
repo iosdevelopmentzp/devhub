@@ -23,17 +23,27 @@ package extension PresentationAssembly {
 
     func debugPullRequest(_ value: String) async -> PullRequestSummary? {
         guard let iid = Int(value) else { return nil }
-        await pullRequests.reveal(iid)
-        return pullRequests.requests.first { $0.id == iid }
+        for _ in 0..<60 {
+            await pullRequests.reveal(iid)
+            if let summary = pullRequests.requests.first(where: { $0.id == iid }) {
+                return summary
+            }
+            try? await Task.sleep(for: .milliseconds(500))
+        }
+        return nil
     }
 
     func debugRevealFile(_ path: String, in value: String) async {
         guard let iid = Int(value) else { return }
-        for _ in 0..<50 where pullRequestDetails.isLoaded(iid) == false {
+        for _ in 0..<600 where pullRequestDetails.isLoaded(iid) == false {
             try? await Task.sleep(for: .milliseconds(100))
         }
         try? await Task.sleep(for: .milliseconds(500))
-        pullRequestDetails.revealFile(path, of: iid)
+        guard path == "*" else {
+            pullRequestDetails.revealFile(path, of: iid)
+            return
+        }
+        pullRequestDetails.expandAllFiles(Set(pullRequestDetails.diffs[iid]?.map(\.id) ?? []), of: iid)
     }
 
     func debugSetDiffLayout(_ rawValue: String) {

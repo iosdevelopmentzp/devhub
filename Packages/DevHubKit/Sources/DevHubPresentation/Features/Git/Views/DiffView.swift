@@ -49,18 +49,30 @@ struct DiffView<Accessory: View>: View {
             case .lines(let lines, let droppedNote):
                 lineStack(isLazy: lines.count > Self.eagerLineLimit) {
                     if layout == .sideBySide {
-                        ForEach(SplitDiffMapper.rows(from: lines)) { row in
-                            SplitDiffRow(model: row, highlightedLineID: highlightedLineID, onOpenLine: onOpenLine, onOpenLineOnWeb: onOpenLineOnWeb, onCommentLine: onCommentLine)
-                                .id(scrollID(scrollTarget(of: row)))
-                            ForEach(row.lineIDs, id: \.self) { lineID in
-                                accessory(lineID)
+                        ForEach(DiffLineChunk.chunks(of: SplitDiffMapper.rows(from: lines), size: DiffLineChunk<SplitDiffRowModel>.size)) { chunk in
+                            HoverHitTestGate {
+                                VStack(alignment: .leading, spacing: 0) {
+                                    ForEach(chunk.elements) { row in
+                                        SplitDiffRow(model: row, highlightedLineID: highlightedLineID, onOpenLine: onOpenLine, onOpenLineOnWeb: onOpenLineOnWeb, onCommentLine: onCommentLine)
+                                            .id(scrollID(scrollTarget(of: row)))
+                                        ForEach(row.lineIDs, id: \.self) { lineID in
+                                            accessory(lineID)
+                                        }
+                                    }
+                                }
                             }
                         }
                     } else {
-                        ForEach(lines) { line in
-                            DiffLine(model: line, isHighlighted: line.id == highlightedLineID, onOpen: openAction(for: line), onOpenOnWeb: webAction(for: line), onComment: commentAction(for: line))
-                                .id(scrollID(line.id))
-                            accessory(line.id)
+                        ForEach(DiffLineChunk.chunks(of: lines, size: DiffLineChunk<DiffLineModel>.size)) { chunk in
+                            HoverHitTestGate {
+                                VStack(alignment: .leading, spacing: 0) {
+                                    ForEach(chunk.elements) { line in
+                                        DiffLine(model: line, isHighlighted: line.id == highlightedLineID, onOpen: openAction(for: line), onOpenOnWeb: webAction(for: line), onComment: commentAction(for: line))
+                                            .id(scrollID(line.id))
+                                        accessory(line.id)
+                                    }
+                                }
+                            }
                         }
                     }
                     if let droppedNote {

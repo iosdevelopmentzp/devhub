@@ -5,6 +5,7 @@ struct PullRequestFileRow: View {
     @Environment(\.diffScrollProxy) private var scrollProxy
     @Environment(\.copyToPasteboard) private var copyToPasteboard
     @Environment(\.codeHostWords) private var words
+    @Environment(\.diffFontSize) private var fontSize
 
     let model: PullRequestFileRowModel
     let actions: PullRequestDetailActions
@@ -15,35 +16,37 @@ struct PullRequestFileRow: View {
     var body: some View {
         Section {
             if let diff = model.diff {
-                DiffView(
-                    model: diff,
-                    layout: layout,
-                    scrollScope: model.id,
-                    highlightedLineID: model.highlightedLineID,
-                    onOpenLine: { actions.openFile(model.path, $0) },
-                    onOpenLineOnWeb: { actions.openFileOnWeb(model.path, $0) },
-                    onCommentLine: { actions.startLineComment(model.path, model.oldPath, $0) }
-                ) { lineID in
-                    if let composer = model.lineComposer, composer.lineID == lineID {
-                        LineCommentComposer(
-                            model: composer,
-                            onChange: actions.setLineCommentText,
-                            onSend: actions.sendLineComment,
-                            onCancel: actions.cancelLineComment
-                        )
-                    }
-                    ForEach(model.diffThreads[lineID] ?? []) { thread in
-                        DiffThreadBubble(
-                            model: thread,
-                            onToggle: { actions.toggleDiffThread(thread.id) },
-                            onOpenFile: { actions.openFile(model.path, thread.thread.line) },
-                            onResolve: { actions.resolveThread(thread.id) },
-                            onReply: { actions.reply(thread.id, $0) }
-                        )
+                DiffViewportGate(id: model.id, key: DiffGateKey(model: model, layout: layout), estimatedHeight: DiffViewportPolicy.estimatedHeight(of: diff, fontSize: fontSize)) {
+                    DiffView(
+                        model: diff,
+                        layout: layout,
+                        scrollScope: model.id,
+                        highlightedLineID: model.highlightedLineID,
+                        onOpenLine: { actions.openFile(model.path, $0) },
+                        onOpenLineOnWeb: { actions.openFileOnWeb(model.path, $0) },
+                        onCommentLine: { actions.startLineComment(model.path, model.oldPath, $0) }
+                    ) { lineID in
+                        if let composer = model.lineComposer, composer.lineID == lineID {
+                            LineCommentComposer(
+                                model: composer,
+                                onChange: actions.setLineCommentText,
+                                onSend: actions.sendLineComment,
+                                onCancel: actions.cancelLineComment
+                            )
+                        }
+                        ForEach(model.diffThreads[lineID] ?? []) { thread in
+                            DiffThreadBubble(
+                                model: thread,
+                                onToggle: { actions.toggleDiffThread(thread.id) },
+                                onOpenFile: { actions.openFile(model.path, thread.thread.line) },
+                                onResolve: { actions.resolveThread(thread.id) },
+                                onReply: { actions.reply(thread.id, $0) }
+                            )
+                        }
                     }
                 }
                 .padding(.leading, 18)
-                    .padding(.bottom, 8)
+                .padding(.bottom, 8)
             }
         } header: {
             header
@@ -51,6 +54,22 @@ struct PullRequestFileRow: View {
     }
 
     private var header: some View {
+        HoverHitTestGate {
+            headerContent
+        }
+        .padding(.vertical, 4)
+        .background(Theme.base)
+        .contextMenu { contextMenu }
+        .task(id: model.isFocused) {
+            guard model.isFocused else { return }
+            try? await Task.sleep(for: Self.layoutSettleDelay)
+            withAnimation(.snappy(duration: 0.25)) {
+                scrollProxy?.scrollTo(PullRequestFileRowModel.scrollID(model.id), anchor: .top)
+            }
+        }
+    }
+
+    private var headerContent: some View {
         HStack(spacing: 8) {
             Image(systemName: model.isExpanded ? "chevron.down" : "chevron.right")
                 .font(.caption2.weight(.semibold))
@@ -137,16 +156,6 @@ struct PullRequestFileRow: View {
                 actions.openFile(model.path, nil)
             }
         }
-        .padding(.vertical, 4)
-        .background(Theme.base)
-        .contextMenu { contextMenu }
-        .task(id: model.isFocused) {
-            guard model.isFocused else { return }
-            try? await Task.sleep(for: Self.layoutSettleDelay)
-            withAnimation(.snappy(duration: 0.25)) {
-                scrollProxy?.scrollTo(PullRequestFileRowModel.scrollID(model.id), anchor: .top)
-            }
-        }
     }
 
     private var narrowHint: String {
@@ -200,6 +209,11 @@ struct PullRequestFileRow: View {
             }
         }
     }
+}
+
+private struct DiffGateKey: Equatable {
+    let model: PullRequestFileRowModel
+    let layout: DiffLayout
 }
 
 #Preview {

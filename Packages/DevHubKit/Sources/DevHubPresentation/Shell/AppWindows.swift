@@ -467,7 +467,9 @@ package final class AppWindows: NSObject, NSWindowDelegate {
             .hintHost(HintCenter())
             .inject(assembly)
             .colorScheme(.light)
-        window.contentViewController = NSHostingController(rootView: root)
+        let controller = NSHostingController(rootView: root)
+        controller.sizingOptions = []
+        window.contentViewController = controller
         if window.setFrameUsingName(WindowLayout.pullRequestAutosaveName) == false {
             window.center()
         }
