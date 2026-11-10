@@ -11,6 +11,12 @@ struct DiffLineModel: Identifiable, Equatable {
     var oldNumber: Int?
     var newNumber: Int?
     var emphasis: [Range<Int>] = []
+    var findRanges: [Range<Int>] = []
+    var currentFindRange: Range<Int>?
+
+    static func scrollID(scope: String?, line: Int) -> String {
+        "diff-line:\(scope ?? "")#\(line)"
+    }
 
     static let preview = DiffLineModel(id: 0, text: "+    let value: GiftValue", tint: .green, foregroundOpacity: 0.9, backgroundOpacity: 0.08, oldNumber: nil, newNumber: 42, emphasis: [16..<25])
 }

@@ -235,6 +235,34 @@ import DevHubTestSupport
         #expect(model.fileGroups.map(\.title) == ["Tests 1"])
     }
 
+    @Test func findCountsTheMatchesOfTheListedFilesInOrder() throws {
+        let more = PullRequestFileDiff(oldPath: "c.swift", path: "c.swift", kind: .added, additions: 1, deletions: 0, diff: GitDiff(lines: ["@@ -0,0 +1 @@", "+xX"], droppedLines: 0, isBinary: false), isTooLarge: false)
+        var state = review(expanded: [])
+        state.find = DiffFindState(query: "x", current: nil)
+        let expected = [
+            DiffFindMatch(path: "a.swift", lineID: 1, range: 1..<2, line: 1, isOld: false),
+            DiffFindMatch(path: "c.swift", lineID: 1, range: 1..<2, line: 1, isOld: false),
+            DiffFindMatch(path: "c.swift", lineID: 1, range: 2..<3, line: 1, isOld: false),
+        ]
+
+        let find = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files + [more], error: nil, review: state, context: context())).find
+        state.find.current = expected[1]
+        let current = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files + [more], error: nil, review: state, context: context())).find
+        let hidden = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files + [more], error: nil, review: state, context: context(hiddenFiles: ["c.swift"]))).find
+        state.find = DiffFindState(query: "zzz", current: nil)
+        let none = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files + [more], error: nil, review: state, context: context())).find
+        let off = try loaded(PullRequestDetailsMapper.model(summary: summary, details: details, diffs: files + [more], error: nil, review: review(expanded: []), context: context())).find
+
+        #expect(find == DiffFindModel(query: "x", matches: expected, currentIndex: nil, countText: "3 matches", canStep: true))
+        #expect(current.currentIndex == 1)
+        #expect(current.countText == "2 of 3")
+        #expect(hidden.matches == [expected[0]])
+        #expect(hidden.currentIndex == nil)
+        #expect(hidden.countText == "1 match")
+        #expect(none == DiffFindModel(query: "zzz", matches: [], currentIndex: nil, countText: "No matches", canStep: false))
+        #expect(off == DiffFindModel(query: "", matches: [], currentIndex: nil, countText: nil, canStep: false))
+    }
+
     private func review(
         expanded: Set<String>,
         viewed: Set<String> = [],

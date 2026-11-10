@@ -14,6 +14,11 @@ struct PullRequestDetailsView: View {
     @State private var width: CGFloat = 0
 
     static let sideBySideMinimumWidth: CGFloat = 600
+    static let contentPadding: CGFloat = 10
+
+    static func isWide(contentWidth: CGFloat) -> Bool {
+        contentWidth + 2 * contentPadding >= sideBySideMinimumWidth
+    }
 
     var body: some View {
         Group {
@@ -37,13 +42,13 @@ struct PullRequestDetailsView: View {
                 loadedContent(loaded)
             }
         }
-        .padding(10)
+        .padding(Self.contentPadding)
         .background(Theme.base, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
     }
 
     private var isWide: Bool {
-        width >= Self.sideBySideMinimumWidth
+        Self.isWide(contentWidth: width - 2 * Self.contentPadding)
     }
 
     private func loadedContent(_ loaded: PullRequestDetailsModel.Loaded) -> some View {

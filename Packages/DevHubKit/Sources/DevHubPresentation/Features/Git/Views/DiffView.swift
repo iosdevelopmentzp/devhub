@@ -102,7 +102,7 @@ struct DiffView<Accessory: View>: View {
     }
 
     private func scrollID(_ line: Int) -> String {
-        "diff-line:\(scrollScope ?? "")#\(line)"
+        DiffLineModel.scrollID(scope: scrollScope, line: line)
     }
 
     private func scrollTarget(of row: SplitDiffRowModel) -> Int {

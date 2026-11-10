@@ -41,6 +41,34 @@ import Testing
         #expect(DiffViewportPolicy.nearIDs(frames: [:], visibleRect: visible).isEmpty)
     }
 
+    @Test func thePinnedHeaderIsTheLastOneAboveTheTopWhoseSectionReachesIt() {
+        let headers = [
+            "a": CGRect(x: 40, y: 0, width: 700, height: 30),
+            "b": CGRect(x: 40, y: 530, width: 700, height: 30),
+            "c": CGRect(x: 40, y: 1_600, width: 700, height: 30),
+        ]
+        let contents = [
+            "a": CGRect(x: 40, y: 30, width: 700, height: 490),
+            "b": CGRect(x: 40, y: 560, width: 700, height: 1_030),
+        ]
+
+        #expect(DiffViewportPolicy.pinnedHeader(headers: headers, contents: contents, visibleRect: visible) == PinnedDiffHeader(id: "b", frame: headers["b"]!, offset: 0))
+        #expect(DiffViewportPolicy.pinnedHeader(headers: headers, contents: contents, visibleRect: CGRect(x: 0, y: 1_580, width: 800, height: 600)) == PinnedDiffHeader(id: "b", frame: headers["b"]!, offset: -10))
+        #expect(DiffViewportPolicy.pinnedHeader(headers: headers, contents: contents, visibleRect: CGRect(x: 0, y: 100, width: 800, height: 600)) == PinnedDiffHeader(id: "a", frame: headers["a"]!, offset: 0))
+        #expect(DiffViewportPolicy.pinnedHeader(headers: headers, contents: contents, visibleRect: CGRect(x: 0, y: 0, width: 800, height: 600)) == nil)
+        #expect(DiffViewportPolicy.pinnedHeader(headers: headers, contents: contents, visibleRect: nil) == nil)
+    }
+
+    @Test func aFoldedOrFinishedLastSectionPinsNothing() {
+        let header = ["a": CGRect(x: 40, y: 0, width: 700, height: 30)]
+        let content = ["a": CGRect(x: 40, y: 30, width: 700, height: 490)]
+
+        #expect(DiffViewportPolicy.pinnedHeader(headers: header, contents: [:], visibleRect: CGRect(x: 0, y: 100, width: 800, height: 600)) == nil)
+        #expect(DiffViewportPolicy.pinnedHeader(headers: header, contents: ["a": .zero], visibleRect: CGRect(x: 0, y: 100, width: 800, height: 600)) == nil)
+        #expect(DiffViewportPolicy.pinnedHeader(headers: header, contents: content, visibleRect: CGRect(x: 0, y: 600, width: 800, height: 600)) == nil)
+        #expect(DiffViewportPolicy.pinnedHeader(headers: header, contents: content, visibleRect: CGRect(x: 0, y: 500, width: 800, height: 600)) == PinnedDiffHeader(id: "a", frame: header["a"]!, offset: -10))
+    }
+
     @Test func estimatedHeightGrowsWithLinesAndFontSize() {
         let short = DiffModel.lines([.preview], droppedNote: nil)
         let long = DiffModel.lines(Array(repeating: .preview, count: 10), droppedNote: nil)

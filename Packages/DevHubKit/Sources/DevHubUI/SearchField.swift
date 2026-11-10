@@ -4,11 +4,13 @@ package struct SearchField: View {
     package let prompt: String
     @Binding package var text: String
     package var focus: FocusState<Bool>.Binding?
+    package var onExit: (() -> Void)?
 
-    package init(prompt: String, text: Binding<String>, focus: FocusState<Bool>.Binding? = nil) {
+    package init(prompt: String, text: Binding<String>, focus: FocusState<Bool>.Binding? = nil, onExit: (() -> Void)? = nil) {
         self.prompt = prompt
         self._text = text
         self.focus = focus
+        self.onExit = onExit
     }
 
     package var body: some View {
@@ -17,7 +19,7 @@ package struct SearchField: View {
                 .foregroundStyle(.secondary)
             field
                 .textFieldStyle(.plain)
-                .onExitCommand { text = "" }
+                .onExitCommand(perform: onExit ?? { text = "" })
             if text.isEmpty == false {
                 Button {
                     text = ""

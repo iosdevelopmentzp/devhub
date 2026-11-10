@@ -91,6 +91,18 @@ import Testing
         #expect(model.threadCountText == "1")
     }
 
+    @Test func theFindMarksShowOnTheOpenDiff() {
+        var state = review(expanded: true)
+        state.find = DiffFindState(query: "x", current: DiffFindMatch(path: "App/Login/a.swift", lineID: 1, range: 1..<2, line: 1, isOld: false))
+
+        guard case .lines(let lines, _)? = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .unified, words: .gitLab).diff else {
+            Issue.record("Expected lines")
+            return
+        }
+        #expect(lines.map(\.findRanges) == [[], [1..<2]])
+        #expect(lines.map(\.currentFindRange) == [nil, 1..<2])
+    }
+
     private func review(
         expanded: Bool,
         viewed: Bool = false,

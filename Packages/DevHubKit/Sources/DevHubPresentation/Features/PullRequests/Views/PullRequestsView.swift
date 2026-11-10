@@ -144,7 +144,9 @@ struct PullRequestsView: View {
     }
 
     private func list(_ layout: PullRequestsLayout) -> some View {
-        ListState(
+        let expanded = layout.isSplit ? nil : pullRequests.expandedID.flatMap(pullRequests.request(id:))
+        let expandedDetails = expanded.map(details(for:))
+        return ListState(
             failure: pullRequests.requests.isEmpty ? pullRequests.error.map(failure) : nil,
             isLoading: pullRequests.hasLoaded == false,
             loadingTitle: "Reading \(words.requests)…",
@@ -155,7 +157,7 @@ struct PullRequestsView: View {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 0) {
                         ForEach(visible) { model in
-                            row(model, isSplit: layout.isSplit)
+                            row(model, isSplit: layout.isSplit, details: model.id == expanded?.id ? expandedDetails : nil)
                             if let pending = configActions.pending(in: Placement.pullRequestsRow.slot(for: String(model.id))) {
                                 ConfigActionPrompt(pending: pending)
                                     .padding(.horizontal, 14)
@@ -171,18 +173,16 @@ struct PullRequestsView: View {
                     .padding(.bottom, 8)
                     .coordinateSpace(.named(DiffViewport.coordinateSpace))
                 }
-                .modifier(DiffViewportModifier())
+                .modifier(DiffViewportModifier {
+                    if let expanded, case .loaded(let loaded)? = expandedDetails?.content {
+                        PinnedFileHeader(files: loaded.files, actions: detailActions(for: expanded))
+                    }
+                })
                 .environment(\.diffScrollProxy, proxy)
                 .onChange(of: pullRequests.revealedID) { _, id in
                     guard let id else { return }
                     withAnimation(.snappy(duration: 0.25)) {
                         proxy.scrollTo(id, anchor: .top)
-                    }
-                }
-                .onChange(of: detailStore.focus) { _, focus in
-                    guard let focus, layout.isSplit == false else { return }
-                    withAnimation(.snappy(duration: 0.25)) {
-                        proxy.scrollTo(PullRequestFileRowModel.scrollID(focus.path), anchor: .top)
                     }
                 }
             }
@@ -233,7 +233,7 @@ struct PullRequestsView: View {
     }
 
     @ViewBuilder
-    private func row(_ model: PullRequestRowModel, isSplit: Bool) -> some View {
+    private func row(_ model: PullRequestRowModel, isSplit: Bool, details: PullRequestDetailsModel?) -> some View {
         if pullRequests.listStyle == .compact, isSplit || model.isExpanded == false, let summary = pullRequests.request(id: model.id) {
             PullRequestCompactRow(
                 model: PullRequestCompactRowMapper.model(for: summary, row: model, context: context),
@@ -241,15 +241,15 @@ struct PullRequestsView: View {
                 onToggle: { pullRequests.toggleExpanded(model.id) }
             )
         } else {
-            fullRow(model, isSplit: isSplit)
+            fullRow(model, isSplit: isSplit, details: details)
         }
     }
 
-    private func fullRow(_ model: PullRequestRowModel, isSplit: Bool) -> some View {
+    private func fullRow(_ model: PullRequestRowModel, isSplit: Bool, details: PullRequestDetailsModel?) -> some View {
         let summary = pullRequests.request(id: model.id)
         return PullRequestRow(
             model: model,
-            details: model.isExpanded && isSplit == false ? summary.map(details(for:)) : nil,
+            details: details,
             isSelected: model.isExpanded && isSplit,
             isNarrow: isSplit,
             isPickingLaunch: launchID == model.id && (isSplit && model.isExpanded) == false,

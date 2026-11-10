@@ -43,6 +43,7 @@ final class PullRequestDetailStore {
     private(set) var openTestMessages: Set<String> = []
     private(set) var openCIHistoryRuns: Set<String> = []
     private(set) var onlyChangedSinceReview: Set<PullRequestSummary.ID> = []
+    private(set) var finds: [PullRequestSummary.ID: DiffFindState] = [:]
 
     enum CommentKind {
         case comment
@@ -143,6 +144,7 @@ final class PullRequestDetailStore {
         fullFiles = [:]
         fileContents = [:]
         fileLayouts = [:]
+        finds = [:]
         focus = nil
     }
 
@@ -199,7 +201,8 @@ final class PullRequestDetailStore {
             changedSinceReview: hostReviewCommits(of: id) == nil ? ReviewChangePolicy.changedPaths(since: reviews.snapshot(of: id), paths: diffs[id]?.map(\.path) ?? [], fingerprints: fingerprints[id] ?? [:]) : [],
             hostReview: hostReviewCommits(of: id) == nil ? nil : details[id]?.myLastReview,
             commitsSinceHostReview: hostReviewCommits(of: id),
-            showsOnlyChangedSinceReview: onlyChangedSinceReview.contains(id)
+            showsOnlyChangedSinceReview: onlyChangedSinceReview.contains(id),
+            find: finds[id] ?? .initial
         )
     }
 
@@ -378,6 +381,28 @@ final class PullRequestDetailStore {
         expandedFiles[id, default: []].insert(path)
         openDiffThreads.insert(threadID)
         focus = DiffFocus(requestID: id, path: path, line: line, isOld: thread.isOnOldLine)
+    }
+
+    func setFindQuery(_ query: String, of id: PullRequestSummary.ID) {
+        guard (finds[id] ?? .initial).query != query else { return }
+        finds[id] = DiffFindState(query: query, current: nil)
+        clearFocus(of: id)
+    }
+
+    func stepFind(_ offset: Int, in matches: [DiffFindMatch], of id: PullRequestSummary.ID) {
+        guard matches.isEmpty == false else { return }
+        let currentIndex = finds[id]?.current.flatMap { matches.firstIndex(of: $0) }
+        let index = currentIndex.map { ($0 + offset % matches.count + matches.count) % matches.count } ?? (offset < 0 ? matches.count - 1 : 0)
+        let match = matches[index]
+        finds[id, default: .initial].current = match
+        expandedFiles[id, default: []].insert(match.path)
+        focus = DiffFocus(requestID: id, path: match.path, line: match.line, isOld: match.isOld)
+    }
+
+    func endFind(of id: PullRequestSummary.ID) {
+        guard finds[id] != nil else { return }
+        finds[id] = nil
+        clearFocus(of: id)
     }
 
     func load(_ id: PullRequestSummary.ID) async {

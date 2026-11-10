@@ -23,6 +23,7 @@ struct PullRequestWindowView: View {
     @State private var isPickingLaunch = false
     @State private var selectedFileID: String?
     @State private var fileQuery = ""
+    @FocusState private var isFindFocused: Bool
 
     static let sidebarWidth: CGFloat = 280
 
@@ -38,7 +39,11 @@ struct PullRequestWindowView: View {
                 .frame(width: Self.sidebarWidth)
                 Divider()
                 VStack(spacing: 0) {
-                    requestScroll
+                    if case .loaded(let loaded) = details.content {
+                        DiffFindBar(model: loaded.find, focus: $isFindFocused, onChange: detailActions.setFindQuery, onStep: { detailActions.stepFind($0, loaded.find.matches) }, onClose: nil)
+                        Divider()
+                    }
+                    requestScroll(details: details, actions: detailActions)
                     OperationsStrip(origin: .pullRequest(summary.id))
                 }
             }
@@ -51,11 +56,15 @@ struct PullRequestWindowView: View {
         .frame(minWidth: 1_000, minHeight: 560)
         .background(Theme.surface)
         .background {
-            Button("Refresh", action: detailActions.refresh)
-                .keyboardShortcut("r")
-                .frame(width: 0, height: 0)
-                .opacity(0)
-                .accessibilityHidden(true)
+            VStack {
+                Button("Refresh", action: detailActions.refresh)
+                    .keyboardShortcut("r")
+                Button("Find") { isFindFocused = true }
+                    .keyboardShortcut("f")
+            }
+            .frame(width: 0, height: 0)
+            .opacity(0)
+            .accessibilityHidden(true)
         }
         .task {
             await detailStore.load(summary.id)
@@ -63,7 +72,7 @@ struct PullRequestWindowView: View {
         }
     }
 
-    private var requestScroll: some View {
+    private func requestScroll(details: PullRequestDetailsModel, actions detailActions: PullRequestDetailActions) -> some View {
         ScrollView {
             PullRequestRow(
                 model: PullRequestRowMapper.model(
@@ -89,7 +98,11 @@ struct PullRequestWindowView: View {
             .padding(.vertical, 8)
             .coordinateSpace(.named(DiffViewport.coordinateSpace))
         }
-        .modifier(DiffViewportModifier())
+        .modifier(DiffViewportModifier {
+            if case .loaded(let loaded) = details.content {
+                PinnedFileHeader(files: loaded.files, actions: detailActions)
+            }
+        })
         .overlay(alignment: .bottom) {
             OperationsTray(origin: .pullRequest(summary.id), maxHeight: 320)
         }
