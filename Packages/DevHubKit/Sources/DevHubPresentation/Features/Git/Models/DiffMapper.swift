@@ -12,8 +12,7 @@ enum DiffMapper {
         if diff.lines.allSatisfy(\.isEmpty) {
             return .note("No text changes. Only the file mode or an empty file changed.")
         }
-        let headerEnd = diff.lines.firstIndex { $0.hasPrefix("@@") } ?? 0
-        let hunkLines = Array(diff.lines[headerEnd...])
+        let hunkLines = hunkLines(of: diff)
         var lines = zip(hunkLines, DiffLineNumbering.numbers(for: hunkLines)).enumerated().map { offset, pair in
             line(id: offset, text: pair.0, numbers: pair.1)
         }
@@ -25,8 +24,17 @@ enum DiffMapper {
         return .lines(lines, droppedNote: diff.droppedLines > 0 ? "… \(diff.droppedLines) more lines not shown" : nil)
     }
 
+    static func hunkLines(of diff: GitDiff) -> [String] {
+        let headerEnd = diff.lines.firstIndex { $0.hasPrefix("@@") } ?? 0
+        return Array(diff.lines[headerEnd...])
+    }
+
+    static func shownText(_ text: String) -> String {
+        text.isEmpty ? " " : text
+    }
+
     static func line(id: Int, text: String, numbers: DiffLineNumbers) -> DiffLineModel {
-        let shown = text.isEmpty ? " " : text
+        let shown = shownText(text)
         if text.hasPrefix("@@") {
             return DiffLineModel(id: id, text: shown, tint: .blue, foregroundOpacity: 1, backgroundOpacity: 0.06, oldNumber: nil, newNumber: nil)
         }

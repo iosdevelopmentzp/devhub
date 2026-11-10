@@ -81,14 +81,23 @@ struct DiffLine: View {
 
     private var emphasizedText: AttributedString {
         var text = AttributedString(model.text)
-        guard let tint = model.tint, model.emphasis.isEmpty == false else { return text }
-        for range in model.emphasis {
+        if let tint = model.tint {
+            mark(model.emphasis, with: tint.color.opacity(0.28), in: &text)
+        }
+        mark(model.findRanges, with: Tint.yellow.color.opacity(0.5), in: &text)
+        if let current = model.currentFindRange {
+            mark([current], with: Tint.orange.color.opacity(0.7), in: &text)
+        }
+        return text
+    }
+
+    private func mark(_ ranges: [Range<Int>], with color: Color, in text: inout AttributedString) {
+        for range in ranges {
             guard range.upperBound <= text.characters.count else { continue }
             let start = text.index(text.startIndex, offsetByCharacters: range.lowerBound)
             let end = text.index(text.startIndex, offsetByCharacters: range.upperBound)
-            text[start..<end].backgroundColor = tint.color.opacity(0.28)
+            text[start..<end].backgroundColor = color
         }
-        return text
     }
 
     private var foreground: Color {

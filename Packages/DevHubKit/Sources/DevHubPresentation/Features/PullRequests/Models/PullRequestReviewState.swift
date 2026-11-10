@@ -46,6 +46,7 @@ struct PullRequestReviewState: Equatable {
     var hostReview: HostReview?
     var commitsSinceHostReview: Int?
     var showsOnlyChangedSinceReview = false
+    var find = DiffFindState.initial
 
     static let initial = PullRequestReviewState(expandedFiles: [], viewedFiles: [], focus: nil, busyThreads: [], showsThreadsInDiff: true, openDiffThreads: [])
 }

@@ -2,7 +2,6 @@ import SwiftUI
 import DevHubUI
 
 struct PullRequestDetailsPane: View {
-    @Environment(PullRequestDetailStore.self) private var detailStore
     @Environment(AppActions.self) private var appActions
     @Environment(\.codeHostWords) private var words
 
@@ -15,12 +14,26 @@ struct PullRequestDetailsPane: View {
     let onAction: (PullRequestActionModel.Kind) -> Void
     let onMerge: (_ kind: PullRequestActionModel.Kind, _ squash: Bool, _ removeSourceBranch: Bool) -> Void
 
+    @State private var isFinding = false
+    @FocusState private var isFindFocused: Bool
+
     var body: some View {
         if let model, let details {
             VStack(spacing: 0) {
                 header(model)
                 Divider()
+                if isFinding, case .loaded(let loaded) = details.content {
+                    DiffFindBar(model: loaded.find, focus: $isFindFocused, onChange: detailActions.setFindQuery, onStep: { detailActions.stepFind($0, loaded.find.matches) }, onClose: closeFind)
+                    Divider()
+                }
                 content(model: model, details: details)
+            }
+            .background {
+                Button("Find", action: openFind)
+                    .keyboardShortcut("f", modifiers: [.command, .option])
+                    .frame(width: 0, height: 0)
+                    .opacity(0)
+                    .accessibilityHidden(true)
             }
         } else {
             ContentUnavailableView {
@@ -43,6 +56,13 @@ struct PullRequestDetailsPane: View {
                     .lineLimit(1)
                     .hintWhenTruncated(model.title)
                 Spacer(minLength: 4)
+                ToggleIconButton(systemImage: "magnifyingglass", help: "Find text in the diffs of this \(words.request) (⌥⌘F)", isOn: isFinding) {
+                    if isFinding {
+                        closeFind()
+                    } else {
+                        openFind()
+                    }
+                }
                 if let openWindow = detailActions.openWindow {
                     IconButton(systemImage: "macwindow", help: "Open this \(words.request) in its own window", action: openWindow)
                 }
@@ -68,8 +88,7 @@ struct PullRequestDetailsPane: View {
     }
 
     private func content(model: PullRequestRowModel, details: PullRequestDetailsModel) -> some View {
-        let id = model.id
-        return ScrollViewReader { proxy in
+        ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     PullRequestDetailsView(
@@ -80,16 +99,24 @@ struct PullRequestDetailsPane: View {
                 .padding(14)
                 .coordinateSpace(.named(DiffViewport.coordinateSpace))
             }
-            .modifier(DiffViewportModifier())
-            .environment(\.diffScrollProxy, proxy)
-            .onChange(of: detailStore.focus(of: id)) { _, focus in
-                guard let focus else { return }
-                withAnimation(.snappy(duration: 0.25)) {
-                    proxy.scrollTo(PullRequestFileRowModel.scrollID(focus.path), anchor: .top)
+            .modifier(DiffViewportModifier {
+                if case .loaded(let loaded) = details.content {
+                    PinnedFileHeader(files: loaded.files, actions: detailActions.withoutWindow)
                 }
-            }
+            })
+            .environment(\.diffScrollProxy, proxy)
         }
-        .id(id)
+        .id(model.id)
+    }
+
+    private func openFind() {
+        isFinding = true
+        Task { isFindFocused = true }
+    }
+
+    private func closeFind() {
+        detailActions.endFind()
+        isFinding = false
     }
 }
 

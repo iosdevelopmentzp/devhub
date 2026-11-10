@@ -67,6 +67,7 @@ enum PullRequestDetailsMapper {
                     canCollapseAllFiles: expandedCount > 0,
                     hasThreadsInDiff: threadRows.contains { $0.canShowInDiff },
                     showsThreadsInDiff: review.showsThreadsInDiff,
+                    find: find(in: shown, review: review),
                     files: shown.map { file in
                         var row = PullRequestFileRowMapper.hiding(
                             PullRequestFileRowMapper.model(for: file, review: review, threads: threadRows, layout: context.diffLayout, words: words),
@@ -80,6 +81,29 @@ enum PullRequestDetailsMapper {
                 )
             )
         )
+    }
+
+    static func find(in files: [PullRequestFileDiff], review: PullRequestReviewState) -> DiffFindModel {
+        let query = review.find.query
+        let matches = files.flatMap { file -> [DiffFindMatch] in
+            guard file.isTooLarge == false else { return [] }
+            return DiffFindPolicy.matches(in: PullRequestFileRowMapper.shown(file, review: review).diff, path: file.path, query: query)
+        }
+        let currentIndex = review.find.current.flatMap { matches.firstIndex(of: $0) }
+        return DiffFindModel(
+            query: query,
+            matches: matches,
+            currentIndex: currentIndex,
+            countText: findCountText(query: query, count: matches.count, currentIndex: currentIndex),
+            canStep: matches.isEmpty == false
+        )
+    }
+
+    private static func findCountText(query: String, count: Int, currentIndex: Int?) -> String? {
+        guard query.isEmpty == false else { return nil }
+        guard count > 0 else { return "No matches" }
+        guard let currentIndex else { return CountText.count(count, "match", "matches") }
+        return "\(currentIndex + 1) of \(count)"
     }
 
     static func autoRerun(review: PullRequestReviewState) -> PullRequestDetailsModel.AutoRerun? {

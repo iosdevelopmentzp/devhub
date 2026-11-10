@@ -25,6 +25,9 @@ struct PullRequestDetailActions {
     let toggleThreadsInDiff: () -> Void
     let openAllDiffThreads: () -> Void
     let foldAllDiffThreads: () -> Void
+    let setFindQuery: (_ query: String) -> Void
+    let stepFind: (_ offset: Int, _ matches: [DiffFindMatch]) -> Void
+    let endFind: () -> Void
     let openFile: (_ path: String, _ line: Int?) -> Void
     let openFileOnWeb: (_ path: String, _ line: Int?) -> Void
     let toggleFullFile: (_ fileID: PullRequestFileDiff.ID) -> Void
@@ -85,6 +88,9 @@ struct PullRequestDetailActions {
         toggleThreadsInDiff: {},
         openAllDiffThreads: {},
         foldAllDiffThreads: {},
+        setFindQuery: { _ in },
+        stepFind: { _, _ in },
+        endFind: {},
         openFile: { _, _ in },
         openFileOnWeb: { _, _ in },
         toggleFullFile: { _ in },
@@ -147,6 +153,9 @@ struct PullRequestDetailActions {
             toggleThreadsInDiff: toggleThreadsInDiff,
             openAllDiffThreads: openAllDiffThreads,
             foldAllDiffThreads: foldAllDiffThreads,
+            setFindQuery: setFindQuery,
+            stepFind: stepFind,
+            endFind: endFind,
             openFile: openFile,
             openFileOnWeb: openFileOnWeb,
             toggleFullFile: toggleFullFile,
@@ -228,6 +237,9 @@ extension PullRequestDetailActions {
             toggleThreadsInDiff: { detailStore.toggleThreadsInDiff() },
             openAllDiffThreads: { detailStore.openAllDiffThreads(of: id) },
             foldAllDiffThreads: { detailStore.foldAllDiffThreads(of: id) },
+            setFindQuery: { detailStore.setFindQuery($0, of: id) },
+            stepFind: { detailStore.stepFind($0, in: $1, of: id) },
+            endFind: { detailStore.endFind(of: id) },
             openFile: { appActions.openSourceFile(path: $0, line: $1, branch: summary.sourceBranch) },
             openFileOnWeb: { appActions.open(detailStore.fileWebURL(path: $0, line: $1, of: summary)) },
             toggleFullFile: { detailStore.toggleFullFile($0, of: summary) },

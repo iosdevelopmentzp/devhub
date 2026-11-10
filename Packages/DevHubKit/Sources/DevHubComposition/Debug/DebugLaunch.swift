@@ -76,6 +76,11 @@ enum DebugLaunch {
                     await assembly.debugRevealFile(path, in: iid)
                 }
             }
+            if let text = environment["DEVHUB_FIND"] {
+                Task {
+                    await assembly.debugFind(text, in: iid)
+                }
+            }
         }
         if let query = environment["DEVHUB_PALETTE"] {
             assembly.debugOpenPalette(query: query)

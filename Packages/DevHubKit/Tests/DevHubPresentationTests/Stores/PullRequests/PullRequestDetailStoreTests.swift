@@ -130,6 +130,61 @@ import DevHubTestSupport
         #expect(store.focus(of: 8) == nil)
     }
 
+    @Test func findStepsThroughTheMatchesOpensTheirFilesAndFocusesTheirLines() {
+        let first = DiffFindMatch(path: "a.swift", lineID: 1, range: 0..<1, line: 1, isOld: false)
+        let second = DiffFindMatch(path: "b.swift", lineID: 2, range: 0..<1, line: 4, isOld: true)
+        store.setFindQuery("x", of: 7)
+        #expect(store.review(of: 7).find == DiffFindState(query: "x", current: nil))
+
+        store.stepFind(1, in: [first, second], of: 7)
+        #expect(store.review(of: 7).find.current == first)
+        #expect(store.expandedFiles(of: 7) == ["a.swift"])
+        #expect(store.focus(of: 7) == DiffFocus(requestID: 7, path: "a.swift", line: 1, isOld: false))
+
+        store.stepFind(1, in: [first, second], of: 7)
+        #expect(store.review(of: 7).find.current == second)
+        #expect(store.expandedFiles(of: 7) == ["a.swift", "b.swift"])
+        #expect(store.focus(of: 7) == DiffFocus(requestID: 7, path: "b.swift", line: 4, isOld: true))
+
+        store.stepFind(1, in: [first, second], of: 7)
+        #expect(store.review(of: 7).find.current == first)
+
+        store.stepFind(-1, in: [first, second], of: 7)
+        #expect(store.review(of: 7).find.current == second)
+
+        store.stepFind(1, in: [], of: 7)
+        #expect(store.review(of: 7).find.current == second)
+        #expect(store.review(of: 8).find == .initial)
+    }
+
+    @Test func findStartsFromTheEndWhenSteppingBackWithoutACurrentMatch() {
+        let first = DiffFindMatch(path: "a.swift", lineID: 1, range: 0..<1, line: 1, isOld: false)
+        let second = DiffFindMatch(path: "a.swift", lineID: 1, range: 2..<3, line: 1, isOld: false)
+
+        store.stepFind(-1, in: [first, second], of: 7)
+
+        #expect(store.review(of: 7).find.current == second)
+    }
+
+    @Test func aNewFindQueryForgetsTheCurrentMatchAndEndFindClearsTheState() {
+        let match = DiffFindMatch(path: "a.swift", lineID: 1, range: 0..<1, line: 1, isOld: false)
+        store.setFindQuery("x", of: 7)
+        store.stepFind(1, in: [match], of: 7)
+
+        store.setFindQuery("x", of: 7)
+        #expect(store.review(of: 7).find.current == match)
+
+        store.setFindQuery("xy", of: 7)
+        #expect(store.review(of: 7).find == DiffFindState(query: "xy", current: nil))
+        #expect(store.focus(of: 7) == nil)
+        #expect(store.expandedFiles(of: 7) == ["a.swift"])
+
+        store.stepFind(1, in: [match], of: 7)
+        store.endFind(of: 7)
+        #expect(store.review(of: 7).find == .initial)
+        #expect(store.focus(of: 7) == nil)
+    }
+
     @Test func showInDiffOpensTheFileAndFocusesTheLine() async {
         script()
         await store.load(7)

@@ -11,8 +11,11 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Pull requests: Refresh at the top of the details reads the request again (description, threads, checks, files) and keeps the viewed marks, open files, whole files and layouts; ⌘R in the request window. A failed refresh keeps the shown data and logs the error.
 - Diffs: A− and A+ in the files header of a request (⌘−, ⌘=, ⌘0 or a click on the size resets) change the text size of every diff in DevHub, 9 to 20 pt, saved.
 - Pull requests: the context menu of a file header has the actions of its buttons, plus Copy Path.
+- Pull requests: while the diffs scroll, the header of the file at the top stays visible at the top of the view with its name, counts, Viewed box and buttons, in the tab, the details pane and the request window.
+- Pull requests: find in diffs. A field above the details of the request window (⌘F) and a magnifier in the header of the details pane (⌥⌘F) find text in the diffs of every listed file, open or folded. The open diffs mark every match; Return or ⌘G goes to the next match and ⇧⌘G to the previous one, which opens its file and scrolls to its line. Esc clears the field in the window and closes the bar in the pane.
 
 ### Fixed
+- Pull requests: "Show in diff" on a thread and a find match scroll to the line instead of the top of the file.
 - Pull requests: scrolling a request with many open diffs is smooth again. DevHub draws only the diffs within one screen of the visible part (a diff farther away keeps its measured height as an empty block), diff lines and file headers react to the pointer only while it is over them, and a hint reads its position only while hovered. With every file of a 54-file request open, a rendered scroll step took about 150 ms before and about 20 ms now.
 - Pull requests: the whole-file and split buttons of a file have an accent background while they are on. The whole-file button shows a spinner while the file is read, and both buttons open a folded file.
 - Pull requests: the request window shows the hints of its buttons.
@@ -28,6 +31,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 
 ### Infrastructure
 - Debug launch: `DEVHUB_PULL_REQUEST_WINDOW=1` waits until the request list has the request (up to 30 s) before it opens the window; `DEVHUB_REVEAL_FILE=*` opens every file of the request.
+- Debug launch: `DEVHUB_FIND=<text>` puts the text into the find field of the request and goes to the first match.
 - `ui-components` skill: `ToggleIconButton` and `.hintHost(_:)`; `panel-window` skill: the hint center of a pull request window.
 - Skills `code-host`, `data-layer`, `testing` and `xcode-toolchain` describe the ADR 017 code: teams and `myTeams`, `JSONPages` for paged answers, the `.xcresult` parsers and spies, `AttachDestination` and `--start-stopped`. ADR 017 is done; `docs/STATUS.md` has decision 77 and its gaps.
 - `docs/examples/circleci/config.yml`: a CircleCI config for a test project (a build with an artifact, unit tests with a JUnit file that fails on odd minutes, an approval job, a deploy). The owner provides a test CircleCI account later; until then the CI features are checked by tests and the mock ports. ADR 015.

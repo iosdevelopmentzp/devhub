@@ -31,6 +31,11 @@ import Testing
         #expect(AISessionRowModel.preview.providerTag.text == "Claude")
     }
 
+    @Test func pullRequestFindPreviewBuilds() {
+        #expect(DiffFindModel.preview.countText == "1 of 1")
+        #expect(DiffFindModel.preview.matches.count == 1)
+    }
+
     @Test func deviceIdentityPreviewsBuild() {
         #expect(CleanInstallNoteModel.preview.iconTint == .secondary)
         #expect(IdentityPanelModel.preview.isInstalled)

@@ -46,6 +46,17 @@ package extension PresentationAssembly {
         pullRequestDetails.expandAllFiles(Set(pullRequestDetails.diffs[iid]?.map(\.id) ?? []), of: iid)
     }
 
+    func debugFind(_ text: String, in value: String) async {
+        guard let iid = Int(value) else { return }
+        for _ in 0..<600 where pullRequestDetails.isLoaded(iid) == false {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        try? await Task.sleep(for: .milliseconds(700))
+        pullRequestDetails.setFindQuery(text, of: iid)
+        let matches = PullRequestDetailsMapper.find(in: pullRequestDetails.diffs[iid] ?? [], review: pullRequestDetails.review(of: iid)).matches
+        pullRequestDetails.stepFind(1, in: matches, of: iid)
+    }
+
     func debugSetDiffLayout(_ rawValue: String) {
         guard let layout = DiffLayout(rawValue: rawValue) else { return }
         pullRequests.diffLayout = layout

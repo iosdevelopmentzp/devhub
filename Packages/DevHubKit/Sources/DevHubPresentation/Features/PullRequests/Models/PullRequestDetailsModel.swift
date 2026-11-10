@@ -84,6 +84,7 @@ struct PullRequestDetailsModel: Equatable {
         var canCollapseAllFiles: Bool
         var hasThreadsInDiff: Bool
         var showsThreadsInDiff: Bool
+        var find: DiffFindModel
         var files: [PullRequestFileRowModel]
     }
 
@@ -129,6 +130,7 @@ struct PullRequestDetailsModel: Equatable {
                 canCollapseAllFiles: true,
                 hasThreadsInDiff: true,
                 showsThreadsInDiff: true,
+                find: .preview,
                 files: [.preview]
             )
         )

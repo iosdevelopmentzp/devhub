@@ -7,7 +7,7 @@ enum PullRequestFileRowMapper {
     static func model(for original: PullRequestFileDiff, review: PullRequestReviewState, threads: [ReviewThreadRowModel], layout standard: DiffLayout, words: CodeHostWords) -> PullRequestFileRowModel {
         let isFull = review.fullFiles.contains(original.id)
         let layout = review.fileLayouts[original.id] ?? standard
-        let file = isFull ? expanded(original, review: review) : original
+        let file = shown(original, review: review)
         let folder = (file.path as NSString).deletingLastPathComponent
         let isExpanded = review.expandedFiles.contains(file.id)
         let fileThreads = threads.filter { $0.filePath == file.path }
@@ -23,7 +23,7 @@ enum PullRequestFileRowMapper {
             deletionsText: "−\(file.deletions)",
             isExpanded: isExpanded,
             isViewed: review.viewedFiles.contains(file.id),
-            diff: isExpanded ? diff(file, words: words) : nil,
+            diff: isExpanded ? diff(file, review: review, words: words) : nil,
             highlightedLineID: isExpanded ? highlightedLineID(file, focus: review.focus) : nil,
             isFocused: review.focus?.path == file.path,
             threadCountText: fileThreads.isEmpty ? nil : "\(fileThreads.count)",
@@ -55,6 +55,10 @@ enum PullRequestFileRowMapper {
             return "This file is in the group \(group), hidden by its chip above the list (git.pullRequests.fileGroups in project.json)"
         }
         return "This file matches git.pullRequests.hiddenFiles in project.json"
+    }
+
+    static func shown(_ file: PullRequestFileDiff, review: PullRequestReviewState) -> PullRequestFileDiff {
+        review.fullFiles.contains(file.id) ? expanded(file, review: review) : file
     }
 
     static func expanded(_ file: PullRequestFileDiff, review: PullRequestReviewState) -> PullRequestFileDiff {
@@ -118,11 +122,13 @@ enum PullRequestFileRowMapper {
         return index - headerEnd
     }
 
-    private static func diff(_ file: PullRequestFileDiff, words: CodeHostWords) -> DiffModel {
+    private static func diff(_ file: PullRequestFileDiff, review: PullRequestReviewState, words: CodeHostWords) -> DiffModel {
         if file.isTooLarge {
             return .note("The diff is too large for \(words.name) to show. Open the \(words.request) in \(words.name).")
         }
-        return DiffMapper.model(for: file.diff)
+        let model = DiffMapper.model(for: file.diff)
+        guard case .lines(let lines, let droppedNote) = model else { return model }
+        return .lines(DiffFindPolicy.marked(lines, path: file.path, find: review.find), droppedNote: droppedNote)
     }
 
     private static func letter(_ kind: PullRequestFileDiff.Kind) -> String {
