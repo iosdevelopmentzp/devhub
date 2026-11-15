@@ -112,7 +112,10 @@ import Testing
         #expect(TestSlowRowModel.preview.durationText == "1.8 s")
         #expect(CIHistoryRowModel.preview.failedJobs.count == 1)
         #expect(TicketRowModel.preview.canStart)
-        #expect(TicketSectionModel.preview.id == .inProgress)
+        #expect(TicketDetailsModel.preview.labels == ["ios", "login"])
+        #expect(TicketLinkModel.preview.key == "ABC-100")
+        #expect(TicketCommentModel.preview.author == "Sam")
+        #expect(TicketSectionModel.preview.id == "status:inProgress")
         #expect(TrackerToolModel.preview.showsCheckAgain)
     }
 }

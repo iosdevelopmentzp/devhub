@@ -7,6 +7,9 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Tickets: five scopes (Mine, Sprint, Reported, Watching, Project), and a view menu that groups by status, type, assignee or priority, sorts by last update, newest or priority, adds done tickets of the last 14 days and hides ticket types. All of it is saved.
+- Tickets: a click on a ticket opens its details under the row: description, reporter, created, labels, components, parent, sub-tasks and the last 5 comments, from Jira Server and Jira Cloud.
+- Tickets: Add Comment and Assign to Me in the details, Assign to Me and Copy Key and Summary in the context menu.
 - Pull requests: a split button on each modified or renamed file shows only that file side by side (or unified when the header says Side by Side). The header control still sets every file.
 - Pull requests: Refresh at the top of the details reads the request again (description, threads, checks, files) and keeps the viewed marks, open files, whole files and layouts; ⌘R in the request window. A failed refresh keeps the shown data and logs the error.
 - Diffs: A− and A+ in the files header of a request (⌘−, ⌘=, ⌘0 or a click on the size resets) change the text size of every diff in DevHub, 9 to 20 pt, saved.
@@ -15,6 +18,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Pull requests: find in diffs. A field above the details of the request window (⌘F) and a magnifier in the header of the details pane (⌥⌘F) find text in the diffs of every listed file, open or folded. The open diffs mark every match; Return or ⌘G goes to the next match and ⇧⌘G to the previous one, which opens its file and scrolls to its line. Esc clears the field in the window and closes the bar in the pane.
 
 ### Fixed
+- Tickets: a Jira token in `~/.zshrc` works. When `jira` cannot log in, DevHub reads `JIRA_API_TOKEN`, `JIRA_AUTH_TYPE` and `JIRA_CONFIG_FILE` from a login zsh and runs `jira` again with them, without storing or recording them. The card says "jira cannot log in", names the three places of the token and the bearer setting for a personal access token on Jira Server, and its keychain command asks for the token instead of taking it on the command line.
 - Pull requests: "Show in diff" on a thread and a find match scroll to the line instead of the top of the file.
 - Pull requests: scrolling a request with many open diffs is smooth again. DevHub draws only the diffs within one screen of the visible part (a diff farther away keeps its measured height as an empty block), diff lines and file headers react to the pointer only while it is over them, and a hint reads its position only while hovered. With every file of a 54-file request open, a rendered scroll step took about 150 ms before and about 20 ms now.
 - Pull requests: the whole-file and split buttons of a file have an accent background while they are on. The whole-file button shows a spinner while the file is read, and both buttons open a folded file.
@@ -30,6 +34,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Launch profiles: `routes` send a path prefix to another real server, for HTTP and WebSocket, for example `/socket.io/` to a socket host.
 
 ### Infrastructure
+- Debug switch `DEVHUB_TICKET=<key>` opens the details of a ticket in Utils → Tickets for a headless snapshot.
 - Debug launch: `DEVHUB_PULL_REQUEST_WINDOW=1` waits until the request list has the request (up to 30 s) before it opens the window; `DEVHUB_REVEAL_FILE=*` opens every file of the request.
 - Debug launch: `DEVHUB_FIND=<text>` puts the text into the find field of the request and goes to the first match.
 - `ui-components` skill: `ToggleIconButton` and `.hintHost(_:)`; `panel-window` skill: the hint center of a pull request window.

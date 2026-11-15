@@ -6,7 +6,7 @@ import Testing
 
 @Suite struct TicketRowMapperTests {
     @Test func aBugInToDoCanStartAndMove() {
-        let model = TicketRowMapper.model(for: issue(type: "Bug", status: "To Do", category: .toDo, priority: "High"), settings: .standard, isBusy: false)
+        let model = TicketRowMapper.model(for: issue(type: "Bug", status: "To Do", category: .toDo, priority: "High"), settings: .standard, isBusy: false, isExpanded: false, canAssignToMe: false)
 
         #expect(model.id == "ABC-123")
         #expect(model.typeIcon == "ladybug")
@@ -25,7 +25,7 @@ import Testing
     }
 
     @Test func aTicketAlreadyInTheStartStatusCannotStart() {
-        let model = TicketRowMapper.model(for: issue(type: "Story", status: "in progress", category: .inProgress, priority: nil), settings: .standard, isBusy: true)
+        let model = TicketRowMapper.model(for: issue(type: "Story", status: "in progress", category: .inProgress, priority: nil), settings: .standard, isBusy: true, isExpanded: false, canAssignToMe: false)
 
         #expect(model.canStart == false)
         #expect(model.moveTargets == ["To Do", "In Review", "Done"])
@@ -37,7 +37,7 @@ import Testing
     }
 
     @Test func aDoneTicketCannotStart() {
-        let model = TicketRowMapper.model(for: issue(type: "Task", status: "Done", category: .done, priority: "Lowest"), settings: .standard, isBusy: false)
+        let model = TicketRowMapper.model(for: issue(type: "Task", status: "Done", category: .done, priority: "Lowest"), settings: .standard, isBusy: false, isExpanded: false, canAssignToMe: false)
 
         #expect(model.canStart == false)
         #expect(model.statusTag.tint == .green)
@@ -56,7 +56,17 @@ import Testing
     @Test func anEmptyTypeIsCalledTicket() {
         let empty = TrackerIssue(key: "ABC-1", summary: "", status: "", statusCategory: .unknown, type: "", priority: nil, assignee: nil, url: nil, updatedAt: nil)
 
-        #expect(TicketRowMapper.model(for: empty, settings: .standard, isBusy: false).typeHint == "Ticket")
+        #expect(TicketRowMapper.model(for: empty, settings: .standard, isBusy: false, isExpanded: false, canAssignToMe: false).typeHint == "Ticket")
+    }
+
+    @Test func theRowCarriesTheExpansionTheAssignChoiceAndTheKeyWithTheSummary() {
+        let model = TicketRowMapper.model(for: issue(type: "Bug", status: "To Do", category: .toDo, priority: nil), settings: .standard, isBusy: false, isExpanded: true, canAssignToMe: true)
+        let empty = TrackerIssue(key: "ABC-1", summary: "", status: "", statusCategory: .unknown, type: "", priority: nil, assignee: nil, url: nil, updatedAt: nil)
+
+        #expect(model.isExpanded)
+        #expect(model.canAssignToMe)
+        #expect(model.keyAndSummary == "ABC-123 Login button stays disabled")
+        #expect(TicketRowMapper.model(for: empty, settings: .standard, isBusy: false, isExpanded: false, canAssignToMe: false).keyAndSummary == "ABC-1")
     }
 
     @Test func priorityTints() {

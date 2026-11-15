@@ -82,6 +82,11 @@ enum DebugLaunch {
                 }
             }
         }
+        if let key = environment["DEVHUB_TICKET"] {
+            Task {
+                await assembly.debugShowTicket(key)
+            }
+        }
         if let query = environment["DEVHUB_PALETTE"] {
             assembly.debugOpenPalette(query: query)
         }

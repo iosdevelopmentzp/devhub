@@ -9,9 +9,11 @@ struct TicketRow: View {
     let model: TicketRowModel
     let onStart: () -> Void
     let onMove: (String) -> Void
+    let onToggleDetails: () -> Void
+    let onAssignToMe: () -> Void
 
     var body: some View {
-        RowContainer { isHovered in
+        RowContainer(isHighlighted: model.isExpanded) { isHovered in
             HStack(alignment: .top, spacing: 10) {
                 IconTile(systemImage: model.typeIcon, tint: model.typeTint.color, size: 32)
                     .hint(model.typeHint)
@@ -22,6 +24,7 @@ struct TicketRow: View {
                 }
             }
         }
+        .onTapGesture(perform: onToggleDetails)
         .contextMenu {
             menu
         }
@@ -30,13 +33,17 @@ struct TicketRow: View {
     private var details: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Image(systemName: model.isExpanded ? "chevron.down" : "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .frame(width: 10)
                 Text(model.key)
                     .font(.caption.monospaced().weight(.semibold))
                     .foregroundStyle(.secondary)
                     .copyOnClick(model.key, label: model.key)
                 Text(model.summary)
                     .font(.callout.weight(.semibold))
-                    .lineLimit(1)
+                    .lineLimit(model.isExpanded ? nil : 1)
                     .truncationMode(.tail)
                     .hintWhenTruncated(model.summary)
             }
@@ -54,6 +61,7 @@ struct TicketRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .padding(.leading, 16)
         }
     }
 
@@ -78,10 +86,18 @@ struct TicketRow: View {
 
     @ViewBuilder
     private var menu: some View {
+        Button(model.isExpanded ? "Hide Details" : "Show Details", systemImage: "text.alignleft", action: onToggleDetails)
         Button("Open in Browser", systemImage: "safari") { appActions.open(model.url) }
             .disabled(model.url == nil)
+        Divider()
         Button("Copy Key", systemImage: "doc.on.doc") { toaster.copy(model.key, label: model.key) }
+        Button("Copy Key and Summary", systemImage: "text.quote") { toaster.copy(model.keyAndSummary, label: model.key) }
         Button("Copy Branch Name", systemImage: "arrow.triangle.branch") { toaster.copy(model.branchName, label: model.branchName) }
+        if model.canAssignToMe {
+            Divider()
+            Button("Assign to Me", systemImage: "person.crop.circle.badge.checkmark", action: onAssignToMe)
+                .disabled(model.isBusy)
+        }
         if model.moveTargets.isEmpty == false {
             Divider()
             if model.canStart {
@@ -97,6 +113,6 @@ struct TicketRow: View {
 }
 
 #Preview {
-    TicketRow(model: .preview, onStart: {}, onMove: { _ in })
+    TicketRow(model: .preview, onStart: {}, onMove: { _ in }, onToggleDetails: {}, onAssignToMe: {})
         .previewEnvironment()
 }

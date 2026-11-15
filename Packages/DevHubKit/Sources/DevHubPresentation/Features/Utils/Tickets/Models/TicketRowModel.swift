@@ -19,6 +19,9 @@ struct TicketRowModel: Identifiable, Equatable {
     var canStart: Bool
     var moveTargets: [String]
     var isBusy: Bool
+    var isExpanded: Bool
+    var canAssignToMe: Bool
+    var keyAndSummary: String
 
     static let preview = TicketRowMapper.model(
         for: TrackerIssue(
@@ -33,6 +36,8 @@ struct TicketRowModel: Identifiable, Equatable {
             updatedAt: Date(timeIntervalSinceNow: -3_600)
         ),
         settings: .standard,
-        isBusy: false
+        isBusy: false,
+        isExpanded: false,
+        canAssignToMe: true
     )
 }

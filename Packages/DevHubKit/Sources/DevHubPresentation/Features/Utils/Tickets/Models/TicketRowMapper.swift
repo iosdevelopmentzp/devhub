@@ -3,7 +3,7 @@ import DevHubDomain
 import DevHubUI
 
 enum TicketRowMapper {
-    static func model(for issue: TrackerIssue, settings: TrackerSettings, isBusy: Bool) -> TicketRowModel {
+    static func model(for issue: TrackerIssue, settings: TrackerSettings, isBusy: Bool, isExpanded: Bool, canAssignToMe: Bool) -> TicketRowModel {
         let sameStatus = { (status: String) in status.caseInsensitiveCompare(issue.status) == .orderedSame }
         return TicketRowModel(
             id: issue.key,
@@ -21,7 +21,10 @@ enum TicketRowMapper {
             startTitle: "Move to \(settings.startStatus)",
             canStart: issue.statusCategory != .done && sameStatus(settings.startStatus) == false,
             moveTargets: settings.statuses.filter { sameStatus($0) == false },
-            isBusy: isBusy
+            isBusy: isBusy,
+            isExpanded: isExpanded,
+            canAssignToMe: canAssignToMe,
+            keyAndSummary: issue.summary.isEmpty ? issue.key : "\(issue.key) \(issue.summary)"
         )
     }
 

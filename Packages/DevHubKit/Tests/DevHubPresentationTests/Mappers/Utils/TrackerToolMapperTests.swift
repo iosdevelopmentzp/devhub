@@ -36,7 +36,10 @@ import Testing
 
     @Test func aToolWithoutAConfigOrATokenSaysWhatToRun() {
         #expect(TrackerToolMapper.model(for: .notConfigured, isChecking: false).command == "jira init")
-        #expect(TrackerToolMapper.model(for: .notLoggedIn, isChecking: false).command == "security add-generic-password -s jira-cli -a <your login> -w <api token>")
+        #expect(TrackerToolMapper.model(for: .notLoggedIn, isChecking: false).command == "security add-generic-password -s jira-cli -a <login of the jira config> -w")
+        #expect(TrackerToolMapper.model(for: .notLoggedIn, isChecking: false).title == "jira cannot log in")
+        #expect(TrackerToolMapper.model(for: .notLoggedIn, isChecking: false).detail.contains("JIRA_API_TOKEN"))
+        #expect(TrackerToolMapper.model(for: .notLoggedIn, isChecking: false).detail.contains("auth_type: bearer"))
         #expect(TrackerToolMapper.model(for: .notLoggedIn, isChecking: true).isWorking)
     }
 

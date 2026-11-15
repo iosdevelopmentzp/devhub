@@ -3,6 +3,8 @@ import DevHubDomain
 
 struct JiraClient {
     let shell: ShellRunner
+    let executable: String
+    let environment: JiraShellEnvironment
 
     func run(_ arguments: [String]) async throws -> Data {
         let result = try await output(arguments)
@@ -11,14 +13,33 @@ struct JiraClient {
     }
 
     func output(_ arguments: [String]) async throws -> ShellResult {
+        if await environment.isNeeded {
+            return try await launch(arguments, environment: await environment.read())
+        }
+        let result = try await launch(arguments, environment: [:])
+        guard Self.isLoginFailure(result) else { return result }
+        let variables = await environment.read()
+        guard variables.isEmpty == false else { return result }
+        let retried = try await launch(arguments, environment: variables)
+        if Self.isLoginFailure(retried) == false {
+            await environment.markNeeded()
+        }
+        return retried
+    }
+
+    func launch(_ arguments: [String], environment: [String: String]) async throws -> ShellResult {
         let result: ShellResult
         do {
-            result = try await shell.run("jira", arguments, cwd: nil)
+            result = try await shell.run(executable, arguments, cwd: nil, environment: environment)
         } catch {
             throw TrackerError.notInstalled
         }
         guard result.exitCode != 127 else { throw TrackerError.notInstalled }
         return result
+    }
+
+    static func isLoginFailure(_ result: ShellResult) -> Bool {
+        result.exitCode != 0 && error(exitCode: result.exitCode, message: result.failureMessage) == .notLoggedIn
     }
 
     static func error(exitCode: Int32, message: String) -> TrackerError {
@@ -49,8 +70,8 @@ struct JiraClient {
         ["me"]
     }
 
-    static func issueListArguments(jql: String, project: String?, limit: Int) -> [String] {
-        var arguments = ["issue", "list", "-q", jql, "--raw", "--paginate", "0:\(limit)", "--order-by", "updated"]
+    static func issueListArguments(jql: String, project: String?, order: IssueOrder, limit: Int) -> [String] {
+        var arguments = ["issue", "list", "-q", jql, "--raw", "--paginate", "0:\(limit)", "--order-by", order.rawValue]
         if let project, project.isEmpty == false {
             arguments += ["-p", project]
         }
@@ -63,5 +84,13 @@ struct JiraClient {
 
     static func moveArguments(key: String, status: String) -> [String] {
         ["issue", "move", key, status]
+    }
+
+    static func assignArguments(key: String, user: String) -> [String] {
+        ["issue", "assign", key, user]
+    }
+
+    static func commentArguments(key: String, text: String) -> [String] {
+        ["issue", "comment", "add", "--no-input", "--", key, text]
     }
 }
