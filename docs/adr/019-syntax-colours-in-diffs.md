@@ -49,3 +49,4 @@ Every diff in DevHub (request review in the tab, the details pane and the reques
 
 | Commit | What it did |
 |---|---|
+| `b5137fa` | Steps 1 and 2: the lexer, the policy, the theme tokens, the mapper, the memo, the view, the setting. Checked with 3,382 tests, the build, the smoke check and headless snapshots of a request diff unified in the panel and side by side in the request window. |
