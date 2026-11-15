@@ -301,7 +301,10 @@ import DevHubTestSupport
         #expect(store.details.isEmpty)
         #expect(store.diffs.isEmpty)
         #expect(store.expandedFiles(of: 7).isEmpty)
-        #expect(store.review(of: 7) == .initial)
+        var review = store.review(of: 7)
+        #expect(review.syntaxMemo != nil)
+        review.syntaxMemo = nil
+        #expect(review == .initial)
     }
 
     // MARK: Review prompt

@@ -47,7 +47,7 @@ Packages/DevHubKit/
   Package.swift
   Sources/
     DevHubDomain/
-      Models/ Values/ Repositories/ Policies/ UseCases/ Errors/
+      Models/ Values/ Repositories/ Policies/ UseCases/ Errors/ Syntax/
       Assembly/                  Ports (the 21 ports), UseCases (the 16 use cases)
     DevHubData/
       Shell/                     ShellRunner, ShellResult, LineBatcher, CommandFormatter, ISO8601

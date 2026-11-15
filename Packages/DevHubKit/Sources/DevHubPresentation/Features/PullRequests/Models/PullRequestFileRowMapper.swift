@@ -4,7 +4,7 @@ import DevHubUI
 
 enum PullRequestFileRowMapper {
 
-    static func model(for original: PullRequestFileDiff, review: PullRequestReviewState, threads: [ReviewThreadRowModel], layout standard: DiffLayout, words: CodeHostWords) -> PullRequestFileRowModel {
+    static func model(for original: PullRequestFileDiff, review: PullRequestReviewState, threads: [ReviewThreadRowModel], layout standard: DiffLayout, words: CodeHostWords, syntaxColors: Bool) -> PullRequestFileRowModel {
         let isFull = review.fullFiles.contains(original.id)
         let layout = review.fileLayouts[original.id] ?? standard
         let file = shown(original, review: review)
@@ -23,7 +23,7 @@ enum PullRequestFileRowMapper {
             deletionsText: "−\(file.deletions)",
             isExpanded: isExpanded,
             isViewed: review.viewedFiles.contains(file.id),
-            diff: isExpanded ? diff(file, review: review, words: words) : nil,
+            diff: isExpanded ? diff(file, review: review, words: words, syntaxColors: syntaxColors) : nil,
             highlightedLineID: isExpanded ? highlightedLineID(file, focus: review.focus) : nil,
             isFocused: review.focus?.path == file.path,
             threadCountText: fileThreads.isEmpty ? nil : "\(fileThreads.count)",
@@ -122,11 +122,11 @@ enum PullRequestFileRowMapper {
         return index - headerEnd
     }
 
-    private static func diff(_ file: PullRequestFileDiff, review: PullRequestReviewState, words: CodeHostWords) -> DiffModel {
+    private static func diff(_ file: PullRequestFileDiff, review: PullRequestReviewState, words: CodeHostWords, syntaxColors: Bool) -> DiffModel {
         if file.isTooLarge {
             return .note("The diff is too large for \(words.name) to show. Open the \(words.request) in \(words.name).")
         }
-        let model = DiffMapper.model(for: file.diff)
+        let model = DiffMapper.model(for: file.diff, language: DiffSyntaxMapper.language(forPath: file.path, syntaxColors: syntaxColors), memo: review.syntaxMemo)
         guard case .lines(let lines, let droppedNote) = model else { return model }
         return .lines(DiffFindPolicy.marked(lines, path: file.path, find: review.find), droppedNote: droppedNote)
     }

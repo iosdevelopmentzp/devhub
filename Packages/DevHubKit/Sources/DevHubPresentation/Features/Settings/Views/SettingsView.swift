@@ -37,6 +37,8 @@ struct SettingsView: View {
                     }
                 }
                 .hint(WindowModeText.shortcutHint(for: settings.values.windowMode))
+                Toggle("Syntax colours in diffs", isOn: $settings.values.diffSyntaxColors)
+                    .hint("Swift code in every diff (requests, Git changes, commits, stashes) gets the colours of the Xcode light theme: keywords, types, strings, numbers, comments, attributes and directives.")
             }
 
             NotificationsSection()

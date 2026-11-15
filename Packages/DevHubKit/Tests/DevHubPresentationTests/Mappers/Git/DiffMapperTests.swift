@@ -5,20 +5,20 @@ import Testing
 
 @Suite struct DiffMapperTests {
     @Test func missingDiffIsLoading() {
-        #expect(DiffMapper.model(for: nil) == .loading)
+        #expect(DiffMapper.model(for: nil, language: nil) == .loading)
     }
 
     @Test func binaryDiffGivesANote() {
         let diff = GitDiff(lines: ["Binary files differ"], droppedLines: 0, isBinary: true)
 
-        #expect(DiffMapper.model(for: diff) == .note("Binary file, no text diff"))
+        #expect(DiffMapper.model(for: diff, language: nil) == .note("Binary file, no text diff"))
     }
 
     @Test func emptyLinesGiveANote() {
         let note = DiffModel.note("No text changes. Only the file mode or an empty file changed.")
 
-        #expect(DiffMapper.model(for: GitDiff(lines: [], droppedLines: 0, isBinary: false)) == note)
-        #expect(DiffMapper.model(for: GitDiff(lines: ["", ""], droppedLines: 0, isBinary: false)) == note)
+        #expect(DiffMapper.model(for: GitDiff(lines: [], droppedLines: 0, isBinary: false), language: nil) == note)
+        #expect(DiffMapper.model(for: GitDiff(lines: ["", ""], droppedLines: 0, isBinary: false), language: nil) == note)
     }
 
     @Test func headerLinesBeforeTheFirstHunkAreSkipped() {
@@ -28,7 +28,7 @@ import Testing
             isBinary: false
         )
 
-        let model = DiffMapper.model(for: diff)
+        let model = DiffMapper.model(for: diff, language: nil)
 
         #expect(model == .lines(
             [
@@ -45,7 +45,7 @@ import Testing
     @Test func pairedLinesCarryTheirEmphasisShiftedPastThePrefix() {
         let diff = GitDiff(lines: ["@@ -1,2 +1,2 @@", "-let a: Int", "+let a: String", " same"], droppedLines: 0, isBinary: false)
 
-        guard case .lines(let lines, _) = DiffMapper.model(for: diff) else {
+        guard case .lines(let lines, _) = DiffMapper.model(for: diff, language: nil) else {
             Issue.record("Expected lines")
             return
         }
@@ -55,13 +55,39 @@ import Testing
     @Test func withoutHunkEveryLineIsShown() {
         let diff = GitDiff(lines: ["+only"], droppedLines: 0, isBinary: false)
 
-        #expect(DiffMapper.model(for: diff) == .lines([DiffMapper.line(id: 0, text: "+only", numbers: .none)], droppedNote: nil))
+        #expect(DiffMapper.model(for: diff, language: nil) == .lines([DiffMapper.line(id: 0, text: "+only", numbers: .none)], droppedNote: nil))
+    }
+
+    @Test func aLanguageAddsSyntaxSpansAndAStrongerBackgroundToChangedLines() {
+        let diff = GitDiff(lines: ["@@ -1,2 +1,2 @@", "-let a = 1", "+let a = \"x\"", " func go() {}"], droppedLines: 0, isBinary: false)
+
+        guard case .lines(let lines, _) = DiffMapper.model(for: diff, language: .swift) else {
+            Issue.record("Expected lines")
+            return
+        }
+        #expect(lines.map(\.hasSyntaxColors) == [false, true, true, true])
+        #expect(lines[0].syntax.isEmpty)
+        #expect(lines[1].syntax == [DiffSyntaxSpan(range: 1..<4, color: .keyword), DiffSyntaxSpan(range: 9..<10, color: .number)])
+        #expect(lines[2].syntax == [DiffSyntaxSpan(range: 1..<4, color: .keyword), DiffSyntaxSpan(range: 9..<12, color: .string)])
+        #expect(lines[3].syntax == [DiffSyntaxSpan(range: 1..<5, color: .keyword)])
+        #expect(lines.map(\.backgroundOpacity) == [0.06, DiffMapper.syntaxBackgroundOpacity, DiffMapper.syntaxBackgroundOpacity, 0])
+        #expect(lines[1].emphasis == [9..<10])
+    }
+
+    @Test func withoutALanguageNoLineHasSyntaxColors() {
+        let diff = GitDiff(lines: ["@@ -1 +1 @@", "+let a = 1"], droppedLines: 0, isBinary: false)
+
+        guard case .lines(let lines, _) = DiffMapper.model(for: diff, language: nil) else {
+            Issue.record("Expected lines")
+            return
+        }
+        #expect(lines.allSatisfy { $0.hasSyntaxColors == false && $0.syntax.isEmpty })
     }
 
     @Test func droppedLinesGiveANote() {
         let diff = GitDiff(lines: ["@@ -1 +1 @@"], droppedLines: 42, isBinary: false)
 
-        guard case .lines(_, let droppedNote) = DiffMapper.model(for: diff) else {
+        guard case .lines(_, let droppedNote) = DiffMapper.model(for: diff, language: nil) else {
             Issue.record("Expected lines")
             return
         }

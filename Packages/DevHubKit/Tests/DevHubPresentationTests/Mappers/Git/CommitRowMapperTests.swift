@@ -90,7 +90,7 @@ import Testing
         }
         #expect(rows.map(\.path) == ["App/Login.swift", "App/Gift.swift"])
         #expect(rows[0].isExpanded)
-        #expect(rows[0].diff == DiffMapper.model(for: diff))
+        #expect(rows[0].diff == DiffMapper.model(for: diff, language: .swift))
         #expect(rows[1].isExpanded == false)
     }
 

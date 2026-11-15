@@ -15,6 +15,7 @@ struct PullRequestRowContext {
     var hiddenFiles: [String]
     var fileGroups: [PullRequestFileGroup] = []
     var diffLayout = DiffLayout.unified
+    var syntaxColors = true
     var watchedIDs: Set<Int>
     var onHoldJobs: [Int: [String]] = [:]
     var people: [String] = []

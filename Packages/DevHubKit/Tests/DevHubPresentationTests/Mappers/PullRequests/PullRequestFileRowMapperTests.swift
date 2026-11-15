@@ -11,7 +11,7 @@ import Testing
         (.modified, "M", .orange, "Modified"),
     ])
     func kindLetter(kind: PullRequestFileDiff.Kind, letter: String, tint: Tint, hint: String) {
-        let model = PullRequestFileRowMapper.model(for: file(kind), review: review(expanded: false, viewed: false, focus: nil), threads: [], layout: .unified, words: .gitLab)
+        let model = PullRequestFileRowMapper.model(for: file(kind), review: review(expanded: false, viewed: false, focus: nil), threads: [], layout: .unified, words: .gitLab, syntaxColors: false)
 
         #expect(model.letter == letter)
         #expect(model.letterTint == tint)
@@ -19,7 +19,7 @@ import Testing
     }
 
     @Test func collapsedRow() {
-        let model = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false, viewed: false, focus: nil), threads: [], layout: .unified, words: .gitLab)
+        let model = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false, viewed: false, focus: nil), threads: [], layout: .unified, words: .gitLab, syntaxColors: false)
 
         #expect(model.id == "App/Login/a.swift")
         #expect(model.fileName == "a.swift")
@@ -29,13 +29,13 @@ import Testing
         #expect(model.deletionsText == "−2")
         #expect(model.isExpanded == false)
         #expect(model.diff == nil)
-        #expect(PullRequestFileRowMapper.model(for: file(.renamed), review: review(expanded: false, viewed: false, focus: nil), threads: [], layout: .unified, words: .gitLab).detail == "from Old/a.swift")
+        #expect(PullRequestFileRowMapper.model(for: file(.renamed), review: review(expanded: false, viewed: false, focus: nil), threads: [], layout: .unified, words: .gitLab, syntaxColors: false).detail == "from Old/a.swift")
     }
 
     @Test func expandedRowShowsTheDiffOrANote() {
-        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true, viewed: false, focus: nil), threads: [], layout: .unified, words: .gitLab).diff == DiffMapper.model(for: file(.modified).diff))
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true, viewed: false, focus: nil), threads: [], layout: .unified, words: .gitLab, syntaxColors: false).diff == DiffMapper.model(for: file(.modified).diff, language: nil))
         #expect(
-            PullRequestFileRowMapper.model(for: file(.modified, isTooLarge: true), review: review(expanded: true, viewed: false, focus: nil), threads: [], layout: .unified, words: .gitLab).diff
+            PullRequestFileRowMapper.model(for: file(.modified, isTooLarge: true), review: review(expanded: true, viewed: false, focus: nil), threads: [], layout: .unified, words: .gitLab, syntaxColors: false).diff
                 == .note("The diff is too large for GitLab to show. Open the merge request in GitLab.")
         )
     }
@@ -43,10 +43,10 @@ import Testing
     @Test func theFocusedLineIsHighlighted() {
         let focus = DiffFocus(requestID: 7, path: "App/Login/a.swift", line: 1, isOld: false)
 
-        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true, viewed: false, focus: focus), threads: [], layout: .unified, words: .gitLab).highlightedLineID == 1)
-        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false, viewed: false, focus: focus), threads: [], layout: .unified, words: .gitLab).highlightedLineID == nil)
-        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true, viewed: false, focus: DiffFocus(requestID: 7, path: "other", line: 1, isOld: false)), threads: [], layout: .unified, words: .gitLab).highlightedLineID == nil)
-        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true, viewed: false, focus: DiffFocus(requestID: 7, path: "App/Login/a.swift", line: 9, isOld: false)), threads: [], layout: .unified, words: .gitLab).highlightedLineID == nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true, viewed: false, focus: focus), threads: [], layout: .unified, words: .gitLab, syntaxColors: false).highlightedLineID == 1)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false, viewed: false, focus: focus), threads: [], layout: .unified, words: .gitLab, syntaxColors: false).highlightedLineID == nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true, viewed: false, focus: DiffFocus(requestID: 7, path: "other", line: 1, isOld: false)), threads: [], layout: .unified, words: .gitLab, syntaxColors: false).highlightedLineID == nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true, viewed: false, focus: DiffFocus(requestID: 7, path: "App/Login/a.swift", line: 9, isOld: false)), threads: [], layout: .unified, words: .gitLab, syntaxColors: false).highlightedLineID == nil)
     }
 
     @Test func threadsSitUnderTheirLineWhenTheFileIsOpen() {
@@ -63,9 +63,9 @@ import Testing
             isBusy: false
         )
 
-        let open = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true, openThreads: ["t1"]), threads: [thread, elsewhere], layout: .unified, words: .gitLab)
-        let closed = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false), threads: [thread, elsewhere], layout: .unified, words: .gitLab)
-        let hidden = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true, showsThreads: false), threads: [thread], layout: .unified, words: .gitLab)
+        let open = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true, openThreads: ["t1"]), threads: [thread, elsewhere], layout: .unified, words: .gitLab, syntaxColors: false)
+        let closed = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false), threads: [thread, elsewhere], layout: .unified, words: .gitLab, syntaxColors: false)
+        let hidden = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true, showsThreads: false), threads: [thread], layout: .unified, words: .gitLab, syntaxColors: false)
 
         #expect(open.threadCountText == "1")
         #expect(open.diffThreads.keys.sorted() == [1])
@@ -85,7 +85,7 @@ import Testing
             isBusy: false
         )
 
-        let model = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true), threads: [thread], layout: .unified, words: .gitLab)
+        let model = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: true), threads: [thread], layout: .unified, words: .gitLab, syntaxColors: false)
 
         #expect(model.diffThreads.isEmpty)
         #expect(model.threadCountText == "1")
@@ -95,7 +95,7 @@ import Testing
         var state = review(expanded: true)
         state.find = DiffFindState(query: "x", current: DiffFindMatch(path: "App/Login/a.swift", lineID: 1, range: 1..<2, line: 1, isOld: false))
 
-        guard case .lines(let lines, _)? = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .unified, words: .gitLab).diff else {
+        guard case .lines(let lines, _)? = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).diff else {
             Issue.record("Expected lines")
             return
         }
@@ -133,8 +133,8 @@ import Testing
     }
 
     @Test func aViewedFileSaysSo() {
-        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false, viewed: true, focus: nil), threads: [], layout: .unified, words: .gitLab).isViewed)
-        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false, viewed: false, focus: nil), threads: [], layout: .unified, words: .gitLab).isViewed == false)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false, viewed: true, focus: nil), threads: [], layout: .unified, words: .gitLab, syntaxColors: false).isViewed)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false, viewed: false, focus: nil), threads: [], layout: .unified, words: .gitLab, syntaxColors: false).isViewed == false)
     }
 
     @Test func theLineComposerShowsOnlyOnItsFileAndNeedsText() {
@@ -151,7 +151,7 @@ import Testing
         #expect(PullRequestFileRowMapper.lineComposer(review: state, path: "App/Login/a.swift")?.canSend == true)
         state.isLineCommentBusy = true
         #expect(PullRequestFileRowMapper.lineComposer(review: state, path: "App/Login/a.swift")?.canSend == false)
-        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false), threads: [], layout: .unified, words: .gitLab).lineComposer == nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false), threads: [], layout: .unified, words: .gitLab, syntaxColors: false).lineComposer == nil)
     }
 
     @Test func theWholeFileShowsTheDiffWithTheFileLinesAround() {
@@ -159,25 +159,25 @@ import Testing
         state.fullFiles = ["App/Login/a.swift"]
         state.fileContents = ["App/Login/a.swift": ["x", "y"]]
 
-        let model = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .unified, words: .gitLab)
+        let model = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .unified, words: .gitLab, syntaxColors: false)
 
         #expect(model.isFull)
         #expect(model.fullHint == "Show only the changed parts")
-        #expect(model.diff == DiffMapper.model(for: GitDiff(lines: ["@@ -1,1 +1,2 @@", "+x", " y"], droppedLines: 0, isBinary: false)))
+        #expect(model.diff == DiffMapper.model(for: GitDiff(lines: ["@@ -1,1 +1,2 @@", "+x", " y"], droppedLines: 0, isBinary: false), language: nil))
     }
 
     @Test func theWholeFileWaitsForTheContent() {
         var state = review(expanded: true)
         state.fullFiles = ["App/Login/a.swift"]
 
-        let model = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .unified, words: .gitLab)
+        let model = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .unified, words: .gitLab, syntaxColors: false)
 
         #expect(model.isFull)
-        #expect(model.diff == DiffMapper.model(for: file(.modified).diff))
+        #expect(model.diff == DiffMapper.model(for: file(.modified).diff, language: nil))
     }
 
     @Test func hidingSetsTheTagAndTheEyeButton() {
-        let model = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false), threads: [], layout: .unified, words: .gitLab)
+        let model = PullRequestFileRowMapper.model(for: file(.modified), review: review(expanded: false), threads: [], layout: .unified, words: .gitLab, syntaxColors: false)
 
         let visible = PullRequestFileRowMapper.hiding(model, isHidden: false, isChosen: false)
         let chosen = PullRequestFileRowMapper.hiding(model, isHidden: true, isChosen: true)
@@ -198,20 +198,20 @@ import Testing
     @Test func onlyAModifiedOrRenamedTextFileOffersTheWholeFile() {
         let plain = review(expanded: false)
 
-        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: plain, threads: [], layout: .unified, words: .gitLab).fullHint == "Show the whole file with the changes in place. DevHub reads the file at the last commit of the merge request from GitLab.")
-        #expect(PullRequestFileRowMapper.model(for: file(.renamed), review: plain, threads: [], layout: .unified, words: .gitLab).fullHint != nil)
-        #expect(PullRequestFileRowMapper.model(for: file(.added), review: plain, threads: [], layout: .unified, words: .gitLab).fullHint == nil)
-        #expect(PullRequestFileRowMapper.model(for: file(.deleted), review: plain, threads: [], layout: .unified, words: .gitLab).fullHint == nil)
-        #expect(PullRequestFileRowMapper.model(for: file(.modified, isTooLarge: true), review: plain, threads: [], layout: .unified, words: .gitLab).fullHint == nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).fullHint == "Show the whole file with the changes in place. DevHub reads the file at the last commit of the merge request from GitLab.")
+        #expect(PullRequestFileRowMapper.model(for: file(.renamed), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).fullHint != nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.added), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).fullHint == nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.deleted), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).fullHint == nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified, isTooLarge: true), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).fullHint == nil)
     }
 
     @Test func aFileTakesTheStandardLayoutUnlessItHasItsOwn() {
         var state = review(expanded: false)
 
-        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .sideBySide, words: .gitLab).layout == .sideBySide)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .sideBySide, words: .gitLab, syntaxColors: false).layout == .sideBySide)
 
         state.fileLayouts = ["App/Login/a.swift": .unified]
-        let own = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .sideBySide, words: .gitLab)
+        let own = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .sideBySide, words: .gitLab, syntaxColors: false)
         #expect(own.layout == .unified)
         #expect(own.layoutHint?.hasPrefix("Show this file side by side") == true)
     }
@@ -219,20 +219,20 @@ import Testing
     @Test func onlyAModifiedOrRenamedTextFileOffersItsOwnLayout() {
         let plain = review(expanded: false)
 
-        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: plain, threads: [], layout: .unified, words: .gitLab).layoutHint != nil)
-        #expect(PullRequestFileRowMapper.model(for: file(.renamed), review: plain, threads: [], layout: .unified, words: .gitLab).layoutHint != nil)
-        #expect(PullRequestFileRowMapper.model(for: file(.added), review: plain, threads: [], layout: .unified, words: .gitLab).layoutHint == nil)
-        #expect(PullRequestFileRowMapper.model(for: file(.deleted), review: plain, threads: [], layout: .unified, words: .gitLab).layoutHint == nil)
-        #expect(PullRequestFileRowMapper.model(for: file(.modified, isTooLarge: true), review: plain, threads: [], layout: .unified, words: .gitLab).layoutHint == nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).layoutHint != nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.renamed), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).layoutHint != nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.added), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).layoutHint == nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.deleted), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).layoutHint == nil)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified, isTooLarge: true), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).layoutHint == nil)
     }
 
     @Test func theWholeFileIsLoadingUntilItsLinesArrive() {
         var state = review(expanded: true)
         state.fullFiles = ["App/Login/a.swift"]
 
-        let loading = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .unified, words: .gitLab)
+        let loading = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .unified, words: .gitLab, syntaxColors: false)
         state.fileContents = ["App/Login/a.swift": ["a"]]
-        let loaded = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .unified, words: .gitLab)
+        let loaded = PullRequestFileRowMapper.model(for: file(.modified), review: state, threads: [], layout: .unified, words: .gitLab, syntaxColors: false)
 
         #expect(loading.isFull)
         #expect(loading.isFullLoading)
@@ -242,8 +242,8 @@ import Testing
     @Test func everyFileButADeletedOneOpensOnTheWeb() {
         let plain = review(expanded: false)
 
-        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: plain, threads: [], layout: .unified, words: .gitLab).canOpenOnWeb)
-        #expect(PullRequestFileRowMapper.model(for: file(.added), review: plain, threads: [], layout: .unified, words: .gitLab).canOpenOnWeb)
-        #expect(PullRequestFileRowMapper.model(for: file(.deleted), review: plain, threads: [], layout: .unified, words: .gitLab).canOpenOnWeb == false)
+        #expect(PullRequestFileRowMapper.model(for: file(.modified), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).canOpenOnWeb)
+        #expect(PullRequestFileRowMapper.model(for: file(.added), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).canOpenOnWeb)
+        #expect(PullRequestFileRowMapper.model(for: file(.deleted), review: plain, threads: [], layout: .unified, words: .gitLab, syntaxColors: false).canOpenOnWeb == false)
     }
 }

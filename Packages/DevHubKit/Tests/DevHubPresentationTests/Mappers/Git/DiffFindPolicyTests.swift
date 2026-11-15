@@ -38,7 +38,7 @@ import Testing
     }
 
     @Test func markedLinesCarryTheirRangesAndTheCurrentMatch() throws {
-        guard case .lines(let lines, _) = DiffMapper.model(for: diff) else {
+        guard case .lines(let lines, _) = DiffMapper.model(for: diff, language: nil) else {
             Issue.record("Expected lines")
             return
         }

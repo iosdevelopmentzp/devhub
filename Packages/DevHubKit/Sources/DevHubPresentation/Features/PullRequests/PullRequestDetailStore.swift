@@ -50,6 +50,7 @@ final class PullRequestDetailStore {
         case requestChanges
     }
 
+    @ObservationIgnored private let syntaxMemo = DiffSyntaxMemo()
     @ObservationIgnored private let repository: CodeHostRepository
     @ObservationIgnored private let ci: any CIRepository
     @ObservationIgnored private let remote: any CodeHostLookup
@@ -202,7 +203,8 @@ final class PullRequestDetailStore {
             hostReview: hostReviewCommits(of: id) == nil ? nil : details[id]?.myLastReview,
             commitsSinceHostReview: hostReviewCommits(of: id),
             showsOnlyChangedSinceReview: onlyChangedSinceReview.contains(id),
-            find: finds[id] ?? .initial
+            find: finds[id] ?? .initial,
+            syntaxMemo: syntaxMemo
         )
     }
 

@@ -323,7 +323,7 @@ struct GitView: View {
 
     private func stashExpansion(_ stash: GitStash) -> CommitRowMapper.Expansion? {
         guard history.expandedRow == CommitHistoryStore.stashRowID(stash) else { return nil }
-        return CommitRowMapper.Expansion(files: history.files[stash.hash], error: history.fileErrors[stash.hash], expandedFiles: history.expandedFiles, diffs: history.diffs)
+        return CommitRowMapper.Expansion(files: history.files[stash.hash], error: history.fileErrors[stash.hash], expandedFiles: history.expandedFiles, diffs: history.diffs, syntaxColors: settings.values.diffSyntaxColors)
     }
 
     private func stash(_ id: GitStash.ID) -> GitStash? {

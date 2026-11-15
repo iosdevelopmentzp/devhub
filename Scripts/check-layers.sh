@@ -62,7 +62,7 @@ for module in DevHubDomain DevHubData DevHubMocks; do
     forbid "$module" '^nonisolated ' "$module declares nonisolated at the top level (it is the module default)"
 done
 
-matches="$(grep -rEn --include='*.swift' '\bpublic\b' "$SRC" "$TESTS" | grep -v "^$SRC/DevHubComposition/" || true)"
+matches="$(grep -rEn --include='*.swift' '\bpublic\b' "$SRC" "$TESTS" | grep -v "^$SRC/DevHubComposition/" | grep -vE '"[^"]*\bpublic\b[^"]*"' || true)"
 if [ -n "$matches" ]; then
     report 'public used outside DevHubComposition'
     printf '%s\n' "$matches" | sed "s#^$ROOT/#  #"

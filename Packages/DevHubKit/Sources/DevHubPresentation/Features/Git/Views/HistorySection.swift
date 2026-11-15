@@ -6,6 +6,7 @@ struct HistorySection: View {
     @Environment(ProjectSession.self) private var session
     @Environment(GitStore.self) private var git
     @Environment(CommitHistoryStore.self) private var history
+    @Environment(SettingsStore.self) private var settings
     @Environment(\.panelOpenCount) private var openCount
 
     let showsReflog: Bool
@@ -62,7 +63,7 @@ struct HistorySection: View {
 
     private func expansion(row: String, hash: String) -> CommitRowMapper.Expansion? {
         guard history.expandedRow == row else { return nil }
-        return CommitRowMapper.Expansion(files: history.files[hash], error: history.fileErrors[hash], expandedFiles: history.expandedFiles, diffs: history.diffs, containing: history.containingBranches[hash])
+        return CommitRowMapper.Expansion(files: history.files[hash], error: history.fileErrors[hash], expandedFiles: history.expandedFiles, diffs: history.diffs, containing: history.containingBranches[hash], syntaxColors: settings.values.diffSyntaxColors)
     }
 
     private var note: String? {

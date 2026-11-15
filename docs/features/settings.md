@@ -34,6 +34,7 @@ Each section is explained under "Actions".
 | Window | "Menu bar panel" (default): DevHub opens under the menu bar icon and closes on a click outside it. "Normal window": one window with a title bar, a Dock icon and a main menu (DevHub, File, Edit, Window). The close button and ⌘W hide it, DevHub keeps running. The menu bar icon, the global shortcut and the Dock icon show it on the current desktop. It opens at launch when it was open when DevHub quit. The change applies at once |
 | Show Dock icon | Panel mode only. On: DevHub shows a Dock icon (activation policy `regular`). Off: menu bar only (`accessory`). Window mode always shows the Dock icon |
 | Open DevHub from anywhere | The global shortcut: Off, ⌥⌘D (default), ⌃⌥Space, ⌃⌥D. Panel mode: opens the panel, or brings the pinned window to the front. Window mode: shows the window on the current desktop, or hides it when it is in front |
+| Syntax colours in diffs | On (default): Swift code in every diff (requests, Git changes, commits, stashes) gets the colours of the Xcode light theme for keywords, types, strings, numbers, comments, attributes and directives (ADR 019). Off: one colour per line as before |
 
 ### Notifications
 
@@ -217,7 +218,7 @@ All keys live in the standard `UserDefaults` of the app.
 
 | Key | Value |
 |---|---|
-| `app.settings` | One JSON object (`AppSettings`): `showDockIcon` (false), `showUsageStrip` (true), `showUsageInMenuBar` (true), `usageProviders` (`all`, or `claude` or `copilot`), `showReviewCountInMenuBar` (true), `globalShortcut` (`optionCommandD`), `editor` (`Xcode`), `terminal` (`Terminal`), `ticketURLTemplate` (empty), `autoFetchMinutes` (0), `notifyWhenPanelClosed` (true), `remembersReviews` (true), `aiTextProvider` (`claude`), `scriptsFolder` (`~/.devhub/scripts`, not shown in Settings) |
+| `app.settings` | One JSON object (`AppSettings`): `showDockIcon` (false), `showUsageStrip` (true), `showUsageInMenuBar` (true), `usageProviders` (`all`, or `claude` or `copilot`), `showReviewCountInMenuBar` (true), `globalShortcut` (`optionCommandD`), `editor` (`Xcode`), `terminal` (`Terminal`), `ticketURLTemplate` (empty), `autoFetchMinutes` (0), `notifyWhenPanelClosed` (true), `remembersReviews` (true), `aiTextProvider` (`claude`), `scriptsFolder` (`~/.devhub/scripts`, not shown in Settings), `diffFontSize` (11), `diffSyntaxColors` (true) |
 | `app.projects` | The project list: id, name, path, scheme, bundle ID |
 | `app.selectedProject` | The id of the selected project |
 

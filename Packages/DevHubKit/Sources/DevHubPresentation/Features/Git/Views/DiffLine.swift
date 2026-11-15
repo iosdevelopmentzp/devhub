@@ -81,6 +81,14 @@ struct DiffLine: View {
 
     private var emphasizedText: AttributedString {
         var text = AttributedString(model.text)
+        if model.hasSyntaxColors {
+            for span in model.syntax {
+                color(span.range, with: span.color.color, in: &text)
+            }
+            if let tint = model.tint {
+                color(0..<1, with: tint.color, in: &text)
+            }
+        }
         if let tint = model.tint {
             mark(model.emphasis, with: tint.color.opacity(0.28), in: &text)
         }
@@ -100,8 +108,16 @@ struct DiffLine: View {
         }
     }
 
+    private func color(_ range: Range<Int>, with color: Color, in text: inout AttributedString) {
+        guard range.upperBound <= text.characters.count else { return }
+        let start = text.index(text.startIndex, offsetByCharacters: range.lowerBound)
+        let end = text.index(text.startIndex, offsetByCharacters: range.upperBound)
+        text[start..<end].foregroundColor = color
+    }
+
     private var foreground: Color {
-        (model.tint?.color ?? .primary).opacity(model.foregroundOpacity)
+        guard model.hasSyntaxColors == false else { return .primary.opacity(0.9) }
+        return (model.tint?.color ?? .primary).opacity(model.foregroundOpacity)
     }
 
     private var background: Color {

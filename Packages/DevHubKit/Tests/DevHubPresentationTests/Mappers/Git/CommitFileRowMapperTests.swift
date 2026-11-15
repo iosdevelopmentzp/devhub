@@ -7,7 +7,7 @@ import Testing
     @Test func renamedFileShowsTheOldPath() {
         let file = GitCommitFile(path: "Docs/new.md", originalPath: "Docs/old.md", kind: .renamed)
 
-        let model = CommitFileRowMapper.model(for: file, hash: "abc", isExpanded: false, diff: nil)
+        let model = CommitFileRowMapper.model(for: file, hash: "abc", isExpanded: false, diff: nil, syntaxColors: false)
 
         #expect(model.id == CommitFileKey(hash: "abc", path: "Docs/new.md"))
         #expect(model.letter == "R")
@@ -21,7 +21,7 @@ import Testing
     @Test func expandedFileWithoutADiffIsLoading() {
         let file = GitCommitFile(path: "App/Gift.swift", originalPath: nil, kind: .added)
 
-        let model = CommitFileRowMapper.model(for: file, hash: "abc", isExpanded: true, diff: nil)
+        let model = CommitFileRowMapper.model(for: file, hash: "abc", isExpanded: true, diff: nil, syntaxColors: false)
 
         #expect(model.detail == "App")
         #expect(model.letterTint == .green)

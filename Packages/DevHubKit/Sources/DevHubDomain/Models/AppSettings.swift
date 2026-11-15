@@ -20,6 +20,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
     package var mutedNotifications: Set<NotificationKind> = []
     package var windowMode = WindowMode.panel
     package var diffFontSize = DiffFontSizePolicy.standard
+    package var diffSyntaxColors = true
 
     package init(
         showDockIcon: Bool = false,
@@ -40,7 +41,8 @@ package struct AppSettings: Hashable, Codable, Sendable {
         notifyWhenPanelClosed: Bool = true,
         mutedNotifications: Set<NotificationKind> = [],
         windowMode: WindowMode = WindowMode.panel,
-        diffFontSize: Int = DiffFontSizePolicy.standard
+        diffFontSize: Int = DiffFontSizePolicy.standard,
+        diffSyntaxColors: Bool = true
     ) {
         self.showDockIcon = showDockIcon
         self.showUsageStrip = showUsageStrip
@@ -61,6 +63,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         self.mutedNotifications = mutedNotifications
         self.windowMode = windowMode
         self.diffFontSize = diffFontSize
+        self.diffSyntaxColors = diffSyntaxColors
     }
 }
 
@@ -87,7 +90,8 @@ extension AppSettings {
             notifyWhenPanelClosed: try container.decodeIfPresent(Bool.self, forKey: .notifyWhenPanelClosed) ?? defaults.notifyWhenPanelClosed,
             mutedNotifications: (try? container.decodeIfPresent(Set<NotificationKind>.self, forKey: .mutedNotifications)) ?? defaults.mutedNotifications,
             windowMode: (try? container.decodeIfPresent(WindowMode.self, forKey: .windowMode)) ?? defaults.windowMode,
-            diffFontSize: DiffFontSizePolicy.clamped((try? container.decodeIfPresent(Int.self, forKey: .diffFontSize)) ?? defaults.diffFontSize)
+            diffFontSize: DiffFontSizePolicy.clamped((try? container.decodeIfPresent(Int.self, forKey: .diffFontSize)) ?? defaults.diffFontSize),
+            diffSyntaxColors: try container.decodeIfPresent(Bool.self, forKey: .diffSyntaxColors) ?? defaults.diffSyntaxColors
         )
     }
 }
