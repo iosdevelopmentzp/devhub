@@ -14,7 +14,7 @@ package enum TrackerError: LocalizedError, Hashable, Sendable {
         case .notConfigured:
             "jira is not set up. Run jira init in a terminal."
         case .notLoggedIn:
-            "jira has no API token. Put it in the keychain (item jira-cli, account = your login) or in ~/.netrc, then check again."
+            "jira cannot log in: it found no token, or the server did not accept it. Put the token in the keychain (item jira-cli, account = the login of the jira config), in ~/.netrc, or export JIRA_API_TOKEN in ~/.zshrc, then check again."
         case .unreadable(let message):
             "Cannot read the answer of jira: \(message)"
         case .command(let message):

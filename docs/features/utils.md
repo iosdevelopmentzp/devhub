@@ -7,7 +7,7 @@ Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Utils/`, `Shell/
 | Tool | What it does |
 |---|---|
 | Compress Video | makes a screen recording or any video much smaller with ffmpeg, next to the original |
-| Tickets | the open Jira tickets of the project through `jira-cli`: yours or the whole project, Start, Move to, the branch name, the link (ADR 016) |
+| Tickets | the Jira tickets of the project through `jira-cli`: mine, sprint, reported, watching or the whole project; group, sort and filter; details with comments; Start, Move to, Assign to Me, Add Comment, the branch name, the link (ADR 016) |
 | a custom tab | the sections of a `.devhub/tabs/<id>.json` file ([Custom tabs](custom-tabs.md)) |
 | a moved built-in tab | the same screen as in the tab bar, for example Logs or Network |
 
@@ -24,11 +24,21 @@ Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Utils/`, `Shell/
 
 Source: `Features/Utils/Tickets/`, `DevHubData/Jira/`, `DevHubDomain/Models/Tracker/`, `Policies/TrackerSettingsPolicy.swift`, `TrackerQueryPolicy.swift`, `TrackerBranchPolicy.swift`, `Repositories/IssueTrackerRepository.swift`. The plan and the decisions are in ADR 016.
 
-The tab reads Jira through the `jira` tool of `jira-cli`, with the user's own login. DevHub never reads the token: it lives in the keychain item `jira-cli` (account = the login), in `~/.netrc`, or in `JIRA_API_TOKEN` of the shell (a menu bar app does not see the shell, so use the keychain or `~/.netrc`). Set-up once: `brew install jira-cli`, an API token from the Atlassian account, `security add-generic-password -s jira-cli -a <login> -w <token>`, then `jira init`.
+The tab reads Jira through the `jira` tool of `jira-cli`, with the user's own login. `jira` reads the token from `JIRA_API_TOKEN`, then `~/.netrc`, then the keychain item `jira-cli` whose account is the `login` of `~/.config/.jira/.config.yml` (checked in the source of 1.7.0). A menu bar app does not inherit the shell, so when `jira` fails to log in, DevHub reads `JIRA_API_TOKEN`, `JIRA_AUTH_TYPE` and `JIRA_CONFIG_FILE` from a login `zsh` that sources `~/.zshrc` (its output goes to `/dev/null`, 10 s at most, the output of that read is never recorded) and runs `jira` again with them. After one success it passes them to every `jira` call of the app run. The values live only for one call and are never stored. A personal access token on Jira Server or Data Center needs `auth_type: bearer` in the config or `JIRA_AUTH_TYPE=bearer`. Set-up once: `brew install jira-cli`, a token, `jira init`, and the token in one of the three places (`security add-generic-password -s jira-cli -a <login> -w` asks for it, so it does not stay in the shell history).
 
 1. **Which project.** `tracker` in `project.json` ([extensions.md §2](../extensions.md#2-projectjson)): `kind`, `project`, `statuses`, `startStatus`, `filter`, `branchFormat`. Without `tracker.kind`, a `git.ticketURL` that points at Jira turns the tab on. A project without a tracker shows "No tracker for this project" with the config line to add.
 
-2. **The toolbar.** A scope picker (**Mine**: `assignee = currentUser() AND statusCategory != Done`; **Project**: `statusCategory != Done`), both inside the project of `tracker.project` or of the `jira` config, newest update first, 50 at most. The count, and Refresh. The scope is saved (`utils.tickets.scope`). The search field of the tab filters by key, summary, status and assignee.
+2. **The toolbar.** A scope picker, each scope inside the project of `tracker.project` or of the `jira` config, 50 tickets at most:
+
+   | Scope | JQL before the status clause |
+   |---|---|
+   | Mine | `assignee = currentUser()` |
+   | Sprint | `sprint in openSprints()` |
+   | Reported | `reporter = currentUser()` |
+   | Watching | `watcher = currentUser()` |
+   | Project | none |
+
+   Then the count, the view menu and Refresh. The status clause is `statusCategory != Done`, or `(statusCategory != Done OR updated >= -14d)` with "Done in the last 14 days" on. The view menu: **Group by** Status (In progress, To do, Other, Done), Type (most tickets first), Assignee (by name, Unassigned last) or Priority (Highest to Lowest, other names, then No priority); **Sort by** Last updated, Newest or Priority (`--order-by updated|created|priority`); the done toggle; **Types** with a check per type of the loaded tickets; Reset View. Its icon is filled and blue while a filter is on. Scope, order, done toggle, grouping and hidden types are saved (`utils.tickets.scope`, `.order`, `.includesDone`, `.grouping`, `.hiddenTypes`). The search field of the tab filters by key, summary, status, assignee and type. When the type filter hides every ticket, the list says so and offers Show All Types.
 
 3. **The tool card.** Each time the panel opens on the tab, DevHub looks for `jira`, its config file (`~/.config/.jira/.config.yml`) and the login (`jira me`).
 
@@ -36,15 +46,17 @@ The tab reads Jira through the `jira` tool of `jira-cli`, with the user's own lo
    |---|---|
    | ready | green, compact: `jira 1.7.0` and the login |
    | missing | orange "jira is not installed", `brew install jira-cli` to copy, Check Again |
-   | no config file | orange "jira is not set up", `jira init` to copy, the keychain hint, Check Again |
-   | no token | orange "jira has no API token", the `security add-generic-password …` command to copy, Check Again |
+   | no config file | orange "jira is not set up", `jira init` to copy, the bearer hint for a personal access token, Check Again |
+   | no token, or the server did not take it | orange "jira cannot log in": the three token places, the `~/.zshrc` read, `auth_type: bearer`, and `security add-generic-password -s jira-cli -a <login of the jira config> -w` to copy, Check Again |
    | another failure | red "jira failed" with the message, Check Again |
 
-4. **The list**, in sections by status category: In progress, To do, Other, Done. A row: the type icon (bug red, story green, epic purple, task blue, other grey), the key (click to copy), the summary, the status tag (grey to do, blue in progress, green done), the priority tag (red highest, orange high, grey low), the assignee and "updated 2 hr. ago". On hover: **Start** (`jira issue move <key> <startStatus>`, hidden when the ticket is already there or done), **Copy Branch Name** (`tracker.branchFormat`, for example `feature/ABC-123-login-button-stays-disabled`), **Open in Browser**. The context menu adds Copy Key and **Move to** with every status of `tracker.statuses` except the current one. A move shows a spinner in the row, logs "Moved ABC-123 to In Review" with the command, toasts, and reads the list again; a failure logs and toasts the reason.
+4. **The list.** A row: a chevron, the type icon (bug red, story green, epic purple, task blue, other grey), the key (click to copy), the summary, the status tag (grey to do, blue in progress, green done), the priority tag (red highest, orange high, grey low), the assignee and "updated 2 hr. ago". On hover: **Start** (`jira issue move <key> <startStatus>`, hidden when the ticket is already there or done), **Copy Branch Name** (`tracker.branchFormat`, for example `feature/ABC-123-login-button-stays-disabled`), **Open in Browser**. The context menu: Show Details, Open in Browser, Copy Key, **Copy Key and Summary** (`ABC-123 Login button stays disabled`), Copy Branch Name, **Assign to Me** (not in Mine), Start and **Move to** with every status of `tracker.statuses` except the current one. A move or an assign shows a spinner in the row, logs ("Moved ABC-123 to In Review", "Assigned ABC-123 to you") with the command, toasts, and reads the list again; a failure logs and toasts the reason.
 
-5. **Commands.** `jira version`, `jira me`, `jira issue list -q <jql> --raw --paginate 0:50 --order-by updated [-p <project>]` (reads), `jira issue move <key> <status>` (an action). All in the Output panel.
+5. **Details.** A click on a row opens its details under it (`jira issue view <key> --raw`), a second click closes them. They show the description (8 lines, then Show all), "Reported by", "created", the labels and components, the parent and the sub-tasks with their status, and the last 5 comments with author and time; older comments link to the browser. A Jira Server answer has plain text; a Cloud answer has a document that DevHub turns into text (paragraphs, lists with •, mentions, links, emoji). Buttons: **Add Comment** opens a field (⌘↩ sends, Esc cancels; `jira issue comment add --no-input -- <key> <text>`, then the details are read again), **Assign to Me** (`jira issue assign <key> <login from jira me>`), **Open in Browser**. The details stay cached until the project or the config changes, and each opening reads them again in the background.
 
-6. **Limits.** Checked by tests and the mock ports; the live tool was not run with a token in the session that built the tab (ADR 016, step 5). The list is one page of 50. Jira statuses are matched by name, as `jira issue move` takes them. A summary without ASCII letters gives a branch name of the key alone. The ticket chip of the Git tab still shows only the key.
+6. **Commands.** `jira version`, `jira me`, `jira issue list -q <jql> --raw --paginate 0:50 --order-by <field> [-p <project>]`, `jira issue view <key> --raw` (reads), `jira issue move`, `jira issue assign`, `jira issue comment add` (actions), and the login `zsh -lc …` read (a secret command: its output is not recorded). All in the Output panel.
+
+7. **Limits.** Checked by tests, the mock ports and a headless snapshot (`DEVHUB_TICKET=ABC-123`); the new scopes, the details and the assign were not run against a live Jira in the session that built them. Sprint needs Jira Software; without it the JQL fails and the list shows the message. The list is one page of 50. Jira statuses are matched by name, as `jira issue move` takes them. A summary without ASCII letters gives a branch name of the key alone. The `~/.zshrc` read covers `zsh` only, and a `.zshrc` that stops early for a non-interactive shell gives no variables. The ticket chip of the Git tab still shows only the key.
 
 ## Compress Video
 

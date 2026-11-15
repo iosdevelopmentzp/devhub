@@ -25,6 +25,8 @@ package enum CommandKind: Sendable {
         switch name {
         case "security":
             return .secret
+        case "zsh":
+            return arguments.first == "-lc" ? .secret : .action
         case "gh":
             if arguments.starts(with: ["auth", "token"]) { return .secret }
             return codeHostKind(arguments)

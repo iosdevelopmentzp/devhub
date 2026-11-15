@@ -173,6 +173,11 @@ import Testing
         #expect(CommandKind.classify("xcrun", ["devicectl", "device", "copy", "from", "--device", "D1", "--source", "a", "--destination", "b"]) == .read)
     }
 
+    @Test func aLoginShellReadIsSecretAndOtherShellsAreActions() {
+        #expect(CommandKind.classify("zsh", ["-lc", "printf x"]) == .secret)
+        #expect(CommandKind.classify("zsh", ["-c", "Scripts/update.sh &!"]) == .action)
+    }
+
     @Test func jiraListsViewsAndMeAreReads() {
         #expect(CommandKind.classify("jira", ["issue", "list", "-q", "assignee = currentUser()", "--raw", "-p", "ABC"]) == .read)
         #expect(CommandKind.classify("jira", ["issue", "view", "ABC-123", "--raw"]) == .read)

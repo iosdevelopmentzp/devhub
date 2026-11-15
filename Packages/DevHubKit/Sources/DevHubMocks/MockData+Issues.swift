@@ -47,5 +47,35 @@ extension MockData {
             url: URL(string: "https://jira.example.com/browse/ABC-118"),
             updatedAt: Date(timeIntervalSinceNow: -9 * 86_400)
         ),
+        TrackerIssue(
+            key: "ABC-110",
+            summary: "Show the order number on the receipt screen",
+            status: "Done",
+            statusCategory: .done,
+            type: "Story",
+            priority: "Medium",
+            assignee: "Alex",
+            url: URL(string: "https://jira.example.com/browse/ABC-110"),
+            updatedAt: Date(timeIntervalSinceNow: -3 * 86_400)
+        ),
     ]
+
+    package static func issueDetails(key: String) -> TrackerIssueDetails {
+        TrackerIssueDetails(
+            key: key,
+            description: "Steps:\n1. Open the login screen without a network connection.\n2. Tap Log In.\n3. Turn the network on and tap again.\n\nThe button stays disabled until the app restarts. Expected: it is enabled again after the failed request.",
+            reporter: "Sam",
+            createdAt: Date(timeIntervalSinceNow: -6 * 86_400),
+            labels: ["ios", "login"],
+            components: ["Auth"],
+            parent: TrackerIssueLink(key: "ABC-100", summary: "Login flow rework", status: "In Progress", statusCategory: .inProgress),
+            subtasks: [
+                TrackerIssueLink(key: "ABC-131", summary: "Add a unit test for the retry", status: "To Do", statusCategory: .toDo),
+            ],
+            comments: [
+                TrackerComment(id: "1", author: "Sam", body: "Happens on iOS 18 too. The request fails with a timeout.", createdAt: Date(timeIntervalSinceNow: -2 * 86_400)),
+                TrackerComment(id: "2", author: "Alex", body: "Found it: the state is not reset after the error. Fix is on the way.", createdAt: Date(timeIntervalSinceNow: -3_600)),
+            ]
+        )
+    }
 }

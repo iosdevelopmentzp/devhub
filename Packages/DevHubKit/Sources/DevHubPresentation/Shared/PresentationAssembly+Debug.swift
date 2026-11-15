@@ -94,6 +94,12 @@ package extension PresentationAssembly {
         navigator.show(tab)
     }
 
+    func debugShowTicket(_ key: String) async {
+        await config.reload()
+        await tickets.refresh()
+        tickets.toggleDetails(key)
+    }
+
     func debugOpenPalette(query: String) {
         navigator.paletteQuery = query
         navigator.isPaletteOpen = true

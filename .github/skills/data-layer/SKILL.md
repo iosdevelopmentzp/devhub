@@ -13,7 +13,7 @@ Paths below are relative to `Packages/DevHubKit/Sources/`.
 
 ```
 DevHubData/
-    Shell/          ShellRunner (package actor), ShellResult, LineBatcher, LineCollector, CommandFormatter, ISO8601
+    Shell/          ShellRunner (package actor), ShellResult, LineBatcher, LineCollector, CommandFormatter, ISO8601, LoginShellVariables
     Persistence/    UserDefaultsKeyValueStore(defaults:)
     Git/            ShellGitRepository, ShellWorktreeRepository, ShellGitChangesRepository, GitCommandRunner,
                     GitCommandEncoder, GitLogQuery, GitStatusParser, WorktreePorcelainParser, TrackingInfoParser,
@@ -180,7 +180,7 @@ arguments with spaces or shell characters.
 |---|---|---|
 | `read` | git `status log for-each-ref rev-parse symbolic-ref check-ref-format check-ignore reflog rev-list show-ref config diff merge-base ls-remote remote show`, `worktree list`, `stash list`, `branch` without `-d -D -m -M -u`; simctl `list get_app_container listapps bootstatus`, `spawn … read`; devicectl `list`, `device info …`, `device copy from …`; `du ps grep plutil pgrep`; `xcodebuild -showBuildSettings`; `gh` and `glab` reads (below); `osascript` without `click` | hidden unless "Show reads" (`OutputPanelState.showsReads`) |
 | `action` | everything else | shown |
-| `secret` | `security`, `gh auth token` | "Output hidden: it contains credentials." Nothing recorded |
+| `secret` | `security`, `gh auth token`, `zsh -lc` (the login shell read of `LoginShellVariables`) | "Output hidden: it contains credentials." Nothing recorded |
 | `appLog` | `simctl spawn … log stream` | "App log lines are shown in the Logs tab only." Nothing recorded |
 
 `gh` and `glab` share one rule (`codeHostKind`): a GraphQL query is a `read`, a GraphQL mutation an `action`; an
@@ -308,6 +308,12 @@ app-wide ones). Never change a key name: saved data would be lost.
   case, trimmed. No silent `catch`: a swallowed error is a `nil` or an empty list only when the port says so.
 - Secrets: a token is read for one request and dropped; `security` output is never recorded; app log lines pass
   through `LogRedactor` before they leave the repository; nothing of that is written to disk.
+- A variable that a tool reads from the user's shell (`JIRA_API_TOKEN` in `~/.zshrc`) does not reach a menu bar app.
+  `LoginShellVariables` (`Shell/`) reads named variables from `zsh -lc` that sources `~/.zshrc` with its output in
+  `/dev/null`, behind a marker (`LoginShellVariablesParser`), with a timeout; after one timeout it stops trying for
+  the app run. Never `zsh -i`: an interactive shell ignores SIGTERM, so the timeout could not stop it. Pass the values
+  to the one process as `environment:` and drop them. `JiraClient` asks only after a login failure and remembers
+  that the variables are needed (`JiraShellEnvironment`).
 - Keep the mocks working: previews and `PresentationAssembly.preview()` depend on them.
 - Destructive git or simctl commands run only after the inline confirmation in the row.
 

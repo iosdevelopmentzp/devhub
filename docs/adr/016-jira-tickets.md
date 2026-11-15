@@ -30,7 +30,7 @@ Risk analysis per `.claude/rules/dependencies.md`:
 4. Pin: the user installs and updates it with Homebrew, so DevHub cannot pin it; `docs/DEPENDENCIES.md` names 1.7.0 as the checked version and Settings → Doctor shows the installed one.
 5. A vendored copy is not possible for an executable; the tool is the user's install, like `gh` and `glab`.
 
-The token lives where `jira-cli` reads it: the keychain item named `jira-cli` with the login as the account (`security add-generic-password -s jira-cli -a <login> -w <token>`), or `~/.netrc`, or `JIRA_API_TOKEN` in the shell. DevHub sets no environment for `jira`, reads no token and never records one. A menu bar app does not inherit the shell environment, so the keychain or `~/.netrc` is the way that works for DevHub.
+The token lives where `jira-cli` reads it: the keychain item named `jira-cli` with the login as the account (`security add-generic-password -s jira-cli -a <login> -w <token>`), or `~/.netrc`, or `JIRA_API_TOKEN` in the shell. DevHub sets no environment for `jira`, reads no token and never records one. A menu bar app does not inherit the shell environment, so the keychain or `~/.netrc` is the way that works for DevHub. Amended by D7: after a login failure DevHub passes the `JIRA_*` variables of `~/.zshrc` to `jira`.
 
 ### D2. One port, one Data folder, one tool row
 
@@ -54,6 +54,26 @@ The token lives where `jira-cli` reads it: the keychain item named `jira-cli` wi
 
 The ticket chip of the Git tab and the request rows still shows only the key and the link. Creating a branch or a worktree from a ticket, moving a ticket when a pull request is created, a comment with the request link, and notifications from Jira are next steps. A custom tab from `.devhub` scripts can do the same list with `jira issue list --raw` and a `view` directive for a tracker that is not Jira.
 
+### D7. The variables of `~/.zshrc` reach `jira` after a login failure (2026-11-15)
+
+A user had `JIRA_API_TOKEN` and `JIRA_AUTH_TYPE=bearer` (Jira Server, a personal access token) in `~/.zshrc`. `jira me` worked in Terminal, and DevHub, started from Finder, showed "no API token". A keychain item did not help either, because the config had no `auth_type: bearer`, so the token went out as basic auth. `jira-cli` itself tells the user to export the token in the shell config, so this set-up is common.
+
+The source of `jira-cli` 1.7.0 confirms the lookup order: `JIRA_API_TOKEN` (also as viper `api_token`), then `~/.netrc` by server and login, then `keyring.Get("jira-cli", login)`. The auth type comes from `auth_type` in the config or `JIRA_AUTH_TYPE`. The keychain hint was right; its command now ends with `-w`, so `security` asks for the token and it does not stay in the shell history.
+
+Decision: `JiraClient` runs `jira` as it is. When the answer is a login failure (`TrackerError.notLoggedIn`), it reads `JIRA_API_TOKEN`, `JIRA_AUTH_TYPE` and `JIRA_CONFIG_FILE` through `LoginShellVariables`: `zsh -lc` sources `${ZDOTDIR:-$HOME}/.zshrc` with its output in `/dev/null`, then prints the set variables after a marker. It runs `jira` again with them. After one success `JiraShellEnvironment` remembers that the variables are needed, so later calls read them first and the log shows no failed call. The values live for one call, go only to that `jira` process, and are never stored; the `zsh -lc` command is `CommandKind.secret`, so its output is not recorded. A timeout of 10 s stops the read; after a timeout DevHub stops trying for the app run. `zsh -i` was tried and dropped: an interactive zsh ignores SIGTERM (checked), so the timeout could not stop a hanging `.zshrc`. Limits: zsh only; a `.zshrc` that returns early in a non-interactive shell gives nothing. The other way, `launchctl setenv`, is lost at the next login.
+
+### D8. The Tickets view: scopes, group, sort, filter, details, assign, comment (2026-11-15)
+
+The owner asked for more of the tab. With what `jira-cli` offers (`issue list -q … --order-by`, `issue view --raw`, `issue assign`, `issue comment add`):
+
+- Scopes as JQL in `TrackerQueryPolicy.scopeClause`: Mine, Sprint (`sprint in openSprints()`), Reported, Watching, Project. "Done in the last 14 days" changes the status clause to `(statusCategory != Done OR updated >= -14d)`.
+- `IssueOrder` (`updated`, `created`, `priority`) is the `--order-by` field; the port takes it.
+- Grouping (`TicketGrouping`: status, type, assignee, priority) and hidden types are local to the loaded page; scope, order and the done toggle read again. All five are saved.
+- Details: `IssueTrackerRepository.details(key:)` reads `jira issue view <key> --raw` into `TrackerIssueDetails` (description, reporter, created, labels, components, parent, sub-tasks, comments). Server answers have plain text; Cloud answers have an Atlassian document, which `JiraIssueDetailsParser` turns into text.
+- Actions: `assign(key:to:)` with the login of `jira me` (`jira issue assign <key> <login>`), `comment(key:text:)` as `jira issue comment add --no-input -- <key> <text>`, so a text that starts with `-` stays text.
+
+Out of this step: creating a ticket, a branch or a worktree from a ticket (step 7), the ticket chip (step 6), worklogs, links and attachments.
+
 ## Setup for a user
 
 1. `brew install jira-cli`.
@@ -74,6 +94,7 @@ The ticket chip of the Git tab and the request rows still shows only the key and
 | 6 | The ticket chip (Git header, branch rows, request rows) shows the summary and the status of the ticket from `issue(key:)`, cached per key in a `TicketLookup` | next |
 | 7 | Start creates the branch (`TrackerBranchPolicy`) and a worktree through `CreateWorktreeUseCase`, then moves the ticket; the new request form takes the summary as the title | next |
 | 8 | On a created request, move the ticket to a configured status (`tracker.reviewStatus`) and comment with the request link (`jira issue comment add`) | later |
+| 8a | D7 and D8: the `~/.zshrc` variables for `jira`, the corrected hints, five scopes, the view menu, details, Assign to Me, Add Comment | done |
 | 9 | Notifications: a poll of `assignee = currentUser() AND updated >= -10m` with the `inbox` kind, or nothing: `jira-cli` has no notification feed | later, maybe never |
 
 ## Where we stopped
