@@ -4,7 +4,13 @@ import DevHubUI
 
 enum DiffMapper {
 
-    static func model(for diff: GitDiff?) -> DiffModel {
+    static let syntaxBackgroundOpacity = 0.14
+
+    static func model(for diff: GitDiff?, language: SyntaxLanguage?) -> DiffModel {
+        model(for: diff, language: language, memo: nil)
+    }
+
+    static func model(for diff: GitDiff?, language: SyntaxLanguage?, memo: DiffSyntaxMemo?) -> DiffModel {
         guard let diff else { return .loading }
         if diff.isBinary {
             return .note("Binary file, no text diff")
@@ -20,6 +26,16 @@ enum DiffMapper {
             guard let ranges = DiffLineEmphasis.ranges(removed: String(hunkLines[pair.removed].dropFirst()), added: String(hunkLines[pair.added].dropFirst())) else { continue }
             lines[pair.removed].emphasis = ranges.removed.map { ($0.lowerBound + 1)..<($0.upperBound + 1) }
             lines[pair.added].emphasis = ranges.added.map { ($0.lowerBound + 1)..<($0.upperBound + 1) }
+        }
+        if let language {
+            let tokens = memo?.tokens(forHunkLines: hunkLines, language: language) ?? DiffSyntaxPolicy.tokens(forHunkLines: hunkLines, language: language)
+            for index in lines.indices where hunkLines[index].hasPrefix("@@") == false {
+                lines[index].syntax = DiffSyntaxMapper.spans(for: tokens[index])
+                lines[index].hasSyntaxColors = true
+                if lines[index].tint != nil {
+                    lines[index].backgroundOpacity = syntaxBackgroundOpacity
+                }
+            }
         }
         return .lines(lines, droppedNote: diff.droppedLines > 0 ? "… \(diff.droppedLines) more lines not shown" : nil)
     }

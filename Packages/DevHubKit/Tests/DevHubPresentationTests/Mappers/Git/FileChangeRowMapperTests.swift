@@ -88,7 +88,8 @@ import Testing
             checkoutPath: checkout,
             isExpanded: true,
             diff: GitDiff(lines: [], droppedLines: 0, isBinary: true),
-            isBusy: false
+            isBusy: false,
+            syntaxColors: false
         )
 
         #expect(loading.diff == .loading)
@@ -97,6 +98,6 @@ import Testing
     }
 
     private func row(_ change: GitFileChange, isExpanded: Bool, isBusy: Bool) -> FileChangeRowModel {
-        FileChangeRowMapper.model(for: change, checkoutPath: checkout, isExpanded: isExpanded, diff: nil, isBusy: isBusy)
+        FileChangeRowMapper.model(for: change, checkoutPath: checkout, isExpanded: isExpanded, diff: nil, isBusy: isBusy, syntaxColors: false)
     }
 }

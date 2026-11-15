@@ -142,6 +142,7 @@ struct PullRequestWindowView: View {
             hiddenFiles: git.gitSettings.pullRequests.hiddenFiles,
             fileGroups: git.gitSettings.pullRequests.fileGroups,
             diffLayout: pullRequests.diffLayout,
+            syntaxColors: settings.values.diffSyntaxColors,
             watchedIDs: openPullRequests.watchedIDs,
             onHoldJobs: ciWatch.onHoldJobNames,
             people: people.people,

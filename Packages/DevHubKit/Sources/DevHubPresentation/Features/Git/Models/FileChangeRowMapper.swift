@@ -9,7 +9,8 @@ enum FileChangeRowMapper {
         checkoutPath: String,
         isExpanded: Bool,
         diff: GitDiff?,
-        isBusy: Bool
+        isBusy: Bool,
+        syntaxColors: Bool
     ) -> FileChangeRowModel {
         let fullPath = (checkoutPath as NSString).appendingPathComponent(change.path)
         let isStaged = change.area == .staged
@@ -33,7 +34,7 @@ enum FileChangeRowMapper {
                 : "Discard the changes in \(change.fileName)? They cannot be restored.",
             discardTitle: isUntracked ? "Delete" : "Discard",
             areActionsEnabled: isBusy == false,
-            diff: isExpanded ? DiffMapper.model(for: diff) : nil
+            diff: isExpanded ? DiffMapper.model(for: diff, language: DiffSyntaxMapper.language(forPath: change.path, syntaxColors: syntaxColors)) : nil
         )
     }
 

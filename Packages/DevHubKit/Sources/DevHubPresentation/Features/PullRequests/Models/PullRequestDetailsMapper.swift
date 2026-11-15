@@ -70,7 +70,7 @@ enum PullRequestDetailsMapper {
                     find: find(in: shown, review: review),
                     files: shown.map { file in
                         var row = PullRequestFileRowMapper.hiding(
-                            PullRequestFileRowMapper.model(for: file, review: review, threads: threadRows, layout: context.diffLayout, words: words),
+                            PullRequestFileRowMapper.model(for: file, review: review, threads: threadRows, layout: context.diffLayout, words: words, syntaxColors: context.syntaxColors),
                             isHidden: hidden.contains(file.path),
                             isChosen: review.chosenHiddenFiles.contains(file.path),
                             group: FileGroupPolicy.groupName(of: file.path, in: groupMatches)

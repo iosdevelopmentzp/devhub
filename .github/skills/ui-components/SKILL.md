@@ -70,6 +70,7 @@ digest, Retry, Copy Error, Full Output. Nothing is placed inline, so the content
 | `Theme.border` | hairline stroke |
 | `Theme.hover` | row, tile and button hover |
 | `Theme.shadow` | card shadow, radius 3, y 1 |
+| `Theme.syntaxKeyword`, `syntaxType`, `syntaxString`, `syntaxNumber`, `syntaxComment`, `syntaxAttribute`, `syntaxDirective` | the text colours of code in a diff, close to the Xcode light theme. `SyntaxColor` (DevHubUI) maps a kind to its token; `DiffSyntaxMapper` (Presentation) maps the Domain `SyntaxTokenKind` to `SyntaxColor` |
 
 `Tint` (`Tint.swift`) is the colour choice in a row model: `green orange yellow red blue purple indigo teal pink gray
 secondary`. `Tint+Color.swift` maps it with `tint.color`. A mapper chooses a `Tint`; the view calls `.color`. A colour

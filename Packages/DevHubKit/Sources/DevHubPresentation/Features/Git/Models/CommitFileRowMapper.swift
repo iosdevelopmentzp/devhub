@@ -4,7 +4,7 @@ import DevHubUI
 
 enum CommitFileRowMapper {
 
-    static func model(for file: GitCommitFile, hash: String, isExpanded: Bool, diff: GitDiff?) -> CommitFileRowModel {
+    static func model(for file: GitCommitFile, hash: String, isExpanded: Bool, diff: GitDiff?, syntaxColors: Bool) -> CommitFileRowModel {
         CommitFileRowModel(
             id: CommitFileKey(hash: hash, path: file.path),
             letter: String(file.kind.letter),
@@ -13,7 +13,7 @@ enum CommitFileRowMapper {
             fileName: file.fileName,
             detail: file.originalPath.map { "\($0) →" } ?? file.folder,
             path: file.path,
-            diff: isExpanded ? DiffMapper.model(for: diff) : nil
+            diff: isExpanded ? DiffMapper.model(for: diff, language: DiffSyntaxMapper.language(forPath: file.path, syntaxColors: syntaxColors)) : nil
         )
     }
 }

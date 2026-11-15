@@ -5,6 +5,7 @@ import DevHubUI
 struct ChangesSection: View {
     @Environment(GitChangesStore.self) private var changes
     @Environment(GitStore.self) private var git
+    @Environment(SettingsStore.self) private var settings
     @Environment(ProjectSession.self) private var session
     @Environment(\.panelOpenCount) private var openCount
 
@@ -77,7 +78,8 @@ struct ChangesSection: View {
             checkoutPath: git.checkoutPath,
             isExpanded: changes.expandedIDs.contains(change.id),
             diff: changes.diffs[change.id],
-            isBusy: changes.busyTitle != nil
+            isBusy: changes.busyTitle != nil,
+            syntaxColors: settings.values.diffSyntaxColors
         )
     }
 

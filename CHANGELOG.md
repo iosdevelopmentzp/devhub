@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Diffs: Swift code in every diff (requests in the tab, the details pane and the request window, unified, side by side and whole file; the changes, commits and stashes of the Git tab) shows the colours of the Xcode light theme: keywords, types, strings, numbers, comments, attributes and directives. Multi-line strings, nested block comments, interpolation and raw strings are understood; the old and the new side are coloured apart. "Syntax colours in diffs" in Settings → General turns it off.
 - Tickets: the list of each scope and the details of each opened ticket are kept between launches, per project. The tab shows the last list at once and reads Jira in the background; "read 5 min. ago" in the toolbar says when. A failed read keeps the old list under a red bar with Retry. A refresh runs only `jira issue list`; the tool check runs on Refresh, Check Again and after a failed read.
 - Tickets: a star on each ticket (hover button, context menu). Starred tickets sit on top of every list and in the new Starred scope. A Recent scope lists the tickets you opened last in Jira.
 - Tickets: rows show the due date (red when overdue, orange today) and the labels; the search field matches labels too. "Show up to 100 tickets" at the end of a full page.
@@ -15,6 +16,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Tickets: five scopes (Mine, Sprint, Reported, Watching, Project), and a view menu that groups by status, type, assignee or priority, sorts by last update, newest or priority, adds done tickets of the last 14 days and hides ticket types. All of it is saved.
 - Tickets: a click on a ticket opens its details under the row: description, reporter, created, labels, components, parent, sub-tasks and the last 5 comments, from Jira Server and Jira Cloud.
 - Tickets: Add Comment and Assign to Me in the details, Assign to Me and Copy Key and Summary in the context menu.
+- Build: `Scripts/check-layers.sh` ignores the word `public` inside a string literal.
 - Pull requests: a split button on each modified or renamed file shows only that file side by side (or unified when the header says Side by Side). The header control still sets every file.
 - Pull requests: Refresh at the top of the details reads the request again (description, threads, checks, files) and keeps the viewed marks, open files, whole files and layouts; ⌘R in the request window. A failed refresh keeps the shown data and logs the error.
 - Diffs: A− and A+ in the files header of a request (⌘−, ⌘=, ⌘0 or a click on the size resets) change the text size of every diff in DevHub, 9 to 20 pt, saved.

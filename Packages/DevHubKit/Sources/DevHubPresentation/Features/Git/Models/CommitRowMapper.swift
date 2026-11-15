@@ -10,6 +10,7 @@ enum CommitRowMapper {
         let expandedFiles: Set<CommitFileKey>
         let diffs: [CommitFileKey: GitDiff]
         var containing: [GitCommitRef]? = nil
+        var syntaxColors = true
     }
 
     static func model(for commit: GitCommit, webBase: URL?, hostKind: CodeHostKind?, expansion: Expansion?) -> CommitRowModel {
@@ -48,7 +49,7 @@ enum CommitRowMapper {
         return .loaded(files.map { file in
             let key = CommitFileKey(hash: hash, path: file.path)
             let isExpanded = expansion.expandedFiles.contains(key)
-            return CommitFileRowMapper.model(for: file, hash: hash, isExpanded: isExpanded, diff: expansion.diffs[key])
+            return CommitFileRowMapper.model(for: file, hash: hash, isExpanded: isExpanded, diff: expansion.diffs[key], syntaxColors: expansion.syntaxColors)
         })
     }
 }
