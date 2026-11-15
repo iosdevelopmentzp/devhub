@@ -1,6 +1,6 @@
 import Foundation
 
-package struct TrackerIssueDetails: Identifiable, Hashable, Sendable {
+package struct TrackerIssueDetails: Identifiable, Hashable, Codable, Sendable {
     package let key: String
     package var description: String
     package var reporter: String?
@@ -10,6 +10,16 @@ package struct TrackerIssueDetails: Identifiable, Hashable, Sendable {
     package var parent: TrackerIssueLink?
     package var subtasks: [TrackerIssueLink]
     package var comments: [TrackerComment]
+    package var fixVersions: [String] = []
+    package var dueDate: Date?
+    package var resolution: String?
+    package var links: [TrackerIssueRelation] = []
+    package var attachments: [String] = []
+    package var originalEstimateSeconds: Int?
+    package var timeSpentSeconds: Int?
+    package var remainingEstimateSeconds: Int?
+    package var watchers: Int?
+    package var isWatching: Bool?
 
     package var id: String {
         key
@@ -24,7 +34,17 @@ package struct TrackerIssueDetails: Identifiable, Hashable, Sendable {
         components: [String],
         parent: TrackerIssueLink?,
         subtasks: [TrackerIssueLink],
-        comments: [TrackerComment]
+        comments: [TrackerComment],
+        fixVersions: [String] = [],
+        dueDate: Date? = nil,
+        resolution: String? = nil,
+        links: [TrackerIssueRelation] = [],
+        attachments: [String] = [],
+        originalEstimateSeconds: Int? = nil,
+        timeSpentSeconds: Int? = nil,
+        remainingEstimateSeconds: Int? = nil,
+        watchers: Int? = nil,
+        isWatching: Bool? = nil
     ) {
         self.key = key
         self.description = description
@@ -35,5 +55,15 @@ package struct TrackerIssueDetails: Identifiable, Hashable, Sendable {
         self.parent = parent
         self.subtasks = subtasks
         self.comments = comments
+        self.fixVersions = fixVersions
+        self.dueDate = dueDate
+        self.resolution = resolution
+        self.links = links
+        self.attachments = attachments
+        self.originalEstimateSeconds = originalEstimateSeconds
+        self.timeSpentSeconds = timeSpentSeconds
+        self.remainingEstimateSeconds = remainingEstimateSeconds
+        self.watchers = watchers
+        self.isWatching = isWatching
     }
 }

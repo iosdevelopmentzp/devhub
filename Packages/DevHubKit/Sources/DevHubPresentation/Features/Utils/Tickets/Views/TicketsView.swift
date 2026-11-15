@@ -14,10 +14,15 @@ struct TicketsView: View {
                 Divider()
                 TrackerToolCard(
                     model: TrackerToolMapper.model(for: tickets.toolState, isChecking: tickets.isLoading),
-                    onCheckAgain: { Task { await tickets.refresh() } }
+                    onCheckAgain: { Task { await tickets.reload() } }
                 )
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
+                if let error = tickets.error, tickets.issues.isEmpty == false {
+                    NoticeBar(TicketsText.staleNotice(error), actionTitle: "Retry") {
+                        Task { await tickets.reload() }
+                    }
+                }
                 content
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -46,18 +51,40 @@ struct TicketsView: View {
                 .labelsHidden()
                 .fixedSize()
                 .hint(TicketsText.scopeHint)
-                Text(countText)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                Spacer()
-                TicketViewMenu()
-                IconButton(systemImage: "arrow.clockwise", help: "Read the tickets again") {
-                    Task { await tickets.refresh() }
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 10) {
+                        count
+                        if let read = TicketsText.readText(tickets.readAt) {
+                            Text(read)
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                                .lineLimit(1)
+                                .fixedSize()
+                                .hint("When the list was last read from Jira. The list is kept between launches and read again on every open.")
+                        }
+                    }
+                    count
                 }
-                .disabled(tickets.isLoading)
+                Spacer(minLength: 4)
+                TicketViewMenu()
+                if tickets.isLoading {
+                    ProgressView()
+                        .controlSize(.small)
+                        .frame(width: IconButton.side, height: IconButton.side)
+                } else {
+                    IconButton(systemImage: "arrow.clockwise", help: "Read the tickets again and check jira") {
+                        Task { await tickets.reload() }
+                    }
+                }
             }
         }
+    }
+
+    private var count: some View {
+        Text(countText)
+            .font(.callout)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
     }
 
     private var countText: String {
@@ -68,13 +95,14 @@ struct TicketsView: View {
     }
 
     private var visible: [TrackerIssue] {
-        tickets.issues.filter { tickets.isShown($0) && session.matchesSearch($0.key, $0.summary, $0.status, $0.assignee ?? "", $0.type) }
+        tickets.issues.filter { tickets.isShown($0) && session.matchesSearch($0.key, $0.summary, $0.status, $0.assignee ?? "", $0.type, $0.labels.joined(separator: " ")) }
     }
 
     private var content: some View {
         let visible = visible
+        let now = Date.now
         return ListState(
-            failure: tickets.error.map { ListMessage.failure("Cannot read tickets", description: $0) { Task { await tickets.refresh() } } },
+            failure: tickets.issues.isEmpty ? tickets.error.map { ListMessage.failure(TicketsText.readFailureTitle, description: $0) { Task { await tickets.reload() } } } : nil,
             isLoading: tickets.issues.isEmpty && tickets.isLoading,
             loadingTitle: "Reading tickets…",
             empty: emptyMessage(visible: visible),
@@ -82,28 +110,24 @@ struct TicketsView: View {
         ) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(TicketSectionMapper.sections(for: visible, grouping: tickets.grouping)) { section in
+                    ForEach(TicketSectionMapper.sections(for: visible, grouping: tickets.grouping, starred: tickets.pinnedKeys)) { section in
                         ListSectionHeader(section.title, detail: "\(section.issues.count)") {}
                         ForEach(section.issues) { issue in
-                            TicketRow(
-                                model: TicketRowMapper.model(
-                                    for: issue,
-                                    settings: tickets.settings,
-                                    isBusy: tickets.busyKeys.contains(issue.key),
-                                    isExpanded: tickets.expandedKey == issue.key,
-                                    canAssignToMe: tickets.canAssignToMe
-                                ),
-                                onStart: { tickets.start(issue.key) },
-                                onMove: { tickets.move(issue.key, to: $0) },
-                                onToggleDetails: { tickets.toggleDetails(issue.key) },
-                                onAssignToMe: { tickets.assignToMe(issue.key) }
-                            )
+                            row(for: issue, now: now)
                             if tickets.expandedKey == issue.key {
-                                details(for: issue)
+                                details(for: issue, now: now)
                             }
                             Divider()
                                 .padding(.leading, 56)
                         }
+                    }
+                    if tickets.canLoadMore {
+                        Button(TicketsText.loadMoreTitle) { tickets.loadMore() }
+                            .buttonStyle(LinkButtonStyle(.accent))
+                            .fixedSize()
+                            .hint(TicketsText.loadMoreHint)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
                     }
                 }
                 .padding(.bottom, 8)
@@ -111,15 +135,39 @@ struct TicketsView: View {
         }
     }
 
+    private func row(for issue: TrackerIssue, now: Date) -> some View {
+        TicketRow(
+            model: TicketRowMapper.model(
+                for: issue,
+                settings: tickets.settings,
+                isBusy: tickets.busyKeys.contains(issue.key),
+                isExpanded: tickets.expandedKey == issue.key,
+                isStarred: tickets.isStarred(issue.key),
+                canAssignToMe: tickets.canAssignToMe,
+                canWatch: tickets.canWatch,
+                now: now
+            ),
+            onStart: { tickets.start(issue.key) },
+            onMove: { tickets.move(issue.key, to: $0) },
+            onToggleDetails: { tickets.toggleDetails(issue.key) },
+            onToggleStar: { tickets.toggleStar(issue.key) },
+            onAssignToMe: { tickets.assignToMe(issue.key) },
+            onUnassign: { tickets.unassign(issue.key) },
+            onWatch: { tickets.watch(issue.key) }
+        )
+    }
+
     @ViewBuilder
-    private func details(for issue: TrackerIssue) -> some View {
+    private func details(for issue: TrackerIssue, now: Date) -> some View {
         if let details = tickets.details[issue.key] {
             TicketDetailsView(
-                model: TicketDetailsMapper.model(for: details),
+                model: TicketDetailsMapper.model(for: details, ticketURL: issue.url, now: now),
                 url: issue.url,
                 isBusy: tickets.busyKeys.contains(issue.key),
                 canAssignToMe: tickets.canAssignToMe,
+                canWatch: tickets.canWatch,
                 onAssignToMe: { tickets.assignToMe(issue.key) },
+                onWatch: { tickets.watch(issue.key) },
                 onSend: { await tickets.comment(issue.key, text: $0) }
             )
         } else if let message = tickets.detailErrors[issue.key] {
@@ -150,7 +198,7 @@ struct TicketsView: View {
 
     private func emptyMessage(visible: [TrackerIssue]) -> ListMessage? {
         if tickets.issues.isEmpty && tickets.isReady {
-            return ListMessage(TicketsText.emptyTitle(includesDone: tickets.includesDone), systemImage: "ticket", description: TicketsText.emptyDescription(for: tickets.scope))
+            return ListMessage(TicketsText.emptyTitle(for: tickets.scope, includesDone: tickets.includesDone), systemImage: tickets.scope == .starred ? "star" : "ticket", description: TicketsText.emptyDescription(for: tickets.scope))
         }
         if visible.isEmpty && tickets.issues.isEmpty == false && session.searchText.isEmpty {
             return ListMessage("Every ticket is hidden by the type filter", systemImage: "line.3.horizontal.decrease.circle", description: "Choose the types to show in the view menu.", actionTitle: "Show All Types") {

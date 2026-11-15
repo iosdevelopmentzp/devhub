@@ -1,6 +1,6 @@
 import Foundation
 
-package struct TrackerIssueLink: Identifiable, Hashable, Sendable {
+package struct TrackerIssueLink: Identifiable, Hashable, Codable, Sendable {
     package let key: String
     package var summary: String
     package var status: String

@@ -74,6 +74,18 @@ The owner asked for more of the tab. With what `jira-cli` offers (`issue list -q
 
 Out of this step: creating a ticket, a branch or a worktree from a ticket (step 7), the ticket chip (step 6), worklogs, links and attachments.
 
+### D9. A saved list per view, stars, more scopes and more of the ticket (2026-11-15)
+
+The owner asked for a tab that does not wait for Jira on every open, for favourites, and for more of a ticket.
+
+- **Cache.** `TrackerCache<Value>` (Domain, `Codable`) keeps the last entries by key with a read time and a limit. `TicketsStore` holds one for lists (key `<order>|<jql>`, 8 entries) and one for details (30 entries), saved per project through `KeyValueStore.encode` under `utils.tickets.cache.lists.<project>` and `utils.tickets.cache.details.<project>`, restored on `.configChanged`. A view change shows its saved list at once (`showCached`) and reads in the background; a successful read saves the list and sets `readAt`. A failed read keeps the old list and shows a `NoticeBar` over it. The cache lives in Presentation state, not in the port: the port stays one `jira` call per method, and the mock and the spy stay simple.
+- **Fewer processes.** The ready state of the tool (version, login) is saved under `utils.tickets.tool`. `refresh()` skips `jira version` and `jira me` while the state is ready; `reload()` (Refresh, Check Again) always checks. A failed list read after a skipped check runs the check afterwards, so the card shows the cause (a removed token, a removed tool).
+- **Stars.** `IssueScope.starred` and `IssueScope.recent` (`issuekey in issueHistory()`). The starred keys are saved under `utils.tickets.starred.<project>`. `TrackerQueryPolicy.starredClause` accepts only keys of the form `ABC-123` (`isIssueKey`), so a saved value can never change the JQL. `TicketSectionMapper` puts the starred tickets of a list into a first section.
+- **More of the ticket.** `TrackerIssue` gets `labels` and `dueDate`; `TrackerIssueDetails` gets `fixVersions`, `dueDate`, `resolution`, `links` (`TrackerIssueRelation`: the inward or outward text of the link type), `attachments`, the time tracking seconds, `watchers` and `isWatching`. `JiraDateParser.day(from:calendar:)` reads `yyyy-MM-dd`. The tracker models are `Codable` for the app's own cache only; Jira JSON still goes through the DTOs of the parsers.
+- **More actions.** `unassign(key:)` is `jira issue assign <key> x` (the `x` of jira-cli), `watch(key:user:)` is `jira issue watch <key> <login>`. `jira-cli` 1.7.0 has no unwatch and no star, so stars are local to DevHub. The page size can grow once to 100 (`--paginate 0:100`), the maximum of `jira issue list`.
+
+Out of this step: a ticket of another project in the Starred scope (the JQL runs with `-p <project>`), an age limit of the cache, worklogs, creating a ticket.
+
 ## Setup for a user
 
 1. `brew install jira-cli`.
@@ -95,15 +107,17 @@ Out of this step: creating a ticket, a branch or a worktree from a ticket (step 
 | 7 | Start creates the branch (`TrackerBranchPolicy`) and a worktree through `CreateWorktreeUseCase`, then moves the ticket; the new request form takes the summary as the title | next |
 | 8 | On a created request, move the ticket to a configured status (`tracker.reviewStatus`) and comment with the request link (`jira issue comment add`) | later |
 | 8a | D7 and D8: the `~/.zshrc` variables for `jira`, the corrected hints, five scopes, the view menu, details, Assign to Me, Add Comment | done |
+| 8b | D9: the saved lists and details, the saved tool state, stars with the Starred scope, Recent, labels and due dates in the rows, fix versions, links, attachments, time tracking and watchers in the details, Unassign, Watch, Copy Link, up to 100 tickets | done |
 | 9 | Notifications: a poll of `assignee = currentUser() AND updated >= -10m` with the `inbox` kind, or nothing: `jira-cli` has no notification feed | later, maybe never |
 
 ## Where we stopped
 
-Steps 1 to 4 are on `main` (merged from the worktree branch `worktree-jira` on 2026-11-07, the owner's decision: "merge, we sort it out there"). The package tests pass (2,973 tests in 521 suites). The owner's Mac has `jira-cli` 1.7.0 installed but no config file and no token, so the Tickets tab shows the "jira is not set up" card there; the private project config of the owner's main app already has its `tracker` section. The next session: run the setup for the owner (step 5: the token into the keychain item `jira-cli`, then `jira init`), look at the tab with real data, fix what the live tool returns differently.
+Steps 1 to 4, 8a and 8b are on `main`. The package tests pass (3,355 tests in 577 suites). The owner's Mac has `jira-cli` 1.7.0 installed; the private project config of the owner's main app has its `tracker` section. Step 5 (the check against the live Jira: the scopes, the details members, Unassign, Watch, the 100-ticket page) is still open, then step 6 (the ticket chip) and step 7 (Start as branch plus worktree).
 
 ## Consequences
 
-- One `jira me` and one `jira issue list` each time the panel opens on the tab; `jira version` once per check. All in the command log.
+- One `jira issue list` each time the panel opens on the tab; `jira version` and `jira me` on the first open, on Refresh, on Check Again and after a failed read. All in the command log.
+- The tab shows the last list and the last details of a ticket before Jira answers; the toolbar says when the list was read.
 - A project without a Jira link and without `tracker` shows a message and runs nothing.
 - The `TrackerIssue` name avoids the `Issue` type of Swift Testing in the test targets.
 
@@ -115,3 +129,4 @@ Steps 1 to 4 are on `main` (merged from the worktree branch `worktree-jira` on 2
 | `911d4ef`, `54f0bb4` | The step log row, then the move to ADR 016 and decision 76 after main took 015 and 75 for the CircleCI depth step. |
 | `3745650`, `d061bcb` | D7 and D8: the `~/.zshrc` variables for `jira` after a login failure, the corrected card, five scopes, the view menu, details, Assign to Me and Add Comment; merged into `main`. Checked with 3,301 tests, the build, the smoke check and a headless snapshot with `DEVHUB_TICKET=ABC-123`. |
 | `129c01d` | The merge into `main`: both sides added a port, a `CommandKind` rule set, a changelog entry and a decision; the merge keeps both. Checked with 3,092 tests, the build and the smoke check. |
+| `ce43596` | D9: `TrackerCache` with the saved lists, details and tool state, stars with the Starred scope, Recent, labels and due dates, fix versions, links, attachments, time tracking and watchers, Unassign, Watch, Copy Link, the 100-ticket page. Checked with 3,355 tests, the build, the smoke check and headless snapshots of the tab and of `DEVHUB_TICKET=ABC-123`. |

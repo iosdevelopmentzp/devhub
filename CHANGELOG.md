@@ -7,6 +7,10 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Tickets: the list of each scope and the details of each opened ticket are kept between launches, per project. The tab shows the last list at once and reads Jira in the background; "read 5 min. ago" in the toolbar says when. A failed read keeps the old list under a red bar with Retry. A refresh runs only `jira issue list`; the tool check runs on Refresh, Check Again and after a failed read.
+- Tickets: a star on each ticket (hover button, context menu). Starred tickets sit on top of every list and in the new Starred scope. A Recent scope lists the tickets you opened last in Jira.
+- Tickets: rows show the due date (red when overdue, orange today) and the labels; the search field matches labels too. "Show up to 100 tickets" at the end of a full page.
+- Tickets: the details show fix versions, the due date, the resolution, linked tickets with their relation, attachments, time tracking, watchers, and every comment ("Show 3 earlier comments"). Each parent, sub-task and link has an open button. New buttons and menu items: Watch, Unassign, Copy Link.
 - Tabs: drag a tab in the tab bar or a sub-tab in Utils to change the order, Home and Utils too. A drop on a tab of the other bar moves a tab there. Reset Tab Order in the context menu of a tab goes back to the default order. The order is saved.
 - Tickets: five scopes (Mine, Sprint, Reported, Watching, Project), and a view menu that groups by status, type, assignee or priority, sorts by last update, newest or priority, adds done tickets of the last 14 days and hides ticket types. All of it is saved.
 - Tickets: a click on a ticket opens its details under the row: description, reporter, created, labels, components, parent, sub-tasks and the last 5 comments, from Jira Server and Jira Cloud.

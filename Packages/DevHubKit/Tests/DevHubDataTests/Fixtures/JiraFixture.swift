@@ -19,7 +19,9 @@ enum JiraFixture {
             "priority": { "self": "https://jira.example.com/rest/api/2/priority/2", "name": "High", "id": "2" },
             "assignee": { "accountId": "712020:abc", "emailAddress": "alex@example.com", "displayName": "Alex", "active": true },
             "updated": "2026-11-06T13:11:45.043+0000",
-            "status": { "name": "In Progress", "id": "3", "statusCategory": { "id": 4, "key": "indeterminate", "colorName": "yellow", "name": "In Progress" } }
+            "labels": ["ios", "login"],
+            "duedate": "2026-11-20",
+            "status":{ "name": "In Progress", "id": "3", "statusCategory": { "id": 4, "key": "indeterminate", "colorName": "yellow", "name": "In Progress" } }
           }
         },
         {
@@ -73,7 +75,18 @@ enum JiraFixture {
         "components": [{ "id": "1", "name": "Auth" }],
         "parent": { "id": "10000", "key": "ABC-100", "fields": { "summary": "Login flow rework", "status": { "name": "In Progress", "statusCategory": { "key": "indeterminate" } } } },
         "subtasks": [{ "id": "10031", "key": "ABC-131", "fields": { "summary": "Add a unit test", "status": { "name": "To Do", "statusCategory": { "key": "new" } } } }],
-        "comment": { "comments": [{ "id": "5001", "author": { "displayName": "Alex" }, "body": "Found it.", "created": "2026-11-02T10:00:00.000+0000" }], "maxResults": 1, "total": 1, "startAt": 0 }
+        "comment": { "comments": [{ "id": "5001", "author": { "displayName": "Alex" }, "body": "Found it.", "created": "2026-11-02T10:00:00.000+0000" }], "maxResults": 1, "total": 1, "startAt": 0 },
+        "fixVersions": [{ "id": "20", "name": "2.4.0", "released": false }],
+        "duedate": "2026-11-20",
+        "resolution": { "id": "1", "name": "Fixed" },
+        "issuelinks": [
+          { "id": "301", "type": { "id": "10000", "name": "Blocks", "inward": "is blocked by", "outward": "blocks" }, "outwardIssue": { "id": "10040", "key": "ABC-140", "fields": { "summary": "Release 2.4.0 checklist", "status": { "name": "To Do", "statusCategory": { "key": "new" } } } } },
+          { "id": "302", "type": { "id": "10000", "name": "Blocks", "inward": "is blocked by", "outward": "blocks" }, "inwardIssue": { "id": "9999", "key": "ABC-99", "fields": { "summary": "Session refresh endpoint", "status": { "name": "Done", "statusCategory": { "key": "done" } } } } },
+          { "id": "303", "type": { "id": "10000", "name": "Blocks", "inward": "is blocked by", "outward": "blocks" } }
+        ],
+        "attachment": [{ "id": "1", "filename": "login-screen.png", "size": 1024 }, { "id": "2", "filename": "console.log" }],
+        "timetracking": { "originalEstimate": "4h", "remainingEstimate": "2h 30m", "timeSpent": "1h 30m", "originalEstimateSeconds": 14400, "remainingEstimateSeconds": 9000, "timeSpentSeconds": 5400 },
+        "watches": { "self": "https://jira.example.com/rest/api/2/issue/ABC-123/watchers", "watchCount": 3, "isWatching": true }
       }
     }
     """#

@@ -9,6 +9,8 @@ package final class SpyIssueTrackerRepository: IssueTrackerRepository, @unchecke
         case details(key: String)
         case transition(key: String, status: String)
         case assign(key: String, user: String)
+        case unassign(key: String)
+        case watch(key: String, user: String)
         case comment(key: String, text: String)
     }
 
@@ -20,6 +22,8 @@ package final class SpyIssueTrackerRepository: IssueTrackerRepository, @unchecke
     private var _detailsResult: Result<TrackerIssueDetails, any Error> = .failure(TrackerError.command("No issue"))
     private var _transitionError: (any Error)? = nil
     private var _assignError: (any Error)? = nil
+    private var _unassignError: (any Error)? = nil
+    private var _watchError: (any Error)? = nil
     private var _commentError: (any Error)? = nil
 
     package init() {}
@@ -56,6 +60,16 @@ package final class SpyIssueTrackerRepository: IssueTrackerRepository, @unchecke
     package var assignError: (any Error)? {
         get { lock.withLock { _assignError } }
         set { lock.withLock { _assignError = newValue } }
+    }
+
+    package var unassignError: (any Error)? {
+        get { lock.withLock { _unassignError } }
+        set { lock.withLock { _unassignError = newValue } }
+    }
+
+    package var watchError: (any Error)? {
+        get { lock.withLock { _watchError } }
+        set { lock.withLock { _watchError = newValue } }
     }
 
     package var commentError: (any Error)? {
@@ -102,6 +116,20 @@ package final class SpyIssueTrackerRepository: IssueTrackerRepository, @unchecke
         try lock.withLock {
             _calls.append(.assign(key: key, user: user))
             if let error = _assignError { throw error }
+        }
+    }
+
+    package func unassign(key: String) async throws {
+        try lock.withLock {
+            _calls.append(.unassign(key: key))
+            if let error = _unassignError { throw error }
+        }
+    }
+
+    package func watch(key: String, user: String) async throws {
+        try lock.withLock {
+            _calls.append(.watch(key: key, user: user))
+            if let error = _watchError { throw error }
         }
     }
 

@@ -25,6 +25,11 @@ import Testing
         #expect(JiraClient.commentArguments(key: "ABC-123", text: "-1 from me\nsecond line") == ["issue", "comment", "add", "--no-input", "--", "ABC-123", "-1 from me\nsecond line"])
     }
 
+    @Test func unassignAndWatchPassTheirValuesAsArguments() {
+        #expect(JiraClient.unassignArguments(key: "ABC-123") == ["issue", "assign", "ABC-123", "x"])
+        #expect(JiraClient.watchArguments(key: "ABC-123", user: "alex@example.com") == ["issue", "watch", "ABC-123", "alex@example.com"])
+    }
+
     @Test func onlyAFailedLoginAsksForTheShellVariables() {
         #expect(JiraClient.isLoginFailure(ShellResult(stdout: "", stderr: "The tool needs a Jira API token to function.", exitCode: 1)))
         #expect(JiraClient.isLoginFailure(ShellResult(stdout: "", stderr: "Error: 401 Unauthorized", exitCode: 1)))

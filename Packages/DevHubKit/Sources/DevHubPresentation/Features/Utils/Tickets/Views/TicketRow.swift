@@ -10,7 +10,10 @@ struct TicketRow: View {
     let onStart: () -> Void
     let onMove: (String) -> Void
     let onToggleDetails: () -> Void
+    let onToggleStar: () -> Void
     let onAssignToMe: () -> Void
+    let onUnassign: () -> Void
+    let onWatch: () -> Void
 
     var body: some View {
         RowContainer(isHighlighted: model.isExpanded) { isHovered in
@@ -19,7 +22,7 @@ struct TicketRow: View {
                     .hint(model.typeHint)
                 details
                 Spacer(minLength: 4)
-                HoverActions(isVisible: isHovered, count: 3, spacing: 2) {
+                HoverActions(isVisible: isHovered, count: 4, spacing: 2) {
                     buttons
                 }
             }
@@ -37,6 +40,12 @@ struct TicketRow: View {
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.tertiary)
                     .frame(width: 10)
+                if model.isStarred {
+                    Image(systemName: "star.fill")
+                        .font(.caption2)
+                        .foregroundStyle(Tint.yellow.color)
+                        .hint("Starred")
+                }
                 Text(model.key)
                     .font(.caption.monospaced().weight(.semibold))
                     .foregroundStyle(.secondary)
@@ -52,6 +61,10 @@ struct TicketRow: View {
                 if let priority = model.priorityTag {
                     ModelTag(model: priority)
                 }
+                if let due = model.dueTag {
+                    ModelTag(model: due)
+                }
+                ForEach(model.labelTags, id: \.self) { ModelTag(model: $0, isPlain: true) }
                 if let assignee = model.assignee {
                     PlainTag(assignee, systemImage: "person")
                 }
@@ -71,6 +84,7 @@ struct TicketRow: View {
             ProgressView()
                 .controlSize(.small)
         } else {
+            IconButton(systemImage: model.isStarred ? "star.fill" : "star", help: model.starHint, tint: model.isStarred ? Tint.yellow.color : .primary, action: onToggleStar)
             if model.canStart {
                 IconButton(systemImage: "play.fill", help: "\(model.startTitle). jira issue move \(model.key)", tint: .blue, action: onStart)
             }
@@ -87,15 +101,29 @@ struct TicketRow: View {
     @ViewBuilder
     private var menu: some View {
         Button(model.isExpanded ? "Hide Details" : "Show Details", systemImage: "text.alignleft", action: onToggleDetails)
+        Button(model.starTitle, systemImage: model.isStarred ? "star.slash" : "star", action: onToggleStar)
         Button("Open in Browser", systemImage: "safari") { appActions.open(model.url) }
             .disabled(model.url == nil)
         Divider()
         Button("Copy Key", systemImage: "doc.on.doc") { toaster.copy(model.key, label: model.key) }
         Button("Copy Key and Summary", systemImage: "text.quote") { toaster.copy(model.keyAndSummary, label: model.key) }
         Button("Copy Branch Name", systemImage: "arrow.triangle.branch") { toaster.copy(model.branchName, label: model.branchName) }
-        if model.canAssignToMe {
+        if let url = model.url {
+            Button("Copy Link", systemImage: "link") { toaster.copy(url.absoluteString, label: "link") }
+        }
+        if model.canAssignToMe || model.canUnassign || model.canWatch {
             Divider()
+        }
+        if model.canAssignToMe {
             Button("Assign to Me", systemImage: "person.crop.circle.badge.checkmark", action: onAssignToMe)
+                .disabled(model.isBusy)
+        }
+        if model.canUnassign {
+            Button("Unassign", systemImage: "person.crop.circle.badge.minus", action: onUnassign)
+                .disabled(model.isBusy)
+        }
+        if model.canWatch {
+            Button("Watch", systemImage: "eye", action: onWatch)
                 .disabled(model.isBusy)
         }
         if model.moveTargets.isEmpty == false {
@@ -113,6 +141,6 @@ struct TicketRow: View {
 }
 
 #Preview {
-    TicketRow(model: .preview, onStart: {}, onMove: { _ in }, onToggleDetails: {}, onAssignToMe: {})
+    TicketRow(model: .preview, onStart: {}, onMove: { _ in }, onToggleDetails: {}, onToggleStar: {}, onAssignToMe: {}, onUnassign: {}, onWatch: {})
         .previewEnvironment()
 }

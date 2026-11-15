@@ -1,6 +1,6 @@
 import Foundation
 
-package enum IssueStatusCategory: String, CaseIterable, Hashable, Sendable {
+package enum IssueStatusCategory: String, CaseIterable, Codable, Hashable, Sendable {
     case toDo
     case inProgress
     case done

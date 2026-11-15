@@ -20,6 +20,10 @@ import Testing
 
     private let issue = TrackerIssue(key: "ABC-123", summary: "Login button stays disabled", status: "To Do", statusCategory: .toDo, type: "Bug", priority: "High", assignee: "Alex", url: nil, updatedAt: nil)
 
+    private let story = TrackerIssue(key: "ABC-124", summary: "Welcome screen", status: "To Do", statusCategory: .toDo, type: "Story", priority: nil, assignee: nil, url: nil, updatedAt: nil)
+
+    private let mineQuery = SpyIssueTrackerRepository.Call.issues(jql: "assignee = currentUser() AND statusCategory != Done", project: "ABC", order: .updated, limit: 50)
+
     // MARK: Refresh
 
     @Test func withoutATrackerNothingIsRead() async {
@@ -39,7 +43,26 @@ import Testing
         #expect(store.toolState == .ready(version: "1.7.0", user: "alex@example.com"))
         #expect(store.issues == [issue])
         #expect(store.error == nil)
-        #expect(spy.calls == [.toolState, .issues(jql: "assignee = currentUser() AND statusCategory != Done", project: "ABC", order: .updated, limit: 50)])
+        #expect(store.readAt != nil)
+        #expect(spy.calls == [.toolState, mineQuery])
+    }
+
+    @Test func aSecondRefreshSkipsTheToolCheck() async {
+        await enableTracker()
+
+        await store.refresh()
+        await store.refresh()
+
+        #expect(spy.calls == [.toolState, mineQuery, mineQuery])
+    }
+
+    @Test func reloadAlwaysChecksTheTool() async {
+        await enableTracker()
+
+        await store.refresh()
+        await store.reload()
+
+        #expect(spy.calls == [.toolState, mineQuery, .toolState, mineQuery])
     }
 
     @Test func aToolThatIsNotReadyStopsTheRead() async {
@@ -62,6 +85,35 @@ import Testing
         #expect(store.error == "Error: invalid JQL")
         #expect(harness.lastActivity?.title == "Cannot read tickets")
         #expect(harness.lastActivity?.outcome == .failure)
+        #expect(spy.calls == [.toolState, mineQuery])
+    }
+
+    @Test func aFailedReadAfterASkippedCheckChecksTheToolAgain() async {
+        await enableTracker()
+        spy.issuesResult = .success([issue])
+        await store.refresh()
+        spy.issuesResult = .failure(TrackerError.command("Error: 401"))
+        spy.toolStateResult = .notLoggedIn
+
+        await store.refresh()
+
+        #expect(spy.calls == [.toolState, mineQuery, mineQuery, .toolState])
+        #expect(store.toolState == .notLoggedIn)
+        #expect(store.issues.isEmpty)
+        #expect(store.error == "Error: 401")
+    }
+
+    @Test func aFailedReadKeepsTheLastList() async {
+        await enableTracker()
+        spy.issuesResult = .success([issue])
+        await store.refresh()
+        spy.issuesResult = .failure(TrackerError.command("Error: 502"))
+
+        await store.refresh()
+
+        #expect(store.issues == [issue])
+        #expect(store.error == "Error: 502")
+        #expect(store.readAt != nil)
     }
 
     @Test func theScopeIsSavedAndReadsAgain() async throws {
@@ -89,6 +141,146 @@ import Testing
         harness.events.post(.projectChanged)
 
         #expect(store.issues.isEmpty)
+        #expect(store.readAt == nil)
+    }
+
+    // MARK: Cache
+
+    @Test func theLastListIsSavedAndShownAtTheNextStart() async {
+        await enableTracker()
+        spy.issuesResult = .success([issue])
+        await store.refresh()
+
+        #expect(harness.store.data(forKey: "utils.tickets.cache.lists.ABC") != nil)
+
+        let next = StoreHarness(store: harness.store)
+        await enableTracker(next)
+
+        #expect(next.tickets.issues == [issue])
+        #expect(next.tickets.readAt != nil)
+        #expect(next.spies.tracker.calls.isEmpty)
+    }
+
+    @Test func aScopeChangeShowsItsLastListAtOnce() async throws {
+        await enableTracker()
+        spy.issuesResult = .success([issue])
+        await store.refresh()
+        spy.issuesResult = .success([story])
+        store.scope = .project
+        try await waitUntil { store.issues == [story] }
+
+        store.scope = .mine
+
+        #expect(store.issues == [issue])
+        try await waitUntil { store.issues == [story] }
+    }
+
+    @Test func theReadyToolIsSavedAndTheNextStartSkipsTheCheck() async {
+        await enableTracker()
+        await store.refresh()
+
+        #expect(harness.store.stringMap(forKey: "utils.tickets.tool") == ["version": "1.7.0", "user": "alex@example.com"])
+
+        let next = StoreHarness(store: harness.store)
+        await enableTracker(next)
+        await next.tickets.refresh()
+
+        #expect(next.tickets.toolState == .ready(version: "1.7.0", user: "alex@example.com"))
+        #expect(next.spies.tracker.calls == [mineQuery])
+    }
+
+    @Test func aToolThatIsNotReadyForgetsTheSavedState() async {
+        await enableTracker()
+        await store.refresh()
+        spy.toolStateResult = .missing
+
+        await store.reload()
+
+        #expect(harness.store.stringMap(forKey: "utils.tickets.tool") == nil)
+    }
+
+    @Test func detailsAreSavedAndShownAtTheNextStart() async {
+        await enableTracker()
+        spy.detailsResult = .success(details)
+        await store.loadDetails("ABC-123")
+
+        let next = StoreHarness(store: harness.store)
+        await enableTracker(next)
+
+        #expect(next.tickets.details["ABC-123"] == details)
+    }
+
+    // MARK: Stars
+
+    @Test func aStarIsSavedAndPinsTheTicketWithoutARead() async {
+        await enableTracker()
+
+        store.toggleStar("ABC-123")
+
+        #expect(store.starred == ["ABC-123"])
+        #expect(store.isStarred("ABC-123"))
+        #expect(store.pinnedKeys == ["ABC-123"])
+        #expect(harness.store.strings(forKey: "utils.tickets.starred.ABC") == ["ABC-123"])
+        #expect(spy.calls.isEmpty)
+
+        store.toggleStar("ABC-123")
+
+        #expect(store.starred.isEmpty)
+        #expect(harness.store.strings(forKey: "utils.tickets.starred.ABC") == [])
+    }
+
+    @Test func theStarredScopeAsksForTheStarredKeysAndPinsNothing() async throws {
+        await enableTracker()
+        store.toggleStar("ABC-123")
+
+        store.scope = .starred
+
+        #expect(store.pinnedKeys.isEmpty)
+        try await waitUntil { spy.calls.contains(.issues(jql: "issuekey in (ABC-123)", project: "ABC", order: .updated, limit: 50)) }
+    }
+
+    @Test func theStarredScopeWithoutAStarReadsNoList() async {
+        await enableTracker()
+        store.scope = .starred
+
+        await store.refresh()
+
+        #expect(store.issues.isEmpty)
+        #expect(spy.calls.allSatisfy { $0 == .toolState })
+    }
+
+    @Test func removingAStarInTheStarredScopeDropsTheTicketAtOnce() async throws {
+        await enableTracker()
+        store.toggleStar("ABC-123")
+        store.toggleStar("ABC-124")
+        store.scope = .starred
+        spy.issuesResult = .success([issue, story])
+        try await waitUntil { store.issues.count == 2 }
+        spy.issuesResult = .success([story])
+
+        store.toggleStar("ABC-123")
+
+        #expect(store.issues == [story])
+        try await waitUntil { spy.calls.contains(.issues(jql: "issuekey in (ABC-124)", project: "ABC", order: .updated, limit: 50)) }
+    }
+
+    // MARK: Load more
+
+    @Test func loadMoreReadsUpToAHundredAndAScopeChangeResetsTheLimit() async throws {
+        await enableTracker()
+        spy.issuesResult = .success((1...50).map { TrackerIssue(key: "ABC-\($0)", summary: "", status: "", statusCategory: .toDo, type: "", priority: nil, assignee: nil, url: nil, updatedAt: nil) })
+        await store.refresh()
+
+        #expect(store.canLoadMore)
+        store.loadMore()
+
+        #expect(store.limit == 100)
+        try await waitUntil { spy.calls.contains(.issues(jql: "assignee = currentUser() AND statusCategory != Done", project: "ABC", order: .updated, limit: 100)) }
+        #expect(store.canLoadMore == false)
+
+        store.scope = .project
+
+        #expect(store.limit == 50)
     }
 
     // MARK: Move
@@ -101,8 +293,8 @@ import Testing
         store.move("ABC-123", to: "In Review")
 
         #expect(store.busyKeys == ["ABC-123"])
-        try await waitUntil { store.busyKeys.isEmpty && spy.calls.count == 5 }
-        #expect(spy.calls.suffix(3) == [.transition(key: "ABC-123", status: "In Review"), .toolState, .issues(jql: "assignee = currentUser() AND statusCategory != Done", project: "ABC", order: .updated, limit: 50)])
+        try await waitUntil { store.busyKeys.isEmpty && spy.calls.count == 4 }
+        #expect(spy.calls.suffix(2) == [.transition(key: "ABC-123", status: "In Review"), mineQuery])
         #expect(harness.lastActivity?.title == "Moved ABC-123 to In Review")
         #expect(harness.lastActivity?.detail == "jira issue move ABC-123 \"In Review\"")
     }
@@ -124,7 +316,7 @@ import Testing
         try await waitUntil { store.busyKeys.isEmpty }
         #expect(harness.lastActivity?.title == "Could not move ABC-123 to Nowhere")
         #expect(harness.lastActivity?.outcome == .failure)
-        #expect(spy.calls.contains(.issues(jql: "assignee = currentUser() AND statusCategory != Done", project: "ABC", order: .updated, limit: 50)) == false)
+        #expect(spy.calls.contains(mineQuery) == false)
     }
 
     // MARK: View
@@ -160,7 +352,6 @@ import Testing
 
     @Test func aHiddenTypeHidesItsTicketsAndResetShowsEverything() async {
         await enableTracker()
-        let story = TrackerIssue(key: "ABC-124", summary: "Welcome screen", status: "To Do", statusCategory: .toDo, type: "Story", priority: nil, assignee: nil, url: nil, updatedAt: nil)
         spy.issuesResult = .success([issue, story])
         await store.refresh()
 
@@ -191,6 +382,7 @@ import Testing
         #expect(store.expandedKey == "ABC-123")
         try await waitUntil { store.details["ABC-123"] == details }
         #expect(spy.calls == [.details(key: "ABC-123")])
+        #expect(harness.store.data(forKey: "utils.tickets.cache.details.ABC") != nil)
 
         store.toggleDetails("ABC-123")
 
@@ -222,18 +414,19 @@ import Testing
         #expect(store.expandedKey == nil)
     }
 
-    // MARK: Assign and comment
+    // MARK: Assign, watch and comment
 
     @Test func assignToMeUsesTheLoginOfTheToolAndReadsAgain() async throws {
         await enableTracker()
         await store.refresh()
         store.scope = .project
-        try await waitUntil { spy.calls.count == 4 }
+        try await waitUntil { spy.calls.count == 3 }
 
         #expect(store.canAssignToMe)
         store.assignToMe("ABC-123")
 
-        try await waitUntil { store.busyKeys.isEmpty && spy.calls.contains(.assign(key: "ABC-123", user: "alex@example.com")) && spy.calls.count == 7 }
+        try await waitUntil { store.busyKeys.isEmpty && spy.calls.count == 5 }
+        #expect(spy.calls.suffix(2) == [.assign(key: "ABC-123", user: "alex@example.com"), .issues(jql: "statusCategory != Done", project: "ABC", order: .updated, limit: 50)])
         #expect(harness.lastActivity?.title == "Assigned ABC-123 to you")
         #expect(harness.lastActivity?.detail == "jira issue assign ABC-123 alex@example.com")
     }
@@ -243,13 +436,17 @@ import Testing
         await store.refresh()
 
         #expect(store.canAssignToMe == false)
+        #expect(store.canWatch)
 
         spy.toolStateResult = .notLoggedIn
-        await store.refresh()
+        await store.reload()
         store.assignToMe("ABC-123")
+        store.watch("ABC-123")
 
         #expect(store.user == nil)
+        #expect(store.canWatch == false)
         #expect(spy.calls.contains(.assign(key: "ABC-123", user: "alex@example.com")) == false)
+        #expect(spy.calls.contains(.watch(key: "ABC-123", user: "alex@example.com")) == false)
     }
 
     @Test func aFailedAssignIsLogged() async throws {
@@ -260,6 +457,43 @@ import Testing
         store.assignToMe("ABC-123")
 
         try await waitUntil { harness.lastActivity?.title == "Could not assign ABC-123" }
+        #expect(store.busyKeys.isEmpty)
+    }
+
+    @Test func unassignRemovesTheAssigneeAndReadsAgain() async throws {
+        await enableTracker()
+        await store.refresh()
+
+        store.unassign("ABC-123")
+
+        try await waitUntil { store.busyKeys.isEmpty && spy.calls.count == 4 }
+        #expect(spy.calls.suffix(2) == [.unassign(key: "ABC-123"), mineQuery])
+        #expect(harness.lastActivity?.title == "Removed the assignee of ABC-123")
+        #expect(harness.lastActivity?.detail == "jira issue assign ABC-123 x")
+    }
+
+    @Test func watchAddsTheUserThenReadsTheDetailsAndTheList() async throws {
+        await enableTracker()
+        spy.detailsResult = .success(details)
+        await store.refresh()
+
+        store.watch("ABC-123")
+
+        try await waitUntil { store.busyKeys.isEmpty && spy.calls.count == 5 }
+        #expect(spy.calls.suffix(3) == [.watch(key: "ABC-123", user: "alex@example.com"), .details(key: "ABC-123"), mineQuery])
+        #expect(harness.lastActivity?.title == "Watching ABC-123")
+        #expect(harness.lastActivity?.detail == "jira issue watch ABC-123 alex@example.com")
+    }
+
+    @Test func aFailedWatchIsLogged() async throws {
+        await enableTracker()
+        await store.refresh()
+        spy.watchError = TrackerError.command("Error: 403")
+
+        store.watch("ABC-123")
+
+        try await waitUntil { harness.lastActivity?.title == "Could not watch ABC-123" }
+        #expect(harness.lastActivity?.outcome == .failure)
         #expect(store.busyKeys.isEmpty)
     }
 
@@ -294,6 +528,10 @@ import Testing
     }
 
     private func enableTracker() async {
+        await enableTracker(harness)
+    }
+
+    private func enableTracker(_ harness: StoreHarness) async {
         harness.spies.config.loadResult = ResolvedConfig(project: ProjectConfig(tracker: TrackerConfig(kind: .jira, project: "ABC")), actions: [], tabs: [], issues: [], layers: [])
         await harness.config.reload()
     }

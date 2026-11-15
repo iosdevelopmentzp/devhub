@@ -3,7 +3,9 @@ import DevHubDomain
 import DevHubUI
 
 enum TicketRowMapper {
-    static func model(for issue: TrackerIssue, settings: TrackerSettings, isBusy: Bool, isExpanded: Bool, canAssignToMe: Bool) -> TicketRowModel {
+    static let labelLimit = 2
+
+    static func model(for issue: TrackerIssue, settings: TrackerSettings, isBusy: Bool, isExpanded: Bool, isStarred: Bool, canAssignToMe: Bool, canWatch: Bool, now: Date) -> TicketRowModel {
         let sameStatus = { (status: String) in status.caseInsensitiveCompare(issue.status) == .orderedSame }
         return TicketRowModel(
             id: issue.key,
@@ -14,6 +16,8 @@ enum TicketRowMapper {
             typeHint: issue.type.isEmpty ? "Ticket" : issue.type,
             statusTag: TagModel(issue.status, tint: statusTint(issue.statusCategory), hint: "Status in the tracker"),
             priorityTag: issue.priority.map { TagModel($0, tint: priorityTint($0), systemImage: "flag", hint: "Priority") },
+            dueTag: dueTag(for: issue.dueDate, isDone: issue.statusCategory == .done, now: now),
+            labelTags: labelTags(issue.labels),
             assignee: issue.assignee,
             updatedText: issue.updatedAt.map { "updated " + $0.relativeDescription },
             url: issue.url,
@@ -23,9 +27,36 @@ enum TicketRowMapper {
             moveTargets: settings.statuses.filter { sameStatus($0) == false },
             isBusy: isBusy,
             isExpanded: isExpanded,
+            isStarred: isStarred,
+            starTitle: TicketsText.starTitle(isStarred: isStarred),
+            starHint: TicketsText.starHint(isStarred: isStarred),
             canAssignToMe: canAssignToMe,
+            canUnassign: issue.assignee != nil,
+            canWatch: canWatch,
             keyAndSummary: issue.summary.isEmpty ? issue.key : "\(issue.key) \(issue.summary)"
         )
+    }
+
+    static func labelTags(_ labels: [String]) -> [TagModel] {
+        var tags = labels.prefix(labelLimit).map { TagModel($0, tint: .secondary, systemImage: "tag", hint: "Label") }
+        let rest = labels.dropFirst(labelLimit)
+        guard rest.isEmpty == false else { return tags }
+        tags.append(TagModel("+\(rest.count)", tint: .secondary, hint: rest.joined(separator: ", ")))
+        return tags
+    }
+
+    static func dueTag(for date: Date?, isDone: Bool, now: Date) -> TagModel? {
+        guard let date else { return nil }
+        let calendar = Calendar.current
+        let text = "Due " + DayLabel.text(for: date, now: now, calendar: calendar)
+        guard isDone == false else { return TagModel(text, tint: .secondary, systemImage: "calendar", hint: "Due date") }
+        if calendar.isDate(date, inSameDayAs: now) {
+            return TagModel(text, tint: .orange, systemImage: "calendar", hint: "Due today")
+        }
+        if date < calendar.startOfDay(for: now) {
+            return TagModel(text, tint: .red, systemImage: "calendar.badge.exclamationmark", hint: "Overdue")
+        }
+        return TagModel(text, tint: .secondary, systemImage: "calendar", hint: "Due date")
     }
 
     static func typeIcon(_ type: String) -> String {

@@ -354,7 +354,7 @@ final class StoreHarness {
     lazy var navigator = Navigator(store: store, customTabs: config)
     lazy var videoCompression = VideoCompressionStore(repository: ports.videoCompression, store: store, activity: activity, notifier: notifier, toaster: toaster, now: { Date(timeIntervalSince1970: 1_800_000_000) })
 
-    lazy var tickets = TicketsStore(repository: ports.tracker, config: config, activity: activity, toaster: toaster, events: events, store: store)
+    lazy var tickets = TicketsStore(repository: ports.tracker, config: config, activity: activity, toaster: toaster, events: events, store: store, now: { Date(timeIntervalSince1970: 1_800_000_000) })
     lazy var messaging = MessagingStore(repository: ports.messaging, session: session, identity: identity, activity: activity, operations: operations, events: events, store: store)
 
     lazy var aiSessions = AISessionsStore(repository: ports.aiSessions, session: session, worktrees: worktrees, store: store)

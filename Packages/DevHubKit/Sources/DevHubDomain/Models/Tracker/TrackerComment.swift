@@ -1,6 +1,6 @@
 import Foundation
 
-package struct TrackerComment: Identifiable, Hashable, Sendable {
+package struct TrackerComment: Identifiable, Hashable, Codable, Sendable {
     package let id: String
     package var author: String
     package var body: String

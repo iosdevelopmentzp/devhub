@@ -1,6 +1,6 @@
 import Foundation
 
-package struct TrackerIssue: Identifiable, Hashable, Sendable {
+package struct TrackerIssue: Identifiable, Hashable, Codable, Sendable {
     package let key: String
     package var summary: String
     package var status: String
@@ -10,6 +10,8 @@ package struct TrackerIssue: Identifiable, Hashable, Sendable {
     package var assignee: String?
     package var url: URL?
     package var updatedAt: Date?
+    package var labels: [String] = []
+    package var dueDate: Date?
 
     package var id: String {
         key
@@ -24,7 +26,9 @@ package struct TrackerIssue: Identifiable, Hashable, Sendable {
         priority: String?,
         assignee: String?,
         url: URL?,
-        updatedAt: Date?
+        updatedAt: Date?,
+        labels: [String] = [],
+        dueDate: Date? = nil
     ) {
         self.key = key
         self.summary = summary
@@ -35,5 +39,7 @@ package struct TrackerIssue: Identifiable, Hashable, Sendable {
         self.assignee = assignee
         self.url = url
         self.updatedAt = updatedAt
+        self.labels = labels
+        self.dueDate = dueDate
     }
 }
