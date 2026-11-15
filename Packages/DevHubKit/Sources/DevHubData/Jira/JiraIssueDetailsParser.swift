@@ -26,8 +26,28 @@ enum JiraIssueDetailsParser {
                     body: comment.body.map(text(of:)) ?? "",
                     createdAt: comment.created.flatMap(JiraDateParser.date(from:))
                 )
-            }
+            },
+            fixVersions: (fields.fixVersions ?? []).compactMap(\.name),
+            dueDate: fields.duedate.flatMap { JiraDateParser.day(from: $0, calendar: .current) },
+            resolution: fields.resolution?.name,
+            links: (fields.issuelinks ?? []).compactMap(relation(from:)),
+            attachments: (fields.attachment ?? []).compactMap(\.filename),
+            originalEstimateSeconds: fields.timetracking?.originalEstimateSeconds,
+            timeSpentSeconds: fields.timetracking?.timeSpentSeconds,
+            remainingEstimateSeconds: fields.timetracking?.remainingEstimateSeconds,
+            watchers: fields.watches?.watchCount,
+            isWatching: fields.watches?.isWatching
         )
+    }
+
+    private static func relation(from dto: DetailsDTO.IssueLink) -> TrackerIssueRelation? {
+        if let inward = dto.inwardIssue {
+            return TrackerIssueRelation(relation: dto.type?.inward ?? dto.type?.name ?? "", issue: link(from: inward))
+        }
+        if let outward = dto.outwardIssue {
+            return TrackerIssueRelation(relation: dto.type?.outward ?? dto.type?.name ?? "", issue: link(from: outward))
+        }
+        return nil
     }
 
     private static func link(from dto: LinkDTO) -> TrackerIssueLink {
@@ -85,6 +105,40 @@ private struct DetailsDTO: Decodable {
         let parent: LinkDTO?
         let subtasks: [LinkDTO]?
         let comment: CommentPage?
+        let fixVersions: [Named]?
+        let duedate: String?
+        let resolution: Named?
+        let issuelinks: [IssueLink]?
+        let attachment: [Attachment]?
+        let timetracking: TimeTracking?
+        let watches: Watches?
+    }
+
+    struct IssueLink: Decodable {
+        let type: LinkType?
+        let inwardIssue: LinkDTO?
+        let outwardIssue: LinkDTO?
+    }
+
+    struct LinkType: Decodable {
+        let name: String?
+        let inward: String?
+        let outward: String?
+    }
+
+    struct Attachment: Decodable {
+        let filename: String?
+    }
+
+    struct TimeTracking: Decodable {
+        let originalEstimateSeconds: Int?
+        let remainingEstimateSeconds: Int?
+        let timeSpentSeconds: Int?
+    }
+
+    struct Watches: Decodable {
+        let watchCount: Int?
+        let isWatching: Bool?
     }
 
     struct Person: Decodable {

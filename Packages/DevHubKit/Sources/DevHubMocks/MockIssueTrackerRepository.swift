@@ -8,7 +8,14 @@ struct MockIssueTrackerRepository: IssueTrackerRepository {
 
     func issues(jql: String, project: String?, order: IssueOrder, limit: Int) async throws -> [TrackerIssue] {
         try await Task.sleep(for: .milliseconds(150))
+        if jql.contains("issuekey in (") {
+            return MockData.issues.filter { jql.contains($0.key) }
+        }
         let open = jql.contains("updated >=") ? MockData.issues : MockData.issues.filter { $0.statusCategory != .done }
+        if jql.contains("issuekey in issueHistory()") {
+            let recent = MockData.issues.prefix(3).map(\.key)
+            return open.filter { recent.contains($0.key) }
+        }
         if jql.contains("assignee = currentUser()") {
             return open.filter { $0.assignee == "Alex" }
         }
@@ -38,6 +45,14 @@ struct MockIssueTrackerRepository: IssueTrackerRepository {
     }
 
     func assign(key: String, to user: String) async throws {
+        try await Task.sleep(for: .milliseconds(300))
+    }
+
+    func unassign(key: String) async throws {
+        try await Task.sleep(for: .milliseconds(300))
+    }
+
+    func watch(key: String, user: String) async throws {
         try await Task.sleep(for: .milliseconds(300))
     }
 

@@ -18,6 +18,9 @@ import Testing
         #expect(first.url == URL(string: "https://jira.example.com/browse/ABC-123"))
         #expect(first.updatedAt == JiraDateParser.date(from: "2026-11-06T13:11:45.043+0000"))
         #expect(first.updatedAt != nil)
+        #expect(first.labels == ["ios", "login"])
+        #expect(first.dueDate != nil)
+        #expect(first.dueDate == JiraDateParser.day(from: "2026-11-20", calendar: .current))
     }
 
     @Test func missingFieldsStayEmpty() throws {
@@ -28,6 +31,8 @@ import Testing
         #expect(second.assignee == nil)
         #expect(second.statusCategory == .toDo)
         #expect(second.type == "Story")
+        #expect(second.labels.isEmpty)
+        #expect(second.dueDate == nil)
     }
 
     @Test func parsesOneIssue() throws {

@@ -54,6 +54,14 @@ struct JiraIssueRepository: IssueTrackerRepository {
         _ = try await client.run(JiraClient.assignArguments(key: key, user: user))
     }
 
+    func unassign(key: String) async throws {
+        _ = try await client.run(JiraClient.unassignArguments(key: key))
+    }
+
+    func watch(key: String, user: String) async throws {
+        _ = try await client.run(JiraClient.watchArguments(key: key, user: user))
+    }
+
     func comment(key: String, text: String) async throws {
         _ = try await client.run(JiraClient.commentArguments(key: key, text: text))
     }

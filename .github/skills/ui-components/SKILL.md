@@ -91,6 +91,7 @@ Selection: the selected tab is `Color.accentColor` with white text; a selected o
 | `ByteFormat.text(_:)` | "1.2 GB" |
 | `CountText.count(_:_:_:)`, `CountText.invariant(_:_:)` | "3 changes", "1 change" |
 | `DurationFormat.text(_:)` | "850 ms", "4.2 s", "1 m 12 s" |
+| `WorkTime.text(seconds:)` | "1h 30m", "4h", "30m", the logged or estimated time of a ticket |
 | `SyncText.text(ahead:behind:)`, `ahead(_:)`, `behind(_:)` | "↑2 ↓1" |
 | `LogTimestamp.text(_:)` | "14:05:09.123", the time of a log line |
 | `ClockTime.text(_:)` | "14:05:09", the start time of a command |

@@ -12,7 +12,9 @@ extension MockData {
             priority: "High",
             assignee: "Alex",
             url: URL(string: "https://jira.example.com/browse/ABC-123"),
-            updatedAt: Date(timeIntervalSinceNow: -3_600)
+            updatedAt: Date(timeIntervalSinceNow: -3_600),
+            labels: ["ios", "login"],
+            dueDate: Date(timeIntervalSinceNow: 3 * 86_400)
         ),
         TrackerIssue(
             key: "ABC-130",
@@ -23,7 +25,9 @@ extension MockData {
             priority: "Highest",
             assignee: "Alex",
             url: URL(string: "https://jira.example.com/browse/ABC-130"),
-            updatedAt: Date(timeIntervalSinceNow: -2 * 86_400)
+            updatedAt: Date(timeIntervalSinceNow: -2 * 86_400),
+            labels: ["ios", "crash", "offline"],
+            dueDate: Date(timeIntervalSinceNow: -2 * 86_400)
         ),
         TrackerIssue(
             key: "ABC-124",
@@ -34,7 +38,8 @@ extension MockData {
             priority: "Medium",
             assignee: "Alex",
             url: URL(string: "https://jira.example.com/browse/ABC-124"),
-            updatedAt: Date(timeIntervalSinceNow: -5 * 86_400)
+            updatedAt: Date(timeIntervalSinceNow: -5 * 86_400),
+            labels: ["onboarding"]
         ),
         TrackerIssue(
             key: "ABC-118",
@@ -75,7 +80,25 @@ extension MockData {
             comments: [
                 TrackerComment(id: "1", author: "Sam", body: "Happens on iOS 18 too. The request fails with a timeout.", createdAt: Date(timeIntervalSinceNow: -2 * 86_400)),
                 TrackerComment(id: "2", author: "Alex", body: "Found it: the state is not reset after the error. Fix is on the way.", createdAt: Date(timeIntervalSinceNow: -3_600)),
-            ]
+            ],
+            fixVersions: ["2.4.0"],
+            dueDate: Date(timeIntervalSinceNow: 3 * 86_400),
+            links: [
+                TrackerIssueRelation(
+                    relation: "blocks",
+                    issue: TrackerIssueLink(key: "ABC-140", summary: "Release 2.4.0 checklist", status: "To Do", statusCategory: .toDo)
+                ),
+                TrackerIssueRelation(
+                    relation: "is blocked by",
+                    issue: TrackerIssueLink(key: "ABC-99", summary: "Session refresh endpoint", status: "Done", statusCategory: .done)
+                ),
+            ],
+            attachments: ["login-screen.png", "console.log"],
+            originalEstimateSeconds: 14_400,
+            timeSpentSeconds: 5_400,
+            remainingEstimateSeconds: 9_000,
+            watchers: 3,
+            isWatching: false
         )
     }
 }

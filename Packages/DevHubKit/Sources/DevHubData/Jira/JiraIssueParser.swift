@@ -49,7 +49,9 @@ enum JiraIssueParser {
             priority: dto.fields.priority?.name,
             assignee: dto.fields.assignee?.displayName,
             url: browseURL(apiURL: dto.apiURL, key: dto.key),
-            updatedAt: dto.fields.updated.flatMap(JiraDateParser.date(from:))
+            updatedAt: dto.fields.updated.flatMap(JiraDateParser.date(from:)),
+            labels: dto.fields.labels ?? [],
+            dueDate: dto.fields.duedate.flatMap { JiraDateParser.day(from: $0, calendar: .current) }
         )
     }
 }
@@ -76,6 +78,8 @@ private struct IssueDTO: Decodable {
         let priority: Named?
         let assignee: Person?
         let updated: String?
+        let labels: [String]?
+        let duedate: String?
     }
 
     struct Status: Decodable {

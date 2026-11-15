@@ -90,6 +90,14 @@ struct JiraClient {
         ["issue", "assign", key, user]
     }
 
+    static func unassignArguments(key: String) -> [String] {
+        ["issue", "assign", key, "x"]
+    }
+
+    static func watchArguments(key: String, user: String) -> [String] {
+        ["issue", "watch", key, user]
+    }
+
     static func commentArguments(key: String, text: String) -> [String] {
         ["issue", "comment", "add", "--no-input", "--", key, text]
     }
