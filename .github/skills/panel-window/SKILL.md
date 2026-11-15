@@ -163,7 +163,9 @@ Tests: `StatusItemStateTests`, `StatusItemHintTests` and `StatusItemTitleTests` 
 ## Keys
 
 - ⌘K opens the command palette, ⌘F focuses the search field (both in `HeaderView`). ⌘1 to ⌘9 select a tab of the tab bar
-  (`TabButton`); a right-click on a tab moves it to Utils or back (`TabPlacementMenu`, `Navigator.move`). ⇧⌘O shows the Output panel (`OutputToggle`). ⌘Q quits (`FooterView`).
+  (`TabButton`); a right-click on a tab moves it to Utils or back (`TabPlacementMenu`, `Navigator.move`), a drag
+  changes the order or drops it into the other bar (`.tabReordering`, `TabDropDelegate`, `Navigator.reorder`,
+  `TabLayout.order` saved as `tabs.order`). ⇧⌘O shows the Output panel (`OutputToggle`). ⌘Q quits (`FooterView`).
 - Esc in `SearchField` clears the search (`.onExitCommand`). Esc in the palette closes the palette.
 
 ## Appearance

@@ -113,4 +113,5 @@ Steps 1 to 4 are on `main` (merged from the worktree branch `worktree-jira` on 2
 |---|---|
 | `01f53de` | Steps 1 to 4: the Domain model, config and policies, the `jira` Data layer, the Tickets tool of Utils with its store, mappers, views and tests, the docs. Checked with 2,973 tests and a headless snapshot of the tab with the real tool and no config file. The message says ADR 015: it means this page. |
 | `911d4ef`, `54f0bb4` | The step log row, then the move to ADR 016 and decision 76 after main took 015 and 75 for the CircleCI depth step. |
+| `3745650`, `d061bcb` | D7 and D8: the `~/.zshrc` variables for `jira` after a login failure, the corrected card, five scopes, the view menu, details, Assign to Me and Add Comment; merged into `main`. Checked with 3,301 tests, the build, the smoke check and a headless snapshot with `DEVHUB_TICKET=ABC-123`. |
 | `129c01d` | The merge into `main`: both sides added a port, a `CommandKind` rule set, a changelog entry and a decision; the merge keeps both. Checked with 3,092 tests, the build and the smoke check. |

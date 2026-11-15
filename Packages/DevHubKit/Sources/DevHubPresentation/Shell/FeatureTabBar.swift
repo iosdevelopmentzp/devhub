@@ -10,7 +10,8 @@ struct FeatureTabBar: View {
 
     @Binding var selection: TabID
 
-    static let moveHint = "Right-click to move it to Utils."
+    static let moveHint = "Drag to change the order. Right-click to move it to Utils."
+    static let orderHint = "Drag to change the order."
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
@@ -39,11 +40,12 @@ struct FeatureTabBar: View {
                     shortcutIndex: index + 1,
                     showsTitle: showsTitles || item.id == selection,
                     badge: badge(for: item.id),
-                    hintDetail: navigator.canMove(item.id) ? Self.moveHint : nil
+                    hintDetail: navigator.canMove(item.id) ? Self.moveHint : Self.orderHint
                 ) {
                     selection = item.id
                 }
-                .tabPlacementMenu(for: item.id, isEnabled: navigator.canMove(item.id))
+                .tabReordering(item.id, navigator: navigator)
+                .tabPlacementMenu(for: item.id, isEnabled: navigator.canMove(item.id) || navigator.layout.hasCustomOrder)
             }
         }
     }

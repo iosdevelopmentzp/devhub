@@ -182,6 +182,43 @@ import Testing
         #expect(navigator.tabs(in: .bar).prefix(1) == [.feature(.home)])
         #expect(store.stringMap(forKey: "tabs.layout") == nil)
     }
+
+    // MARK: Order
+
+    @Test func aReorderIsSavedAndReadBack() {
+        let navigator = navigator()
+
+        navigator.reorder(.utility(.tickets), to: .utility(.compressVideo))
+
+        #expect(navigator.tabs(in: .utils) == [.utility(.tickets), .utility(.compressVideo)])
+        #expect(store.strings(forKey: "tabs.order") == ["utility.tickets", "utility.compressVideo"])
+        #expect(self.navigator().tabs(in: .utils) == [.utility(.tickets), .utility(.compressVideo)])
+    }
+
+    @Test func draggingTheShownTabIntoUtilsKeepsItOnScreen() {
+        let navigator = navigator()
+        navigator.show(.logs)
+
+        navigator.reorder(.feature(.logs), to: .utility(.tickets))
+
+        #expect(navigator.selection == .feature(.utils))
+        #expect(navigator.utilsSelection == .feature(.logs))
+        #expect(navigator.tabs(in: .utils) == [.utility(.compressVideo), .feature(.logs), .utility(.tickets)])
+        #expect(store.stringMap(forKey: "tabs.layout") == ["logs": "utils"])
+    }
+
+    @Test func resetTabOrderGoesBackToTheDefaultOrder() {
+        let navigator = navigator()
+        navigator.reorder(.feature(.logs), to: .feature(.home))
+
+        #expect(navigator.tabs(in: .bar).first == .feature(.logs))
+
+        navigator.resetTabOrder()
+
+        #expect(navigator.tabs(in: .bar).first == .feature(.home))
+        #expect(navigator.layout.hasCustomOrder == false)
+        #expect(store.strings(forKey: "tabs.order") == [])
+    }
 }
 
 private final class CustomTabs: CustomTabLookup {
