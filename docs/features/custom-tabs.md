@@ -115,7 +115,8 @@ A custom tab has no store of its own (`docs/STATUS.md`, decision 31). It shares 
 |---|---|
 | `navigator.selection` | The selected tab of the tab bar. A custom tab is saved as `tab.<id>` |
 | `utils.selection` | The selected sub-tab of Utils, with the same `tab.<id>` form |
-| `tabs.layout` | The tabs the user moved with a right-click: `tab.<id>` to `bar` or `utils` |
+| `tabs.layout` | The tabs the user moved with a right-click or a drag into the other bar: `tab.<id>` to `bar` or `utils` |
+| `tabs.order` | The order of the tabs after a drag, both bars in one list of raw ids; empty for the default order |
 | `configActions.lastRun` | The last run time per project and action. A source section shows it as "read 5 min ago". Home shows the same time for the same script |
 | `configActions.inputs` | The remembered inputs (`remember: true`) per project and action |
 | `configActions.tabInputs` | The values of the shared inputs per project and tab |

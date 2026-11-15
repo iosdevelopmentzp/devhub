@@ -24,12 +24,14 @@ final class Navigator {
         didSet {
             guard layout != oldValue else { return }
             store.set(layout.rawOverrides, forKey: Keys.layout)
+            store.set(layout.rawOrder, forKey: Keys.order)
         }
     }
 
     var isPaletteOpen = false
     var paletteQuery = ""
 
+    @ObservationIgnored var draggedTab: TabID?
     @ObservationIgnored private let store: any KeyValueStore
     @ObservationIgnored private let customTabs: any CustomTabLookup
 
@@ -37,6 +39,7 @@ final class Navigator {
         static let selection = "navigator.selection"
         static let utilsSelection = "utils.selection"
         static let layout = "tabs.layout"
+        static let order = "tabs.order"
     }
 
     init(store: any KeyValueStore, customTabs: any CustomTabLookup) {
@@ -44,7 +47,7 @@ final class Navigator {
         self.customTabs = customTabs
         selection = store.string(forKey: Keys.selection).flatMap(TabID.init(rawValue:)) ?? .feature(FeatureRegistry.defaultFeatureID)
         utilsSelection = Self.savedUtilsSelection(in: store) ?? .utility(.compressVideo)
-        layout = TabLayout(rawOverrides: store.stringMap(forKey: Keys.layout) ?? [:])
+        layout = TabLayout(rawOverrides: store.stringMap(forKey: Keys.layout) ?? [:], rawOrder: store.strings(forKey: Keys.order) ?? [])
     }
 
     var currentTab: TabID {
@@ -90,9 +93,22 @@ final class Navigator {
     func move(_ tab: TabID, to placement: TabPlacement) {
         guard canMove(tab) else { return }
         let wasOnScreen = currentTab == tab
-        layout = layout.moving(tab, to: placement)
+        layout = layout.moving(tab, to: placement, customTabs: customTabs.customTabs)
         guard wasOnScreen else { return }
         show(tab)
+    }
+
+    func reorder(_ tab: TabID, to target: TabID) {
+        let wasOnScreen = currentTab == tab
+        let moved = layout.reordering(tab, to: target, customTabs: customTabs.customTabs)
+        guard moved != layout else { return }
+        layout = moved
+        guard wasOnScreen else { return }
+        show(tab)
+    }
+
+    func resetTabOrder() {
+        layout = layout.resettingOrder()
     }
 
     func togglePalette() {

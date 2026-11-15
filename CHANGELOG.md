@@ -7,6 +7,7 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 ## [Unreleased]
 
 ### Added
+- Tabs: drag a tab in the tab bar or a sub-tab in Utils to change the order, Home and Utils too. A drop on a tab of the other bar moves a tab there. Reset Tab Order in the context menu of a tab goes back to the default order. The order is saved.
 - Tickets: five scopes (Mine, Sprint, Reported, Watching, Project), and a view menu that groups by status, type, assignee or priority, sorts by last update, newest or priority, adds done tickets of the last 14 days and hides ticket types. All of it is saved.
 - Tickets: a click on a ticket opens its details under the row: description, reporter, created, labels, components, parent, sub-tasks and the last 5 comments, from Jira Server and Jira Cloud.
 - Tickets: Add Comment and Assign to Me in the details, Assign to Me and Copy Key and Summary in the context menu.

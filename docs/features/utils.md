@@ -13,10 +13,11 @@ Source: `Packages/DevHubKit/Sources/DevHubPresentation/Features/Utils/`, `Shell/
 
 ## Tab layout
 
-- The tab bar holds Home, the built-in tabs, Utils, then the tabs placed in the bar. Utils holds the sub-tabs in the order: moved built-in tabs, the tools, custom tabs.
+- The tab bar holds Home, the built-in tabs, Utils, then the tabs placed in the bar. Utils holds the sub-tabs in the order: moved built-in tabs, the tools, custom tabs. That is the default order; the user can change it.
+- **Drag a tab** in the tab bar or a sub-tab in Utils to change the order. The tab takes the place of the tab it is dragged over, at once. Every tab of the bar can be dragged, Home and Utils too. Dropping a movable tab on a tab of the other bar moves it there, before that tab; Home and Utils stay in the bar. A tab added later (a new custom tab) goes to the end of its bar. **Reset Tab Order** in the context menu of a tab goes back to the default order; it shows only when the order was changed. A right-click move into the other bar after a reorder puts the tab at the end there.
 - Right-click a tab button in the tab bar: **Move to Utils**. Right-click a sub-tab button in Utils: **Show in Tab Bar**. The moved tab stays on screen in its new place. Home and Utils do not move. The hint of a button names the action.
-- The choice is saved for the user, for every project, under `tabs.layout` (`tab.<id>` to `bar` or `utils`). It wins over the `placement` field of a custom tab file. A custom tab without `placement` starts in Utils.
-- ⌘1 to ⌘9 follow the positions in the tab bar, so a move changes the numbers of the tabs after it. Sub-tabs have no shortcut; the ⌘K palette lists every tab of both places and opens it where it is.
+- The choice is saved for the user, for every project, under `tabs.layout` (`tab.<id>` to `bar` or `utils`) and the order under `tabs.order` (the raw ids, both bars in one list). It wins over the `placement` field of a custom tab file. A custom tab without `placement` starts in Utils.
+- ⌘1 to ⌘9 follow the positions in the tab bar, so a move or a drag changes the numbers. Sub-tabs have no shortcut; the ⌘K palette lists every tab of both places and opens it where it is.
 - A notification, a palette entry or a row action that opens a moved tab (for example "Open the Logs tab") opens Utils on that sub-tab. The search field and its saved text follow the shown sub-tab.
 - `DEVHUB_TAB` takes a sub-tab too: `utility.compressVideo`, `tab.<id>`, or a built-in id. The Debug build opens Utils on it when the layout puts it there.
 

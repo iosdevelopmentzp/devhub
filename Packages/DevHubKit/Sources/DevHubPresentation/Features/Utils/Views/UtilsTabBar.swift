@@ -10,7 +10,7 @@ struct UtilsTabBar: View {
     let showsSearch: Bool
     let onSelect: (TabID) -> Void
 
-    static let moveHint = "Right-click to show it in the tab bar."
+    static let moveHint = "Drag to change the order. Right-click to show it in the tab bar."
 
     var body: some View {
         ToolbarBar(verticalPadding: 6) {
@@ -40,7 +40,8 @@ struct UtilsTabBar: View {
                     action: { onSelect(item.id) },
                     stretches: false
                 )
-                .tabPlacementMenu(for: item.id, isEnabled: navigator.canMove(item.id))
+                .tabReordering(item.id, navigator: navigator)
+                .tabPlacementMenu(for: item.id, isEnabled: navigator.canMove(item.id) || navigator.layout.hasCustomOrder)
             }
         }
     }

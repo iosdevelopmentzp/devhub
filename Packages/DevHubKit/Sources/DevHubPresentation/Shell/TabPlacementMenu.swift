@@ -8,14 +8,22 @@ struct TabPlacementMenu: View {
     let tab: TabID
 
     var body: some View {
-        switch navigator.placement(of: tab) {
-        case .bar:
-            Button("Move to Utils", systemImage: "hammer") {
-                navigator.move(tab, to: .utils)
+        if navigator.canMove(tab) {
+            switch navigator.placement(of: tab) {
+            case .bar:
+                Button("Move to Utils", systemImage: "hammer") {
+                    navigator.move(tab, to: .utils)
+                }
+            case .utils:
+                Button("Show in Tab Bar", systemImage: "rectangle.topthird.inset.filled") {
+                    navigator.move(tab, to: .bar)
+                }
             }
-        case .utils:
-            Button("Show in Tab Bar", systemImage: "rectangle.topthird.inset.filled") {
-                navigator.move(tab, to: .bar)
+        }
+        if navigator.layout.hasCustomOrder {
+            Divider()
+            Button("Reset Tab Order", systemImage: "arrow.uturn.backward") {
+                navigator.resetTabOrder()
             }
         }
     }

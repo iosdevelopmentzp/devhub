@@ -23,7 +23,7 @@ import Testing
     }
 
     @Test func theLayoutMovesTabsBetweenTheBarAndUtils() {
-        let layout = TabLayout().moving(.feature(.logs), to: .utils).moving(.utility(.compressVideo), to: .bar)
+        let layout = TabLayout().moving(.feature(.logs), to: .utils, customTabs: []).moving(.utility(.compressVideo), to: .bar, customTabs: [])
 
         let bar = TabItemMapper.items(in: .bar, layout: layout, customTabs: [], words: .gitHub).map(\.id)
         let utils = TabItemMapper.items(in: .utils, layout: layout, customTabs: [], words: .gitHub).map(\.id)
