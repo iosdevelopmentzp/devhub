@@ -122,6 +122,26 @@ struct GhPullRequestRepository: CodeHostRepository {
         _ = try await client.pr(Self.peopleArguments(iid: iid, role: role, add: add, remove: remove), host: repository)
     }
 
+    func setSubscribed(_ subscribed: Bool, requests: [PullRequestSummary], repository: CodeHost) async throws {
+        let ids = requests.compactMap(\.nodeID)
+        guard ids.count == requests.count else {
+            throw PullRequestError.command("GitHub did not send the ID of every pull request. Refresh and try again.")
+        }
+        for chunk in Self.subscriptionChunks(ids) {
+            try await mutate(GhGraphQLQueries.setSubscription(count: chunk.count), Self.subscriptionVariables(chunk, subscribed: subscribed), repository)
+        }
+    }
+
+    static func subscriptionChunks(_ ids: [String]) -> [[String]] {
+        stride(from: 0, to: ids.count, by: subscriptionChunkSize).map { Array(ids[$0..<min($0 + subscriptionChunkSize, ids.count)]) }
+    }
+
+    static func subscriptionVariables(_ ids: [String], subscribed: Bool) -> [GhClient.Variable] {
+        ids.enumerated().map { .text("id\($0.offset)", $0.element) } + [.text("state", subscribed ? "SUBSCRIBED" : "UNSUBSCRIBED")]
+    }
+
+    private static let subscriptionChunkSize = 20
+
     func resolveThread(id: String, repository: CodeHost) async throws {
         try await mutate(GhGraphQLQueries.resolveThread, [.text("id", id)], repository)
     }

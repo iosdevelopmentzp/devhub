@@ -17,7 +17,7 @@ struct PullRequestRowContext {
     var diffLayout = DiffLayout.unified
     var syntaxColors = true
     var watchedIDs: Set<Int>
-    var mutedIDs: Set<Int> = []
+    var subscriptionChanges: [Int: Bool] = [:]
     var onHoldJobs: [Int: [String]] = [:]
     var people: [String] = []
     var teams: [String] = []

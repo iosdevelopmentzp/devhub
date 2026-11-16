@@ -272,6 +272,25 @@ struct GlabPullRequestRepository: CodeHostRepository {
         [(name: "body", value: body.hasPrefix("@") ? " " + body : body)]
     }
 
+    func setSubscribed(_ subscribed: Bool, requests: [PullRequestSummary], repository: CodeHost) async throws {
+        let host = try GlabClient.host(of: repository)
+        for request in requests {
+            do {
+                _ = try await client.rest(Self.subscriptionEndpoint(mergeRequest(request.iid, repository), subscribed: subscribed), method: "POST", fields: [], host: host)
+            } catch PullRequestError.command(let message) where Self.isUnchanged(message) {
+                continue
+            }
+        }
+    }
+
+    static func subscriptionEndpoint(_ mergeRequest: String, subscribed: Bool) -> String {
+        "\(mergeRequest)/\(subscribed ? "subscribe" : "unsubscribe")"
+    }
+
+    static func isUnchanged(_ message: String) -> Bool {
+        message.contains("304")
+    }
+
     private func mergeRequest(_ iid: Int, _ repository: CodeHost) -> String {
         "projects/\(Self.encoded(GlabClient.projectPath(of: repository)))/merge_requests/\(iid)"
     }

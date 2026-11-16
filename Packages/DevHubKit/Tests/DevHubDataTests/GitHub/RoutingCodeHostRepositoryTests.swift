@@ -43,4 +43,17 @@ import Testing
         #expect(gitHub.calls == [.people(repository: .gitHubSample), .teams(repository: .gitHubSample), .myTeams(repository: .gitHubSample)])
         #expect(gitLab.calls == [.updatePeople(iid: 2, role: .assignee, add: ["sam"], remove: [], repository: .gitLabSample)])
     }
+
+    @Test func subscriptionsGoToTheRepositoryOfTheirKind() async throws {
+        let gitHub = SpyCodeHostRepository()
+        let gitLab = SpyCodeHostRepository()
+        let repository = RoutingCodeHostRepository(gitHub: gitHub, gitLab: gitLab)
+        let request = PullRequestSummary(iid: 7, title: "ABC-123: Login", state: .opened, isDraft: false, webURL: nil, author: "sam", sourceBranch: "a", targetBranch: "main", hasConflicts: false, detailedStatus: nil, commentCount: 0, updatedAt: nil, pipeline: nil, approvedBy: [], labels: [])
+
+        try await repository.setSubscribed(false, requests: [request], repository: .gitHubSample)
+        try await repository.setSubscribed(true, requests: [request], repository: .gitLabSample)
+
+        #expect(gitHub.calls == [.setSubscribed(false, iids: [7], repository: .gitHubSample)])
+        #expect(gitLab.calls == [.setSubscribed(true, iids: [7], repository: .gitLabSample)])
+    }
 }

@@ -11,7 +11,7 @@ enum GlabGraphQLFixture {
        "mergedAt":null,"closedAt":null,"mergeUser":null,"commitCount":4,
        "diffStatsSummary":{"additions":120,"deletions":30,"fileCount":7},
        "resolvableDiscussionsCount":5,"resolvedDiscussionsCount":2,"divergedFromTargetBranch":true,
-       "squashOnMerge":true,"shouldRemoveSourceBranch":false,"diffHeadSha":"abc123","autoMergeEnabled":true,
+       "squashOnMerge":true,"shouldRemoveSourceBranch":false,"diffHeadSha":"abc123","autoMergeEnabled":true,"subscribed":true,
        "userPermissions":{"canMerge":true,"canApprove":false},
        "headPipeline":{"status":"FAILED","updatedAt":"2026-01-02T03:00:00Z","duration":540,
          "finishedAt":"2026-01-02T03:09:00Z","failedJobsCount":2,"detailedStatus":{"detailsPath":"/team/app/-/pipelines/9"}},

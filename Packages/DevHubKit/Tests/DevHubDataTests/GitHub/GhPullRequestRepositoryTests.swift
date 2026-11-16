@@ -65,4 +65,19 @@ import Testing
         #expect(GhPullRequestRepository.fileContentEndpoint(path: "App/Login View.swift", ref: "abc123", repository: .gitHubSample) == "repos/example/app/contents/App/Login%20View.swift?ref=abc123")
         #expect(GhPullRequestRepository.fileContentEndpoint(path: "a.swift", ref: "feature/login", repository: .gitHubSample) == "repos/example/app/contents/a.swift?ref=feature/login")
     }
+
+    @Test func subscriptionVariablesNameEachIDAndTheState() {
+        #expect(GhPullRequestRepository.subscriptionVariables(["PR_a", "PR_b"], subscribed: false).map { "\($0.name)=\($0.value)" } == ["id0=PR_a", "id1=PR_b", "state=UNSUBSCRIBED"])
+        #expect(GhPullRequestRepository.subscriptionVariables(["PR_a"], subscribed: true).map { "\($0.name)=\($0.value)" } == ["id0=PR_a", "state=SUBSCRIBED"])
+    }
+
+    @Test func subscriptionsGoInChunksOfTwenty() {
+        let ids = (1...45).map { "PR_\($0)" }
+
+        let chunks = GhPullRequestRepository.subscriptionChunks(ids)
+
+        #expect(chunks.map(\.count) == [20, 20, 5])
+        #expect(chunks.flatMap { $0 } == ids)
+        #expect(GhPullRequestRepository.subscriptionChunks([]).isEmpty)
+    }
 }

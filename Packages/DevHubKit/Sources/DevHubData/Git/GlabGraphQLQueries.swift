@@ -6,7 +6,7 @@ enum GlabGraphQLQueries {
     count pageInfo { hasNextPage endCursor } nodes { iid title state draft webUrl author { username } sourceBranch targetBranch conflicts \
     detailedMergeStatus userNotesCount updatedAt createdAt mergedAt closedAt mergeUser { username } commitCount \
     diffStatsSummary { additions deletions fileCount } resolvableDiscussionsCount resolvedDiscussionsCount \
-    divergedFromTargetBranch squashOnMerge shouldRemoveSourceBranch diffHeadSha autoMergeEnabled \
+    divergedFromTargetBranch squashOnMerge shouldRemoveSourceBranch diffHeadSha autoMergeEnabled subscribed \
     userPermissions { canMerge canApprove } \
     headPipeline { status updatedAt duration finishedAt failedJobsCount detailedStatus { detailsPath } } \
     approvedBy { nodes { username } } labels { nodes { title } } assignees { nodes { username } } \

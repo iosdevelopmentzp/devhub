@@ -47,19 +47,6 @@ import DevHubTestSupport
         try await waitUntil { harness.spies.notifications.posted == [.post(title: "sam mentioned you in !12", body: "@alex check the retry path", target: .pullRequest(iid: 12))] }
     }
 
-    @Test func anItemOfAMutedRequestIsReportedButNotNotified() async {
-        _ = harness.openPullRequests.toggleMute(iid: 12)
-        script([assigned])
-        await store.refresh()
-        script([mention, assigned])
-
-        await store.refresh()
-        await harness.settle()
-
-        #expect(harness.lastActivity?.title == "sam mentioned you in !12")
-        #expect(harness.spies.notifications.posted.isEmpty)
-    }
-
     @Test func anItemWithoutARequestOpensTheInbox() async {
         script([])
         await store.refresh()
@@ -133,7 +120,7 @@ import DevHubTestSupport
         harness.events.post(.projectChanged)
 
         #expect(store.items.isEmpty)
-        try await waitUntil { harness.spies.codeHost.calls.filter { $0 == .inbox(repository: remote) }.count == 2 }
+        try await waitUntil { harness.spies.codeHost.calls.count == 2 }
     }
 
     @Test func refreshIfStaleLoadsOnce() async {

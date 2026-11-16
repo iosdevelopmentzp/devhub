@@ -47,6 +47,7 @@ package final class PresentationAssembly {
     let newPullRequest: NewPullRequestStore
     let pullRequestDetails: PullRequestDetailStore
     let pullRequestPeople: PullRequestPeopleStore
+    let pullRequestSubscriptions: PullRequestSubscriptionsStore
     let aiText: AITextStore
     let simulators: SimulatorsStore
     let identity: IdentityStore
@@ -150,6 +151,7 @@ package final class PresentationAssembly {
         openPullRequests = OpenPullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, session: session, checkout: git, settings: settings, activity: activity, notifier: notifier, events: events, store: store, now: { .now })
         pullRequests = PullRequestsStore(repository: ports.codeHost, remote: codeHostRemote, openRequests: openPullRequests, activity: activity, operations: operations, events: events, store: store)
         pullRequestPeople = PullRequestPeopleStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, operations: operations, events: events)
+        pullRequestSubscriptions = PullRequestSubscriptionsStore(repository: ports.codeHost, remote: codeHostRemote, openRequests: openPullRequests, session: session, store: store, activity: activity, events: events)
         aiText = AITextStore(
             repository: ports.aiText,
             changes: ports.changes,
@@ -217,7 +219,7 @@ package final class PresentationAssembly {
             chooseFile: { FolderPicker.saveFile(suggestedName: $0, prompt: "Save", message: "A text file for a bug report. Links, e-mails, tokens, paths and project names are replaced.") }
         )
         appCrash = AppCrashStore(crashes: ports.crashes, words: ports.redactionWords, activity: activity, toaster: toaster, store: store, app: appIdentity, now: { .now })
-        inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, openRequests: openPullRequests, activity: activity, notifier: notifier, events: events)
+        inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
         ciAutoRerun = CIAutoRerunStore(
             repository: ports.codeHost,
             ci: ports.ci,
@@ -361,6 +363,7 @@ package final class PresentationAssembly {
             git: git,
             pullRequests: pullRequests,
             openPullRequests: openPullRequests,
+            pullRequestSubscriptions: pullRequestSubscriptions,
             inbox: inbox,
             newPullRequest: newPullRequest,
             pullRequestDetails: pullRequestDetails,

@@ -25,7 +25,7 @@ A code host is the web service that keeps the repository and its review requests
 
 ## The port
 
-`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `people`, `teams`, `myTeams`, `updatePeople`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`, `fileContent`, `inbox`, `markInboxDone`.
+`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `people`, `teams`, `myTeams`, `updatePeople`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`, `fileContent`, `inbox`, `markInboxDone`, `setSubscribed`.
 
 Every method takes `repository: CodeHost`. A `CodeHost` holds:
 
@@ -46,7 +46,7 @@ How a store gets the value:
 5. `CodeHostRemote` forgets the value on `projectChanged` and `configChanged`.
 6. `RepositoryWebLinks` (Domain) builds the branch, commit and new request links of the Git tab. It takes `git.host.kind` first, then `CodeHostPolicy.kind(forHost:)`, so a GitHub Enterprise host without `github` in its name gets GitHub paths.
 
-The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsStore` (open requests for branch tags), `PullRequestDetailStore` (details, files and every action), `NewPullRequestStore` (create, labels), `BranchPullRequestStore` (the request of the current branch for the Git request line).
+The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsStore` (open requests for branch tags), `PullRequestDetailStore` (details, files and every action), `NewPullRequestStore` (create, labels), `BranchPullRequestStore` (the request of the current branch for the Git request line), `PullRequestSubscriptionsStore` (unsubscribe and subscribe on the host).
 
 ## The two repositories
 
@@ -74,6 +74,7 @@ The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsS
 | `jobLog`, `retryJob` | `GhClient.log` (`--allow-escape-sequences`) on `actions/jobs/<id>/logs`; REST `POST actions/jobs/<id>/rerun`. The job ID is the `databaseId` of an Actions `CheckRun` | REST `jobs/<id>/trace`; REST `POST jobs/<id>/retry`. The ID is the number at the end of the GraphQL job ID |
 | `fileContent` | `GhClient.raw` (`-H "Accept: application/vnd.github.raw+json"`) on `repos/<owner>/<name>/contents/<path>?ref=<sha>` | REST `projects/<project>/repository/files/<path>/raw?ref=<sha>`, the path percent-encoded |
 | `inbox`, `markInboxDone` | REST `notifications?per_page=50` filtered to the repository (`GhInboxParser`), then `-X GET <latest_comment_url>` for up to 10 mention or comment threads to name the actor; `-X PATCH notifications/threads/<id>` | REST `todos?state=pending&per_page=50` filtered to the project (`GlabInboxParser`); `-X POST todos/<id>/mark_as_done` |
+| `setSubscribed` | GraphQL `updateSubscription` (`UNSUBSCRIBED` or `SUBSCRIBED`) by the `id` of each request, up to 20 aliased in one call (`GhGraphQLQueries.setSubscription(count:)`). Needs the `notifications` scope of the `gh` login. The list reads `id` and `viewerSubscription` into `nodeID` and `isSubscribed` | REST `POST merge_requests/<n>/unsubscribe` or `subscribe`, one call per request; a 304 answer counts as done. The list reads `subscribed` |
 | `addLineComment` | REST `POST pulls/<n>/comments` with `commit_id`, `path`, `line`, `side` (`lineCommentFields`) | REST `GET merge_requests/<n>` for `diff_refs` (`GlabDiffRefsParser`), then `POST …/discussions` with `position[…]` (`lineCommentFields`) |
 
 Review and job facts in the values:
@@ -101,6 +102,7 @@ Review and job facts in the values:
 | Case | Error | Text for the user |
 |---|---|---|
 | the tool is missing (exit 127, "command not found") | `notInstalled(tool:)` | "gh is not installed. brew install gh" |
+| `INSUFFICIENT_SCOPES` or "not been granted the required scopes" (checked first) | `missingScope(tool:host:scope:)` | "The gh login has no notifications scope. Run gh auth refresh --hostname github.com --scopes notifications" |
 | `401`, "token" or "auth" in the error text | `notLoggedIn(tool:host:)` | "gh is not logged in to github.com. Run gh auth login --hostname github.com" |
 | anything else | `command(message)` | the trimmed error text |
 

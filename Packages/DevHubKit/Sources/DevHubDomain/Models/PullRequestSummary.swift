@@ -36,6 +36,8 @@ package struct PullRequestSummary: Identifiable, Hashable, Sendable {
     package let headSHA: String?
     package let isAutoMergeEnabled: Bool
     package let permissions: PullRequestPermissions
+    package let nodeID: String?
+    package let isSubscribed: Bool?
 
     package init(
         iid: Int,
@@ -71,7 +73,9 @@ package struct PullRequestSummary: Identifiable, Hashable, Sendable {
         removesSourceBranch: Bool? = nil,
         headSHA: String? = nil,
         isAutoMergeEnabled: Bool = false,
-        permissions: PullRequestPermissions = .none
+        permissions: PullRequestPermissions = .none,
+        nodeID: String? = nil,
+        isSubscribed: Bool? = nil
     ) {
         self.iid = iid
         self.title = title
@@ -107,6 +111,8 @@ package struct PullRequestSummary: Identifiable, Hashable, Sendable {
         self.headSHA = headSHA
         self.isAutoMergeEnabled = isAutoMergeEnabled
         self.permissions = permissions
+        self.nodeID = nodeID
+        self.isSubscribed = isSubscribed
     }
 
     package var openThreadCount: Int {

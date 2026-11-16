@@ -49,4 +49,8 @@ import Testing
         #expect(GlabGraphQLQueries.cancelPipeline.contains("pipelineCancel(input: { id: $id })"))
         #expect(GlabGraphQLQueries.labels.contains("project(fullPath: $path) { labels(first: 100, includeAncestorGroups: true) { nodes { title } } }"))
     }
+
+    @Test func theListReadsTheSubscription() {
+        #expect(GlabGraphQLQueries.list(.all).contains("autoMergeEnabled subscribed"))
+    }
 }

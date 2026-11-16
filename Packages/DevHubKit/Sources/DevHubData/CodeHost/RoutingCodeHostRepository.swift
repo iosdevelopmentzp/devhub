@@ -125,6 +125,10 @@ struct RoutingCodeHostRepository: CodeHostRepository {
         try await target(repository).markInboxDone(id: id, repository: repository)
     }
 
+    func setSubscribed(_ subscribed: Bool, requests: [PullRequestSummary], repository: CodeHost) async throws {
+        try await target(repository).setSubscribed(subscribed, requests: requests, repository: repository)
+    }
+
     private func target(_ repository: CodeHost) -> any CodeHostRepository {
         switch repository.kind {
         case .github: gitHub

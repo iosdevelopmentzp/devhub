@@ -159,4 +159,8 @@ struct MockCodeHostRepository: CodeHostRepository {
     func markInboxDone(id: String, repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }
+
+    func setSubscribed(_ subscribed: Bool, requests: [PullRequestSummary], repository: CodeHost) async throws {
+        try? await Task.sleep(for: .milliseconds(300))
+    }
 }

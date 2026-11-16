@@ -9,7 +9,6 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
     private(set) var reviewCount = 0
     private(set) var username: String?
     private(set) var watchedIDs: Set<Int> = []
-    private(set) var mutedIDs: Set<Int> = []
     private(set) var reviewTeams: [String] = []
 
     @ObservationIgnored private let repository: CodeHostRepository
@@ -62,7 +61,6 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
         self.notifier = notifier
         self.store = store
         watchedIDs = Self.loadWatched(from: store, projectID: session.selectedProjectID)
-        mutedIDs = Self.loadMuted(from: store, projectID: session.selectedProjectID)
         subscription = events.subscribe { [weak self] event in
             guard let self else { return }
             switch event {
@@ -76,7 +74,6 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
                 hasReportedTeams = false
                 countedRule = nil
                 watchedIDs = Self.loadWatched(from: store, projectID: session.selectedProjectID)
-                mutedIDs = Self.loadMuted(from: store, projectID: session.selectedProjectID)
                 Task { await self.refresh() }
             case .configChanged:
                 guard countedRule != nil, countedRule != reviewQueue else { return }
@@ -122,7 +119,6 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
             watchedIDs.remove(iid)
         } else {
             watchedIDs.insert(iid)
-            unmute([iid])
         }
         saveWatched()
         restartPolling()
@@ -142,74 +138,6 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
 
     private static func loadWatched(from store: any KeyValueStore, projectID: String) -> Set<Int> {
         Set(store.decode([Int].self, forKey: PullRequestsPreferenceKeys.watched(projectID: projectID)) ?? [])
-    }
-
-    // MARK: Muting
-
-    var othersOpenIDs: Set<Int> {
-        guard let username else { return [] }
-        return Set(requestsByBranch.values.filter { $0.author != username && $0.state == .opened }.map(\.iid))
-    }
-
-    var othersToMuteCount: Int {
-        othersOpenIDs.subtracting(mutedIDs).count
-    }
-
-    func isMuted(_ iid: Int) -> Bool {
-        mutedIDs.contains(iid)
-    }
-
-    func toggleMute(iid: Int) -> Bool {
-        if mutedIDs.contains(iid) {
-            unmute([iid])
-        } else {
-            mute([iid])
-        }
-        return mutedIDs.contains(iid)
-    }
-
-    func muteOthers() -> Int {
-        let added = othersOpenIDs.subtracting(mutedIDs)
-        mute(added)
-        return added.count
-    }
-
-    func unmuteAll() -> Int {
-        let count = mutedIDs.count
-        unmute(mutedIDs)
-        return count
-    }
-
-    private func mute(_ ids: Set<Int>) {
-        guard ids.isEmpty == false else { return }
-        mutedIDs.formUnion(ids)
-        saveMuted()
-        let watched = watchedIDs.intersection(ids)
-        guard watched.isEmpty == false else { return }
-        watchedIDs.subtract(watched)
-        saveWatched()
-        restartPolling()
-    }
-
-    private func unmute(_ ids: Set<Int>) {
-        let removed = mutedIDs.intersection(ids)
-        guard removed.isEmpty == false else { return }
-        mutedIDs.subtract(removed)
-        saveMuted()
-    }
-
-    private func forgetClosedMutes(_ loaded: PullRequestList) {
-        guard mutedIDs.isEmpty == false, loaded.totalCount <= loaded.requests.count else { return }
-        let open = Set(loaded.requests.filter { $0.state == .opened }.map(\.iid))
-        unmute(mutedIDs.subtracting(open))
-    }
-
-    private func saveMuted() {
-        store.encode(mutedIDs.sorted(), forKey: PullRequestsPreferenceKeys.muted(projectID: session.selectedProjectID))
-    }
-
-    private static func loadMuted(from store: any KeyValueStore, projectID: String) -> Set<Int> {
-        Set(store.decode([Int].self, forKey: PullRequestsPreferenceKeys.muted(projectID: projectID)) ?? [])
     }
 
     // MARK: Polling
@@ -319,7 +247,6 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
     private func deliver(_ report: OwnRequestChangeMapper.Report, request: PullRequestSummary) {
         let kind: NotificationKind = request.author == username ? report.kind : .watched
         activity.log(report.title, detail: report.body, outcome: report.outcome, kind: kind, target: .pullRequest(iid: request.iid))
-        guard isMuted(request.iid) == false else { return }
         notifier.notify(kind, title: report.title, body: report.body, target: .pullRequest(iid: request.iid))
     }
 
@@ -331,7 +258,6 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
         if username != loaded.username {
             username = loaded.username
         }
-        forgetClosedMutes(loaded)
         let rule = reviewQueue
         let reviewer = ReviewerIdentity(username: loaded.username, teams: reviewTeams, rule: rule)
         let count = ReviewQueuePolicy.count(in: loaded.requests, reviewer: reviewer)
@@ -370,7 +296,6 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
             guard let request = queue.first(where: { $0.iid == wait.iid }) else { continue }
             let title = "\(words.reference(request.iid)) waits for your review for \(ReviewReminderPolicy.waitedHours(wait, now: date)) h"
             activity.log(title, detail: request.title, outcome: .info, kind: .reviewReminders, target: .pullRequest(iid: request.iid))
-            guard isMuted(request.iid) == false else { continue }
             notifier.notify(.reviewReminders, title: title, body: request.title, target: .pullRequest(iid: request.iid))
         }
     }
