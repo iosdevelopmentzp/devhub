@@ -96,4 +96,14 @@ import Testing
     @Test func aFileIsReadFromTheRawFilesEndpointAtTheRef() {
         #expect(GlabPullRequestRepository.fileContentEndpoint(path: "App/a b.swift", ref: "feature/login", project: "team/app") == "projects/team%2Fapp/repository/files/App%2Fa%20b%2Eswift/raw?ref=feature%2Flogin")
     }
+
+    @Test func subscriptionCallsTheSubscribeOrUnsubscribeEndpoint() {
+        #expect(GlabPullRequestRepository.subscriptionEndpoint("projects/team%2Fapp/merge_requests/12", subscribed: true) == "projects/team%2Fapp/merge_requests/12/subscribe")
+        #expect(GlabPullRequestRepository.subscriptionEndpoint("projects/team%2Fapp/merge_requests/12", subscribed: false) == "projects/team%2Fapp/merge_requests/12/unsubscribe")
+    }
+
+    @Test func notModifiedMeansTheStateIsAlreadySet() {
+        #expect(GlabPullRequestRepository.isUnchanged("glab: 304 Not Modified"))
+        #expect(GlabPullRequestRepository.isUnchanged("404 Not Found") == false)
+    }
 }

@@ -7,7 +7,6 @@ protocol OpenRequestsLookup: AnyObject {
     var username: String? { get }
     var reviewTeams: [String] { get }
     var reviewQueue: ReviewQueueRule { get }
-    var mutedIDs: Set<Int> { get }
 }
 
 extension OpenRequestsLookup {

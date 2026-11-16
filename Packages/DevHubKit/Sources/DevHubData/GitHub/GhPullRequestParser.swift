@@ -67,6 +67,8 @@ enum GhPullRequestParser {
     }
 
     private struct PullRequestNode: Decodable {
+        let id: String?
+        let viewerSubscription: String?
         let number: Int?
         let title: String?
         let state: String?
@@ -370,7 +372,9 @@ enum GhPullRequestParser {
                 canRevokeApproval: canWrite,
                 canSetAutoMerge: canWrite && repository?.autoMergeAllowed == true,
                 canRequestChanges: author != viewer && repository?.viewerPermission != nil
-            )
+            ),
+            nodeID: node.id,
+            isSubscribed: node.viewerSubscription.map { $0 == "SUBSCRIBED" }
         )
     }
 

@@ -12,6 +12,7 @@ final class AppActions {
     @ObservationIgnored private let git: GitStore
     @ObservationIgnored private let pullRequests: PullRequestsStore
     @ObservationIgnored private let openPullRequests: OpenPullRequestsStore
+    @ObservationIgnored private let pullRequestSubscriptions: PullRequestSubscriptionsStore
     @ObservationIgnored private let inbox: InboxStore
     @ObservationIgnored private let newPullRequest: NewPullRequestStore
     @ObservationIgnored private let pullRequestDetails: PullRequestDetailStore
@@ -32,6 +33,7 @@ final class AppActions {
         git: GitStore,
         pullRequests: PullRequestsStore,
         openPullRequests: OpenPullRequestsStore,
+        pullRequestSubscriptions: PullRequestSubscriptionsStore,
         inbox: InboxStore,
         newPullRequest: NewPullRequestStore,
         pullRequestDetails: PullRequestDetailStore,
@@ -51,6 +53,7 @@ final class AppActions {
         self.git = git
         self.pullRequests = pullRequests
         self.openPullRequests = openPullRequests
+        self.pullRequestSubscriptions = pullRequestSubscriptions
         self.inbox = inbox
         self.newPullRequest = newPullRequest
         self.pullRequestDetails = pullRequestDetails
@@ -262,22 +265,32 @@ final class AppActions {
         toaster.show(watching ? "Watching \(reference)" : "Stopped watching \(reference)")
     }
 
-    func toggleMute(iid: Int) {
-        let reference = openPullRequests.words.reference(iid)
-        let muted = openPullRequests.toggleMute(iid: iid)
-        toaster.show(muted ? "Muted \(reference)" : "Unmuted \(reference)")
+    func setSubscribed(_ subscribed: Bool, iid: Int) {
+        guard let request = pullRequests.request(id: iid) ?? openPullRequests.requests.first(where: { $0.iid == iid }) else { return }
+        Task { [weak self] in
+            guard let self else { return }
+            guard await pullRequestSubscriptions.set(subscribed, for: request) else { return }
+            let words = pullRequestSubscriptions.words
+            toaster.show(subscribed ? "Subscribed to \(words.reference(iid)) on \(words.hostTitle)" : "Unsubscribed from \(words.reference(iid)) on \(words.hostTitle)")
+        }
     }
 
-    func muteOthers() {
-        let words = openPullRequests.words
-        let count = openPullRequests.muteOthers()
-        toaster.show(count == 0 ? "No new \(words.requests) to mute" : "Muted \(CountText.count(count, words.request, words.requests)) of other people")
+    func unsubscribeFromOthers() {
+        Task { [weak self] in
+            guard let self else { return }
+            guard let count = await pullRequestSubscriptions.unsubscribeOthers() else { return }
+            let words = pullRequestSubscriptions.words
+            toaster.show("Unsubscribed from \(CountText.count(count, words.request, words.requests)) on \(words.hostTitle)")
+        }
     }
 
-    func unmuteAll() {
-        let words = openPullRequests.words
-        let count = openPullRequests.unmuteAll()
-        toaster.show("Unmuted \(CountText.count(count, words.request, words.requests))")
+    func subscribeAgain() {
+        Task { [weak self] in
+            guard let self else { return }
+            guard let count = await pullRequestSubscriptions.subscribeAgain() else { return }
+            let words = pullRequestSubscriptions.words
+            toaster.show("Subscribed again to \(CountText.count(count, words.request, words.requests)) on \(words.hostTitle)")
+        }
     }
 
     func showPullRequest(iid: Int) {

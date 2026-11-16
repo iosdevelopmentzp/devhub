@@ -53,8 +53,17 @@ import Testing
             removesSourceBranch: false,
             headSHA: "aaa111",
             isAutoMergeEnabled: false,
-            permissions: PullRequestPermissions(canMerge: true, canApprove: false, canRevokeApproval: true, canSetAutoMerge: false, canRequestChanges: false)
+            permissions: PullRequestPermissions(canMerge: true, canApprove: false, canRevokeApproval: true, canSetAutoMerge: false, canRequestChanges: false),
+            nodeID: "PR_example1",
+            isSubscribed: true
         ))
+    }
+
+    @Test func theSubscriptionOfTheViewerIsReadAndUnknownWhenMissing() throws {
+        let list = try GhPullRequestParser.list(from: GhFixture.list)
+
+        #expect(list.requests.map(\.isSubscribed) == [false, true, nil])
+        #expect(list.requests.map(\.nodeID) == ["PR_example3", "PR_example1", nil])
     }
 
     @Test func aFailedCheckLinksToTheFailedJob() throws {

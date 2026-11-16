@@ -314,30 +314,30 @@ import DevHubTestSupport
         #expect(merged.tags.contains { $0.text.hasPrefix("on hold") } == false)
     }
 
-    @Test func anOpenRequestOfSomeoneElseCanBeMutedAndUnmuted() {
-        let request = PullRequestSummaryFixture.request(iid: 7, source: "feature/login", state: .opened)
+    @Test func anOpenRequestOfSomeoneElseOffersTheOtherSubscriptionState() {
+        let subscribed = map(PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, isSubscribed: true))
+        let unsubscribed = map(PullRequestSummaryFixture.request(iid: 8, source: "y", state: .opened, isSubscribed: false))
 
-        let muted = map(request, muted: [7])
-        let plain = map(request)
-
-        #expect(muted.isMuted)
-        #expect(muted.muteTitle == "Unmute Notifications")
-        #expect(muted.muteIcon == "speaker.wave.2")
-        #expect(muted.tags.contains(TagModel("muted", tint: .gray, systemImage: "speaker.slash", hint: "DevHub shows no notifications about this merge request. GitLab still sends its own.")))
-        #expect(plain.isMuted == false)
-        #expect(plain.muteTitle == "Mute Notifications")
-        #expect(plain.muteIcon == "speaker.slash")
-        #expect(plain.tags.contains { $0.text == "muted" } == false)
+        #expect(subscribed.subscriptionTitle == "Unsubscribe on GitLab")
+        #expect(subscribed.subscriptionIcon == "speaker.slash")
+        #expect(subscribed.subscribes == false)
+        #expect(unsubscribed.subscriptionTitle == "Subscribe on GitLab")
+        #expect(unsubscribed.subscriptionIcon == "speaker.wave.2")
+        #expect(unsubscribed.subscribes)
     }
 
-    @Test func myOwnRequestAndAClosedRequestCannotBeMuted() {
-        let mine = map(PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, author: "me"))
-        let closed = map(PullRequestSummaryFixture.request(iid: 8, source: "y", state: .merged))
-        let unknownUser = map(PullRequestSummaryFixture.request(iid: 9, source: "z", state: .opened), username: nil)
+    @Test func aChangeMadeInDevHubDecidesTheSubscriptionItem() {
+        let model = map(PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, isSubscribed: true), subscriptionChanges: [7: false])
 
-        #expect(mine.muteTitle == nil)
-        #expect(closed.muteTitle == nil)
-        #expect(unknownUser.muteTitle == nil)
+        #expect(model.subscriptionTitle == "Subscribe on GitLab")
+        #expect(model.subscribes)
+    }
+
+    @Test func noSubscriptionItemForMyRequestAClosedOneOrAnUnknownState() {
+        #expect(map(PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, author: "me", isSubscribed: true)).subscriptionTitle == nil)
+        #expect(map(PullRequestSummaryFixture.request(iid: 8, source: "y", state: .merged, isSubscribed: true)).subscriptionTitle == nil)
+        #expect(map(PullRequestSummaryFixture.request(iid: 9, source: "z", state: .opened)).subscriptionTitle == nil)
+        #expect(map(PullRequestSummaryFixture.request(iid: 10, source: "w", state: .opened, isSubscribed: true), username: nil).subscriptionTitle == nil)
     }
 
     @Test func aClosedRequestCannotBeWatched() {
@@ -373,12 +373,12 @@ import DevHubTestSupport
         isExpanded: Bool = false,
         configActions: [ConfigActionItemModel] = [],
         watched: Set<Int> = [],
-        muted: Set<Int> = [],
+        subscriptionChanges: [Int: Bool] = [:],
         onHold: [Int: [String]] = [:]
     ) -> PullRequestRowModel {
         PullRequestRowMapper.model(
             for: request,
-            context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}"), words: .gitLab, staleDays: 14, hiddenFiles: [], watchedIDs: watched, mutedIDs: muted, onHoldJobs: onHold),
+            context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}"), words: .gitLab, staleDays: 14, hiddenFiles: [], watchedIDs: watched, subscriptionChanges: subscriptionChanges, onHoldJobs: onHold),
             local: local,
             isBusy: isBusy,
             isExpanded: isExpanded,

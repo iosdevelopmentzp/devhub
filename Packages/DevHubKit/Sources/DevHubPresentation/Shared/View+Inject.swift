@@ -49,6 +49,7 @@ extension View {
             .environment(assembly.aiText)
             .environment(assembly.pullRequestDetails)
             .environment(assembly.pullRequestPeople)
+            .environment(assembly.pullRequestSubscriptions)
             .environment(assembly.ciAutoRerun)
             .environment(assembly.simulators)
             .environment(assembly.identity)

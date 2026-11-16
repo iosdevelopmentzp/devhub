@@ -13,7 +13,6 @@ final class InboxStore {
 
     @ObservationIgnored private let repository: CodeHostRepository
     @ObservationIgnored private let remote: any CodeHostLookup
-    @ObservationIgnored private let openRequests: any OpenRequestsLookup
     @ObservationIgnored private let activity: ActivityLog
     @ObservationIgnored private let notifier: Notifier
     @ObservationIgnored private let refreshTask = RefreshTask()
@@ -28,10 +27,9 @@ final class InboxStore {
         remote.words
     }
 
-    init(repository: CodeHostRepository, remote: any CodeHostLookup, openRequests: any OpenRequestsLookup, activity: ActivityLog, notifier: Notifier, events: AppEvents) {
+    init(repository: CodeHostRepository, remote: any CodeHostLookup, activity: ActivityLog, notifier: Notifier, events: AppEvents) {
         self.repository = repository
         self.remote = remote
-        self.openRequests = openRequests
         self.activity = activity
         self.notifier = notifier
         subscription = events.subscribe { [weak self] event in
@@ -131,9 +129,6 @@ final class InboxStore {
             let title = InboxItemText.title(for: item, words: words)
             let target = InboxItemText.target(for: item)
             activity.log(title, detail: item.excerpt ?? item.title, outcome: .info, kind: .inbox, target: target)
-            if case .pullRequest(let iid) = target, openRequests.mutedIDs.contains(iid) {
-                continue
-            }
             notifier.notify(.inbox, title: title, body: item.excerpt ?? item.title, target: target)
         }
     }

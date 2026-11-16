@@ -20,4 +20,12 @@ import Testing
         #expect(GhGraphQLQueries.list.contains("... on CheckRun { databaseId name title conclusion status detailsUrl startedAt completedAt checkSuite { workflowRun { databaseId workflow { name } } } }"))
         #expect(GhGraphQLQueries.details.contains("comments(first: 100) { nodes { databaseId body author { login } createdAt } }"))
     }
+
+    @Test func theListReadsTheNodeIDAndTheSubscription() {
+        #expect(GhGraphQLQueries.list.contains("id viewerSubscription number title"))
+    }
+
+    @Test func theSubscriptionMutationUpdatesEveryIDInOneCall() {
+        #expect(GhGraphQLQueries.setSubscription(count: 2) == "mutation($id0: ID!, $id1: ID!, $state: SubscriptionState!) { s0: updateSubscription(input: { subscribableId: $id0, state: $state }) { clientMutationId } s1: updateSubscription(input: { subscribableId: $id1, state: $state }) { clientMutationId } }")
+    }
 }

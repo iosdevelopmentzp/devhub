@@ -17,8 +17,8 @@ enum PullRequestsPreferenceKeys {
         "gitlab.watched.\(projectID)"
     }
 
-    static func muted(projectID: String) -> String {
-        "gitlab.muted.\(projectID)"
+    static func unsubscribed(projectID: String) -> String {
+        "gitlab.unsubscribed.\(projectID)"
     }
 
     static func ciHistory(projectID: String, iid: Int) -> String {

@@ -53,10 +53,12 @@ import Testing
             removesSourceBranch: false,
             headSHA: "abc123",
             isAutoMergeEnabled: true,
-            permissions: PullRequestPermissions(canMerge: true, canApprove: false, canRevokeApproval: true, canSetAutoMerge: true)
+            permissions: PullRequestPermissions(canMerge: true, canApprove: false, canRevokeApproval: true, canSetAutoMerge: true),
+            isSubscribed: true
         ))
         #expect(list.requests[0].openThreadCount == 3)
         let old = list.requests[1]
+        #expect(old.isSubscribed == nil)
         #expect(old.state == .merged)
         #expect(old.pipeline == nil)
         #expect(old.author == "")

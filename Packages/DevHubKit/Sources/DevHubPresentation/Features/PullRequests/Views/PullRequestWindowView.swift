@@ -5,6 +5,7 @@ import DevHubUI
 struct PullRequestWindowView: View {
     @Environment(PullRequestsStore.self) private var pullRequests
     @Environment(OpenPullRequestsStore.self) private var openPullRequests
+    @Environment(PullRequestSubscriptionsStore.self) private var subscriptions
     @Environment(CIWatchStore.self) private var ciWatch
     @Environment(PullRequestDetailStore.self) private var detailStore
     @Environment(PullRequestPeopleStore.self) private var people
@@ -144,7 +145,7 @@ struct PullRequestWindowView: View {
             diffLayout: pullRequests.diffLayout,
             syntaxColors: settings.values.diffSyntaxColors,
             watchedIDs: openPullRequests.watchedIDs,
-            mutedIDs: openPullRequests.mutedIDs,
+            subscriptionChanges: subscriptions.changes,
             onHoldJobs: ciWatch.onHoldJobNames,
             people: people.people,
             teams: people.teams,

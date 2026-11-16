@@ -33,6 +33,7 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
         case fileContent(path: String, ref: String, repository: CodeHost)
         case inbox(repository: CodeHost)
         case markInboxDone(id: String, repository: CodeHost)
+        case setSubscribed(Bool, iids: [Int], repository: CodeHost)
     }
 
     private let lock = NSLock()
@@ -251,6 +252,10 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
 
     package func markInboxDone(id: String, repository: CodeHost) async throws {
         try action(.markInboxDone(id: id, repository: repository))
+    }
+
+    package func setSubscribed(_ subscribed: Bool, requests: [PullRequestSummary], repository: CodeHost) async throws {
+        try action(.setSubscribed(subscribed, iids: requests.map(\.iid), repository: repository))
     }
 
     private func action(_ call: Call) throws {

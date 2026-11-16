@@ -37,7 +37,9 @@ enum PullRequestSummaryFixture {
         removesSourceBranch: Bool? = nil,
         headSHA: String? = "abc123",
         isAutoMergeEnabled: Bool = false,
-        permissions: PullRequestPermissions = PullRequestPermissions(canMerge: true, canApprove: true, canRevokeApproval: true, canSetAutoMerge: true)
+        permissions: PullRequestPermissions = PullRequestPermissions(canMerge: true, canApprove: true, canRevokeApproval: true, canSetAutoMerge: true),
+        nodeID: String? = nil,
+        isSubscribed: Bool? = nil
     ) -> PullRequestSummary {
         PullRequestSummary(
             iid: iid,
@@ -73,7 +75,9 @@ enum PullRequestSummaryFixture {
             removesSourceBranch: removesSourceBranch,
             headSHA: headSHA,
             isAutoMergeEnabled: isAutoMergeEnabled,
-            permissions: permissions
+            permissions: permissions,
+            nodeID: nodeID,
+            isSubscribed: isSubscribed
         )
     }
 }

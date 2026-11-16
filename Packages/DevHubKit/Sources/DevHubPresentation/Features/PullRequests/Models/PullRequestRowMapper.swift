@@ -9,8 +9,8 @@ enum PullRequestRowMapper {
         let words = context.words
         let isOpen = request.state == .opened
         let isWatched = context.watchedIDs.contains(request.iid)
-        let isMuted = context.mutedIDs.contains(request.iid)
-        let canMute = isOpen && username != nil && request.author != username
+        let isSubscribed = PullRequestSubscriptionPolicy.isSubscribed(request, changes: context.subscriptionChanges)
+        let canSubscribe = isSubscribed != nil && PullRequestSubscriptionPolicy.canChange(request, username: username)
         return PullRequestRowModel(
             id: request.id,
             reference: words.reference(request.iid),
@@ -43,9 +43,9 @@ enum PullRequestRowMapper {
             isWatched: isWatched,
             watchTitle: isOpen ? (isWatched ? "Stop Watching" : "Watch") : nil,
             watchIcon: isWatched ? "bell.slash" : "bell",
-            isMuted: isMuted,
-            muteTitle: canMute || isMuted ? (isMuted ? "Unmute Notifications" : "Mute Notifications") : nil,
-            muteIcon: isMuted ? "speaker.wave.2" : "speaker.slash",
+            subscriptionTitle: canSubscribe ? (isSubscribed == true ? "Unsubscribe on \(words.hostTitle)" : "Subscribe on \(words.hostTitle)") : nil,
+            subscriptionIcon: isSubscribed == true ? "speaker.slash" : "speaker.wave.2",
+            subscribes: isSubscribed != true,
             primaryActions: PullRequestActionMapper.primary(for: request, reviewer: context.reviewer, words: words),
             actions: PullRequestActionMapper.overflow(for: request, reviewer: context.reviewer, words: words),
             mergeTitle: "Merge \(words.reference(request.iid)) into \(request.targetBranch)?",
@@ -79,9 +79,6 @@ enum PullRequestRowMapper {
         }
         if isOpen, context.watchedIDs.contains(request.iid) {
             tags.append(TagModel("watching", tint: .teal, systemImage: "bell", hint: "DevHub reports approvals, requests for changes, failed \(context.words.checks), new comments and the merge of this \(context.words.request)"))
-        }
-        if context.mutedIDs.contains(request.iid) {
-            tags.append(TagModel("muted", tint: .gray, systemImage: "speaker.slash", hint: "DevHub shows no notifications about this \(context.words.request). \(context.words.hostTitle) still sends its own."))
         }
         if isOpen, let jobs = context.onHoldJobs[request.iid], jobs.isEmpty == false {
             tags.append(PullRequestTagMapper.onHoldTag(jobs: jobs, words: context.words))

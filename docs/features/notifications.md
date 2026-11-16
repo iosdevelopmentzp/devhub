@@ -36,7 +36,7 @@ Every event that DevHub can also send as a macOS notification carries a kind. Ev
 
 The words follow the host: "merge request" and "Pipeline" on GitLab.
 
-A request by someone else can be muted in the Pull Requests tab (row menu, or the speaker menu in the toolbar for all of them). A muted request posts no notification of the kinds "Reviews waiting for me for too long", "Watched pull requests" and "Inbox"; its events still go to the Events list.
+The notifications of the host itself are changed in the Pull Requests tab: "Unsubscribe on GitHub" in the row menu of a request by someone else, or the speaker menu in the toolbar for all of them. Fewer host notifications also mean fewer Inbox items.
 
 ## Inbox
 

@@ -26,8 +26,8 @@ struct PullRequestMenuItems: View {
         if let watchTitle = model.watchTitle {
             Button(watchTitle, systemImage: model.watchIcon) { appActions.toggleWatch(iid: model.id) }
         }
-        if let muteTitle = model.muteTitle {
-            Button(muteTitle, systemImage: model.muteIcon) { appActions.toggleMute(iid: model.id) }
+        if let subscriptionTitle = model.subscriptionTitle {
+            Button(subscriptionTitle, systemImage: model.subscriptionIcon) { appActions.setSubscribed(model.subscribes, iid: model.id) }
         }
         Button("Copy Link", systemImage: "link") {
             guard let url = model.webURL else { return }

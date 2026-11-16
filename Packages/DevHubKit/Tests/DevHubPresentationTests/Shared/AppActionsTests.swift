@@ -108,29 +108,15 @@ import Testing
         #expect(assembly.toaster.text?.hasPrefix("Stopped watching ") == true)
     }
 
-    @Test func toggleMuteFlipsTheMuteAndShowsAToast() {
+    @Test func unsubscribingARequestShowsAToast() async throws {
         let assembly = PresentationAssembly.preview()
+        await assembly.pullRequests.refresh()
+        let request = try #require(assembly.pullRequests.requests.first)
 
-        assembly.appActions.toggleMute(iid: 12)
+        assembly.appActions.setSubscribed(false, iid: request.iid)
 
-        #expect(assembly.openPullRequests.mutedIDs == [12])
-        #expect(assembly.toaster.text?.hasPrefix("Muted ") == true)
-
-        assembly.appActions.toggleMute(iid: 12)
-
-        #expect(assembly.openPullRequests.mutedIDs.isEmpty)
-        #expect(assembly.toaster.text?.hasPrefix("Unmuted ") == true)
-    }
-
-    @Test func unmuteAllShowsTheCount() {
-        let assembly = PresentationAssembly.preview()
-        assembly.appActions.toggleMute(iid: 12)
-        assembly.appActions.toggleMute(iid: 13)
-
-        assembly.appActions.unmuteAll()
-
-        #expect(assembly.openPullRequests.mutedIDs.isEmpty)
-        #expect(assembly.toaster.text?.hasSuffix(" 2 pull requests") == true || assembly.toaster.text?.hasSuffix(" 2 merge requests") == true)
+        try await waitUntil { assembly.toaster.text?.hasPrefix("Unsubscribed from ") == true }
+        #expect(assembly.pullRequestSubscriptions.changes == [request.iid: false])
     }
 
     @Test func openingTheInboxTargetShowsTheInboxPane() {

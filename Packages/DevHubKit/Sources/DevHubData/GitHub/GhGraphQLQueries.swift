@@ -9,7 +9,7 @@ enum GhGraphQLQueries {
     """
 
     private static let fields = """
-    number title state isDraft url author { login } headRefName baseRefName mergeable mergeStateStatus reviewDecision \
+    id viewerSubscription number title state isDraft url author { login } headRefName baseRefName mergeable mergeStateStatus reviewDecision \
     totalCommentsCount additions deletions changedFiles headRefOid createdAt updatedAt mergedAt closedAt mergedBy { login } \
     autoMergeRequest { enabledAt } labels(first: 20) { nodes { name } } latestReviews(first: 20) { nodes { state author { login } } } \
     assignees(first: 10) { nodes { login } } reviewRequests(first: 10) { nodes { requestedReviewer { ... on User { login } ... on Team { combinedSlug } } } } \
@@ -50,6 +50,12 @@ enum GhGraphQLQueries {
     """
 
     static let dismissReview = "mutation($id: ID!, $message: String!) { dismissPullRequestReview(input: { pullRequestReviewId: $id, message: $message }) { clientMutationId } }"
+
+    static func setSubscription(count: Int) -> String {
+        let ids = (0..<count).map { "$id\($0): ID!" }.joined(separator: ", ")
+        let updates = (0..<count).map { "s\($0): updateSubscription(input: { subscribableId: $id\($0), state: $state }) { clientMutationId }" }.joined(separator: " ")
+        return "mutation(\(ids), $state: SubscriptionState!) { \(updates) }"
+    }
 
     static let resolveThread = "mutation($id: ID!) { resolveReviewThread(input: { threadId: $id }) { clientMutationId } }"
 
