@@ -122,6 +122,10 @@ struct GhPullRequestRepository: CodeHostRepository {
         _ = try await client.pr(Self.peopleArguments(iid: iid, role: role, add: add, remove: remove), host: repository)
     }
 
+    func access(repository: CodeHost) async throws -> CodeHostAccess {
+        try GhAuthStatusParser.access(from: await client.authStatus(host: repository), host: repository.host)
+    }
+
     func setSubscribed(_ subscribed: Bool, requests: [PullRequestSummary], repository: CodeHost) async throws {
         let ids = requests.compactMap(\.nodeID)
         guard ids.count == requests.count else {

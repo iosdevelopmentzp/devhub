@@ -5,6 +5,10 @@ import Testing
 @testable import DevHubData
 
 @Suite struct GhClientTests {
+    @Test func theLoginStatusAsksForTheActiveAccountAsJSON() {
+        #expect(GhClient.authStatusArguments(host: "github.com") == ["auth", "status", "--active", "--hostname", "github.com", "--json", "hosts"])
+    }
+
     @Test func graphqlPassesTypedVariablesWithCapitalF() {
         let arguments = GhClient.graphqlArguments(query: "query { x }", variables: [.text("owner", "example"), .typed("number", "7")], host: "github.com")
 

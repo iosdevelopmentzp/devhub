@@ -160,6 +160,10 @@ struct MockCodeHostRepository: CodeHostRepository {
         try? await Task.sleep(for: .milliseconds(300))
     }
 
+    func access(repository: CodeHost) async throws -> CodeHostAccess {
+        CodeHostAccess(login: "alex", scopes: repository.kind == .github ? ["repo", "read:org"] : ["api"])
+    }
+
     func setSubscribed(_ subscribed: Bool, requests: [PullRequestSummary], repository: CodeHost) async throws {
         try? await Task.sleep(for: .milliseconds(300))
     }

@@ -81,4 +81,10 @@ import Testing
         #expect(BuildOutputParser.issue(from: "CompileSwift normal arm64 /Users/dev/App/LoginView.swift") == nil)
         #expect(BuildOutputParser.issue(from: "note: Using codesigning identity override") == nil)
     }
+
+    @Test func aToolErrorKeepsTheToolName() {
+        #expect(BuildOutputParser.issue(from: "clang: error: linker command failed with exit code 1 (use -v to see invocation)")?.message == "clang: linker command failed with exit code 1 (use -v to see invocation)")
+        #expect(BuildOutputParser.issue(from: "ld: error: undefined symbol: _main")?.message == "ld: undefined symbol: _main")
+        #expect(BuildOutputParser.issue(from: "  error: no such module 'Foo'  ")?.message == "no such module 'Foo'")
+    }
 }

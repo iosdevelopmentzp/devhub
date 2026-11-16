@@ -45,6 +45,37 @@ enum DoctorRowMapper {
         )
     }
 
+    static func codeHostAccess(_ check: CodeHostAccessCheck) -> DoctorRowModel {
+        let host = check.host
+        let name = "\(host.tool) login"
+        let needs = "Needs " + CodeHostAccessPolicy.requiredScopes(for: host.kind).map { "\($0.name) (\($0.purpose))" }.joined(separator: ", ")
+        switch check.result {
+        case .failure(.notLoggedIn):
+            return DoctorRowModel(id: "codeHostAccess", name: name, purpose: needs, stateText: "not logged in to \(host.host)", stateTint: .orange, icon: "exclamationmark.triangle.fill", path: nil, installCommand: CodeHostAccessPolicy.loginCommand(host: host))
+        case .failure(let error):
+            return DoctorRowModel(id: "codeHostAccess", name: name, purpose: error.localizedDescription, stateText: "cannot check \(host.host)", stateTint: .orange, icon: "exclamationmark.triangle.fill", path: nil, installCommand: nil)
+        case .success(let access):
+            let account = access.login.map { "\($0) on \(host.host)" } ?? "logged in to \(host.host)"
+            let missing = CodeHostAccessPolicy.missingScopes(access, kind: host.kind)
+            if missing.isEmpty == false {
+                return DoctorRowModel(
+                    id: "codeHostAccess",
+                    name: name,
+                    purpose: "Missing " + missing.map { "\($0.name) (\($0.purpose))" }.joined(separator: ", "),
+                    stateText: "\(account), missing \(missing.map(\.name).joined(separator: ", "))",
+                    stateTint: .orange,
+                    icon: "exclamationmark.triangle.fill",
+                    path: nil,
+                    installCommand: CodeHostAccessPolicy.fixCommand(missing: missing, host: host)
+                )
+            }
+            guard access.scopes != nil else {
+                return DoctorRowModel(id: "codeHostAccess", name: name, purpose: needs, stateText: "\(account), scopes unknown", stateTint: .gray, icon: "questionmark.circle", path: nil, installCommand: nil)
+            }
+            return DoctorRowModel(id: "codeHostAccess", name: name, purpose: needs, stateText: account, stateTint: .green, icon: "checkmark.circle.fill", path: nil, installCommand: nil)
+        }
+    }
+
     static func accessibility(isTrusted: Bool) -> DoctorRowModel {
         DoctorRowModel(
             id: "accessibility",

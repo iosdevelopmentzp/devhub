@@ -12,6 +12,8 @@ struct FileChangeRowModel: Identifiable, Equatable {
     var path: String
     var fullPath: String
     var folderPath: String
+    var revealPath: String
+    var canOpen: Bool
     var isStaged: Bool
     var stageIcon: String
     var stageHint: String
@@ -20,6 +22,7 @@ struct FileChangeRowModel: Identifiable, Equatable {
     var discardTitle: String
     var areActionsEnabled: Bool
     var diff: DiffModel?
+    var diffText: String?
 
     var isExpanded: Bool {
         diff != nil
@@ -35,6 +38,8 @@ struct FileChangeRowModel: Identifiable, Equatable {
         path: "ExampleApp/Features/Call/CallPromptView.swift",
         fullPath: "/Users/dev/example-app/ExampleApp/Features/Call/CallPromptView.swift",
         folderPath: "/Users/dev/example-app/ExampleApp/Features/Call",
+        revealPath: "/Users/dev/example-app/ExampleApp/Features/Call/CallPromptView.swift",
+        canOpen: true,
         isStaged: false,
         stageIcon: "plus.circle",
         stageHint: "Stage: include in the next commit",
@@ -42,6 +47,7 @@ struct FileChangeRowModel: Identifiable, Equatable {
         discardMessage: "Discard the changes in CallPromptView.swift? They cannot be restored.",
         discardTitle: "Discard",
         areActionsEnabled: true,
-        diff: .preview
+        diff: .preview,
+        diffText: nil
     )
 }

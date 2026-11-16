@@ -64,10 +64,16 @@ enum BuildOutputParser {
                 message: group(5) ?? ""
             )
         }
-        guard trimmed.hasPrefix("error: ") || trimmed.hasPrefix("xcodebuild: error: ") else { return nil }
-        let message = trimmed.components(separatedBy: "error: ").dropFirst().joined(separator: "error: ")
-        return BuildIssue(severity: .error, path: nil, line: nil, column: nil, message: message)
+        guard let match = toolIssue?.firstMatch(in: trimmed, range: range) else { return nil }
+        let tool = Range(match.range(at: 1), in: trimmed).map { String(trimmed[$0]) }
+        let message = Range(match.range(at: 2), in: trimmed).map { String(trimmed[$0]) } ?? ""
+        guard let tool, tool != "xcodebuild" else {
+            return BuildIssue(severity: .error, path: nil, line: nil, column: nil, message: message)
+        }
+        return BuildIssue(severity: .error, path: nil, line: nil, column: nil, message: "\(tool): \(message)")
     }
+
+    private static let toolIssue = try? NSRegularExpression(pattern: #"^(?:([A-Za-z0-9_.+-]+): )?error: (.+)$"#)
 
     static func appPath(from line: String) -> String? {
         let parts = line.split(separator: " ", maxSplits: 1)

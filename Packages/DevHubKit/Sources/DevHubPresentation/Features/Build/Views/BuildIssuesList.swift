@@ -3,6 +3,8 @@ import DevHubDomain
 import DevHubUI
 
 struct BuildIssuesList: View {
+    @Environment(Toaster.self) private var toaster
+
     let title: String
     let rows: [BuildIssueRowModel]
     let onOpen: (BuildIssueRowModel) -> Void
@@ -20,6 +22,12 @@ struct BuildIssuesList: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                 Spacer()
+                Button("Copy All", systemImage: "doc.on.doc") {
+                    toaster.copy(rows.map(\.copyText).joined(separator: "\n"), label: title)
+                }
+                .buttonStyle(LinkButtonStyle(.accent))
+                .font(.caption)
+                .hint("Copies every error and warning as text")
                 if let onFix {
                     AIProviderMenu(title: "Fix with AI", systemImage: "sparkles", hint: "Writes the errors into a prompt file and starts the tool in the terminal, inside the build source", onPick: onFix)
                 }
@@ -70,6 +78,11 @@ struct BuildIssuesList: View {
             .buttonStyle(.plain)
             .disabled(row.path == nil)
             .hint(row.hint)
+            .contextMenu {
+                Button("Copy", systemImage: "doc.on.doc") {
+                    toaster.copy(row.copyText, label: row.message)
+                }
+            }
         }
     }
 }
@@ -78,4 +91,5 @@ struct BuildIssuesList: View {
     BuildIssuesList(title: "1 error", rows: [.preview], onOpen: { _ in }, onFix: { _ in })
         .padding()
         .frame(width: 560)
+        .previewEnvironment()
 }

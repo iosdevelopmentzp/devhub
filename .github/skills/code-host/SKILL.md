@@ -25,7 +25,7 @@ A code host is the web service that keeps the repository and its review requests
 
 ## The port
 
-`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `people`, `teams`, `myTeams`, `updatePeople`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`, `fileContent`, `inbox`, `markInboxDone`, `setSubscribed`.
+`CodeHostRepository` has one method per operation: `status`, `list`, `openRequests`, `details`, `diffs`, `approve`, `unapprove`, `setDraft`, `rebase`, `retryPipeline`, `merge`, `setAutoMerge`, `cancelAutoMerge`, `cancelPipeline`, `create`, `labels`, `people`, `teams`, `myTeams`, `updatePeople`, `resolveThread`, `reply`, `comment`, `requestChanges`, `addLineComment`, `jobLog`, `retryJob`, `fileContent`, `inbox`, `markInboxDone`, `setSubscribed`, `access`.
 
 Every method takes `repository: CodeHost`. A `CodeHost` holds:
 
@@ -75,6 +75,7 @@ The stores that use the port: `PullRequestsStore` (the list), `OpenPullRequestsS
 | `fileContent` | `GhClient.raw` (`-H "Accept: application/vnd.github.raw+json"`) on `repos/<owner>/<name>/contents/<path>?ref=<sha>` | REST `projects/<project>/repository/files/<path>/raw?ref=<sha>`, the path percent-encoded |
 | `inbox`, `markInboxDone` | REST `notifications?per_page=50` filtered to the repository (`GhInboxParser`), then `-X GET <latest_comment_url>` for up to 10 mention or comment threads to name the actor; `-X PATCH notifications/threads/<id>` | REST `todos?state=pending&per_page=50` filtered to the project (`GlabInboxParser`); `-X POST todos/<id>/mark_as_done` |
 | `setSubscribed` | GraphQL `updateSubscription` (`UNSUBSCRIBED` or `SUBSCRIBED`) by the `id` of each request, up to 20 aliased in one call (`GhGraphQLQueries.setSubscription(count:)`). Needs the `notifications` scope of the `gh` login. The list reads `id` and `viewerSubscription` into `nodeID` and `isSubscribed` | REST `POST merge_requests/<n>/unsubscribe` or `subscribe`, one call per request; a 304 answer counts as done. The list reads `subscribed` |
+| `access` | `gh auth status --active --hostname <host> --json hosts` (`GhAuthStatusParser`); no account or a state other than `success` is `notLoggedIn`, an empty scope list is unknown | REST `user` for the login, then `personal_access_tokens/self` for the scopes (`GlabAccessParser`); an OAuth login has no such token, so the scopes stay unknown. `DoctorStore` shows the result with `CodeHostAccessPolicy` |
 | `addLineComment` | REST `POST pulls/<n>/comments` with `commit_id`, `path`, `line`, `side` (`lineCommentFields`) | REST `GET merge_requests/<n>` for `diff_refs` (`GlabDiffRefsParser`), then `POST …/discussions` with `position[…]` (`lineCommentFields`) |
 
 Review and job facts in the values:

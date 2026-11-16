@@ -11,6 +11,7 @@ struct RunBar: View {
     @Environment(CrashReportsStore.self) private var crashes
     @Environment(AppActions.self) private var appActions
     @Environment(XcodeSelectionStore.self) private var xcodes
+    @Environment(Toaster.self) private var toaster
 
     @State private var editsSchemes = false
 
@@ -282,7 +283,15 @@ struct RunBar: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
+                .textSelection(.enabled)
             Spacer()
+            if outcome.isFailure {
+                Button("Copy Error", systemImage: "doc.on.doc") {
+                    toaster.copy(BuildIssuesMapper.failureText(message: outcome.text, issues: build.issues), label: outcome.text)
+                }
+                .buttonStyle(LinkButtonStyle(.secondary))
+                .hint("Copies the error text. After a compiler error, copies every error of the build")
+            }
             Button("Show log", systemImage: "doc.text") {
                 build.showLog()
             }

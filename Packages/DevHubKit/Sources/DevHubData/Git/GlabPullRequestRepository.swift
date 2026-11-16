@@ -272,6 +272,15 @@ struct GlabPullRequestRepository: CodeHostRepository {
         [(name: "body", value: body.hasPrefix("@") ? " " + body : body)]
     }
 
+    func access(repository: CodeHost) async throws -> CodeHostAccess {
+        let host = try GlabClient.host(of: repository)
+        let login = try GlabAccessParser.login(from: await client.rest("user", host: host))
+        let scopes = try? GlabAccessParser.scopes(from: await client.rest(Self.tokenEndpoint, host: host))
+        return CodeHostAccess(login: login, scopes: scopes)
+    }
+
+    static let tokenEndpoint = "personal_access_tokens/self"
+
     func setSubscribed(_ subscribed: Bool, requests: [PullRequestSummary], repository: CodeHost) async throws {
         let host = try GlabClient.host(of: repository)
         for request in requests {

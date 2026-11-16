@@ -56,4 +56,16 @@ import Testing
         #expect(gitHub.calls == [.setSubscribed(false, iids: [7], repository: .gitHubSample)])
         #expect(gitLab.calls == [.setSubscribed(true, iids: [7], repository: .gitLabSample)])
     }
+
+    @Test func accessGoesToTheRepositoryOfItsKind() async throws {
+        let gitHub = SpyCodeHostRepository()
+        let gitLab = SpyCodeHostRepository()
+        let repository = RoutingCodeHostRepository(gitHub: gitHub, gitLab: gitLab)
+
+        _ = try await repository.access(repository: .gitHubSample)
+        _ = try await repository.access(repository: .gitLabSample)
+
+        #expect(gitHub.calls == [.access(repository: .gitHubSample)])
+        #expect(gitLab.calls == [.access(repository: .gitLabSample)])
+    }
 }
