@@ -60,6 +60,28 @@ struct MockGitChangesRepository: GitChangesRepository {
         [GitCommitRef(kind: .localBranch, name: "ABC-2489-leaderboardFollowStatusReset"), GitCommitRef(kind: .remoteBranch, name: "origin/dev")]
     }
 
+    func hiddenFiles(in path: String) async throws -> [GitHiddenFile] {
+        [
+            GitHiddenFile(path: "ExampleApp/Config/Local.xcconfig", flags: [.skipWorktree], state: .modified),
+            GitHiddenFile(path: "ExampleApp/Resources/Environment.plist", flags: [.assumeUnchanged], state: .unchanged)
+        ]
+    }
+
+    func hiddenDiff(for file: GitHiddenFile, in path: String) async throws -> GitDiff {
+        GitDiff(
+            lines: [
+                "diff --git a/\(file.path) b/\(file.path)",
+                "@@ -1,3 +1,3 @@",
+                " API_SCHEME = https",
+                "-API_HOST = api.example.com",
+                "+API_HOST = api-qa.example.com",
+                " LOG_LEVEL = info"
+            ],
+            droppedLines: 0,
+            isBinary: false
+        )
+    }
+
     func patch(_ scope: GitPatchScope, in path: String) async throws -> String {
         "diff --git a/ExampleApp/Features/Call/GiftValue.swift b/ExampleApp/Features/Call/GiftValue.swift\n+struct GiftValue {\n+    let coins: Int\n+}"
     }

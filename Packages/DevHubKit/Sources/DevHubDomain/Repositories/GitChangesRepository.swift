@@ -11,4 +11,6 @@ package protocol GitChangesRepository: Sendable {
     func branchesContaining(hash: String, in path: String) async throws -> [GitCommitRef]
     func reflog(in path: String) async throws -> [GitReflogEntry]
     func patch(_ scope: GitPatchScope, in path: String) async throws -> String
+    func hiddenFiles(in path: String) async throws -> [GitHiddenFile]
+    func hiddenDiff(for file: GitHiddenFile, in path: String) async throws -> GitDiff
 }

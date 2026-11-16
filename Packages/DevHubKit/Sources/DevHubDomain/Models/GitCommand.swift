@@ -26,4 +26,7 @@ package enum GitCommand: Hashable, Sendable {
     case stageAll
     case unstageAll
     case commit(message: String, amend: Bool)
+    case hide(path: String, flag: GitHiddenFlag)
+    case unhide(path: String)
+    case stashPath(path: String, message: String)
 }

@@ -111,6 +111,13 @@ import Testing
         #expect(model.revealPath == model.folderPath)
     }
 
+    @Test func onlyAnUnstagedModifiedFileCanBeHidden() {
+        #expect(row(GitFileChange(path: "a.plist", originalPath: nil, area: .unstaged, kind: .modified), isExpanded: false, isBusy: false).canHide)
+        #expect(row(GitFileChange(path: "a.plist", originalPath: nil, area: .staged, kind: .modified), isExpanded: false, isBusy: false).canHide == false)
+        #expect(row(GitFileChange(path: "a.plist", originalPath: nil, area: .untracked, kind: .untracked), isExpanded: false, isBusy: false).canHide == false)
+        #expect(row(GitFileChange(path: "a.plist", originalPath: nil, area: .unstaged, kind: .deleted), isExpanded: false, isBusy: false).canHide == false)
+    }
+
     @Test func anExpandedTextDiffCanBeCopied() {
         let change = GitFileChange(path: "A.swift", originalPath: nil, area: .unstaged, kind: .modified)
         let diff = GitDiff(lines: ["@@ -1 +1 @@", "-old", "+new"], droppedLines: 0, isBinary: false)

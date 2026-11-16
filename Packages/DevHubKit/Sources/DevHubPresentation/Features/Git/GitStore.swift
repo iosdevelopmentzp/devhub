@@ -12,6 +12,7 @@ final class GitStore: CheckoutContext {
         case history = "History"
         case reflog = "Reflog"
         case changes = "Changes"
+        case hidden = "Hidden"
         case stash = "Stash"
     }
 

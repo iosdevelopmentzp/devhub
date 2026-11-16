@@ -9,6 +9,7 @@ package struct UseCases: Sendable {
     package let createPullRequest: CreatePullRequestUseCase
     package let pushCurrentBranch: PushCurrentBranchUseCase
     package let discardChange: DiscardChangeUseCase
+    package let trackHiddenFile: TrackHiddenFileUseCase
     package let commit: CommitUseCase
     package let removeWorktree: RemoveWorktreeUseCase
     package let cleanFinishedWorktrees: CleanFinishedWorktreesUseCase
@@ -32,6 +33,7 @@ package struct UseCases: Sendable {
         createPullRequest = CreatePullRequestUseCase(git: ports.git, codeHost: ports.codeHost)
         pushCurrentBranch = PushCurrentBranchUseCase(git: ports.git)
         discardChange = DiscardChangeUseCase(changes: ports.git)
+        trackHiddenFile = TrackHiddenFileUseCase(git: ports.git)
         commit = CommitUseCase(git: ports.git)
         let removeWorktree = RemoveWorktreeUseCase(worktrees: ports.worktrees, derivedData: ports.derivedData)
         self.removeWorktree = removeWorktree

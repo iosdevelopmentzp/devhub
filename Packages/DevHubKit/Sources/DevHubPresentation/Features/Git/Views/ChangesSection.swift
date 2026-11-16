@@ -4,6 +4,7 @@ import DevHubUI
 
 struct ChangesSection: View {
     @Environment(GitChangesStore.self) private var changes
+    @Environment(GitHiddenFilesStore.self) private var hidden
     @Environment(GitStore.self) private var git
     @Environment(SettingsStore.self) private var settings
     @Environment(ProjectSession.self) private var session
@@ -67,7 +68,8 @@ struct ChangesSection: View {
                 onToggleDiff: { changes.toggleDiff(change) },
                 onStage: { changes.stage(change) },
                 onUnstage: { changes.unstage(change) },
-                onDiscard: { changes.discard(change) }
+                onDiscard: { changes.discard(change) },
+                onHide: { hidden.hide(path: change.path, flag: .skipWorktree) }
             )
         }
     }
