@@ -247,7 +247,7 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
     private func deliver(_ report: OwnRequestChangeMapper.Report, request: PullRequestSummary) {
         let kind: NotificationKind = request.author == username ? report.kind : .watched
         activity.log(report.title, detail: report.body, outcome: report.outcome, kind: kind, target: .pullRequest(iid: request.iid))
-        notifier.notify(kind, title: report.title, body: report.body, target: .pullRequest(iid: request.iid))
+        notifier.notify(kind, symbol: report.symbol, title: report.title, body: report.body, target: .pullRequest(iid: request.iid))
     }
 
     private func apply(_ loaded: PullRequestList) {
@@ -267,7 +267,7 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
             if count > reviewCount, loadedAt != nil, isSameRule {
                 let title = count == 1 ? "1 \(words.request) waits for your review" : "\(count) \(words.requests) wait for your review"
                 activity.log(title, detail: "", outcome: .info, kind: .reviewRequests, target: .reviewQueue)
-                notifier.notify(.reviewRequests, title: title, body: nil, target: .reviewQueue)
+                notifier.notify(.reviewRequests, symbol: .reviewRequest, title: title, body: nil, target: .reviewQueue)
             }
             reviewCount = count
         }
@@ -296,7 +296,7 @@ final class OpenPullRequestsStore: OpenRequestsLookup {
             guard let request = queue.first(where: { $0.iid == wait.iid }) else { continue }
             let title = "\(words.reference(request.iid)) waits for your review for \(ReviewReminderPolicy.waitedHours(wait, now: date)) h"
             activity.log(title, detail: request.title, outcome: .info, kind: .reviewReminders, target: .pullRequest(iid: request.iid))
-            notifier.notify(.reviewReminders, title: title, body: request.title, target: .pullRequest(iid: request.iid))
+            notifier.notify(.reviewReminders, symbol: .reminder, title: title, body: request.title, target: .pullRequest(iid: request.iid))
         }
     }
 

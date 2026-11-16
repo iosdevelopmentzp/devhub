@@ -44,7 +44,7 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.detail == "@alex check the retry path")
         #expect(harness.lastActivity?.kind == .inbox)
         #expect(harness.lastActivity?.target == .pullRequest(iid: 12))
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "sam mentioned you in !12", body: "@alex check the retry path", target: .pullRequest(iid: 12))] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "📥 sam mentioned you in !12", body: "@alex check the retry path", target: .pullRequest(iid: 12))] }
     }
 
     @Test func anItemWithoutARequestOpensTheInbox() async {

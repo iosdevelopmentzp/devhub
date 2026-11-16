@@ -18,6 +18,14 @@ struct NotificationsSection: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            Toggle(isOn: $settings.values.notificationEmoji) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Emoji in titles")
+                    Text("A sign before the title shows the result at a glance: ✅ built, ❌ failed, 🟢 checks passed, 🔴 checks failed, 🎉 merged.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
             ForEach(NotificationKind.allCases, id: \.self) { kind in
                 Toggle(isOn: binding(for: kind)) {
                     VStack(alignment: .leading, spacing: 2) {

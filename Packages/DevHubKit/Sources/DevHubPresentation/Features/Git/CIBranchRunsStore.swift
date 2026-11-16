@@ -201,7 +201,7 @@ final class CIBranchRunsStore {
         guard let latest, latest.status == .failed, let previous, previous.id != latest.id || previous.status != .failed else { return }
         let failure = BaseBranchCIFailure(branch: branch, workflows: loaded.filter { $0.status == .failed }.map(\.name), subject: latest.subject)
         activity.log(failure.title, detail: failure.subject ?? "", outcome: .failure, kind: .baseBranchChecks, target: .git)
-        notifier.notify(.baseBranchChecks, title: failure.title, body: failure.subject, target: .git)
+        notifier.notify(.baseBranchChecks, symbol: .checksFailed, title: failure.title, body: failure.subject, target: .git)
     }
 
     private func resumePolling() {

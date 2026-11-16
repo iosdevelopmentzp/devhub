@@ -53,7 +53,7 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.kind == .requestApprovals)
         #expect(harness.lastActivity?.target == .pullRequest(iid: 7))
         try await waitUntil { harness.spies.notifications.posted.isEmpty == false }
-        #expect(harness.spies.notifications.posted == [.post(title: "approve-release of #7 waits for your approval", body: "Approve it from the checks of the pull request in DevHub", target: .pullRequest(iid: 7))])
+        #expect(harness.spies.notifications.posted == [.post(title: "✋ approve-release of #7 waits for your approval", body: "Approve it from the checks of the pull request in DevHub", target: .pullRequest(iid: 7))])
         #expect(harness.store.data(forKey: notifiedKey) != nil)
     }
 

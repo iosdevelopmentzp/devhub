@@ -11,17 +11,17 @@ import Testing
     }
 
     @Test func aClosedPanelGetsANotificationWithItsTarget() async throws {
-        notifier.notify(.tests, title: "Tests passed", body: "12 passed", target: .worktree(path: "/repo/.worktrees/a"))
+        notifier.notify(.tests, symbol: .success, title: "Tests passed", body: "12 passed", target: .worktree(path: "/repo/.worktrees/a"))
 
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "Tests passed", body: "12 passed", target: .worktree(path: "/repo/.worktrees/a"))] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "✅ Tests passed", body: "12 passed", target: .worktree(path: "/repo/.worktrees/a"))] }
     }
 
     @Test func anOpenPanelOrTheMainSwitchStopsIt() async {
         notifier.panelShown(true)
-        notifier.notify(.build, title: "A", body: nil, target: .build)
+        notifier.notify(.build, symbol: nil, title: "A", body: nil, target: .build)
         notifier.panelShown(false)
         harness.settings.values.notifyWhenPanelClosed = false
-        notifier.notify(.build, title: "B", body: nil, target: .build)
+        notifier.notify(.build, symbol: nil, title: "B", body: nil, target: .build)
         await harness.settle()
 
         #expect(harness.spies.notifications.posted.isEmpty)
@@ -30,8 +30,8 @@ import Testing
     @Test func aMutedKindIsSilentAndTheOthersAreNot() async throws {
         harness.settings.values.setNotifies(.requestComments, false)
 
-        notifier.notify(.requestComments, title: "A", body: nil, target: .pullRequest(iid: 1))
-        notifier.notify(.requestReviews, title: "B", body: nil, target: .pullRequest(iid: 1))
+        notifier.notify(.requestComments, symbol: nil, title: "A", body: nil, target: .pullRequest(iid: 1))
+        notifier.notify(.requestReviews, symbol: nil, title: "B", body: nil, target: .pullRequest(iid: 1))
 
         try await waitUntil { harness.spies.notifications.posted == [.post(title: "B", body: nil, target: .pullRequest(iid: 1))] }
     }
@@ -40,7 +40,7 @@ import Testing
         notifier.panelShown(true)
         harness.settings.values.notifyWhenPanelClosed = false
 
-        notifier.notify(.scripts, title: "Done", body: "Resources ready", target: nil)
+        notifier.notify(.scripts, symbol: nil, title: "Done", body: "Resources ready", target: nil)
 
         try await waitUntil { harness.spies.notifications.posted == [.post(title: "Done", body: "Resources ready", target: nil)] }
     }
@@ -48,7 +48,7 @@ import Testing
     @Test func aMutedScriptKindIsSilent() async {
         harness.settings.values.setNotifies(.scripts, false)
 
-        notifier.notify(.scripts, title: "Done", body: nil, target: nil)
+        notifier.notify(.scripts, symbol: nil, title: "Done", body: nil, target: nil)
         await harness.settle()
 
         #expect(harness.spies.notifications.posted.isEmpty)
@@ -57,7 +57,7 @@ import Testing
     @Test func withoutPermissionNothingIsPosted() async {
         harness.spies.notifications.permissionResult = .denied
 
-        notifier.notify(.scripts, title: "A", body: nil, target: nil)
+        notifier.notify(.scripts, symbol: nil, title: "A", body: nil, target: nil)
         await harness.settle()
 
         #expect(harness.spies.notifications.posted.isEmpty)
@@ -65,15 +65,23 @@ import Testing
     }
 
     @Test func aFailureWhileClosedStaysUntilThePanelOpens() async throws {
-        notifier.buildFinished(title: "Build failed", detail: "x", failed: true)
+        notifier.buildFinished(title: "Build failed", detail: "x", symbol: .failure)
         #expect(notifier.hasUnseenFailure)
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "Build failed", body: "x", target: .build)] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "❌ Build failed", body: "x", target: .build)] }
 
         notifier.panelShown(true)
         #expect(notifier.hasUnseenFailure == false)
 
-        notifier.buildFinished(title: "Build failed", detail: "x", failed: true)
+        notifier.buildFinished(title: "Build failed", detail: "x", symbol: .failure)
         #expect(notifier.hasUnseenFailure == false)
+    }
+
+    @Test func theEmojiSwitchDropsTheSign() async throws {
+        harness.settings.values.notificationEmoji = false
+
+        notifier.notify(.tests, symbol: .success, title: "Tests passed", body: nil, target: nil)
+
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "Tests passed", body: nil, target: nil)] }
     }
 
     @Test func activationsComeFromTheRepository() async throws {

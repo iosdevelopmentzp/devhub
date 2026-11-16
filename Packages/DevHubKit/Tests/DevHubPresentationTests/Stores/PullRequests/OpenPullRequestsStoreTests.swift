@@ -39,7 +39,7 @@ import DevHubTestSupport
 
         await store.refresh()
 
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "1 merge request waits for your review", body: nil, target: .reviewQueue)] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "👀 1 merge request waits for your review", body: nil, target: .reviewQueue)] }
     }
 
     @Test func refreshIfStaleLoadsOnce() async {
@@ -130,7 +130,7 @@ import DevHubTestSupport
         await store.refresh()
 
         try await waitUntil { harness.activityTitles == ["sam commented on !7"] }
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "sam commented on !7", body: "ABC-7: Mine", target: .pullRequest(iid: 7))] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "💬 sam commented on !7", body: "ABC-7: Mine", target: .pullRequest(iid: 7))] }
     }
 
     @Test func anApprovalOfMyRequestIsReportedAndNotified() async throws {
@@ -143,7 +143,7 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.title == "!7 approved by alex")
         #expect(harness.lastActivity?.detail == "ABC-7: Mine")
         #expect(harness.lastActivity?.outcome == .success)
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "!7 approved by alex", body: "ABC-7: Mine", target: .pullRequest(iid: 7))] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "👍 !7 approved by alex", body: "ABC-7: Mine", target: .pullRequest(iid: 7))] }
     }
 
     @Test func theFirstLoadReportsNothing() async {
@@ -190,7 +190,7 @@ import DevHubTestSupport
 
         try await waitUntil { harness.activityTitles == ["!7 merged"] }
         #expect(harness.spies.codeHost.calls.last == .status(branch: "feature/mine", repository: remote))
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "!7 merged", body: "ABC-7: Mine", target: .pullRequest(iid: 7))] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "🎉 !7 merged", body: "ABC-7: Mine", target: .pullRequest(iid: 7))] }
     }
 
     @Test func aRequestThatIsStillOpenAfterLeavingTheListIsSilent() async throws {
@@ -251,7 +251,7 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.title == "!12 approved by lee")
         #expect(harness.lastActivity?.kind == .watched)
         #expect(harness.lastActivity?.target == .pullRequest(iid: 12))
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "!12 approved by lee", body: "ABC-12: Theirs", target: .pullRequest(iid: 12))] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "👍 !12 approved by lee", body: "ABC-12: Theirs", target: .pullRequest(iid: 12))] }
     }
 
     @Test func aRequestOfSomeoneElseThatIsNotWatchedIsSilent() async {
@@ -368,7 +368,7 @@ import DevHubTestSupport
         await store.refresh()
         await store.refresh()
 
-        let reminder = SpyUserNotificationRepository.Call.post(title: "!21 waits for your review for 5 h", body: "ABC-5: Login", target: .pullRequest(iid: 21))
+        let reminder = SpyUserNotificationRepository.Call.post(title: "⏰ !21 waits for your review for 5 h", body: "ABC-5: Login", target: .pullRequest(iid: 21))
         try await waitUntil { harness.spies.notifications.posted.contains(reminder) }
         #expect(harness.spies.notifications.posted.filter { $0 == reminder }.count == 1)
         #expect(harness.activityTitles.filter { $0.hasSuffix("waits for your review for 5 h") } == ["!21 waits for your review for 5 h"])

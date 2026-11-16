@@ -24,6 +24,7 @@ import Testing
         #expect(settings.windowMode == .panel)
         #expect(settings.usageProviders == .all)
         #expect(settings.mutedNotifications.isEmpty)
+        #expect(settings.notificationEmoji)
         #expect(settings.diffFontSize == DiffFontSizePolicy.standard)
     }
 
