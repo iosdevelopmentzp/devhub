@@ -262,6 +262,24 @@ final class AppActions {
         toaster.show(watching ? "Watching \(reference)" : "Stopped watching \(reference)")
     }
 
+    func toggleMute(iid: Int) {
+        let reference = openPullRequests.words.reference(iid)
+        let muted = openPullRequests.toggleMute(iid: iid)
+        toaster.show(muted ? "Muted \(reference)" : "Unmuted \(reference)")
+    }
+
+    func muteOthers() {
+        let words = openPullRequests.words
+        let count = openPullRequests.muteOthers()
+        toaster.show(count == 0 ? "No new \(words.requests) to mute" : "Muted \(CountText.count(count, words.request, words.requests)) of other people")
+    }
+
+    func unmuteAll() {
+        let words = openPullRequests.words
+        let count = openPullRequests.unmuteAll()
+        toaster.show("Unmuted \(CountText.count(count, words.request, words.requests))")
+    }
+
     func showPullRequest(iid: Int) {
         navigator.show(.pullRequests)
         Task { [weak self] in

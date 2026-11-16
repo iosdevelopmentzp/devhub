@@ -217,7 +217,7 @@ package final class PresentationAssembly {
             chooseFile: { FolderPicker.saveFile(suggestedName: $0, prompt: "Save", message: "A text file for a bug report. Links, e-mails, tokens, paths and project names are replaced.") }
         )
         appCrash = AppCrashStore(crashes: ports.crashes, words: ports.redactionWords, activity: activity, toaster: toaster, store: store, app: appIdentity, now: { .now })
-        inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, activity: activity, notifier: notifier, events: events)
+        inbox = InboxStore(repository: ports.codeHost, remote: codeHostRemote, openRequests: openPullRequests, activity: activity, notifier: notifier, events: events)
         ciAutoRerun = CIAutoRerunStore(
             repository: ports.codeHost,
             ci: ports.ci,

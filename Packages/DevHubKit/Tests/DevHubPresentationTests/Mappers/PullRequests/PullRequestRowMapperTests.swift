@@ -314,6 +314,32 @@ import DevHubTestSupport
         #expect(merged.tags.contains { $0.text.hasPrefix("on hold") } == false)
     }
 
+    @Test func anOpenRequestOfSomeoneElseCanBeMutedAndUnmuted() {
+        let request = PullRequestSummaryFixture.request(iid: 7, source: "feature/login", state: .opened)
+
+        let muted = map(request, muted: [7])
+        let plain = map(request)
+
+        #expect(muted.isMuted)
+        #expect(muted.muteTitle == "Unmute Notifications")
+        #expect(muted.muteIcon == "speaker.wave.2")
+        #expect(muted.tags.contains(TagModel("muted", tint: .gray, systemImage: "speaker.slash", hint: "DevHub shows no notifications about this merge request. GitLab still sends its own.")))
+        #expect(plain.isMuted == false)
+        #expect(plain.muteTitle == "Mute Notifications")
+        #expect(plain.muteIcon == "speaker.slash")
+        #expect(plain.tags.contains { $0.text == "muted" } == false)
+    }
+
+    @Test func myOwnRequestAndAClosedRequestCannotBeMuted() {
+        let mine = map(PullRequestSummaryFixture.request(iid: 7, source: "x", state: .opened, author: "me"))
+        let closed = map(PullRequestSummaryFixture.request(iid: 8, source: "y", state: .merged))
+        let unknownUser = map(PullRequestSummaryFixture.request(iid: 9, source: "z", state: .opened), username: nil)
+
+        #expect(mine.muteTitle == nil)
+        #expect(closed.muteTitle == nil)
+        #expect(unknownUser.muteTitle == nil)
+    }
+
     @Test func aClosedRequestCannotBeWatched() {
         let model = map(PullRequestSummaryFixture.request(iid: 7, source: "x", state: .merged), watched: [7])
 
@@ -347,11 +373,12 @@ import DevHubTestSupport
         isExpanded: Bool = false,
         configActions: [ConfigActionItemModel] = [],
         watched: Set<Int> = [],
+        muted: Set<Int> = [],
         onHold: [Int: [String]] = [:]
     ) -> PullRequestRowModel {
         PullRequestRowMapper.model(
             for: request,
-            context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}"), words: .gitLab, staleDays: 14, hiddenFiles: [], watchedIDs: watched, onHoldJobs: onHold),
+            context: PullRequestRowContext(username: username, scope: scope, seenAt: seenAt, now: now, isMainCheckoutClean: isMainCheckoutClean, ticket: .linking("https://jira.example.com/browse/{key}"), words: .gitLab, staleDays: 14, hiddenFiles: [], watchedIDs: watched, mutedIDs: muted, onHoldJobs: onHold),
             local: local,
             isBusy: isBusy,
             isExpanded: isExpanded,

@@ -144,6 +144,7 @@ struct PullRequestWindowView: View {
             diffLayout: pullRequests.diffLayout,
             syntaxColors: settings.values.diffSyntaxColors,
             watchedIDs: openPullRequests.watchedIDs,
+            mutedIDs: openPullRequests.mutedIDs,
             onHoldJobs: ciWatch.onHoldJobNames,
             people: people.people,
             teams: people.teams,

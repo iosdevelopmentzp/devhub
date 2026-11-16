@@ -34,6 +34,9 @@ struct PullRequestRowModel: Identifiable, Equatable {
     var isWatched: Bool
     var watchTitle: String?
     var watchIcon: String
+    var isMuted: Bool
+    var muteTitle: String?
+    var muteIcon: String
     var primaryActions: [PullRequestActionModel]
     var actions: [PullRequestActionModel]
     var mergeTitle: String
@@ -83,6 +86,9 @@ struct PullRequestRowModel: Identifiable, Equatable {
         isWatched: false,
         watchTitle: "Watch",
         watchIcon: "bell",
+        isMuted: false,
+        muteTitle: "Mute Notifications",
+        muteIcon: "speaker.slash",
         primaryActions: [.preview],
         actions: [PullRequestActionModel(id: .markDraft, title: "Mark as Draft", systemImage: "pencil.circle", hint: "Add the Draft mark")],
         mergeTitle: "Merge !1842 into dev?",

@@ -62,6 +62,7 @@ struct PullRequestsToolbar: View {
     private var options: some View {
         @Bindable var pullRequests = pullRequests
         PullRequestsFilterMenu()
+        PullRequestsMuteMenu()
         Menu {
             Picker("View", selection: $pullRequests.listStyle) {
                 ForEach(PullRequestListStyle.allCases, id: \.self) { style in
