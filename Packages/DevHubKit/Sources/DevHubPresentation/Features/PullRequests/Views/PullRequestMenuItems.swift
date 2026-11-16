@@ -26,6 +26,9 @@ struct PullRequestMenuItems: View {
         if let watchTitle = model.watchTitle {
             Button(watchTitle, systemImage: model.watchIcon) { appActions.toggleWatch(iid: model.id) }
         }
+        if let muteTitle = model.muteTitle {
+            Button(muteTitle, systemImage: model.muteIcon) { appActions.toggleMute(iid: model.id) }
+        }
         Button("Copy Link", systemImage: "link") {
             guard let url = model.webURL else { return }
             toaster.copy(url.absoluteString, label: model.reference)

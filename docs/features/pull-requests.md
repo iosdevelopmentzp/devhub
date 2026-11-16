@@ -24,6 +24,7 @@ In the commands below, `<repo>` is `example/app` on `github.com` and `<host>/exa
 | Scope | Mine (you opened them), To review, Assigned (assigned to you), All |
 | State | Open, Merged, Closed, Any state. Disabled for "To review": that scope is always Open |
 | Filter menu | Target branch, Labels (several at once; a request must carry every chosen label), Author, Assignee, Reviewer (a requested reviewer), "Only with conflicts", "Only ready to merge", Clear Filters. The lists hold the values of the loaded rows. Active filters show as chips under the toolbar; the ✕ on a chip removes that one filter. A click on a label tag in a row adds or removes that label in the filter |
+| Mute menu (speaker icon) | "Mute All Opened by Others (N)" mutes the notifications of every open request by other people in the loaded list. "Unmute All (N)" turns them all back on. Your own requests are never muted. The icon is blue while any request is muted. One request: Mute Notifications in its row menu |
 | View menu | Detailed (every fact as a coloured tag), Calm (the same facts as grey text, colour only for what needs you), Compact (one line per request) |
 | New… | Opens the new request form for the current branch of the Git tab |
 | Count and refresh | The number of requests in the list and a button that reads them again |
@@ -114,6 +115,7 @@ After each action DevHub logs the result in Recent and reads the list again.
 | Use This Checkout in Git Tab (menu) | Shows the Git tab on that worktree | — |
 | Switch to Branch (menu) | Only when the branch exists locally and the main checkout is clean | `git switch <branch>` |
 | Watch, Stop Watching (menu) | Watches a request by someone else: DevHub reads the list every minute and reports an approval, a request for changes, failed checks, a new comment and the merge or close as a "Watched" event and a notification. The row shows a "watching" tag. The watch ends when the request is merged or closed | — |
+| Mute Notifications, Unmute Notifications (menu) | Only for an open request by someone else. DevHub posts no notification about it: no review reminder, no Inbox item, no watched event. The events still go to the Events list. The row shows a "muted" tag. Muting a watched request ends the watch; Watch ends the mute. The subscription on the host does not change | — |
 | Open in browser | Opens the request page | — |
 | Open in Window (context menu) | Opens the request in its own window | — |
 | Copy Link, Copy Link with Title, Copy Branch Name (menu) | "Link with Title" copies the number, the title and the link | — |
@@ -315,6 +317,7 @@ For a bug report about CircleCI: "Copy CI Diagnostics" and "Save CI Diagnostics�
 | `gitlab.listFraction` | The width of the list in the side-by-side layout | 0.42 |
 | `gitlab.seenAt.<scope>` | The time of your last visit to each scope (the blue "new" dot) | — |
 | `gitlab.watched.<project>` | The requests you watch | none |
+| `gitlab.muted.<project>` | The requests you muted; a request that left the open list is forgotten after a full read | none |
 | `gitlab.autoRerun.<project>` | The CircleCI auto re-run plans: request, most re-runs, re-runs done, workflows already run again, the mode | none |
 | `gitlab.autoRerunOnlyFlaky.<project>` | The mode of new auto re-run plans: "Only flaky failures" on or off | on |
 | `gitlab.ciNotified.<project>` | The CircleCI approval jobs on hold that DevHub already reported | none |

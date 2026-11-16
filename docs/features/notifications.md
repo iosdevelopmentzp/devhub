@@ -36,6 +36,8 @@ Every event that DevHub can also send as a macOS notification carries a kind. Ev
 
 The words follow the host: "merge request" and "Pipeline" on GitLab.
 
+A request by someone else can be muted in the Pull Requests tab (row menu, or the speaker menu in the toolbar for all of them). A muted request posts no notification of the kinds "Reviews waiting for me for too long", "Watched pull requests" and "Inbox"; its events still go to the Events list.
+
 ## Inbox
 
 The second pane of the Notifications screen ("Events | Inbox" at the start of the toolbar) lists what the host holds for you in this repository: GitHub notification threads (`gh api notifications?per_page=50`, unread only) or GitLab to-dos (`glab api todos?state=pending&per_page=50`). Threads and to-dos of other repositories are left out.

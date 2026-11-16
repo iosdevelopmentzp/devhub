@@ -288,6 +288,106 @@ import DevHubTestSupport
         #expect(store.watchedIDs == [3, 4])
     }
 
+    // MARK: Muted requests
+
+    private var mutedKey: String {
+        "gitlab.muted.\(harness.session.selectedProjectID)"
+    }
+
+    @Test func toggleMutePersistsPerProject() {
+        #expect(store.toggleMute(iid: 12))
+        #expect(store.mutedIDs == [12])
+        #expect(store.isMuted(12))
+        #expect(harness.store.decode([Int].self, forKey: mutedKey) == [12])
+
+        #expect(store.toggleMute(iid: 12) == false)
+        #expect(store.mutedIDs.isEmpty)
+        #expect(harness.store.decode([Int].self, forKey: mutedKey) == [])
+    }
+
+    @Test func muteOthersMutesOnlyOpenRequestsOfOtherPeople() async {
+        let mine = PullRequestSummaryFixture.request(iid: 1, source: "feature/mine", state: .opened, author: "me")
+        script([mine, theirs(), PullRequestSummaryFixture.open])
+        await store.refresh()
+        #expect(store.othersToMuteCount == 2)
+
+        #expect(store.muteOthers() == 2)
+
+        #expect(store.mutedIDs == [12, 21])
+        #expect(store.othersToMuteCount == 0)
+        #expect(store.muteOthers() == 0)
+    }
+
+    @Test func muteOthersDoesNothingBeforeTheFirstLoad() {
+        #expect(store.muteOthers() == 0)
+        #expect(store.mutedIDs.isEmpty)
+    }
+
+    @Test func unmuteAllForgetsEveryMute() {
+        _ = store.toggleMute(iid: 12)
+        _ = store.toggleMute(iid: 21)
+
+        #expect(store.unmuteAll() == 2)
+
+        #expect(store.mutedIDs.isEmpty)
+        #expect(harness.store.decode([Int].self, forKey: mutedKey) == [])
+    }
+
+    @Test func mutingAWatchedRequestStopsTheWatchAndWatchingUnmutes() {
+        _ = store.toggleWatch(iid: 12)
+
+        _ = store.toggleMute(iid: 12)
+
+        #expect(store.watchedIDs.isEmpty)
+        #expect(store.mutedIDs == [12])
+
+        _ = store.toggleWatch(iid: 12)
+
+        #expect(store.watchedIDs == [12])
+        #expect(store.mutedIDs.isEmpty)
+    }
+
+    @Test func aMutedRequestThatWaitsTooLongIsLoggedButNotNotified() async throws {
+        harness.store.encode([ReviewWait(iid: 21, since: Date(timeIntervalSinceNow: -5 * 3_600), isReminded: false)], forKey: "gitlab.reviewSince.\(harness.session.selectedProjectID)")
+        _ = store.toggleMute(iid: 21)
+        script([PullRequestSummaryFixture.open])
+
+        await store.refresh()
+        await harness.settle()
+
+        #expect(harness.activityTitles.contains("!21 waits for your review for 5 h"))
+        #expect(harness.spies.notifications.posted.isEmpty)
+    }
+
+    @Test func aMutedRequestThatIsNoLongerOpenIsForgotten() async {
+        _ = store.toggleMute(iid: 12)
+        _ = store.toggleMute(iid: 21)
+        script([PullRequestSummaryFixture.open])
+
+        await store.refresh()
+
+        #expect(store.mutedIDs == [21])
+    }
+
+    @Test func mutesStayWhenTheListIsCut() async {
+        _ = store.toggleMute(iid: 12)
+        harness.spies.git.webURLResult = remote.webURL
+        harness.spies.codeHost.openRequestsResult = .success(PullRequestList(username: "me", requests: [PullRequestSummaryFixture.open], totalCount: 300))
+
+        await store.refresh()
+
+        #expect(store.mutedIDs == [12])
+    }
+
+    @Test func projectChangedLoadsTheMutedIDsOfTheProject() {
+        _ = store
+        harness.store.encode([5, 6], forKey: mutedKey)
+
+        harness.events.post(.projectChanged)
+
+        #expect(store.mutedIDs == [5, 6])
+    }
+
     @Test func thePollIntervalIsShorterWhileThePanelIsClosedOrARequestIsWatched() {
         #expect(OpenPullRequestsStore.pollInterval(panelShown: true, watching: false) == .seconds(300))
         #expect(OpenPullRequestsStore.pollInterval(panelShown: false, watching: false) == .seconds(120))

@@ -108,6 +108,31 @@ import Testing
         #expect(assembly.toaster.text?.hasPrefix("Stopped watching ") == true)
     }
 
+    @Test func toggleMuteFlipsTheMuteAndShowsAToast() {
+        let assembly = PresentationAssembly.preview()
+
+        assembly.appActions.toggleMute(iid: 12)
+
+        #expect(assembly.openPullRequests.mutedIDs == [12])
+        #expect(assembly.toaster.text?.hasPrefix("Muted ") == true)
+
+        assembly.appActions.toggleMute(iid: 12)
+
+        #expect(assembly.openPullRequests.mutedIDs.isEmpty)
+        #expect(assembly.toaster.text?.hasPrefix("Unmuted ") == true)
+    }
+
+    @Test func unmuteAllShowsTheCount() {
+        let assembly = PresentationAssembly.preview()
+        assembly.appActions.toggleMute(iid: 12)
+        assembly.appActions.toggleMute(iid: 13)
+
+        assembly.appActions.unmuteAll()
+
+        #expect(assembly.openPullRequests.mutedIDs.isEmpty)
+        #expect(assembly.toaster.text?.hasSuffix(" 2 pull requests") == true || assembly.toaster.text?.hasSuffix(" 2 merge requests") == true)
+    }
+
     @Test func openingTheInboxTargetShowsTheInboxPane() {
         let assembly = PresentationAssembly.preview()
 
