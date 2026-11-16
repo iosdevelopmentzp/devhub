@@ -97,6 +97,31 @@ import Testing
         #expect(binary.diff == .note("Binary file, no text diff"))
     }
 
+    @Test func aFileOnDiskOpensAndShowsItselfInFinder() {
+        let model = row(GitFileChange(path: "App/File.swift", originalPath: nil, area: .unstaged, kind: .modified), isExpanded: false, isBusy: false)
+
+        #expect(model.canOpen)
+        #expect(model.revealPath == model.fullPath)
+    }
+
+    @Test func aDeletedFileShowsItsFolderInFinder() {
+        let model = row(GitFileChange(path: "App/File.swift", originalPath: nil, area: .unstaged, kind: .deleted), isExpanded: false, isBusy: false)
+
+        #expect(model.canOpen == false)
+        #expect(model.revealPath == model.folderPath)
+    }
+
+    @Test func anExpandedTextDiffCanBeCopied() {
+        let change = GitFileChange(path: "A.swift", originalPath: nil, area: .unstaged, kind: .modified)
+        let diff = GitDiff(lines: ["@@ -1 +1 @@", "-old", "+new"], droppedLines: 0, isBinary: false)
+
+        let expanded = FileChangeRowMapper.model(for: change, checkoutPath: checkout, isExpanded: true, diff: diff, isBusy: false, syntaxColors: false)
+        let collapsed = FileChangeRowMapper.model(for: change, checkoutPath: checkout, isExpanded: false, diff: diff, isBusy: false, syntaxColors: false)
+
+        #expect(expanded.diffText == "@@ -1 +1 @@\n-old\n+new")
+        #expect(collapsed.diffText == nil)
+    }
+
     private func row(_ change: GitFileChange, isExpanded: Bool, isBusy: Bool) -> FileChangeRowModel {
         FileChangeRowMapper.model(for: change, checkoutPath: checkout, isExpanded: isExpanded, diff: nil, isBusy: isBusy, syntaxColors: false)
     }

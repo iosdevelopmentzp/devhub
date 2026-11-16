@@ -32,7 +32,7 @@ struct DoctorRow<Trailing: View>: View {
             }
             Spacer(minLength: 8)
             if let command = model.installCommand {
-                Button("Copy Install Command", systemImage: "doc.on.doc") {
+                Button("Copy Command", systemImage: "doc.on.doc") {
                     toaster.copy(command, label: command)
                 }
                 .controlSize(.small)

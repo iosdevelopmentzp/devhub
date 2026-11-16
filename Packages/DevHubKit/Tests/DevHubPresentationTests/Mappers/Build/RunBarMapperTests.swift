@@ -68,7 +68,7 @@ import Testing
 
         let model = map(state: state, target: SimulatorFixture.iPhone, identity: nil)
 
-        #expect(model.outcome == RunBarModel.Outcome(tint: .red, text: "Build failed: 3 errors"))
+        #expect(model.outcome == RunBarModel.Outcome(tint: .red, text: "Build failed: 3 errors", isFailure: true))
         #expect(model.isRunning == false)
     }
 

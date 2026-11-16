@@ -66,10 +66,11 @@ enum RunBarMapper {
         case .succeeded(let date, let launched):
             RunBarModel.Outcome(
                 tint: .green,
-                text: launched ? "Launched on \(targetName ?? "the target") · \(date.relativeDescription)" : "Built \(scheme), not launched · \(date.relativeDescription)"
+                text: launched ? "Launched on \(targetName ?? "the target") · \(date.relativeDescription)" : "Built \(scheme), not launched · \(date.relativeDescription)",
+                isFailure: false
             )
         case .failed(let message):
-            RunBarModel.Outcome(tint: .red, text: message)
+            RunBarModel.Outcome(tint: .red, text: message, isFailure: true)
         case .idle, .running:
             nil
         }

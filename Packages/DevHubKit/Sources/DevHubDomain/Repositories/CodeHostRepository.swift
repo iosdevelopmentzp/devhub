@@ -32,4 +32,5 @@ package protocol CodeHostRepository: Sendable {
     func markInboxDone(id: String, repository: CodeHost) async throws
     func setSubscribed(_ subscribed: Bool, requests: [PullRequestSummary], repository: CodeHost) async throws
     func retryJob(jobID: String, repository: CodeHost) async throws
+    func access(repository: CodeHost) async throws -> CodeHostAccess
 }

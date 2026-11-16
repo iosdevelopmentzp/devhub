@@ -71,8 +71,16 @@ struct FileChangeRow: View {
                     onStage()
                 }
             }
-            IconButton(systemImage: "square.and.pencil", help: "Open the file in the editor chosen in Settings") {
-                appActions.openFile(path: model.fullPath)
+            if model.canOpen {
+                IconButton(systemImage: "square.and.pencil", help: "Open the file in the editor chosen in Settings") {
+                    appActions.openFile(path: model.fullPath)
+                }
+            }
+            IconButton(systemImage: "folder", help: "Show the file in Finder") {
+                appActions.revealInFinder(path: model.revealPath)
+            }
+            IconButton(systemImage: "doc.on.doc", help: "Copy the path: \(model.path)") {
+                toaster.copy(model.path)
             }
             IconButton(systemImage: "arrow.uturn.backward", help: model.discardHint, tint: .red) {
                 isConfirmingDiscard = true
@@ -96,12 +104,19 @@ struct FileChangeRow: View {
 
     @ViewBuilder
     private var menu: some View {
-        Button("Show Diff", systemImage: "text.alignleft") { onToggleDiff() }
-        Button("Open in Editor", systemImage: "square.and.pencil") { appActions.openFile(path: model.fullPath) }
-        Button("Reveal in Finder", systemImage: "folder") { appActions.openInFinder(path: model.folderPath) }
+        Button(model.isExpanded ? "Hide Diff" : "Show Diff", systemImage: "text.alignleft") { onToggleDiff() }
+        if model.canOpen {
+            Button("Open in Editor", systemImage: "square.and.pencil") { appActions.openFile(path: model.fullPath) }
+            Button("Open with Default App", systemImage: "arrow.up.forward.app") { appActions.openWithDefaultApp(path: model.fullPath) }
+        }
+        Button("Show in Finder", systemImage: "folder") { appActions.revealInFinder(path: model.revealPath) }
         Divider()
         Button("Copy Path", systemImage: "doc.on.doc") { toaster.copy(model.path) }
+        Button("Copy Full Path", systemImage: "doc.on.doc") { toaster.copy(model.fullPath) }
         Button("Copy File Name", systemImage: "doc.on.doc") { toaster.copy(model.fileName) }
+        if let diffText = model.diffText {
+            Button("Copy Diff", systemImage: "doc.on.clipboard") { toaster.copy(diffText, label: "diff of \(model.fileName)") }
+        }
     }
 }
 

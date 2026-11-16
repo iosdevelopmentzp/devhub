@@ -10,6 +10,7 @@ struct BuildIssueRowModel: Identifiable, Equatable {
     var path: String?
     var line: Int?
     var hint: String
+    var copyText: String
 
     static let preview = BuildIssueRowModel(
         id: 0,
@@ -19,6 +20,7 @@ struct BuildIssueRowModel: Identifiable, Equatable {
         message: "cannot find 'viewModel' in scope",
         path: "/Users/dev/Projects/ExampleApp/LoginView.swift",
         line: 42,
-        hint: "Open /Users/dev/Projects/ExampleApp/LoginView.swift at line 42"
+        hint: "Open /Users/dev/Projects/ExampleApp/LoginView.swift at line 42",
+        copyText: "/Users/dev/Projects/ExampleApp/LoginView.swift:42:9: error: cannot find 'viewModel' in scope"
     )
 }

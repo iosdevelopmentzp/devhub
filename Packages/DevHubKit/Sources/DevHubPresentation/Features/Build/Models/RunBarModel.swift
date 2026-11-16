@@ -22,6 +22,7 @@ struct RunBarModel: Equatable {
     struct Outcome: Equatable {
         var tint: Tint
         var text: String
+        var isFailure: Bool
     }
 
     var targetLabel: String
@@ -51,7 +52,7 @@ struct RunBarModel: Equatable {
         ),
         noTargetText: "No simulator selected",
         progress: nil,
-        outcome: Outcome(tint: .green, text: "Launched on iPhone 16 Pro · 2 min ago"),
+        outcome: Outcome(tint: .green, text: "Launched on iPhone 16 Pro · 2 min ago", isFailure: false),
         isRunning: false,
         canRun: true,
         canAttach: true,

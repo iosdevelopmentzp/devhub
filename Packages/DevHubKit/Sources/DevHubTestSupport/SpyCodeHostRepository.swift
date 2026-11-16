@@ -34,6 +34,7 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
         case inbox(repository: CodeHost)
         case markInboxDone(id: String, repository: CodeHost)
         case setSubscribed(Bool, iids: [Int], repository: CodeHost)
+        case access(repository: CodeHost)
     }
 
     private let lock = NSLock()
@@ -53,6 +54,7 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
     private var _jobLogResult: Result<String, any Error> = .success("")
     private var _fileContentResult: Result<String, any Error> = .success("")
     private var _inboxResult: Result<[InboxItem], any Error> = .success([])
+    private var _accessResult: Result<CodeHostAccess, any Error> = .success(CodeHostAccess(login: "me", scopes: nil))
 
     package init() {}
 
@@ -123,6 +125,11 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
     package var fileContentResult: Result<String, any Error> {
         get { lock.withLock { _fileContentResult } }
         set { lock.withLock { _fileContentResult = newValue } }
+    }
+
+    package var accessResult: Result<CodeHostAccess, any Error> {
+        get { lock.withLock { _accessResult } }
+        set { lock.withLock { _accessResult = newValue } }
     }
 
     package var inboxResult: Result<[InboxItem], any Error> {
@@ -244,6 +251,10 @@ package final class SpyCodeHostRepository: CodeHostRepository, @unchecked Sendab
 
     package func fileContent(path: String, ref: String, repository: CodeHost) async throws -> String {
         try record(.fileContent(path: path, ref: ref, repository: repository)) { try _fileContentResult.get() }
+    }
+
+    package func access(repository: CodeHost) async throws -> CodeHostAccess {
+        try record(.access(repository: repository)) { try _accessResult.get() }
     }
 
     package func inbox(repository: CodeHost) async throws -> [InboxItem] {

@@ -21,4 +21,18 @@ import Testing
         #expect(BuildIssuesMapper.title(for: [warning, error, loose]) == "2 errors · 1 warning")
         #expect(BuildIssuesMapper.title(for: [warning]) == "1 warning")
     }
+
+    @Test func everyIssueCopiesAsACompilerLine() {
+        #expect(BuildIssuesMapper.copyText(for: [warning, error, loose]) == """
+        /p/LoginView.swift:42:9: error: cannot find 'viewModel' in scope
+        error: Unable to find a destination
+        /p/Old.swift:7: warning: deprecated
+        """)
+        #expect(BuildIssuesMapper.rows(for: [error]).first?.copyText == "/p/LoginView.swift:42:9: error: cannot find 'viewModel' in scope")
+    }
+
+    @Test func theFailureTextHasEveryErrorOrTheMessage() {
+        #expect(BuildIssuesMapper.failureText(message: "LoginView.swift:42:9: error: x", issues: [warning, error, loose]) == "/p/LoginView.swift:42:9: error: cannot find 'viewModel' in scope\nerror: Unable to find a destination")
+        #expect(BuildIssuesMapper.failureText(message: "xcodebuild exited with code 65.", issues: [warning]) == "xcodebuild exited with code 65.")
+    }
 }

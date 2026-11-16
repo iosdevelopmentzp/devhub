@@ -14,6 +14,9 @@ struct DoctorSection: View {
             ForEach(doctor.statuses, id: \.tool.name) { status in
                 DoctorRow(model: DoctorRowMapper.model(for: status)) {}
             }
+            if let access = doctor.codeHostAccess {
+                DoctorRow(model: DoctorRowMapper.codeHostAccess(access)) {}
+            }
             DoctorRow(model: DoctorRowMapper.accessibility(isTrusted: doctor.isAccessibilityTrusted)) {
                 if doctor.isAccessibilityTrusted == false {
                     Button("Open System Settings") {

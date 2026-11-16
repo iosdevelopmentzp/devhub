@@ -1,4 +1,5 @@
 import DevHubDomain
+import DevHubTestSupport
 import DevHubUI
 import Testing
 @testable import DevHubPresentation
@@ -54,5 +55,50 @@ import Testing
         #expect(model.stateTint == .blue)
         #expect(model.icon == "arrow.down.circle.fill")
         #expect(model.installCommand == "brew upgrade circleci")
+    }
+
+    @Test func aMissingScopeOffersTheRefreshCommand() {
+        let check = CodeHostAccessCheck(host: .gitHubSample, result: .success(CodeHostAccess(login: "alex", scopes: ["repo", "read:org"])))
+
+        let model = DoctorRowMapper.codeHostAccess(check)
+
+        #expect(model.name == "gh login")
+        #expect(model.stateText == "alex on github.com, missing notifications")
+        #expect(model.stateTint == .orange)
+        #expect(model.purpose == "Missing notifications (unsubscribe from pull requests)")
+        #expect(model.installCommand == "gh auth refresh --hostname github.com --scopes notifications")
+    }
+
+    @Test func everyScopeIsGreen() {
+        let check = CodeHostAccessCheck(host: .gitHubSample, result: .success(CodeHostAccess(login: "alex", scopes: ["repo", "read:org", "notifications"])))
+
+        let model = DoctorRowMapper.codeHostAccess(check)
+
+        #expect(model.stateText == "alex on github.com")
+        #expect(model.stateTint == .green)
+        #expect(model.installCommand == nil)
+    }
+
+    @Test func unknownScopesAreGray() {
+        let model = DoctorRowMapper.codeHostAccess(CodeHostAccessCheck(host: .gitLabSample, result: .success(CodeHostAccess(login: "alex", scopes: nil))))
+
+        #expect(model.name == "glab login")
+        #expect(model.stateText == "alex on gitlab.example.com, scopes unknown")
+        #expect(model.stateTint == .gray)
+    }
+
+    @Test func noLoginOffersTheLoginCommand() {
+        let model = DoctorRowMapper.codeHostAccess(CodeHostAccessCheck(host: .gitLabSample, result: .failure(.notLoggedIn(tool: "glab", host: "gitlab.example.com"))))
+
+        #expect(model.stateText == "not logged in to gitlab.example.com")
+        #expect(model.installCommand == "glab auth login --hostname gitlab.example.com")
+    }
+
+    @Test func anotherFailureShowsItsText() {
+        let model = DoctorRowMapper.codeHostAccess(CodeHostAccessCheck(host: .gitHubSample, result: .failure(.command("unknown flag: --json"))))
+
+        #expect(model.stateText == "cannot check github.com")
+        #expect(model.purpose == "unknown flag: --json")
+        #expect(model.installCommand == nil)
     }
 }

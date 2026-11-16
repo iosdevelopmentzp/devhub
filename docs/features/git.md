@@ -125,7 +125,8 @@ When a stash pop after a switch fails, the changes stay in the stash and a red R
 | Unstage All | On the Staged group | `git reset -q` |
 | Discard… / Delete… | Asks first. New file: deletes it. Unstaged or conflicted file: restores it. Staged file: restores the index and the file | `git clean -f -- <path>`, `git restore -- <path>`, `git restore --staged --worktree -- <path>` |
 | Open in Editor | Opens the file in the editor from Settings | Xcode `xed <path>`, VS Code `code --goto <path>`, Cursor `cursor --goto <path>`, Zed `zed <path>`, else `open -a <editor> <path>` |
-| Reveal in Finder, Copy Path, Copy File Name (menu) | — | — |
+| Show in Finder, Copy Path (hover and menu) | Shows the file selected in Finder (the folder for a deleted file); copies the path in the repository | — |
+| Open with Default App, Copy Full Path, Copy File Name, Copy Diff (menu) | Copy Diff shows while the diff of the file is open and copies its text. A deleted file has no Open in Editor and no Open with Default App | — |
 | Commit (⌘↩) | Commits the staged files. "Amend" replaces the last commit | `git commit -m <message> [--amend]` |
 | Commit & Push | Commits, then pushes like the Push button | `git commit -m <message>`, then `git push` or `git push -u <remote> <branch>` |
 | Write with AI | Writes the commit message from the staged diff, the branch name and the last 15 commit subjects, and puts it into the box. The button uses the tool from Settings → AI usage; its arrow picks the other one. It runs as an operation card in the tray at the bottom of the tab, with Stop | `git diff --cached --no-color --no-ext-diff`, `git log --format=%s -n 50 HEAD~15..HEAD`, then the command of the tool from `ai.textCommands` |

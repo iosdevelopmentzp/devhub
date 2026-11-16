@@ -80,7 +80,7 @@ final class StoreHarness {
 
     lazy var notifier = Notifier(repository: ports.notifications, settings: settings, activity: activity)
 
-    lazy var doctor = DoctorStore(checkTools: useCases.checkTools, attacher: ports.attacher)
+    lazy var doctor = DoctorStore(checkTools: useCases.checkTools, attacher: ports.attacher, repository: ports.codeHost, remote: codeHostRemote)
     lazy var xcodes = XcodeSelectionStore(repository: ports.xcodes, environment: ports.toolEnvironment, session: session, config: config, activity: activity, events: events)
     lazy var keepAwake = KeepAwakeStore(preventer: ports.sleep, activity: activity)
 
