@@ -31,7 +31,7 @@ extension ConfigActionsStore {
             _ = workspace.openTarget(target, relativeTo: ProjectPath(session.selectedProject.path).expanded)
         case let .notify(notification, body):
             activity.log(notification, detail: body ?? title, outcome: .info, kind: .scripts, target: nil)
-            notifier.notify(.scripts, title: notification, body: body ?? title, target: nil)
+            notifier.notify(.scripts, symbol: nil, title: notification, body: body ?? title, target: nil)
         case let .refresh(targets):
             outcome.refresh.formUnion(targets)
         case let .error(message):

@@ -129,7 +129,7 @@ final class InboxStore {
             let title = InboxItemText.title(for: item, words: words)
             let target = InboxItemText.target(for: item)
             activity.log(title, detail: item.excerpt ?? item.title, outcome: .info, kind: .inbox, target: target)
-            notifier.notify(.inbox, title: title, body: item.excerpt ?? item.title, target: target)
+            notifier.notify(.inbox, symbol: .inbox, title: title, body: item.excerpt ?? item.title, target: target)
         }
     }
 

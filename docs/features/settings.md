@@ -41,6 +41,7 @@ Each section is explained under "Actions".
 | Control | What it does |
 |---|---|
 | Notify while the panel is closed | The main switch, on by default. Off: no notification of the kinds below, except the script ones. Every event still goes to the Notifications screen (the bell) and to Recent on Home |
+| Emoji in titles | On by default. A sign before the title of each notification shows the result: ✅ built or tests passed, 🚀 launched, ❌ build, tests or video failed, ⚠️ tests did not run, 👍 approved, ✏️ changes requested, 🟢 checks passed, 🔴 checks failed (also the base branch), 🎉 merged, 🚫 closed without a merge, 💬 comments, 👀 new review request, ⏰ review reminder, ✋ a CI job waits for your approval, 🔁 auto re-run, 🛑 auto re-run stopped, 📥 Inbox, 💥 crash, 🎬 video compressed. A script notification has no sign. Off: plain titles |
 | Builds | A build or a launch finished, or the build failed. A click on the notification opens the run bar in the Simulators tab |
 | Test runs | The tests of a worktree finished or did not run. A click opens the Worktrees tab |
 | Pull Requests waiting for your review | The number of requests that wait for your review went up. A click opens that list |
@@ -65,7 +66,8 @@ Rules of the notifications:
 4. The menu bar icon shows a circle while a build runs. After a failed build while the panel is closed, it shows a red dot until you open the panel. With "Show the CI state of my requests on the menu bar icon" on, it also shows a red dot while the checks of one of your open requests failed and an orange dot while a CircleCI job of one waits for an approval; these dots stay until the checks pass or the job is approved.
 5. Changes of your own requests come from the read of the open requests every 5 minutes, or every 2 minutes while the panel is closed ([Pull Requests](pull-requests.md#other-places-that-use-the-same-data)). A refresh after an action of yours in DevHub (a comment, an approval) updates the baseline without a report.
 
-6. A click on a notification opens DevHub at the place of the event: a request, the review list, the Worktrees tab or the run bar. Every event is also in the Notifications screen (the bell in the header, [Notifications](notifications.md)).
+6. The sign is added only to the macOS notification. The Notifications screen and Recent on Home keep the plain title.
+7. A click on a notification opens DevHub at the place of the event: a request, the review list, the Worktrees tab or the run bar. Every event is also in the Notifications screen (the bell in the header, [Notifications](notifications.md)).
 
 ### AI usage
 

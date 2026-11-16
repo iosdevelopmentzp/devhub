@@ -47,21 +47,22 @@ final class Notifier {
         repository.activations()
     }
 
-    func buildFinished(title: String, detail: String, failed: Bool) {
-        if failed, isPanelShown == false {
+    func buildFinished(title: String, detail: String, symbol: NotificationSymbol) {
+        if symbol == .failure, isPanelShown == false {
             hasUnseenFailure = true
         }
-        notify(.build, title: title, body: detail, target: .build)
+        notify(.build, symbol: symbol, title: title, body: detail, target: .build)
     }
 
-    func notify(_ kind: NotificationKind, title: String, body: String?, target: ActivityTarget?) {
+    func notify(_ kind: NotificationKind, symbol: NotificationSymbol?, title: String, body: String?, target: ActivityTarget?) {
         guard settings.values.notifies(kind) else { return }
         if kind.showsWhilePanelIsOpen == false {
             guard isPanelShown == false, settings.values.notifyWhenPanelClosed else { return }
         }
+        let shown = NotificationSymbol.title(title, symbol: symbol, showsEmoji: settings.values.notificationEmoji)
         Task { [weak self] in
             guard let self else { return }
-            await deliver(title: title, body: body, target: target)
+            await deliver(title: shown, body: body, target: target)
         }
     }
 

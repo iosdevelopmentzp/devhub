@@ -139,7 +139,7 @@ import DevHubTestSupport
         #expect(harness.activityTitles.filter { $0 == "CI of dev failed: build-and-test" }.count == 1)
         #expect(harness.lastActivity?.kind == .baseBranchChecks)
         #expect(harness.lastActivity?.target == .git)
-        try await waitUntil { harness.spies.notifications.posted == [.post(title: "CI of dev failed: build-and-test", body: "ABC-12: Login", target: .git)] }
+        try await waitUntil { harness.spies.notifications.posted == [.post(title: "🔴 CI of dev failed: build-and-test", body: "ABC-12: Login", target: .git)] }
 
         harness.spies.ci.branchRunsResult = .success([run(.success, id: "fixed", branch: "dev")])
         #expect(await store.checkBase())

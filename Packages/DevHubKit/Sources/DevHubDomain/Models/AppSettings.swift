@@ -18,6 +18,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
     package var autoFetchMinutes = 0
     package var notifyWhenPanelClosed = true
     package var mutedNotifications: Set<NotificationKind> = []
+    package var notificationEmoji = true
     package var windowMode = WindowMode.panel
     package var diffFontSize = DiffFontSizePolicy.standard
     package var diffSyntaxColors = true
@@ -40,6 +41,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         autoFetchMinutes: Int = 0,
         notifyWhenPanelClosed: Bool = true,
         mutedNotifications: Set<NotificationKind> = [],
+        notificationEmoji: Bool = true,
         windowMode: WindowMode = WindowMode.panel,
         diffFontSize: Int = DiffFontSizePolicy.standard,
         diffSyntaxColors: Bool = true
@@ -61,6 +63,7 @@ package struct AppSettings: Hashable, Codable, Sendable {
         self.autoFetchMinutes = autoFetchMinutes
         self.notifyWhenPanelClosed = notifyWhenPanelClosed
         self.mutedNotifications = mutedNotifications
+        self.notificationEmoji = notificationEmoji
         self.windowMode = windowMode
         self.diffFontSize = diffFontSize
         self.diffSyntaxColors = diffSyntaxColors
@@ -89,6 +92,7 @@ extension AppSettings {
             autoFetchMinutes: try container.decodeIfPresent(Int.self, forKey: .autoFetchMinutes) ?? defaults.autoFetchMinutes,
             notifyWhenPanelClosed: try container.decodeIfPresent(Bool.self, forKey: .notifyWhenPanelClosed) ?? defaults.notifyWhenPanelClosed,
             mutedNotifications: (try? container.decodeIfPresent(Set<NotificationKind>.self, forKey: .mutedNotifications)) ?? defaults.mutedNotifications,
+            notificationEmoji: try container.decodeIfPresent(Bool.self, forKey: .notificationEmoji) ?? defaults.notificationEmoji,
             windowMode: (try? container.decodeIfPresent(WindowMode.self, forKey: .windowMode)) ?? defaults.windowMode,
             diffFontSize: DiffFontSizePolicy.clamped((try? container.decodeIfPresent(Int.self, forKey: .diffFontSize)) ?? defaults.diffFontSize),
             diffSyntaxColors: try container.decodeIfPresent(Bool.self, forKey: .diffSyntaxColors) ?? defaults.diffSyntaxColors

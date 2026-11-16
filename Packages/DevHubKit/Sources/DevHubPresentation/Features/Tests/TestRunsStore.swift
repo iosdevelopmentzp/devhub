@@ -101,7 +101,7 @@ final class TestRunsStore {
             } catch {
                 runs[id]?.phase = .notRun(error.localizedDescription, .now)
                 activity.log("Tests did not run: \(worktree.displayName)", detail: error.localizedDescription, outcome: .failure, kind: .tests, target: .worktree(path: worktree.path))
-                notifier.notify(.tests, title: "Tests did not run: \(worktree.displayName)", body: error.localizedDescription, target: .worktree(path: worktree.path))
+                notifier.notify(.tests, symbol: .warning, title: "Tests did not run: \(worktree.displayName)", body: error.localizedDescription, target: .worktree(path: worktree.path))
             }
             tasks[id] = nil
         }
@@ -194,7 +194,7 @@ final class TestRunsStore {
         let detail = "\(counts) · \(run.scheme) · \(run.simulatorName)"
         let title = status == .passed ? "Tests passed: \(worktree.displayName)" : "Tests failed: \(worktree.displayName)"
         activity.log(title, detail: detail, outcome: status == .passed ? .success : .failure, kind: .tests, target: .worktree(path: worktree.path))
-        notifier.notify(.tests, title: title, body: counts, target: .worktree(path: worktree.path))
+        notifier.notify(.tests, symbol: status == .passed ? .success : .failure, title: title, body: counts, target: .worktree(path: worktree.path))
     }
 
     private func cancelAll() {

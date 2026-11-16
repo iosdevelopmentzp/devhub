@@ -185,7 +185,7 @@ final class VideoCompressionStore {
         let detail = VideoCompressionText.change(original: original, compressed: result.size)
         let name = (result.path as NSString).lastPathComponent
         activity.log("Compressed \(job.name)", detail: "\(name) · \(detail)", outcome: .success, kind: .utilities, target: .utilities)
-        notifier.notify(.utilities, title: "Video compressed: \(job.name)", body: detail, target: .utilities)
+        notifier.notify(.utilities, symbol: .video, title: "Video compressed: \(job.name)", body: detail, target: .utilities)
     }
 
     private func fail(_ job: VideoJob, error: any Error) {
@@ -196,7 +196,7 @@ final class VideoCompressionStore {
         }
         update(job.id) { $0.state = .failed(error.localizedDescription) }
         activity.log("Could not compress \(job.name)", detail: error.localizedDescription, outcome: .failure, kind: .utilities, target: .utilities)
-        notifier.notify(.utilities, title: "Could not compress \(job.name)", body: error.localizedDescription, target: .utilities)
+        notifier.notify(.utilities, symbol: .failure, title: "Could not compress \(job.name)", body: error.localizedDescription, target: .utilities)
     }
 
     private func update(_ id: VideoJob.ID, _ change: (inout VideoJob) -> Void) {

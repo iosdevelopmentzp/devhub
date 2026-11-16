@@ -92,7 +92,7 @@ final class CrashReportsStore {
         let title = "\(report.processName) crashed"
         let detail = CrashBannerMapper.detail(for: report)
         activity.log(title, detail: detail, outcome: .failure, kind: .crashes, target: .build)
-        notifier.notify(.crashes, title: title, body: detail, target: .build)
+        notifier.notify(.crashes, symbol: .crash, title: title, body: detail, target: .build)
     }
 
     private func startWatching() {

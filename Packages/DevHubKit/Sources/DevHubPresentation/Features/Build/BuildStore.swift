@@ -322,10 +322,10 @@ final class BuildStore: BuildLookup {
                 switch goal {
                 case .build:
                     activity.log("Built \(scheme)", detail: "\(configuration) · \(sourceName)", outcome: .success, kind: .build, target: .build)
-                    notifier.buildFinished(title: "Built \(scheme)", detail: "\(configuration) · \(sourceName)", failed: false)
+                    notifier.buildFinished(title: "Built \(scheme)", detail: "\(configuration) · \(sourceName)", symbol: .success)
                 case .run, .runAndAttach:
                     activity.log(goal.attachesDebugger ? "Launched \(scheme), Xcode attached" : "Launched \(scheme)", detail: "\(simulator.name) · \(configuration) · \(sourceName)\(profileTitle)", outcome: .success, kind: .build, target: .build)
-                    notifier.buildFinished(title: "Launched \(scheme)", detail: "\(simulator.name) · \(sourceName)", failed: false)
+                    notifier.buildFinished(title: "Launched \(scheme)", detail: "\(simulator.name) · \(sourceName)", symbol: .launched)
                 }
             } catch is CancellationError {
                 state.phase = .idle
@@ -334,7 +334,7 @@ final class BuildStore: BuildLookup {
                 logCheckoutFailure(error)
                 state.phase = .failed(error.localizedDescription)
                 activity.log("Build failed", detail: error.localizedDescription, outcome: .failure, kind: .build, target: .build)
-                notifier.buildFinished(title: "Build failed: \(scheme)", detail: error.localizedDescription, failed: true)
+                notifier.buildFinished(title: "Build failed: \(scheme)", detail: error.localizedDescription, symbol: .failure)
             }
             buildTask = nil
             events.post(.buildFinished(simulatorID: simulator.id, launch: launchRecord))

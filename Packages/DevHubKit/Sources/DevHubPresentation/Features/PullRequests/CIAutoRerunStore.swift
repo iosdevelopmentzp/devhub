@@ -152,17 +152,17 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
             let failed = zip(workflows, decisions).filter { $0.1 == .rerun }.map(\.0)
             await rerun(failed, of: iid, project: project, failedTests: testsByWorkflow)
         case .succeeded:
-            finish(iid, title: "\(words.checksTitle) of \(reference) passed", body: afterText(plan.attempts), outcome: .success)
+            finish(iid, title: "\(words.checksTitle) of \(reference) passed", body: afterText(plan.attempts), outcome: .success, symbol: .rerun)
         case .cancelled:
-            finish(iid, title: "Auto re-run of \(reference) stopped", body: "A CircleCI workflow was cancelled", outcome: .info)
+            finish(iid, title: "Auto re-run of \(reference) stopped", body: "A CircleCI workflow was cancelled", outcome: .info, symbol: .stopped)
         case .exhausted:
-            finish(iid, title: "Auto re-run of \(reference) gave up", body: "The \(words.checks) failed again after \(CountText.count(plan.maxAttempts, "re-run", "re-runs"))", outcome: .failure)
+            finish(iid, title: "Auto re-run of \(reference) gave up", body: "The \(words.checks) failed again after \(CountText.count(plan.maxAttempts, "re-run", "re-runs"))", outcome: .failure, symbol: .stopped)
         case .stopped(let reason):
             for (workflow, decision) in zip(workflows, decisions) {
                 guard case .stopped = decision else { continue }
                 history.remember(workflow, failedTests: testsByWorkflow[workflow.id] ?? [:], for: iid)
             }
-            finish(iid, title: "Auto re-run of \(reference) stopped", body: "No re-run: \(reason)", outcome: .failure)
+            finish(iid, title: "Auto re-run of \(reference) stopped", body: "No re-run: \(reason)", outcome: .failure, symbol: .stopped)
         }
     }
 
@@ -193,7 +193,7 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
             didRerun = true
             let title = "Re-run \(updated.attempts) of \(updated.maxAttempts): \(workflow.name) of \(reference)"
             activity.log(title, detail: "The failed jobs run again (circleci workflow rerun --from-failed)", outcome: .info, kind: .requestChecks, target: .pullRequest(iid: iid))
-            notifier.notify(.requestChecks, title: title, body: nil, target: .pullRequest(iid: iid))
+            notifier.notify(.requestChecks, symbol: .rerun, title: title, body: nil, target: .pullRequest(iid: iid))
         }
         if didRerun {
             events.post(.pullRequestChecksChanged(iid: iid))
@@ -237,12 +237,12 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
             : "A re-run happens after every failure"
     }
 
-    private func finish(_ iid: Int, title: String, body: String, outcome: ActivityEvent.Outcome) {
+    private func finish(_ iid: Int, title: String, body: String, outcome: ActivityEvent.Outcome, symbol: NotificationSymbol) {
         plans[iid] = nil
         loggedErrors[iid] = nil
         save()
         activity.log(title, detail: body, outcome: outcome, kind: .requestChecks, target: .pullRequest(iid: iid))
-        notifier.notify(.requestChecks, title: title, body: body, target: .pullRequest(iid: iid))
+        notifier.notify(.requestChecks, symbol: symbol, title: title, body: body, target: .pullRequest(iid: iid))
     }
 
     private func report(_ error: Error, of iid: Int) {

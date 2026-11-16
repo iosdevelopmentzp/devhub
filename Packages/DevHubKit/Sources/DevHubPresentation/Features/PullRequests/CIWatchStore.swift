@@ -132,7 +132,7 @@ final class CIWatchStore {
             let title = "\(job.name) of \(words.reference(iid)) waits for your approval"
             let body = "Approve it from the \(words.checks) of the \(words.request) in DevHub"
             activity.log(title, detail: body, outcome: .info, kind: .requestApprovals, target: .pullRequest(iid: iid))
-            notifier.notify(.requestApprovals, title: title, body: body, target: .pullRequest(iid: iid))
+            notifier.notify(.requestApprovals, symbol: .waitsForApproval, title: title, body: body, target: .pullRequest(iid: iid))
         }
         saveNotified()
     }
