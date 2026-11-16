@@ -29,6 +29,7 @@ enum FileChangeRowMapper {
             folderPath: folderPath,
             revealPath: isDeleted ? folderPath : fullPath,
             canOpen: isDeleted == false,
+            canHide: change.area == .unstaged && change.kind == .modified,
             isStaged: isStaged,
             stageIcon: isStaged ? "minus.circle" : "plus.circle",
             stageHint: stageHint(change.area),

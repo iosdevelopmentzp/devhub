@@ -48,7 +48,7 @@ Packages/DevHubKit/
   Sources/
     DevHubDomain/
       Models/ Values/ Repositories/ Policies/ UseCases/ Errors/ Syntax/
-      Assembly/                  Ports (the 21 ports), UseCases (the 16 use cases)
+      Assembly/                  Ports (the 21 ports), UseCases (the 22 use cases)
     DevHubData/
       Shell/                     ShellRunner, ShellResult, LineBatcher, CommandFormatter, ISO8601
       Persistence/               UserDefaultsKeyValueStore
@@ -187,7 +187,7 @@ The UI rules are in `/ui-components`.
 | `Ports` | Domain `Assembly/Ports.swift` | struct with the 21 ports |
 | `Ports.live(shell:)` | Data `Assembly/Ports+Live.swift` | builds every live repository once, passes file roots |
 | `Ports.mock()` | Mocks `Ports+Mock.swift` | builds every mock |
-| `UseCases(ports:)` | Domain `Assembly/UseCases.swift` | builds the 16 use cases |
+| `UseCases(ports:)` | Domain `Assembly/UseCases.swift` | builds the 22 use cases |
 | `PresentationAssembly(ports:useCases:store:commandLog:projects:selectedProjectID:settings:recentEvents:)` | Presentation `Shared/` | builds every shared object and store, in order |
 | `PresentationAssembly.preview()` | Presentation `Shared/PresentationAssembly+Preview.swift` | mocks, `InMemoryKeyValueStore`, `MockData` sample state |
 | `View.inject(_:)`, `View.previewEnvironment()` | Presentation `Shared/` | put the assembly into the environment; previews call `.previewEnvironment()` |

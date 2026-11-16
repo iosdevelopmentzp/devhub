@@ -13,6 +13,8 @@ package final class SpyGitChangesRepository: GitChangesRepository, @unchecked Se
         case branchesContaining(hash: String, path: String)
         case reflog(path: String)
         case patch(GitPatchScope, path: String)
+        case hiddenFiles(path: String)
+        case hiddenDiff(GitHiddenFile, path: String)
     }
 
     private let lock = NSLock()
@@ -24,11 +26,31 @@ package final class SpyGitChangesRepository: GitChangesRepository, @unchecked Se
     private var _reflogResult: Result<[GitReflogEntry], any Error> = .success([])
     private var _commitDiffResult: Result<GitDiff, any Error> = .success(GitDiff(lines: [], droppedLines: 0, isBinary: false))
     private var _patchResult: Result<String, any Error> = .success("")
+    private var _hiddenFilesResult: Result<[GitHiddenFile], any Error> = .success([])
+    private var _hiddenDiffResult: Result<GitDiff, any Error> = .success(GitDiff(lines: [], droppedLines: 0, isBinary: false))
     private var _stashFilesResult: Result<[GitCommitFile], any Error> = .success([])
     private var _stashDiffResult: Result<GitDiff, any Error> = .success(GitDiff(lines: [], droppedLines: 0, isBinary: false))
     private var _branchesContainingResult: Result<[GitCommitRef], any Error> = .success([])
 
     package init() {}
+
+    package var hiddenFilesResult: Result<[GitHiddenFile], any Error> {
+        get { lock.withLock { _hiddenFilesResult } }
+        set { lock.withLock { _hiddenFilesResult = newValue } }
+    }
+
+    package var hiddenDiffResult: Result<GitDiff, any Error> {
+        get { lock.withLock { _hiddenDiffResult } }
+        set { lock.withLock { _hiddenDiffResult = newValue } }
+    }
+
+    package func hiddenFiles(in path: String) async throws -> [GitHiddenFile] {
+        try record(.hiddenFiles(path: path)) { try _hiddenFilesResult.get() }
+    }
+
+    package func hiddenDiff(for file: GitHiddenFile, in path: String) async throws -> GitDiff {
+        try record(.hiddenDiff(file, path: path)) { try _hiddenDiffResult.get() }
+    }
 
     package var patchResult: Result<String, any Error> {
         get { lock.withLock { _patchResult } }

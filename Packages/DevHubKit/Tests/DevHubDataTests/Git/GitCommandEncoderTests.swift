@@ -37,6 +37,10 @@ import Testing
         (.unstageAll, ["reset", "-q"]),
         (.commit(message: "ABC-1: Fix", amend: false), ["commit", "-m", "ABC-1: Fix"]),
         (.commit(message: "ABC-1: Fix", amend: true), ["commit", "-m", "ABC-1: Fix", "--amend"]),
+        (.hide(path: "a b.plist", flag: .skipWorktree), ["update-index", "--skip-worktree", "--", "a b.plist"]),
+        (.hide(path: "a.plist", flag: .assumeUnchanged), ["update-index", "--assume-unchanged", "--", "a.plist"]),
+        (.unhide(path: "a.plist"), ["update-index", "--no-skip-worktree", "--no-assume-unchanged", "--", "a.plist"]),
+        (.stashPath(path: "a.plist", message: "Hidden changes of a.plist"), ["stash", "push", "-m", "Hidden changes of a.plist", "--", "a.plist"]),
     ]
 
     @Test(arguments: table)
@@ -60,6 +64,6 @@ import Testing
 
     @Test func tableCoversEveryCase() {
         let names = Set(Self.table.map { String(describing: $0.0).prefix { $0 != "(" } })
-        #expect(names.count == 25)
+        #expect(names.count == 28)
     }
 }

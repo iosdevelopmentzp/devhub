@@ -37,6 +37,7 @@ extension View {
             .environment(assembly.branchMarks)
             .environment(assembly.scriptList)
             .environment(assembly.changes)
+            .environment(assembly.hiddenFiles)
             .environment(assembly.history)
             .environment(assembly.branchPullRequest)
             .environment(assembly.ciBranchRuns)

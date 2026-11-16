@@ -27,6 +27,7 @@ package final class PresentationAssembly {
     let branchMarks: BranchMarksStore
     let scriptList: ScriptListStore
     let changes: GitChangesStore
+    let hiddenFiles: GitHiddenFilesStore
     let history: CommitHistoryStore
     let codeHostRemote: CodeHostRemote
     let ciProjects: CIProjectResolver
@@ -133,6 +134,15 @@ package final class PresentationAssembly {
             git: ports.git,
             discardChange: useCases.discardChange,
             commitChanges: useCases.commit,
+            checkout: git,
+            activity: activity,
+            operations: operations,
+            events: events
+        )
+        hiddenFiles = GitHiddenFilesStore(
+            repository: ports.changes,
+            git: ports.git,
+            trackHiddenFile: useCases.trackHiddenFile,
             checkout: git,
             activity: activity,
             operations: operations,

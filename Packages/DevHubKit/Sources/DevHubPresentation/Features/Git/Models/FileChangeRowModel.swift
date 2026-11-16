@@ -14,6 +14,7 @@ struct FileChangeRowModel: Identifiable, Equatable {
     var folderPath: String
     var revealPath: String
     var canOpen: Bool
+    var canHide: Bool
     var isStaged: Bool
     var stageIcon: String
     var stageHint: String
@@ -40,6 +41,7 @@ struct FileChangeRowModel: Identifiable, Equatable {
         folderPath: "/Users/dev/example-app/ExampleApp/Features/Call",
         revealPath: "/Users/dev/example-app/ExampleApp/Features/Call/CallPromptView.swift",
         canOpen: true,
+        canHide: true,
         isStaged: false,
         stageIcon: "plus.circle",
         stageHint: "Stage: include in the next commit",

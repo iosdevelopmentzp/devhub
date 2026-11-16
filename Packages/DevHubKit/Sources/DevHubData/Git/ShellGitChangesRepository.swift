@@ -66,6 +66,39 @@ struct ShellGitChangesRepository: GitChangesRepository {
         try await git.run(Self.patchArguments(scope), in: path)
     }
 
+    func hiddenFiles(in path: String) async throws -> [GitHiddenFile] {
+        let entries = GitHiddenFilesParser.entries(try await git.run(["ls-files", "-v", "-s", "-z"], in: path))
+        let present = entries.filter { FileManager.default.fileExists(atPath: (path as NSString).appendingPathComponent($0.path)) }
+        let hashes = present.isEmpty ? [] : try await git.run(["hash-object", "--"] + present.map(\.path), in: path).split(separator: "\n").map(String.init)
+        let current = hashes.count == present.count ? Dictionary(uniqueKeysWithValues: zip(present.map(\.path), hashes)) : [:]
+        return entries.map { entry in
+            GitHiddenFile(path: entry.path, flags: entry.flags, state: Self.state(of: entry, current: current, isPresent: present.contains(entry)))
+        }
+    }
+
+    func hiddenDiff(for file: GitHiddenFile, in path: String) async throws -> GitDiff {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("devhub-hidden-\(UUID().uuidString)").path
+        defer { try? FileManager.default.removeItem(atPath: folder) }
+        _ = try await git.run(Self.indexCopyArguments(file.path, into: folder), in: path)
+        let copy = (folder as NSString).appendingPathComponent(file.path)
+        let result = try await git.result(Self.hiddenDiffArguments(copy: copy, file: file), in: path)
+        guard result.exitCode == 0 || result.exitCode == 1 else { throw WorktreeError.command(result.failureMessage) }
+        return cap(result.stdout.replacingOccurrences(of: String(copy.dropFirst()), with: file.path))
+    }
+
+    static func indexCopyArguments(_ file: String, into folder: String) -> [String] {
+        ["checkout-index", "--ignore-skip-worktree-bits", "--prefix=\(folder)/", "--", file]
+    }
+
+    static func hiddenDiffArguments(copy: String, file: GitHiddenFile) -> [String] {
+        ["diff", "--no-index", "--no-color", "--no-ext-diff", "--", copy, file.state == .deleted ? "/dev/null" : file.path]
+    }
+
+    static func state(of entry: GitHiddenFilesParser.Entry, current: [String: String], isPresent: Bool) -> GitHiddenFile.State {
+        guard isPresent else { return .deleted }
+        return current[entry.path] == entry.objectID ? .unchanged : .modified
+    }
+
     static func patchArguments(_ scope: GitPatchScope) -> [String] {
         switch scope {
         case .staged:

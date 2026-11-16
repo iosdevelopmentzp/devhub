@@ -13,6 +13,7 @@ struct GitView: View {
     @Environment(NewPullRequestStore.self) private var newPullRequest
     @Environment(AppActions.self) private var appActions
     @Environment(ConfigActionsStore.self) private var configActions
+    @Environment(GitHiddenFilesStore.self) private var hidden
     @Environment(\.panelOpenCount) private var openCount
     @Environment(\.codeHostWords) private var words
 
@@ -38,6 +39,7 @@ struct GitView: View {
                         Text("History").tag(GitStore.Section.history)
                         Text("Reflog").tag(GitStore.Section.reflog)
                         Text(changesTitle).tag(GitStore.Section.changes)
+                        Text(hidden.files.isEmpty ? "Hidden" : "Hidden \(hidden.files.count)").tag(GitStore.Section.hidden)
                         if git.stashes.isEmpty == false {
                             Text("Stash \(git.stashes.count)").tag(GitStore.Section.stash)
                         }
@@ -78,6 +80,9 @@ struct GitView: View {
         }
         .task(id: openCount) {
             await openPullRequests.refreshIfStale()
+        }
+        .task(id: "\(git.checkoutPath)#\(openCount)") {
+            await hidden.refresh()
         }
     }
 
@@ -152,6 +157,7 @@ struct GitView: View {
         case .history: history.scope == .branch ? "Not in \(git.baseName) yet. Click a commit to see its files." : "Last 150 commits. Click a commit to see its files."
         case .reflog: "Where HEAD was: the last 200 moves. Lost commits stay here."
         case .changes: "Click a file to see its diff"
+        case .hidden: "Files whose changes git does not show (skip-worktree, assume-unchanged)"
         case .stash: "Shared by all worktrees. Newest first."
         }
     }
@@ -176,6 +182,8 @@ struct GitView: View {
     private var sectionContent: some View {
         if git.section == .changes {
             ChangesSection()
+        } else if git.section == .hidden {
+            HiddenSection()
         } else if git.section == .history || git.section == .reflog {
             HistorySection(showsReflog: git.section == .reflog)
         } else {
@@ -196,7 +204,7 @@ struct GitView: View {
                             stashRow(model)
                             Divider().padding(.leading, 40)
                         }
-                    case .history, .reflog, .changes:
+                    case .history, .reflog, .changes, .hidden:
                         EmptyView()
                     }
                 }

@@ -132,6 +132,16 @@ final class StoreHarness {
         events: events
     )
 
+    lazy var hiddenFiles = GitHiddenFilesStore(
+        repository: ports.changes,
+        git: ports.git,
+        trackHiddenFile: useCases.trackHiddenFile,
+        checkout: git,
+        activity: activity,
+        operations: operations,
+        events: events
+    )
+
     lazy var history = CommitHistoryStore(repository: ports.changes, checkout: git, activity: activity, events: events, store: store)
 
     lazy var branchPullRequest = BranchPullRequestStore(repository: ports.codeHost, checkout: git, events: events)

@@ -35,6 +35,7 @@ A segmented control selects one section. The choice is saved.
 | History | Scope "All": the last 150 commits of HEAD. Scope "This branch": the commits in `<base>..HEAD`. Each row shows the hash, the refs (HEAD, branches, tags), the subject, the author, the date and the tags `merge` and `not pushed` |
 | Reflog | The last 200 moves of HEAD |
 | Changes N | The commit box, then the files in groups: Conflicts, Staged, Changes, New files |
+| Hidden N | Tracked files whose changes git does not show: the `skip-worktree` or `assume-unchanged` flag of `git update-index`. See "Hidden files" below |
 | Stash N | Only when the stash is not empty. Each entry shows the message, `stash@{n}`, the branch and the date. A click lists the files of the stash, untracked ones with `?`; a click on a file shows its diff |
 
 A click on a commit or a reflog row lists its files. A click on a file shows its diff. A click on a changed file shows its diff. Inside a changed pair of lines the words that differ get a stronger background. A `.swift` file shows its code in the colours of Xcode (ADR 019; Settings → General turns it off). A diff shows at most 4,000 lines.
@@ -133,6 +134,25 @@ When a stash pop after a switch fails, the changes stay in the stash and a red R
 
 The commit box starts with the ticket prefix of the branch (for example `ABC-123: `). Commit is disabled while there are conflicts, while the message is empty, or when nothing is staged and Amend is off. "Write with AI" fails with "There are no changes to describe." when nothing is staged.
 
+### Hidden files
+
+A file with the `skip-worktree` or `assume-unchanged` flag does not appear in `git status`, so Changes does not list it. The Hidden section lists these files of the current checkout. The count in the section control is read when the Git tab opens.
+
+Each row shows a letter (`M` changed on disk, `D` deleted on disk, `=` same as in git), the file name, a purple tag per flag (its hint explains the flag) and the folder. A click shows the hidden diff: the index version of the file against the file on disk.
+
+| Action | What it does | Command |
+|---|---|---|
+| List | Reads the flags and the index object of every tracked file, then hashes the files on disk to find the changed ones | `git ls-files -v -s -z`, `git hash-object -- <paths>` |
+| Hidden diff (click) | Copies the index version into a temporary folder and compares it with the file | `git checkout-index --ignore-skip-worktree-bits --prefix=<temp>/ -- <path>`, `git diff --no-index --no-color --no-ext-diff -- <temp>/<path> <path>` (`/dev/null` for a deleted file) |
+| Hide a File… → skip-worktree or assume-unchanged | Picks one or more files of the checkout and sets the flag. A file outside the checkout is skipped with a line in Recent | `git update-index --skip-worktree -- <path>` or `--assume-unchanged` |
+| Hide Changes from Git (menu of a changed file in Changes) | Only for an unstaged modified file | `git update-index --skip-worktree -- <path>` |
+| Track Again (eye, menu) | Clears both flags. The changes of the file show in Changes again | `git update-index --no-skip-worktree --no-assume-unchanged -- <path>` |
+| Stash Changes and Track Again (menu) | Clears the flags first (`git stash` does not see a hidden file), then stashes only this file with the message "Hidden changes of <path>" | the command above, then `git stash push -m <message> -- <path>` |
+| Discard Changes and Track Again… (menu, asks first) | Clears the flags, then restores the file | the command above, then `git restore -- <path>` |
+| Open in Editor, Show in Finder, Copy Path, Copy Full Path, Copy Diff (hover and menu) | — | — |
+
+`skip-worktree` is for a local version you keep (a local config): git keeps it, and a pull or a switch stops when the file changed upstream. `assume-unchanged` is a speed hint: git may drop it on a reset, a pull or a switch.
+
 ### Stash rows
 
 | Action | Command |
@@ -157,6 +177,7 @@ Each refresh reads the checkout with these commands:
 - `git log -n 150 --decorate=full …` and `git rev-list -n 150 HEAD --not --remotes=<remote>`
 - `git stash list --format=%gd%x09%H%x09%ct%x09%gs`, `git remote get-url <remote>`
 - `git status --porcelain=v1 -z --untracked-files=all` for the Changes section
+- `git ls-files -v -s -z` and `git hash-object -- <paths>` for the Hidden section
 
 When the panel opens on the Git tab, DevHub reads the repository. When "Auto fetch" in Settings is above 0 minutes and the last fetch is older, it also runs Fetch.
 

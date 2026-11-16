@@ -12,7 +12,7 @@ package enum CommandKind: Sendable {
 
     private static let gitReads: Set<String> = [
         "status", "log", "for-each-ref", "rev-parse", "symbolic-ref", "check-ref-format", "check-ignore", "reflog",
-        "rev-list", "show-ref", "config", "diff", "cherry", "merge-base", "ls-remote", "remote", "show"
+        "rev-list", "show-ref", "config", "diff", "cherry", "merge-base", "ls-remote", "remote", "show", "ls-files", "hash-object", "checkout-index"
     ]
     private static let simctlReads: Set<String> = ["list", "get_app_container", "listapps", "bootstatus"]
     private static let plainReads: Set<String> = ["du", "ps", "grep", "plutil", "pgrep", "mdfind", "xcode-select", "ffprobe"]

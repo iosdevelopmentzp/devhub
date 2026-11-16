@@ -11,6 +11,7 @@ struct FileChangeRow: View {
     let onStage: () -> Void
     let onUnstage: () -> Void
     let onDiscard: () -> Void
+    let onHide: () -> Void
 
     @State private var isConfirmingDiscard = false
 
@@ -117,10 +118,15 @@ struct FileChangeRow: View {
         if let diffText = model.diffText {
             Button("Copy Diff", systemImage: "doc.on.clipboard") { toaster.copy(diffText, label: "diff of \(model.fileName)") }
         }
+        if model.canHide {
+            Divider()
+            Button("Hide Changes from Git", systemImage: "eye.slash") { onHide() }
+                .hint(HiddenFileRowMapper.skipWorktreeHint)
+        }
     }
 }
 
 #Preview {
-    FileChangeRow(model: .preview, onToggleDiff: {}, onStage: {}, onUnstage: {}, onDiscard: {})
+    FileChangeRow(model: .preview, onToggleDiff: {}, onStage: {}, onUnstage: {}, onDiscard: {}, onHide: {})
         .previewEnvironment()
 }

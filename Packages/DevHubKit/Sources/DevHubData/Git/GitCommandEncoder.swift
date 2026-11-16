@@ -57,6 +57,12 @@ enum GitCommandEncoder {
             return ["reset", "-q"]
         case .commit(let message, let amend):
             return ["commit", "-m", message] + (amend ? ["--amend"] : [])
+        case .hide(let path, let flag):
+            return ["update-index", "--\(flag.name)", "--", path]
+        case .unhide(let path):
+            return ["update-index", "--no-skip-worktree", "--no-assume-unchanged", "--", path]
+        case .stashPath(let path, let message):
+            return ["stash", "push", "-m", message, "--", path]
         }
     }
 
