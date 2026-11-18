@@ -388,6 +388,22 @@ import DevHubTestSupport
         #expect(on.choices.isEmpty)
     }
 
+    @Test func theLastAutoRerunNoticeShowsNextToTheControl() throws {
+        var review = PullRequestReviewState.initial
+        review.hasCIProvider = true
+        review.ciToolState = CIToolState(isInstalled: true, version: "1.13.0", isLoggedIn: true)
+        #expect(try #require(PullRequestDetailsMapper.autoRerun(review: review)).notice == nil)
+
+        review.autoRerunNotice = CIAutoRerunNotice(text: "Stopped: unit-tests failed on 3 tests that are not flaky", detail: "Auto re-run of #7 stopped. No re-run", isProblem: true)
+        let stopped = try #require(PullRequestDetailsMapper.autoRerun(review: review))
+        #expect(stopped.notice == "Stopped: unit-tests failed on 3 tests that are not flaky")
+        #expect(stopped.noticeHint == "Auto re-run of #7 stopped. No re-run")
+        #expect(stopped.noticeTint == .orange)
+
+        review.autoRerunNotice = CIAutoRerunNotice(text: "Checks passed", detail: "", isProblem: false)
+        #expect(try #require(PullRequestDetailsMapper.autoRerun(review: review)).noticeTint == .green)
+    }
+
     @Test func thePreviousCircleCIRunsGetATitle() throws {
         var withHistory = review(expanded: [])
         withHistory.ciHistory = [CIWorkflowRecord(workflow: CIWorkflow(id: "w1", name: "build", status: .failed, runID: nil, jobs: []), failedTests: [:], recordedAt: .now)]

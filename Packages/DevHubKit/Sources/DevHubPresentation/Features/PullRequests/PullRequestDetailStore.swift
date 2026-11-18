@@ -192,6 +192,7 @@ final class PullRequestDetailStore {
             ciHistory: CIHistoryPolicy.previous(in: history.records(for: id), current: Set(details[id]?.jobs.compactMap(\.ciWorkflowID) ?? [])),
             showsCIHistory: shownCIHistory.contains(id),
             autoRerunPlan: autoRerun.plan(for: id),
+            autoRerunNotice: autoRerun.notice(for: id),
             autoRerunOnlyFlaky: autoRerun.onlyFlaky,
             openJobDetails: openJobDetails,
             openTestMessages: openTestMessages,

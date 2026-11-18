@@ -108,7 +108,7 @@ enum PullRequestDetailsMapper {
 
     static func autoRerun(review: PullRequestReviewState) -> PullRequestDetailsModel.AutoRerun? {
         if let plan = review.autoRerunPlan {
-            return PullRequestDetailsModel.AutoRerun(
+            var model = PullRequestDetailsModel.AutoRerun(
                 isOn: true,
                 title: "Auto re-run \(plan.attempts) of \(plan.maxAttempts)",
                 icon: "repeat.circle.fill",
@@ -117,9 +117,11 @@ enum PullRequestDetailsMapper {
                 onlyFlaky: plan.onlyFlaky,
                 onlyFlakyHint: onlyFlakyHint
             )
+            model.add(review.autoRerunNotice)
+            return model
         }
         guard review.hasCIProvider, let state = review.ciToolState, CIPolicy.installCommand(for: state) == nil else { return nil }
-        return PullRequestDetailsModel.AutoRerun(
+        var model = PullRequestDetailsModel.AutoRerun(
             isOn: false,
             title: "Auto re-run",
             icon: "repeat.circle",
@@ -128,6 +130,8 @@ enum PullRequestDetailsMapper {
             onlyFlaky: review.autoRerunOnlyFlaky,
             onlyFlakyHint: onlyFlakyHint
         )
+        model.add(review.autoRerunNotice)
+        return model
     }
 
     static let ciDiagnosticsHint = "CI diagnostics for a bug report: the CircleCI commands DevHub ran with their output, the workflow states, the tool state and the recent CI failures. Project names, branches, logins, the home folder and the words of the anonymity list are replaced before the text leaves DevHub"

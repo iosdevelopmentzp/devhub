@@ -74,8 +74,34 @@ import DevHubTestSupport
         #expect(store.plan(for: 7) == nil)
         #expect(harness.ciHistory.records(for: 7).map(\.id) == [workflowID])
         #expect(harness.lastActivity?.title == "Auto re-run of #7 stopped")
-        #expect(harness.lastActivity?.detail == "No re-run: unit-tests failed on a test that is not flaky")
+        #expect(harness.lastActivity?.detail == "No re-run: unit-tests failed on a test that is not flaky. \(CIAutoRerunStore.onlyFlakyAdvice)")
         #expect(harness.lastActivity?.outcome == .failure)
+        #expect(store.notice(for: 7)?.text == "Stopped: unit-tests failed on a test that is not flaky")
+        #expect(store.notice(for: 7)?.isProblem == true)
+    }
+
+    @Test func anOldFailedRunOfAWorkflowThatRunsAgainIsSkipped() async {
+        script(.failed)
+        let newID = "99999999-2222-3333-4444-555555555555"
+        harness.spies.ci.flakyTestsResult = .success([])
+        harness.spies.codeHost.detailsResult = .success(PullRequestDetails(description: "", threads: [], jobs: [
+            PipelineJob(name: "ci/circleci: unit-tests", stage: nil, webURL: nil, id: nil, status: .running, ciWorkflowID: newID),
+            PipelineJob(name: "ci/circleci: unit-tests", stage: nil, webURL: nil, id: nil, status: .failed, ciWorkflowID: workflowID),
+        ]))
+        harness.spies.ci.workflowResults = [
+            newID: .success(CIWorkflow(id: newID, name: "build-and-test", status: .running, runID: "run-1", jobs: [], createdAt: Date(timeIntervalSince1970: 2_000))),
+            workflowID: .success(CIWorkflow(id: workflowID, name: "build-and-test", status: .failed, runID: "run-1", jobs: [
+                CIJob(id: "job-unit", name: "unit-tests", status: .failed, isApproval: false),
+            ], createdAt: Date(timeIntervalSince1970: 1_000))),
+        ]
+        let plan = CIAutoRerunPlan(iid: 7, maxAttempts: 3, attempts: 0, handledWorkflowIDs: [], lastRerunAt: nil)
+        seed(plan)
+
+        await store.check(7)
+
+        #expect(rerunCalls.isEmpty)
+        #expect(store.plan(for: 7) == plan)
+        #expect(store.notice(for: 7) == nil)
     }
 
     @Test func aFailureWithoutTestResultsStopsThePlan() async {
@@ -86,7 +112,7 @@ import DevHubTestSupport
         await store.check(7)
 
         #expect(rerunCalls.isEmpty)
-        #expect(harness.lastActivity?.detail == "No re-run: unit-tests failed without test results")
+        #expect(harness.lastActivity?.detail == "No re-run: unit-tests failed without test results. \(CIAutoRerunStore.onlyFlakyAdvice)")
     }
 
     @Test func everyFailureRunsAgainWhenTheModeIsOff() async throws {
@@ -137,7 +163,7 @@ import DevHubTestSupport
 
         #expect(store.plan(for: 7) == nil)
         #expect(harness.activityTitles.contains("Cannot read the flaky tests of CircleCI"))
-        #expect(harness.lastActivity?.detail == "No re-run: unit-tests failed on a test that is not flaky")
+        #expect(harness.lastActivity?.detail == "No re-run: unit-tests failed on a test that is not flaky. \(CIAutoRerunStore.onlyFlakyAdvice)")
     }
 
     @Test func aPassingWorkflowEndsThePlan() async throws {
@@ -150,6 +176,7 @@ import DevHubTestSupport
         #expect(harness.lastActivity?.title == "Checks of #7 passed")
         #expect(harness.lastActivity?.detail == "No re-run was needed")
         #expect(harness.lastActivity?.outcome == .success)
+        #expect(store.notice(for: 7) == CIAutoRerunNotice(text: "Checks passed", detail: "Checks of #7 passed. No re-run was needed", isProblem: false))
     }
 
     @Test func aFailureAfterTheLastAttemptGivesUp() async {
@@ -217,6 +244,20 @@ import DevHubTestSupport
         await store.check(7)
 
         #expect(harness.activityTitles.filter { $0 == "Auto re-run of #7 cannot read the checks" }.count == 1)
+        #expect(store.notice(for: 7)?.text == "Cannot read the checks, DevHub tries again every minute")
+        #expect(store.plan(for: 7) != nil)
+    }
+
+    @Test func aNewStartClearsTheLastNotice() async throws {
+        script(.canceled)
+        seed(CIAutoRerunPlan(iid: 7, maxAttempts: 3, attempts: 1, handledWorkflowIDs: [], lastRerunAt: nil))
+        await store.check(7)
+        #expect(store.notice(for: 7)?.text == "Stopped: a CircleCI workflow was cancelled")
+        script(.running)
+
+        store.start(7, maxAttempts: 3)
+
+        #expect(store.notice(for: 7) == nil)
     }
 
     @Test func stopRemovesTheSavedPlan() {

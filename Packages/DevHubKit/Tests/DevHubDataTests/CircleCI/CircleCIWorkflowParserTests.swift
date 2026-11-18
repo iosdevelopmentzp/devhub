@@ -11,6 +11,7 @@ import Testing
         #expect(workflow.name == "build-and-test")
         #expect(workflow.status == .failed)
         #expect(workflow.runID == CircleCIFixture.runID)
+        #expect(workflow.createdAt == Date(timeIntervalSince1970: 1_793_354_400))
         #expect(workflow.jobs.map(\.id) == ["job-build", "job-unit-tests", "job-approve-release", "job-deploy"])
         #expect(workflow.jobs.map(\.name) == ["build", "unit-tests", "approve-release", "deploy"])
         #expect(workflow.jobs.map(\.status) == [.success, .failed, .manual, .pending])
@@ -22,6 +23,7 @@ import Testing
 
         #expect(workflow.status == .running)
         #expect(workflow.jobs.isEmpty)
+        #expect(workflow.createdAt == nil)
     }
 
     @Test func aMissingIDFallsBackToTheRequestedOne() throws {

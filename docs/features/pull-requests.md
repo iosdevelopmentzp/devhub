@@ -259,6 +259,8 @@ With "Only flaky failures" (on by default, saved per project as `gitlab.autoReru
 3. The workflow that ran again waits up to 10 minutes for its new workflow to show in GitHub. After that DevHub stops waiting for it.
 4. The plan ends when every workflow passes ("Checks of #N passed"), when a workflow is cancelled ("Auto re-run of #N stopped") or when a workflow fails after the last try ("Auto re-run of #N gave up"). Each end is a line in Recent and a notification of the "Checks of my requests" kind.
 5. A running workflow or one that waits for approval keeps the plan waiting. A read error goes to Recent once until it changes.
+6. When a workflow ran again (by DevHub, by the "Re-run Failed" button or on CircleCI), the request shows both runs under the same name. DevHub reads only the newest run of each workflow name (by `created_at`; without a date, a finished run gives way to one that still runs). The older failed run does not stop the plan and does not run again.
+7. The last end of the plan, or a read error while the plan is on, shows as a short line next to the button: "Stopped: unit-tests failed on 3 tests that are not flaky" in orange, "Checks passed" in green. The hint has the full text. The line goes away when a new plan starts. A stop by "Only flaky failures" also says how to turn the mode off.
 
 ### Commands
 
