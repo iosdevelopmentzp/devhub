@@ -31,6 +31,10 @@ Every session that changes code adds lines under **Unreleased** before it ends. 
 - Pull requests: while the diffs scroll, the header of the file at the top stays visible at the top of the view with its name, counts, Viewed box and buttons, in the tab, the details pane and the request window.
 - Pull requests: find in diffs. A field above the details of the request window (⌘F) and a magnifier in the header of the details pane (⌥⌘F) find text in the diffs of every listed file, open or folded. The open diffs mark every match; Return or ⌘G goes to the next match and ⇧⌘G to the previous one, which opens its file and scrolls to its line. Esc clears the field in the window and closes the bar in the pane.
 
+### Changed
+- Window: the pin button turns the menu bar panel into the normal window, at the same place, and the pin button in the window turns it back into the panel. Before, the pin opened a separate window that stayed above every other app, the menu bar icon could not close it, and after a close the panel came back instead of the window.
+- Window mode: the menu bar icon and the global shortcut hide the window only when it is in front. When it is behind other windows, minimized, hidden or on another desktop, they bring it to the current desktop and make it active. An open popover in the window no longer stops the icon from hiding it.
+
 ### Fixed
 - Pull Requests: auto re-run no longer stops at once when the request still shows an older failed run of a workflow that already runs again. DevHub reads only the newest run of each workflow name, so the old run neither stops the plan nor runs again.
 - Build: a tool error without a file, such as `clang: error: linker command failed`, is listed in the error list with the tool name.

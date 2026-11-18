@@ -33,7 +33,7 @@ Each section is explained under "Actions".
 | Launch at login | Registers or removes DevHub as a login item (`SMAppService.mainApp`). An error shows in orange under the switch. When macOS needs approval, DevHub says so and opens System Settings → General → Login Items |
 | Window | "Menu bar panel" (default): DevHub opens under the menu bar icon and closes on a click outside it. "Normal window": one window with a title bar, a Dock icon and a main menu (DevHub, File, Edit, Window). The close button and ⌘W hide it, DevHub keeps running. The menu bar icon, the global shortcut and the Dock icon show it on the current desktop. It opens at launch when it was open when DevHub quit. The change applies at once |
 | Show Dock icon | Panel mode only. On: DevHub shows a Dock icon (activation policy `regular`). Off: menu bar only (`accessory`). Window mode always shows the Dock icon |
-| Open DevHub from anywhere | The global shortcut: Off, ⌥⌘D (default), ⌃⌥Space, ⌃⌥D. Panel mode: opens the panel, or brings the pinned window to the front. Window mode: shows the window on the current desktop, or hides it when it is in front |
+| Open DevHub from anywhere | The global shortcut: Off, ⌥⌘D (default), ⌃⌥Space, ⌃⌥D. Panel mode: opens or closes the panel. Window mode: shows the window on the current desktop, or hides it when it is in front |
 | Syntax colours in diffs | On (default): Swift code in every diff (requests, Git changes, commits, stashes) gets the colours of the Xcode light theme for keywords, types, strings, numbers, comments, attributes and directives (ADR 019). Off: one colour per line as before |
 
 ### Notifications

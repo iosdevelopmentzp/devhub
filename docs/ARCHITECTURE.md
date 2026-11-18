@@ -191,7 +191,7 @@ The UI rules are in `/ui-components`.
 | `PresentationAssembly(ports:useCases:store:commandLog:projects:selectedProjectID:settings:recentEvents:)` | Presentation `Shared/` | builds every shared object and store, in order |
 | `PresentationAssembly.preview()` | Presentation `Shared/PresentationAssembly+Preview.swift` | mocks, `InMemoryKeyValueStore`, `MockData` sample state |
 | `View.inject(_:)`, `View.previewEnvironment()` | Presentation `Shared/` | put the assembly into the environment; previews call `.previewEnvironment()` |
-| `AppWindows(assembly:)` | Presentation `Shell/` | status item, panel, pinned window; hosts `RootView().inject(assembly)` |
+| `AppWindows(assembly:)` | Presentation `Shell/` | status item, panel, main window, pull request windows; hosts `RootView().inject(assembly)` |
 | `AppContainer` (`init()`, `applicationDidFinishLaunching`) | Composition | `CommandLog`, `CommandLogRecorder`, `ShellRunner(recorder:)`, `Ports.live`, `UseCases`, `UserDefaultsKeyValueStore(defaults: .standard)`, saved projects and settings, `PresentationAssembly`, then `AppWindows` and `GlobalHotKey`; in Debug builds `DebugLaunch` reads the `DEVHUB_*` switches |
 
 Factories live next to the concrete types, so the concrete inits stay internal to their module. Adding a

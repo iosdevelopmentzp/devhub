@@ -40,7 +40,7 @@ package struct StatusDot: View {
 - `PresentationAssembly.preview()` builds the same graph over `Ports.mock()`, `InMemoryKeyValueStore` and `MockData`.
   A screen preview calls `.previewEnvironment()`.
 - `inject(_:)` also sets `\.copyToPasteboard` to `toaster.copy`, so `CopyOnClick` in DevHubUI needs no `Toaster`.
-- `AppWindows(assembly:)` (`Shell/`) owns the status item, the panel and the pinned window. See `/panel-window`.
+- `AppWindows(assembly:)` (`Shell/`) owns the status item, the panel, the main window and the pull request windows. See `/panel-window`.
 
 ## Store
 

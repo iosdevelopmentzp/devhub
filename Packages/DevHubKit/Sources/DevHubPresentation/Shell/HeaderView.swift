@@ -5,7 +5,6 @@ import DevHubUI
 struct HeaderView: View {
     @Environment(Navigator.self) private var navigator
     @Environment(AppActions.self) private var appActions
-    @Environment(SettingsStore.self) private var settings
     @Environment(ActivityLog.self) private var activity
     @Environment(InboxStore.self) private var inbox
     @Environment(\.isPinnedWindow) private var isPinnedWindow
@@ -23,14 +22,12 @@ struct HeaderView: View {
                 navigator.togglePalette()
             }
             .keyboardShortcut("k", modifiers: .command)
-            if settings.values.windowMode == .panel {
-                IconButton(
-                    systemImage: isPinnedWindow ? "pin.fill" : "pin",
-                    help: isPinnedWindow ? "Unpin: close this window, use the menu bar panel" : "Pin: keep DevHub open in a floating window",
-                    tint: isPinnedWindow ? .accentColor : .primary
-                ) {
-                    togglePin()
-                }
+            IconButton(
+                systemImage: isPinnedWindow ? "pin.fill" : "pin",
+                help: isPinnedWindow ? "Unpin: go back to the menu bar panel" : "Pin: keep DevHub open as a normal window with a Dock icon",
+                tint: isPinnedWindow ? .accentColor : .primary
+            ) {
+                togglePin()
             }
             IconButton(
                 systemImage: badgeCount > 0 ? "bell.badge" : "bell",
