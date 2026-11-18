@@ -8,6 +8,7 @@ import DevHubUI
 final class CIAutoRerunStore: CIAutoRerunLookup {
     private(set) var plans: [Int: CIAutoRerunPlan] = [:]
     private(set) var onlyFlaky = true
+    private(set) var notices: [Int: CIAutoRerunNotice] = [:]
 
     @ObservationIgnored private let repository: CodeHostRepository
     @ObservationIgnored private let ci: any CIRepository
@@ -63,6 +64,7 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
             loggedErrors = [:]
             loggedFlakyError = nil
             flakyCache = nil
+            notices = [:]
             plans = Self.loadPlans(from: store, projectID: session.selectedProjectID)
             onlyFlaky = Self.loadOnlyFlaky(from: store, projectID: session.selectedProjectID)
             resumePolling()
@@ -75,6 +77,10 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
 
     func plan(for iid: Int) -> CIAutoRerunPlan? {
         plans[iid]
+    }
+
+    func notice(for iid: Int) -> CIAutoRerunNotice? {
+        notices[iid]
     }
 
     func startPolling() {
@@ -91,6 +97,7 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
 
     func start(_ iid: Int, maxAttempts: Int) {
         guard plans[iid] == nil, maxAttempts > 0 else { return }
+        notices[iid] = nil
         plans[iid] = CIAutoRerunPlan(iid: iid, maxAttempts: maxAttempts, attempts: 0, handledWorkflowIDs: [], lastRerunAt: nil, onlyFlaky: onlyFlaky)
         save()
         activity.log(
@@ -106,6 +113,7 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
         guard plans[iid] != nil else { return }
         plans[iid] = nil
         loggedErrors[iid] = nil
+        notices[iid] = nil
         save()
         activity.log("Auto re-run off for \(words.reference(iid))", detail: "", outcome: .info)
     }
@@ -124,7 +132,10 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
                 workflows.append(try await ci.workflow(id: workflowID, project: project))
             }
             loggedErrors[iid] = nil
-            await act(on: workflows, of: iid, project: project)
+            if notices[iid]?.isProblem == true, plans[iid] != nil {
+                notices[iid] = nil
+            }
+            await act(on: CIAutoRerunPolicy.current(workflows), of: iid, project: project)
         } catch is CancellationError {
         } catch {
             report(error, of: iid)
@@ -152,17 +163,17 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
             let failed = zip(workflows, decisions).filter { $0.1 == .rerun }.map(\.0)
             await rerun(failed, of: iid, project: project, failedTests: testsByWorkflow)
         case .succeeded:
-            finish(iid, title: "\(words.checksTitle) of \(reference) passed", body: afterText(plan.attempts), outcome: .success, symbol: .rerun)
+            finish(iid, title: "\(words.checksTitle) of \(reference) passed", body: afterText(plan.attempts), outcome: .success, symbol: .rerun, notice: "\(words.checksTitle) passed")
         case .cancelled:
-            finish(iid, title: "Auto re-run of \(reference) stopped", body: "A CircleCI workflow was cancelled", outcome: .info, symbol: .stopped)
+            finish(iid, title: "Auto re-run of \(reference) stopped", body: "A CircleCI workflow was cancelled", outcome: .info, symbol: .stopped, notice: "Stopped: a CircleCI workflow was cancelled")
         case .exhausted:
-            finish(iid, title: "Auto re-run of \(reference) gave up", body: "The \(words.checks) failed again after \(CountText.count(plan.maxAttempts, "re-run", "re-runs"))", outcome: .failure, symbol: .stopped)
+            finish(iid, title: "Auto re-run of \(reference) gave up", body: "The \(words.checks) failed again after \(CountText.count(plan.maxAttempts, "re-run", "re-runs"))", outcome: .failure, symbol: .stopped, notice: "Gave up after \(CountText.count(plan.maxAttempts, "re-run", "re-runs"))")
         case .stopped(let reason):
             for (workflow, decision) in zip(workflows, decisions) {
                 guard case .stopped = decision else { continue }
                 history.remember(workflow, failedTests: testsByWorkflow[workflow.id] ?? [:], for: iid)
             }
-            finish(iid, title: "Auto re-run of \(reference) stopped", body: "No re-run: \(reason)", outcome: .failure, symbol: .stopped)
+            finish(iid, title: "Auto re-run of \(reference) stopped", body: "No re-run: \(reason). \(Self.onlyFlakyAdvice)", outcome: .failure, symbol: .stopped, notice: "Stopped: \(reason)")
         }
     }
 
@@ -237,9 +248,10 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
             : "A re-run happens after every failure"
     }
 
-    private func finish(_ iid: Int, title: String, body: String, outcome: ActivityEvent.Outcome, symbol: NotificationSymbol) {
+    private func finish(_ iid: Int, title: String, body: String, outcome: ActivityEvent.Outcome, symbol: NotificationSymbol, notice: String) {
         plans[iid] = nil
         loggedErrors[iid] = nil
+        notices[iid] = CIAutoRerunNotice(text: notice, detail: "\(title). \(body)", isProblem: outcome != .success)
         save()
         activity.log(title, detail: body, outcome: outcome, kind: .requestChecks, target: .pullRequest(iid: iid))
         notifier.notify(.requestChecks, symbol: symbol, title: title, body: body, target: .pullRequest(iid: iid))
@@ -249,8 +261,12 @@ final class CIAutoRerunStore: CIAutoRerunLookup {
         let message = error.localizedDescription
         guard loggedErrors[iid] != message else { return }
         loggedErrors[iid] = message
-        activity.log("Auto re-run of \(words.reference(iid)) cannot read the \(words.checks)", detail: message, outcome: .failure)
+        let title = "Auto re-run of \(words.reference(iid)) cannot read the \(words.checks)"
+        notices[iid] = CIAutoRerunNotice(text: "Cannot read the \(words.checks), DevHub tries again every minute", detail: "\(title): \(message)", isProblem: true)
+        activity.log(title, detail: message, outcome: .failure)
     }
+
+    static let onlyFlakyAdvice = "Turn off \"Only flaky failures\" in the Auto re-run menu to re-run after every failure."
 
     private func afterText(_ attempts: Int) -> String {
         attempts == 0 ? "No re-run was needed" : "After \(CountText.count(attempts, "re-run", "re-runs")) of the failed jobs"

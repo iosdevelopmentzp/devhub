@@ -219,6 +219,14 @@ struct PullRequestDetailsView: View {
 
     @ViewBuilder
     private func autoRerunControl(_ model: PullRequestDetailsModel.AutoRerun) -> some View {
+        if let notice = model.notice {
+            Text(notice)
+                .font(.caption)
+                .foregroundStyle(model.noticeTint.color)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .hint(model.noticeHint)
+        }
         if model.isOn {
             Button(model.title, systemImage: model.icon, action: actions.stopAutoRerun)
                 .buttonStyle(.borderedProminent)

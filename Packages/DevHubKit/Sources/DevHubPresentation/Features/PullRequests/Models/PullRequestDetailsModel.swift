@@ -47,6 +47,9 @@ struct PullRequestDetailsModel: Equatable {
         var onlyFlaky: Bool
         var onlyFlakyTitle = "Only flaky failures"
         var onlyFlakyHint: String
+        var notice: String?
+        var noticeHint = ""
+        var noticeTint = Tint.secondary
     }
 
     struct Loaded: Equatable {

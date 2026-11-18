@@ -13,6 +13,23 @@ import Testing
         CIAutoRerunPlan(iid: 7, maxAttempts: 3, attempts: attempts, handledWorkflowIDs: handled, lastRerunAt: lastRerunAt)
     }
 
+    @Test func anOlderRunOfTheSameWorkflowIsLeftOut() {
+        let old = CIWorkflow(id: "w1", name: "build", status: .failed, runID: nil, jobs: [], createdAt: now)
+        let new = CIWorkflow(id: "w2", name: "build", status: .running, runID: nil, jobs: [], createdAt: now.addingTimeInterval(60))
+        let lint = CIWorkflow(id: "w3", name: "lint", status: .failed, runID: nil, jobs: [], createdAt: now)
+
+        #expect(CIAutoRerunPolicy.current([old, new, lint]).map(\.id) == ["w2", "w3"])
+    }
+
+    @Test func withoutDatesAFinishedRunGivesWayToAnOpenOne() {
+        let old = CIWorkflow(id: "w1", name: "build", status: .failed, runID: nil, jobs: [])
+        let new = CIWorkflow(id: "w2", name: "build", status: .running, runID: nil, jobs: [])
+        let other = CIWorkflow(id: "w3", name: "build", status: .failed, runID: nil, jobs: [])
+
+        #expect(CIAutoRerunPolicy.current([old, new]).map(\.id) == ["w2"])
+        #expect(CIAutoRerunPolicy.current([old, other]).map(\.id) == ["w1", "w3"])
+    }
+
     @Test func aFailedWorkflowRunsAgainWhileAttemptsAreLeft() {
         #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: plan(attempts: 2), failure: nil, now: now) == .rerun)
         #expect(CIAutoRerunPolicy.decision(for: workflow(.failed), plan: plan(attempts: 3), failure: nil, now: now) == .exhausted)

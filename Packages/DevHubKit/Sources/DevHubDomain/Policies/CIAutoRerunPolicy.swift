@@ -43,6 +43,12 @@ package enum CIAutoRerunPolicy {
         }
     }
 
+    package static func current(_ workflows: [CIWorkflow]) -> [CIWorkflow] {
+        workflows.filter { workflow in
+            workflows.contains { isNewer($0, than: workflow) } == false
+        }
+    }
+
     package static func outcome(of decisions: [Decision]) -> Outcome {
         if decisions.contains(.exhausted) { return .exhausted }
         for decision in decisions {
@@ -53,5 +59,22 @@ package enum CIAutoRerunPolicy {
         let open = decisions.filter { $0 != .handled }
         guard open.isEmpty == false, open.allSatisfy({ $0 == .succeeded }) else { return .wait }
         return .succeeded
+    }
+
+    private static func isNewer(_ other: CIWorkflow, than workflow: CIWorkflow) -> Bool {
+        guard other.id != workflow.id, other.name == workflow.name else { return false }
+        if let otherDate = other.createdAt, let date = workflow.createdAt {
+            return otherDate > date
+        }
+        return isFinished(workflow.status) && isFinished(other.status) == false
+    }
+
+    private static func isFinished(_ status: CheckStatus) -> Bool {
+        switch status {
+        case .success, .failed, .canceled, .skipped:
+            true
+        default:
+            false
+        }
     }
 }

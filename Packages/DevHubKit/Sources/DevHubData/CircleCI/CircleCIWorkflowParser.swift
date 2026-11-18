@@ -19,6 +19,7 @@ enum CircleCIWorkflowParser {
         let outcome: String?
         let currentOutcome: String?
         let runId: String?
+        let createdAt: String?
         let jobs: [Job]?
     }
 
@@ -29,7 +30,8 @@ enum CircleCIWorkflowParser {
             name: dto.name ?? "",
             status: CircleCIStatusMapper.status(phase: dto.phase, outcome: dto.outcome, currentOutcome: dto.currentOutcome),
             runID: dto.runId,
-            jobs: (dto.jobs ?? []).map(job)
+            jobs: (dto.jobs ?? []).map(job),
+            createdAt: dto.createdAt.flatMap(ISO8601.date(from:))
         )
     }
 

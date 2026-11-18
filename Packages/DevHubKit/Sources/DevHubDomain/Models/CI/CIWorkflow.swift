@@ -6,12 +6,14 @@ package struct CIWorkflow: Hashable, Sendable, Codable {
     package let status: CheckStatus
     package let runID: String?
     package let jobs: [CIJob]
+    package let createdAt: Date?
 
-    package init(id: String, name: String, status: CheckStatus, runID: String?, jobs: [CIJob]) {
+    package init(id: String, name: String, status: CheckStatus, runID: String?, jobs: [CIJob], createdAt: Date? = nil) {
         self.id = id
         self.name = name
         self.status = status
         self.runID = runID
         self.jobs = jobs
+        self.createdAt = createdAt
     }
 }

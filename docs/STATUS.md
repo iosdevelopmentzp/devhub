@@ -1,6 +1,6 @@
 # Status
 
-Last updated: 2026-11-16 (emoji in notification titles; Hidden section in the Git tab; code host login check in Doctor, copy of build errors, Finder and copy actions in Changes)
+Last updated: 2026-11-18 (auto re-run skips superseded workflow runs and shows why it stopped; emoji in notification titles; Hidden section in the Git tab; code host login check in Doctor, copy of build errors, Finder and copy actions in Changes)
 
 ## Stage
 
@@ -147,6 +147,7 @@ Numbered. What, then why. A later session must not undo these without a new numb
 86. **Doctor checks the login of the current code host.** `CodeHostRepository.access` returns the login and the token scopes: GitHub from `gh auth status --active --hostname <host> --json hosts` (no token in the output; `--json` always exits 0, so an empty host or a state other than `success` maps to `notLoggedIn`), GitLab from `glab api user` and `glab api personal_access_tokens/self` (an OAuth login has no such token, so the scopes stay unknown and nothing is called missing). `CodeHostAccessPolicy` holds the required scopes with their purpose and the scopes that also grant them (`write:org`, `admin:org` for `read:org`). Why: a missing scope otherwise shows only when an action fails.
 87. **Hidden files are read from the index, and their diff goes through a temporary copy.** `git status` and `git diff` skip a file with `skip-worktree` or `assume-unchanged`, so `ShellGitChangesRepository.hiddenFiles` reads `git ls-files -v -s -z` (tag `S`/`s` skip-worktree, a lower-case tag assume-unchanged, stage 0 only) and compares the index object with `git hash-object` of the file on disk. `hiddenDiff` writes the index version with `git checkout-index --ignore-skip-worktree-bits --prefix=<temp>/` and runs `git diff --no-index` (exit 1 means a difference); the temporary path is replaced by the file path in the output. Nothing is written into the repository. `TrackHiddenFileUseCase` clears both flags before `git stash push -- <path>` or `git restore`, because a stash does not see a hidden file. Why not `git hash-object -w` and a blob diff: it writes loose objects into the repository.
 88. **The notification emoji is chosen by the caller and added only in `Notifier`.** Each `notify` call names a `NotificationSymbol`; `Notifier` puts it before the title when `notificationEmoji` is on. The activity log and the Notifications screen keep the plain title, so search and tests of the log do not depend on the switch. A script notification passes no symbol: the script writes its own title.
+89. **Auto re-run reads only the newest run of each workflow name.** A request lists every CircleCI workflow of its commit, so after a re-run it shows the old failed run next to the new one. `CIAutoRerunPolicy.current` drops a run when a newer one of the same name exists (`CIWorkflow.createdAt`; without dates, a finished run gives way to an open one). Without it, the old run stopped a new plan at once with "Only flaky failures", or ran again a second time with the mode off.
 
 ## Next steps
 
