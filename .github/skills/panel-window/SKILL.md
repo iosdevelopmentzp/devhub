@@ -1,6 +1,6 @@
 ---
 name: panel-window
-description: "How DevHub's menu bar item, panel and windows work: AppWindows with an NSStatusItem and an own MenuBarPanel instead of MenuBarExtra, open and close rules, WindowLayout (saved position and size, drag, resize, screen clamping), the pinned window and pull request windows, the status item image and title (StatusItemState, StatusItemImage, StatusItemTitle), the GlobalHotKey shortcut, Dock icon and login item, light appearance, the hints overlay. Load before changing anything in DevHubPresentation/Shell, WindowLayout, hints or the status item."
+description: "How DevHub's menu bar item, panel and windows work: AppWindows with an NSStatusItem and an own MenuBarPanel instead of MenuBarExtra, open and close rules, WindowLayout (saved position and size, drag, resize, screen clamping), the main window, the pin button that switches the mode, and pull request windows, the status item image and title (StatusItemState, StatusItemImage, StatusItemTitle), the GlobalHotKey shortcut, Dock icon and login item, light appearance, the hints overlay. Load before changing anything in DevHubPresentation/Shell, WindowLayout, hints or the status item."
 ---
 
 # Panel Window
@@ -47,28 +47,33 @@ changes it; `SettingsStore.onWindowModeChange` calls `AppWindows.applyWindowMode
 
 | | Panel mode | Window mode |
 |---|---|---|
-| Left click on the icon, global shortcut (`toggle()`) | `showPinnedOrPanel()`: the pinned window to the front, else toggle the panel | `toggleWindow()`: hide the main window when it is the key window of the active app on this desktop, else `showWindow()` |
-| Dock click, "Show DevHub" (`show()`) | open the panel (or the pinned window) | `showWindow()` |
+| Left click on the icon, global shortcut (`toggle()`) | `togglePanel()` | `toggleWindow()`: `hideWindow()` when `WindowPresence` is `.front`, else `showWindow()` |
+| Dock click, "Show DevHub" (`show()`) | open the panel | `showWindow()` |
 | Dock icon | only with "Show Dock icon" | always (`SettingsStore.showsDockIcon`) |
 | Main menu | the SwiftUI default | `MainMenuBuilder` (DevHub with Check for Updates and Settings…, File, Edit, Window), installed again on every `didBecomeActiveNotification` |
-| Pin button | shown | hidden |
+| Pin button (`togglePin()`) | `pin`: switch to window mode | `pin.fill`: switch to panel mode |
 
 `MainWindow` is an `NSWindow` with a title bar, `moveToActiveSpace`, the light appearance and the autosave name
-`WindowLayout.mainAutosaveName` (the first time it takes the frame of the pinned window). `AppWindows` is its
+`WindowLayout.mainAutosaveName` (the first time it takes the frame of the old pinned window, `WindowLayout.pinnedAutosaveName`). `AppWindows` is its
 delegate: `windowShouldClose(_:)` calls `hideWindow()` and returns false, so the close button and ⌘W only hide it.
 `hideWindow()` orders the window out, saves `layout.isWindowOpen = false` and calls `NSApp.hide(nil)` when no pull
-request window is open, so the focus goes back to the previous app. `showWindow()` orders a window that is visible on
-another desktop out first, so `moveToActiveSpace` brings it to the current desktop.
+request window is open, so the focus goes back to the previous app.
+
+`WindowPresence` (`Shell/`, tested in `WindowPresenceTests`) reads the main window: `.closed`, `.minimized`,
+`.otherDesktop`, `.behind` or `.front` (visible on this desktop, DevHub active, the window is main or key; a popover
+makes it key-less but it stays main). Only `.front` makes the icon hide the window. `showWindow()` deminiaturizes a
+`.minimized` window and orders an `.otherDesktop` window out first, so `moveToActiveSpace` brings it to the current
+desktop, then activates DevHub and orders the window front.
 
 ## Pieces
 
 | Type | Module, folder | Role |
 |---|---|---|
-| `AppWindows` | Presentation `Shell/` | `package final class`, `NSWindowDelegate`. Owns the `NSStatusItem`, the `MenuBarPanel`, the pinned window, the `MainWindow` and one window per pull request. `toggle()`, `show()`, `togglePanel()`, `showPanel()`, `togglePin()`, `showWindow()`, `hideWindow()`, `showPullRequestWindow(_:)` |
+| `AppWindows` | Presentation `Shell/` | `package final class`, `NSWindowDelegate`. Owns the `NSStatusItem`, the `MenuBarPanel`, the `MainWindow` and one window per pull request. `toggle()`, `show()`, `togglePanel()`, `showPanel()`, `togglePin()`, `showWindow()`, `hideWindow()`, `showPullRequestWindow(_:)` |
 | `MainWindow`, `MainMenuBuilder` | Presentation `Shell/` | the window and the main menu of window mode |
 | `MenuBarPanel` | Presentation `Shell/` | `NSPanel`: `.borderless`, `canBecomeKey` true, `isFloatingPanel`, `level = .statusBar`, `hidesOnDeactivate = false`, `isReleasedWhenClosed = false`, `collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]`, `animationBehavior = .none`, `isMovable = false`, clear background, shadow |
 | `WindowLayout` | Presentation `Shared/` | `@Observable`: `size`, `panelTopLeft`, `openCount`, `isWindowOpen` (saved as `window.isOpen`); `panelFrame(anchor:anchorScreen:)`, `fit(_:)`, `resize(to:in:)`, `reset()`. Saves `window.size` and `window.panelTopLeft` through `KeyValueStore` |
-| `WindowFrame` | Presentation `Shell/` | view modifier: a fixed `frame(width:height:)` from `layout.size` in the panel; a flexible frame with `minimumSize` in the pinned window that writes its size back to `layout` |
+| `WindowFrame` | Presentation `Shell/` | view modifier: a fixed `frame(width:height:)` from `layout.size` in the panel; a flexible frame with `minimumSize` in the main window that writes its size back to `layout` |
 | `RootView` | Presentation `Shell/` | usage strip, `HeaderView`, `FeatureTabBar`, the selected tab or `NoProjectState`, `OutputPanel`, `FooterView`; the `OperationsTray` and `ToastView` overlay at the bottom of the tab, the palette overlay, `HintOverlay` |
 | `PanelDragArea`, `WindowDragArea` | Presentation `Shell/` | the header background moves the panel; a double click puts it back under the icon |
 | `ResizeGrip` | Presentation `Shell/` | in the footer: a drag changes `layout.size`; a double click sets 720 × 820 |
@@ -96,7 +101,7 @@ Environment values for the shell: `\.isPinnedWindow` (DevHubUI), `\.togglePin`, 
   `acceptsFirstMouse`) and calls `statusItemClicked`, so the clicks work as before. It takes a drop of video files
   (`VideoCompressionPolicy.isVideo`): the button is highlighted while a video is over it, and a drop calls `show()`,
   then `AppActions.compressVideos(_:)`, which opens Utils → Compress Video and adds the files (ADR 009 D6).
-- `Notifier.panelShown(_:)` hears every open and close, so notifications show only while the panel and the pinned
+- `Notifier.panelShown(_:)` hears every open and close, so notifications show only while the panel and the main
   window are closed. The main window counts as shown only while it is visible, not minimized and DevHub is the
   active app.
 
@@ -112,13 +117,15 @@ Environment values for the shell: `\.isPinnedWindow` (DevHubUI), `\.togglePin`, 
 - `resize(to:in:)` limits the size to the room between the top-left corner and the screen edge, so the grip stays on
   the screen. Sizes never go below `WindowLayout.minimumSize` (640 × 560). The default is `defaultSize` (720 × 820).
 
-## Pinned window
+## Pin
 
-The pin button in `HeaderView` calls `\.togglePin`. `togglePin()` closes the panel and shows an `NSWindow` with
-`[.titled, .closable, .miniaturizable, .resizable]`, `level = .floating`, `isReleasedWhenClosed = false`,
-`contentMinSize = WindowLayout.minimumSize` and the autosave name `WindowLayout.pinnedAutosaveName`. The content is
-the same `RootView` with `\.isPinnedWindow` true and `sizingOptions = [.minSize]`. `showPinnedOrPanel()` (the hot key)
-brings the pinned window to the front when it is visible, else toggles the panel.
+There is no separate pinned window. The pin button in `HeaderView` calls `\.togglePin`, and `togglePin()` flips
+`settings.values.windowMode`; `SettingsStore` then sets the Dock icon and calls `applyWindowMode(_:)`, the same path as
+Settings → Window. Into window mode: when the panel is visible, `placeMainWindow(over:on:)` gives the main window the
+panel frame as its content frame (`frameRect(forContentRect:)`, `constrainFrameRect(_:to:)`), so the title bar sits
+above the panel and the content stays in place. Back to panel mode: the main window is ordered out and the panel
+opens. `\.isPinnedWindow` is true in the main window: the button shows `pin.fill`, the frame is flexible, no resize
+grip.
 
 `showPullRequestWindow(_:)` opens one window per pull request (860 × 720, autosave name
 `WindowLayout.pullRequestAutosaveName`) with `PullRequestWindowView`.

@@ -8,21 +8,15 @@ package final class AppWindows: NSObject, NSWindowDelegate {
     private let assembly: PresentationAssembly
     private let statusItem: NSStatusItem
     let panel: MenuBarPanel
-    private var pinnedWindow: NSWindow?
     private var mainWindow: MainWindow?
     private var pullRequestWindows: [PullRequestSummary.ID: NSWindow] = [:]
     private var clickMonitor: Any?
     private var resignObserver: NSObjectProtocol?
-    private var pinnedCloseObserver: NSObjectProtocol?
     private var lastPanelTopLeft: CGPoint?
     private var activationObservers: [NSObjectProtocol] = []
 
     private var layout: WindowLayout {
         assembly.layout
-    }
-
-    var isPinnedVisible: Bool {
-        pinnedWindow?.isVisible == true
     }
 
     var visibleContentView: NSView? {
@@ -35,6 +29,17 @@ package final class AppWindows: NSObject, NSWindowDelegate {
 
     private var mode: WindowMode {
         assembly.settings.values.windowMode
+    }
+
+    private var mainWindowPresence: WindowPresence {
+        guard let mainWindow else { return .closed }
+        return WindowPresence.presence(
+            isVisible: mainWindow.isVisible,
+            isMinimized: mainWindow.isMiniaturized,
+            isOnActiveSpace: mainWindow.isOnActiveSpace,
+            isAppActive: NSApp.isActive,
+            isMain: mainWindow.isMainWindow || mainWindow.isKeyWindow
+        )
     }
 
     package init(assembly: PresentationAssembly) {
@@ -121,7 +126,7 @@ package final class AppWindows: NSObject, NSWindowDelegate {
 
     package func toggle() {
         switch mode {
-        case .panel: showPinnedOrPanel()
+        case .panel: togglePanel()
         case .window: toggleWindow()
         }
     }
@@ -130,7 +135,7 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         switch mode {
         case .panel:
             guard panel.isVisible == false else { return }
-            showPinnedOrPanel()
+            showPanel()
         case .window:
             showWindow()
         }
@@ -144,38 +149,26 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         }
     }
 
-    private func showPinnedOrPanel() {
-        if let pinnedWindow, pinnedWindow.isVisible {
-            NSApp.activate()
-            pinnedWindow.makeKeyAndOrderFront(nil)
-            return
-        }
-        togglePanel()
-    }
-
     func togglePin() {
-        if let pinnedWindow, pinnedWindow.isVisible {
-            pinnedWindow.close()
-            return
-        }
-        closePanel()
-        showPinnedWindow()
+        assembly.settings.values.windowMode = mode == .panel ? .window : .panel
     }
 
     func showWindow() {
         closePanel()
-        pinnedWindow?.close()
+        let presence = mainWindowPresence
         let window = mainWindow ?? makeMainWindow()
         if mainWindow == nil {
             mainWindow = window
         } else {
             layout.openCount += 1
         }
-        if window.isMiniaturized {
+        switch presence {
+        case .minimized:
             window.deminiaturize(nil)
-        }
-        if window.isVisible, window.isOnActiveSpace == false {
+        case .otherDesktop:
             window.orderOut(nil)
+        case .closed, .behind, .front:
+            break
         }
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
@@ -194,7 +187,7 @@ package final class AppWindows: NSObject, NSWindowDelegate {
     }
 
     private func toggleWindow() {
-        if let mainWindow, NSApp.isActive, mainWindow.isKeyWindow, mainWindow.isOnActiveSpace {
+        if mainWindowPresence == .front {
             hideWindow()
         } else {
             showWindow()
@@ -209,8 +202,18 @@ package final class AppWindows: NSObject, NSWindowDelegate {
             layout.isWindowOpen = false
             showPanel()
         case .window:
+            if panel.isVisible {
+                placeMainWindow(over: panel.frame, on: panel.screen)
+            }
             showWindow()
         }
+    }
+
+    private func placeMainWindow(over contentFrame: NSRect, on screen: NSScreen?) {
+        let window = mainWindow ?? makeMainWindow()
+        mainWindow = window
+        let frame = window.frameRect(forContentRect: contentFrame)
+        window.setFrame(window.constrainFrameRect(frame, to: screen), display: false)
     }
 
     package func showPullRequestWindow(_ summary: PullRequestSummary) {
@@ -354,13 +357,9 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         updatePanelShown()
     }
 
-    private func pinnedWindowWillClose() {
-        assembly.notifier.panelShown(panel.isVisible)
-    }
-
     private func updatePanelShown() {
         let isMainShown = mainWindow?.isVisible == true && mainWindow?.isMiniaturized == false && NSApp.isActive
-        assembly.notifier.panelShown(panel.isVisible || isPinnedVisible || isMainShown)
+        assembly.notifier.panelShown(panel.isVisible || isMainShown)
     }
 
     private func installMainMenu() {
@@ -400,42 +399,6 @@ package final class AppWindows: NSObject, NSWindowDelegate {
         }
         let frame = window.convertToScreen(button.convert(button.bounds, to: nil))
         return CGPoint(x: frame.midX - layout.size.width / 2, y: frame.minY - 4)
-    }
-
-    private func showPinnedWindow() {
-        if pinnedWindow != nil {
-            layout.openCount += 1
-        }
-        let window = pinnedWindow ?? makePinnedWindow()
-        pinnedWindow = window
-        if window.setFrameUsingName(WindowLayout.pinnedAutosaveName) == false {
-            window.setContentSize(layout.size)
-            window.center()
-        }
-        window.setFrameAutosaveName(WindowLayout.pinnedAutosaveName)
-        NSApp.activate()
-        window.makeKeyAndOrderFront(nil)
-        updatePanelShown()
-    }
-
-    private func makePinnedWindow() -> NSWindow {
-        let window = NSWindow(
-            contentRect: NSRect(origin: .zero, size: layout.size),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
-            backing: .buffered,
-            defer: false
-        )
-        window.title = "DevHub"
-        window.level = .floating
-        window.isReleasedWhenClosed = false
-        window.contentMinSize = WindowLayout.minimumSize
-        window.contentViewController = hostingController(isPinned: true)
-        pinnedCloseObserver = NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) { [weak self] _ in
-            Task { @MainActor in
-                self?.pinnedWindowWillClose()
-            }
-        }
-        return window
     }
 
     private func makeMainWindow() -> MainWindow {

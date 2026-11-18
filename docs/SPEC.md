@@ -70,20 +70,20 @@ Details: `docs/features/output.md` (Output panel) and `docs/features/palette.md`
 
 - Next to the icon, the title can show the Claude session usage in percent and the number of requests that wait for your review. Each part has a switch in Settings.
 
-### 2.2 Panel and pinned window
+### 2.2 Panel and window
 
 - The panel is a borderless `NSPanel`, 720 × 820 points by default, minimum 640 × 560. A grip in the footer corner resizes it.
 - A drag on empty header or footer space moves the panel. DevHub saves the position and uses it on the next open. A double-click on empty header space moves the panel to its place under the icon again.
 - The panel always stays inside the visible area of its screen. It gets smaller when the screen is small.
 - A click outside the panel or a switch to another app closes the panel.
-- The pin button in the header opens the same content in a normal floating window. That window stays open, keeps its frame and does not close on a click outside.
+- The pin button in the header turns the panel into the normal window at the same place (window mode below). The pin button in the window turns it back into the panel.
 - A pull request can open in its own window (860 × 720 by default).
-- Settings → General → Window "Normal window" replaces the panel with one window that has a title bar, a Dock icon and a main menu. The close button hides it, and it comes to the current desktop when shown. The pin button is hidden in this mode.
+- Settings → General → Window "Normal window" replaces the panel with one window that has a title bar, a Dock icon and a main menu. The close button hides it. The menu bar icon and the shortcut hide it when it is in front; otherwise they bring it to the current desktop and make it active. A click on the Dock icon always shows it on the current desktop.
 
 ### 2.3 Layout from top to bottom
 
 1. **Usage strip** (a switch in Settings). One row per AI provider that is logged in. Claude shows the session and week limits. Copilot shows the premium requests of the month. A click shows reset times and a Refresh button.
-2. **Header.** The project menu (switch project, Add Project), the current branch under the project name, the search field with a prompt per tab (⌘F), the palette button (⌘K), the pin button (panel mode only) and the settings button. ⌃⌘1 to ⌃⌘9 select the first nine projects.
+2. **Header.** The project menu (switch project, Add Project), the current branch under the project name, the search field with a prompt per tab (⌘F), the palette button (⌘K), the pin button and the settings button. ⌃⌘1 to ⌃⌘9 select the first nine projects.
 3. **Tab bar.** The built-in tabs, then the tabs the user placed in the bar. ⌘1 to ⌘9 select the first nine tabs. The selected tab has the accent colour. When the titles do not fit, the other tabs show only icons. A right-click on a tab moves it into Utils; a right-click on a sub-tab of Utils brings it back. Home and Utils stay.
 4. **Search filter bar.** A thin bar with "Clear search" appears only when the current tab is filtered. Without it, a saved query could hide most of a list without a sign.
 5. **The view of the selected tab.**
@@ -96,7 +96,7 @@ DevHub has no default project. With no project, the panel shows "No project yet"
 
 ### 2.5 Global shortcut
 
-Settings offers a fixed list: ⌥⌘D (default), ⌃⌥Space, ⌃⌥D or Off. The shortcut opens the panel. When the pinned window is open, it brings that window to the front. It needs no Accessibility permission.
+Settings offers a fixed list: ⌥⌘D (default), ⌃⌥Space, ⌃⌥D or Off. The shortcut does what a click on the menu bar icon does: it opens or closes the panel, or in window mode shows or hides the window. It needs no Accessibility permission.
 
 ### 2.6 Output panel
 
@@ -138,7 +138,7 @@ Sources:
 
 ### 2.8 Notifications
 
-- DevHub posts macOS notifications only while the panel and the pinned window are closed. Settings has the main switch "Notify while the panel is closed" (on by default), one switch per kind with a description, and an "Allow Notifications" button. DevHub asks for the permission only from that button.
+- DevHub posts macOS notifications only while the panel and the window are closed. Settings has the main switch "Notify while the panel is closed" (on by default), one switch per kind with a description, and an "Allow Notifications" button. DevHub asks for the permission only from that button.
 - Kinds: builds (finished, launched or failed), crashes of the launched app on a simulator (from the macOS crash reports, see the Simulators page), test runs of a worktree, more requests waiting for your review, and changes of your own open requests: an approval or a request for changes, failed checks or pipeline, new comments by someone else ("sam commented on #12"), a merge or a close. DevHub compares two reads of the open requests (every 5 minutes, every 2 minutes while the panel is closed); a request that left the list gets one status read to tell a merge from a close.
 - The `notify` directive of a script posts a notification when the permission is given, even while the panel is open and with the main switch off, unless its kind is muted.
 - A click on a notification opens DevHub at the place of the event (a request, the review list, the Worktrees tab, the run bar). A notification without a place opens the Notifications screen.
@@ -373,7 +373,7 @@ Each item here cost at least one failed attempt. Read the matching item before y
 
 ### 5.1 Menu bar item and panel
 
-- **Do not use `MenuBarExtra(.window)`.** It moves the panel to the icon on every open and every resize, so a saved position is lost. DevHub uses an `NSStatusItem` and its own borderless `NSPanel` subclass: `canBecomeKey` true, `level = .statusBar`, `hidesOnDeactivate = false`, `collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]`, `animationBehavior = .none`, `isMovable = false`. `AppWindows` owns the status item, the panel, the pinned window and the pull request windows.
+- **Do not use `MenuBarExtra(.window)`.** It moves the panel to the icon on every open and every resize, so a saved position is lost. DevHub uses an `NSStatusItem` and its own borderless `NSPanel` subclass: `canBecomeKey` true, `level = .statusBar`, `hidesOnDeactivate = false`, `collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]`, `animationBehavior = .none`, `isMovable = false`. `AppWindows` owns the status item, the panel, the main window and the pull request windows.
 - **Open at once.** DevHub creates the hosting controller on the first open and keeps it. Later opens only set the frame and show the panel. `openCount` grows by one on each open, and the root view uses it to refresh the stores.
 - **Close rules.** A global mouse-down monitor and `NSApplication.didResignActiveNotification` close the panel. The monitor is removed on close.
 - **Position.** `WindowLayout` saves the size and the top-left point. The frame stays 12 points inside the visible frame of the screen. A drag view sets `setFrameOrigin` by itself (`mouseDownCanMoveWindow` is false). The resize grip starts from the saved top-left point, so a moved panel does not jump back.
@@ -564,7 +564,7 @@ Run these checks by hand on a test repository with a remote and the example fold
 2. Start the app with no project. The panel shows "No project yet" and an Add Project button.
 3. Add the test repository. The header shows the project name and the branch.
 4. Move the panel, resize it, close it and open it again. It opens at the same place and size. A double-click on empty header space moves it under the icon again.
-5. Press the pin button. A floating window opens with the same content and stays open after a click outside.
+5. Press the pin button. The panel turns into a window with a title bar and a Dock icon at the same place. Click the menu bar icon: the window hides. Click it again: the window comes back. Press the pin button in the window: the panel comes back.
 6. Choose ⌥⌘D in Settings, close the panel and press ⌥⌘D. The panel opens.
 7. On a clean checkout, press ⌘K, type a branch name and choose "Switch to <branch>". The branch changes, and the command appears in the Output panel. With local changes, the palette shows the Git tab and a toast instead.
 8. Run a command that fails (for example Pull on a branch that has no upstream). A red card under the Git header names the failed step and the reason, with Retry, Copy Error and Full Output. The footer shows "1 failed". The Output panel shows a red entry.

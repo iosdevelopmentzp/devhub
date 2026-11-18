@@ -113,7 +113,7 @@ Documentation, UI text, hints, commit messages and the changelog use short sente
 - `testing`: Swift Testing conventions, spies, store harness, fixtures, integration suites.
 - `ui-components`: DevHubUI blocks, row model and mapper pattern, formatters, `Tint`, spacing.
 - `xcode-toolchain`: `xcodebuild`, `simctl`, DerivedData, product lookup, signing trap, log streams, Xcode attach.
-- `panel-window`: status item, panel, pinned window, position, appearance, hints, hot key.
+- `panel-window`: status item, panel, main window, pin, position, appearance, hints, hot key.
 - `extensions`: the `.devhub/` config (actions, scripts, launch profiles, custom tabs) and how to extend the schema.
 - `build-and-run`: build scripts, smoke check, debug launch switches, common failures.
 - `update-docs`: end-of-session pass over changelog, status, ADR step log, feature pages, this file and the skills.

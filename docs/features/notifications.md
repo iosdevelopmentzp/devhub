@@ -51,7 +51,7 @@ The second pane of the Notifications screen ("Events | Inbox" at the start of th
 ## macOS notifications
 
 - Settings → Notifications has the main switch "Notify while the panel is closed" and one switch per kind, each with a description ([Settings](settings.md#notifications)). A muted kind still goes to the list and to Recent.
-- A kind other than the script one posts only while the panel and the pinned window are closed and the main switch is on. The script kind posts in every case, unless it is muted.
+- A kind other than the script one posts only while the panel and the window are closed and the main switch is on. The script kind posts in every case, unless it is muted.
 - A click on a macOS notification opens DevHub (the panel or the window, by the window mode) at the place of the event. A notification without a place opens the Notifications screen.
 - The notification carries its place in `userInfo` (`NotificationTargetCodec`); `NotificationCenterDelegate` reads it back and hands it to `AppWindows` through `UserNotificationRepository.activations()`.
 
